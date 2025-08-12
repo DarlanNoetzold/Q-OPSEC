@@ -1,4 +1,8 @@
 package tech.noetzold.context_api.model;
 
-public class DeviceMeta {
-}
+public record DeviceMeta(
+        String osVersion,
+        String deviceType,
+        String mfaStatus,
+        String securityStatus
+) {}
