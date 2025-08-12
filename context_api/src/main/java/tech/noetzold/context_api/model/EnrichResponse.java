@@ -1,4 +1,9 @@
 package tech.noetzold.context_api.model;
 
-public class EnrichResponse {
-}
+public record EnrichResponse(
+        String request_id,
+        SourceContext source,
+        DestinationContext destination,
+        RiskContext risk,
+        ContentConfidentiality confidentiality
+) {}
