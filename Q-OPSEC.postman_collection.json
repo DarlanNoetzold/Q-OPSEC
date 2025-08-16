@@ -1,0 +1,130 @@
+{
+	"info": {
+		"_postman_id": "6e144d2a-111c-4b2f-98f8-abac3f289a9a",
+		"name": "Q-OPSEC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16000387"
+	},
+	"item": [
+		{
+			"name": "confiability_service",
+			"item": [
+				{
+					"name": "classify",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"uuid-123\",\n    \"content_pointer\": {\n      \"ref\": \"doc-456\",\n      \"sample_text\": \"Customer contract includes email john.doe@example.com and IBAN GB33BUKB20201555555555\",\n      \"metadata\": {\n        \"doc_type\": \"finance\",\n        \"app\": \"billing-service\",\n        \"user_label\": \"confidential\"\n      }\n    },\n    \"source\": { \"ip\": \"192.168.1.10\" },\n    \"destination\": { \"service_id\": \"svc-456\" }\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8083/confidentiality/classify",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"confidentiality",
+								"classify"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "train",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "risk_service",
+			"item": [
+				{
+					"name": "train",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"n\": 600,\n    \"seed\": 42\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/risk/train",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"risk",
+								"train"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "assess",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"uuid-123\",\n    \"signals\": {\n      \"global_alert_level\": \"high\",\n      \"current_campaigns\": [\n        { \"name\": \"Q3-phishing\", \"severity\": \"medium\", \"geo\": \"BR\", \"target_type\": \"api\" }\n      ],\n      \"anomaly_index_global\": 0.42,\n      \"incident_rate_7d\": 5,\n      \"patch_delay_days_p50\": 18,\n      \"exposure_level\": \"high\",\n      \"maintenance_window\": false,\n      \"compliance_debt_score\": 0.35,\n      \"business_critical_period\": true,\n      \"geo_region\": \"BR\"\n    }\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/risk/assess",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"risk",
+								"assess"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
