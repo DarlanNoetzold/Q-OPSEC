@@ -125,6 +125,45 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "context_api",
+			"item": [
+				{
+					"name": "enrich",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requestId\": \"uuid-ctx-123\",\n    \"source\": {\n      \"ip\": \"192.168.0.10\",\n      \"user_id\": \"user-123\",\n      \"device_id\": \"dev-456\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"geo\": \"BR\",\n      \"os_version\": \"Windows 11\",\n      \"device_type\": \"laptop\",\n      \"mfa_status\": \"enabled\",\n      \"security_status\": \"healthy\"\n    },\n    \"destination\": {\n      \"ip\": \"10.0.0.10\",\n      \"service_id\": \"svc-789\",\n      \"service_type\": \"billing-api\",\n      \"security_policy\": \"strict\",\n      \"security_status\": \"patched\",\n      \"os_version\": \"Ubuntu 22.04\",\n      \"allowed_protocols\": [\"https\", \"mtls\"]\n    },\n    \"metadata\": {\n      \"transaction_id\": \"tx-111\",\n      \"operation\": \"pay_invoice\"\n    }\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/context/enrich",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"context",
+								"enrich"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
