@@ -1,6 +1,6 @@
 package tech.noetzold.context_api.controller;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import tech.noetzold.context_api.model.EnrichRequest;
 import tech.noetzold.context_api.model.EnrichResponse;
@@ -17,7 +17,7 @@ public class ContextController {
     }
 
     @PostMapping("/enrich")
-    public EnrichResponse enrich(@RequestBody EnrichRequest req, ServerHttpRequest httpReq) {
+    public EnrichResponse enrich(@RequestBody EnrichRequest req, HttpServletRequest httpReq) {
         return service.enrichAll(req, httpReq);
     }
 }
