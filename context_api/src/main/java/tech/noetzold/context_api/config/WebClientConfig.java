@@ -12,7 +12,7 @@ public class WebClientConfig {
     @Bean
     public WebClient riskWebClient() {
         return WebClient.builder()
-                .baseUrl("http://risk-service:8082")
+                .baseUrl("http://localhost:8082")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
@@ -20,7 +20,7 @@ public class WebClientConfig {
     @Bean
     public WebClient confWebClient() {
         return WebClient.builder()
-                .baseUrl("http://conf-service:8083")
+                .baseUrl("http://localhost:8083")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
