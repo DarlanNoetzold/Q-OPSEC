@@ -1,41 +1,54 @@
 package tech.noetzold.context_api.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import tech.noetzold.context_api.model.DestinationContext;
 import tech.noetzold.context_api.model.RiskContext;
-import tech.noetzold.context_api.model.SourceContext;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @Component
 public class RiskServiceClient {
-    private final WebClient webClient;
-    public RiskServiceClient(WebClient riskWebClient) { this.webClient = riskWebClient; }
 
-    public Optional<RiskContext> assess(String requestId, SourceContext src, DestinationContext dst) {
-        var payload = Map.of("request_id", requestId, "source", src, "destination", dst);
+    private final WebClient webClient;
+
+    public RiskServiceClient(@Qualifier("riskWebClient") WebClient riskWebClient) {
+        this.webClient = riskWebClient;
+    }
+
+    public Optional<RiskContext> assessGeneral(String requestId, Map<String, Object> signals) {
         try {
-            return Optional.ofNullable(
-                    webClient.post().uri("/risk/assess")
-                            .bodyValue(payload)
-                            .retrieve()
-                            .bodyToMono(RiskContext.class)
-                            .timeout(Duration.ofMillis(200))
-                            .onErrorResume(e -> Mono.empty())
-                            .block()
-            );
+            Map<String, Object> payload = new HashMap<>();
+            if (requestId != null) payload.put("request_id", requestId);
+            if (signals != null) payload.put("signals", signals);
+
+            RiskContext resp = webClient.post()
+                    .uri("/risk/assess")
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(RiskContext.class)
+                    .timeout(Duration.ofMillis(1000))
+                    .onErrorResume(e -> Mono.empty())
+                    .block();
+            return Optional.ofNullable(resp);
         } catch (Exception e) {
-            return Optional.of(defaultRisk());
+            return Optional.empty();
         }
     }
 
-    private RiskContext defaultRisk() {
-        return new RiskContext(0.3, "low", 0.1, Map.of("source", "fallback"), 0, java.util.List.of(),
-                Instant.now().toString(), "risk-fb-0.0.1");
+    public Map<String, Object> buildBasicSignals(String geoRegion, String mfaStatus, String exposureLevel) {
+        Map<String, Object> signals = new HashMap<>();
+        if (geoRegion != null) signals.put("geo_region", geoRegion);
+        if (mfaStatus != null) signals.put("mfa_status", mfaStatus);
+        if (exposureLevel != null) signals.put("exposure_level", exposureLevel);
+        // defaults exemplares
+        signals.putIfAbsent("anomaly_index_global", 0.0);
+        signals.putIfAbsent("incident_rate_7d", 0);
+        signals.putIfAbsent("maintenance_window", false);
+        return signals;
     }
 }
