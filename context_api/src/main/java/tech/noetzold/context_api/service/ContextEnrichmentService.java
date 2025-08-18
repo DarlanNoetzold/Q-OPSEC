@@ -1,6 +1,6 @@
 package tech.noetzold.context_api.service;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import tech.noetzold.context_api.model.*;
 
@@ -22,7 +22,7 @@ public class ContextEnrichmentService {
         this.confFacade = confFacade;
     }
 
-    public EnrichResponse enrichAll(EnrichRequest req, ServerHttpRequest httpReq) {
+    public EnrichResponse enrichAll(EnrichRequest req, HttpServletRequest httpReq) {
         SourceContext source = srcBuilder.build(req.source_hint(), req, httpReq);
         DestinationContext dest = destBuilder.build(req.destination_hint(), req);
 
