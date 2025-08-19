@@ -22,15 +22,38 @@ public class ConfidentialityServiceClient {
     }
 
     public Optional<ContentConfidentiality> classify(String requestId,
-                                                     Map<String, Object> content,
+                                                     Map<String, Object> contentPointer,
                                                      SourceContext src,
                                                      DestinationContext dst) {
         try {
             Map<String, Object> payload = new HashMap<>();
-            if (requestId != null) payload.put("request_id", requestId);
-            if (content != null && !content.isEmpty()) payload.put("content", content);
-            if (src != null) payload.put("source", src);
-            if (dst != null) payload.put("destination", dst);
+            if (requestId != null && !requestId.isBlank()) {
+                payload.put("request_id", requestId);
+            }
+
+            // content_pointer conforme schema do Flask
+            if (contentPointer != null && !contentPointer.isEmpty()) {
+                Map<String, Object> cp = new HashMap<>();
+                if (contentPointer.get("ref") != null) cp.put("ref", contentPointer.get("ref"));
+                if (contentPointer.get("sample_text") != null) cp.put("sample_text", contentPointer.get("sample_text"));
+                if (contentPointer.get("metadata") != null) cp.put("metadata", contentPointer.get("metadata"));
+                payload.put("content_pointer", cp);
+            } else {
+                // Se o schema exigir sempre content_pointer, envie um objeto vazio
+                payload.put("content_pointer", new HashMap<>());
+            }
+
+            // Reduz source/destination aos campos aceitos pelo schema
+            if (src != null && src.ip() != null) {
+                Map<String, Object> sourceMin = new HashMap<>();
+                sourceMin.put("ip", src.ip());
+                payload.put("source", sourceMin);
+            }
+            if (dst != null && dst.service_id() != null) {
+                Map<String, Object> destMin = new HashMap<>();
+                destMin.put("service_id", dst.service_id());
+                payload.put("destination", destMin);
+            }
 
             ContentConfidentiality resp = webClient.post()
                     .uri("/confidentiality/classify")
