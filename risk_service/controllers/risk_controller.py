@@ -1,3 +1,4 @@
+# controllers/risk_controller.py
 from flask import Blueprint, request, jsonify
 from models.schemas import AssessRequest, TrainRequest, RiskContext, TrainResponse, validate_payload
 from services.risk_model_service import RiskModelService
@@ -22,5 +23,11 @@ def assess():
     if err:
         return jsonify({"error": "VALIDATION_ERROR", "details": err.errors()}), 400
 
-    resp: RiskContext = _service.assess(model_obj)
-    return jsonify(resp.model_dump())
+    assessed = _service.assess(model_obj)
+    if assessed is None:
+        return jsonify({
+            "error": "MODEL_NOT_READY",
+            "message": "Train the model first or wait for the hourly retrain."
+        }), 503
+
+    return jsonify(assessed.model_dump())
