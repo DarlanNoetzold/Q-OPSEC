@@ -20,33 +20,36 @@ public class RiskAssessmentFacade {
     }
 
     public RiskContext getRisk(String reqId, SourceContext src, DestinationContext dest) {
-        // Monta signals a partir do contexto disponível
+        String rid = (reqId == null || reqId.isBlank()) ? java.util.UUID.randomUUID().toString() : reqId;
+
         Map<String, Object> signals = new HashMap<>();
         if (src != null) {
             if (src.geo() != null) signals.put("geo_region", src.geo());
-            if (src.mfaStatus() != null) signals.put("mfa_status", src.mfaStatus());
+            if (src.mfa_status() != null) signals.put("mfa_status", src.mfa_status());
         }
         if (dest != null) {
-            String exposure = deriveExposureFromPolicy(dest.securityPolicy());
+            String exposure = deriveExposureFromPolicy(dest.security_policy());
             if (exposure != null) signals.put("exposure_level", exposure);
         }
-        // Defaults defensivos (ajuste conforme o seu modelo de features)
+
+        signals.putIfAbsent("global_alert_level", "low");
+        signals.putIfAbsent("current_campaigns", java.util.List.of());
         signals.putIfAbsent("anomaly_index_global", 0.0);
         signals.putIfAbsent("incident_rate_7d", 0);
+        signals.putIfAbsent("patch_delay_days_p50", 0);
+        signals.putIfAbsent("exposure_level", "medium");
         signals.putIfAbsent("maintenance_window", false);
+        signals.putIfAbsent("compliance_debt_score", 0.0);
+        signals.putIfAbsent("business_critical_period", false);
 
-        return riskClient.assessGeneral(reqId, signals).orElseGet(() -> {
+        return riskClient.assessGeneral(rid, signals).orElseGet(() -> {
             Map<String, Object> meta = new HashMap<>();
             meta.put("source", "fallback");
             return new RiskContext(
-                    0.3,                       // score
-                    "low",                      // level
-                    0.1,                        // confidence
-                    meta,                       // metadata (HashMap para evitar NPE de Map.of com null)
-                    0,                          // model_version or flags, conforme seu POJO
-                    List.of(),                  // contributors / rules acionadas
-                    Instant.now().toString(),   // timestamp
-                    "risk-fb-0.0.1"             // engine/version
+                    0.3, "low", 0.1,
+                    meta, 0, java.util.List.of(),
+                    java.time.Instant.now().toString(),
+                    "risk-fb-0.0.1"
             );
         });
     }
