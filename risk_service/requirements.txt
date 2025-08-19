@@ -3,3 +3,7 @@ pydantic==2.8.2
 scikit-learn==1.4.2
 numpy==1.26.4
 pydantic
+apscheduler
+xgboost
+lightgbm
+pandas
