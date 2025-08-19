@@ -1,191 +1,298 @@
-import threading
-import random
+# services/risk_model_service.py
+from typing import Tuple, Dict, Any, Optional, List
 from datetime import datetime
-from typing import Tuple, List, Dict, Optional
-
+import os
+import time
+import joblib
 import numpy as np
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import r2_score, mean_absolute_error
+import pandas as pd
 
-from models.schemas import GeneralSignals, AssessRequest, RiskContext, TrainRequest, TrainResponse
-from repositories.config_repo import ConfigRepository
+from models.schemas import AssessRequest, TrainRequest, RiskContext, TrainResponse
+from repositories.config_repo import DATA_DIR, MODELS_DIR, set_best_model, get_best_model_info, read_registry, \
+    write_registry, ConfigRepository
 
-SEVERITY_WEIGHTS = {"none": 0.0, "low": 0.2, "medium": 0.5, "high": 0.75, "critical": 1.0}
-EXPOSURE_WEIGHTS = {"low": 0.2, "medium": 0.5, "high": 0.8}
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import LinearSVC
 
-def campaigns_severity_max(campaigns: List[Dict[str, str]]) -> float:
-    sev = 0.0
-    for c in campaigns or []:
-        sev = max(sev, SEVERITY_WEIGHTS.get(c.get("severity", "medium"), 0.5))
-    return sev
+try:
+    from xgboost import XGBClassifier
 
-def to_features(s: GeneralSignals):
-    base_alert = SEVERITY_WEIGHTS.get(s.global_alert_level, 0.5)
-    campaign_sev = campaigns_severity_max(s.current_campaigns)
-    anomaly = np.clip(s.anomaly_index_global, 0.0, 1.0)
-    incidents = s.incident_rate_7d
-    patch = min(1.0, s.patch_delay_days_p50 / 30.0)
-    exposure = EXPOSURE_WEIGHTS.get(s.exposure_level, 0.5)
-    compliance = s.compliance_debt_score
-    maint = 1.0 if s.maintenance_window else 0.0
-    critical_period = 1.0 if s.business_critical_period else 0.0
+    HAS_XGB = True
+except Exception:
+    HAS_XGB = False
 
-    x = np.array([
-        base_alert, campaign_sev, anomaly, incidents, patch,
-        exposure, compliance, maint, critical_period
-    ], dtype=float)
-    return x
+try:
+    from lightgbm import LGBMClassifier
 
-def gen_sample(rng: random.Random) -> Tuple[GeneralSignals, float]:
-    gal = rng.choices(["none", "low", "medium", "high", "critical"], weights=[1, 2, 3, 2, 1])[0]
-    exp = rng.choices(["low", "medium", "high"], weights=[2, 5, 3])[0]
-    anomaly = max(0.0, min(1.0, rng.random() ** 0.7))
-    incidents = int(np.clip(int(rng.gauss(3, 2)), 0, 20))
-    patch_p50 = int(np.clip(int(rng.gauss(15, 8)), 0, 60))
-    comp_debt = max(0.0, min(1.0, rng.random()))
-    maint = rng.random() < 0.2
-    crit_period = rng.random() < 0.25
+    HAS_LGBM = True
+except Exception:
+    HAS_LGBM = False
 
-    has_campaign = rng.random() < 0.6
-    if has_campaign:
-        sev = rng.choices(["low", "medium", "high"], weights=[2, 5, 3])[0]
-        campaigns = [{"name": "synthetic-camp", "severity": sev, "geo": "global", "target_type": "api"}]
-    else:
-        campaigns = []
+FEATURE_COLUMNS = [
+    "global_alert_level_idx",
+    "anomaly_index_global",
+    "incident_rate_7d",
+    "patch_delay_days_p50",
+    "exposure_level_idx",
+    "maintenance_window",
+    "compliance_debt_score",
+    "business_critical_period"
+]
 
-    s = GeneralSignals(
-        global_alert_level=gal,
-        current_campaigns=campaigns,
-        anomaly_index_global=float(anomaly),
-        incident_rate_7d=incidents,
-        patch_delay_days_p50=patch_p50,
-        exposure_level=exp,
-        maintenance_window=maint,
-        compliance_debt_score=comp_debt,
-        business_critical_period=crit_period,
-        geo_region="global"
-    )
+CATEGORICAL_MAPS = {
+    "global_alert_level": {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4},
+    "exposure_level": {"low": 0, "medium": 1, "high": 2},
+}
 
-    w = {"base": 0.16, "intel": 0.12, "camp": 0.12, "inc": 0.14,
-         "anom": 0.16, "patch": 0.10, "exp": 0.10, "comp": 0.10}
-    base = SEVERITY_WEIGHTS[gal]
-    intel = 0.5
-    camp = campaigns_severity_max(campaigns)
-    inc = min(1.0, incidents / 12.0)
-    anom = anomaly
-    patch = min(1.0, patch_p50 / 30.0)
-    expv = EXPOSURE_WEIGHTS[exp]
-    comp = comp_debt
 
+def encode_row(signals: Dict[str, Any]) -> Dict[str, Any]:
+    gal = signals.get("global_alert_level", "low")
+    exp = signals.get("exposure_level", "medium")
+    return {
+        "global_alert_level_idx": CATEGORICAL_MAPS["global_alert_level"].get(str(gal).lower(), 1),
+        "anomaly_index_global": float(signals.get("anomaly_index_global", 0.0)),
+        "incident_rate_7d": int(signals.get("incident_rate_7d", 0)),
+        "patch_delay_days_p50": int(signals.get("patch_delay_days_p50", 0)),
+        "exposure_level_idx": CATEGORICAL_MAPS["exposure_level"].get(str(exp).lower(), 1),
+        "maintenance_window": 1 if signals.get("maintenance_window", False) else 0,
+        "compliance_debt_score": float(signals.get("compliance_debt_score", 0.0)),
+        "business_critical_period": 1 if signals.get("business_critical_period", False) else 0,
+    }
+
+
+def synth_label(row: Dict[str, Any]) -> int:
+    # Heurística simples para gerar um label consistente com risco
     score = (
-        w["base"] * base + w["intel"] * intel + w["camp"] * camp + w["inc"] * inc +
-        w["anom"] * anom + w["patch"] * patch + w["exp"] * expv + w["comp"] * comp
+            0.2 * row["global_alert_level_idx"]
+            + 0.3 * row["anomaly_index_global"]
+            + 0.2 * (row["incident_rate_7d"] / 100.0)
+            + 0.1 * (row["patch_delay_days_p50"] / 30.0)
+            + 0.15 * row["exposure_level_idx"]
+            + 0.05 * row["compliance_debt_score"]
+            + (0.1 if row["business_critical_period"] else 0.0)
+            - (0.05 if row["maintenance_window"] else 0.0)
     )
-    multiplier = 1.0 + (0.05 if maint else 0.0) + (0.08 if crit_period else 0.0)
-    score = float(np.clip(score * multiplier + rng.gauss(0, 0.03), 0.0, 1.0))
-    return s, score
+    # 0/1/2 -> very_low/low/medium/high/critical mapearemos depois
+    if score < 0.4:
+        return 0
+    elif score < 0.8:
+        return 1
+    else:
+        return 2
 
-def gen_dataset(n: int, seed: int):
-    rng = random.Random(seed)
-    X_list, y_list = [], []
-    for _ in range(n):
-        s, y = gen_sample(rng)
-        x = to_features(s)
-        X_list.append(x)
-        y_list.append(y)
-    X = np.vstack(X_list)
-    y = np.array(y_list, dtype=float)
-    return X, y
+
+class DatasetManager:
+    def __init__(self):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        self.train_csv = os.path.join(DATA_DIR, "signals_train.csv")
+        self.valid_csv = os.path.join(DATA_DIR, "signals_valid.csv")
+
+    def ensure_or_generate(self, n_train: int = 800, n_valid: int = 200, seed: int = 42):
+        if os.path.exists(self.train_csv) and os.path.exists(self.valid_csv):
+            return
+        rng = np.random.default_rng(seed)
+
+        def gen(n):
+            rows = []
+            for _ in range(n):
+                s = {
+                    "global_alert_level": np.random.choice(["none", "low", "medium", "high", "critical"],
+                                                           p=[0.05, 0.35, 0.35, 0.2, 0.05]),
+                    "current_campaigns_count": int(rng.integers(0, 5)),  # não usado no modelo baseline
+                    "anomaly_index_global": float(rng.random()),
+                    "incident_rate_7d": int(rng.integers(0, 200)),
+                    "patch_delay_days_p50": int(rng.integers(0, 60)),
+                    "exposure_level": np.random.choice(["low", "medium", "high"], p=[0.3, 0.5, 0.2]),
+                    "maintenance_window": bool(rng.integers(0, 2)),
+                    "compliance_debt_score": float(rng.random()),
+                    "business_critical_period": bool(rng.integers(0, 2)),
+                }
+                enc = encode_row(s)
+                label = synth_label(enc)
+                rows.append({**s, **enc, "label": label})
+            return pd.DataFrame(rows)
+
+        train_df = gen(n_train)
+        valid_df = gen(n_valid)
+        train_df.to_csv(self.train_csv, index=False)
+        valid_df.to_csv(self.valid_csv, index=False)
+
+    def load(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        train_df = pd.read_csv(self.train_csv)
+        valid_df = pd.read_csv(self.valid_csv)
+        return train_df, valid_df
+
+
+class ModelCandidateFactory:
+    @staticmethod
+    def candidates(random_state: int = 42) -> List[Tuple[str, Any]]:
+        models = []
+        # Modelos clássicos
+        models.append(("logreg", Pipeline([
+            ("scaler", StandardScaler()),
+            ("clf", LogisticRegression(max_iter=1000, random_state=random_state))
+        ])))
+        models.append(("rf", RandomForestClassifier(n_estimators=300, random_state=random_state)))
+        models.append(("gb", GradientBoostingClassifier(random_state=random_state)))
+        models.append(("mlp", Pipeline([
+            ("scaler", StandardScaler()),
+            ("clf", MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=600, random_state=random_state))
+        ])))
+        models.append(("linsvc", Pipeline([
+            ("scaler", StandardScaler()),
+            ("clf", LinearSVC(random_state=random_state))
+        ])))
+
+        if HAS_XGB:
+            models.append(("xgb", XGBClassifier(
+                n_estimators=400, max_depth=6, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8,
+                random_state=random_state, n_jobs=2, eval_metric="mlogloss"
+            )))
+        if HAS_LGBM:
+            models.append(("lgbm", LGBMClassifier(
+                n_estimators=400, num_leaves=63, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8,
+                random_state=random_state
+            )))
+        return models
+
+
+class ModelTrainer:
+    def __init__(self, criterion: str = "accuracy"):
+        assert criterion in ("accuracy", "f1"), "criterion must be accuracy or f1"
+        self.criterion = criterion
+
+    def train_and_select(self, X_train, y_train, X_val, y_val) -> Dict[str, Any]:
+        results = []
+        for name, model in ModelCandidateFactory.candidates():
+            try:
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_val)
+                acc = accuracy_score(y_val, y_pred)
+                f1 = f1_score(y_val, y_pred, average="macro")
+                model_path = os.path.join(MODELS_DIR, f"model_{name}_{int(time.time())}.joblib")
+                joblib.dump(model, model_path)
+                results.append({"name": name, "path": model_path, "metrics": {"accuracy": acc, "f1": f1}})
+            except Exception as e:
+                print(f"Failed to train {name}: {e}")
+                continue
+
+        if not results:
+            raise Exception("No models trained successfully")
+
+        # escolhe melhor
+        key = (lambda r: r["metrics"]["accuracy"]) if self.criterion == "accuracy" else (lambda r: r["metrics"]["f1"])
+        best = max(results, key=key)
+
+        # atualiza registry
+        registry = read_registry()
+        all_models = registry.get("models", [])
+        all_models.extend(results)
+        registry["models"] = sorted(all_models, key=lambda r: r["metrics"]["accuracy"], reverse=True)
+        write_registry(registry)
+        set_best_model(best)
+        return {"best": best, "all": results}
+
 
 class RiskModelService:
     def __init__(self):
-        self.model: Optional[GradientBoostingRegressor] = None
-        self.model_version: str = "untrained"
+        self.dataset = DatasetManager()
+        self.trainer = ModelTrainer(criterion="accuracy")
         self.cfg = ConfigRepository()
-        self._lock = threading.Lock()
+        self._best_model = None
+        self._best_info = None
+        self._retrain_lock = False
+        self._load_best_from_disk()
+
+    def _load_best_from_disk(self):
+        info = get_best_model_info()
+        if info and os.path.exists(info["path"]):
+            try:
+                self._best_model = joblib.load(info["path"])
+                self._best_info = info
+            except Exception:
+                self._best_model = None
+                self._best_info = None
+
+    def _to_response(self, score: float, level: str, anomaly_score: float) -> RiskContext:
+        now = datetime.utcnow()
+        policies = self.cfg.get_policy_overrides(level)
+        return RiskContext(
+            score=score,
+            level=level,
+            anomaly_score=anomaly_score,
+            threat_intel={"source": "ml"},
+            recent_incidents=0,
+            policy_overrides=policies,
+            timestamp=now,
+            model_version=self._best_info["name"] if self._best_info else "unknown"
+        )
 
     def train(self, req: TrainRequest) -> TrainResponse:
-        X, y = gen_dataset(req.n, req.seed if req.seed is not None else 42)
+        # Gera dataset se necessário
+        n = max(50, min(5000, req.n))
+        seed = req.seed if req.seed is not None else 42
+        self.dataset.ensure_or_generate(n_train=int(0.8 * n), n_valid=int(0.2 * n), seed=seed)
 
-        model = GradientBoostingRegressor(
-            random_state=req.seed or 42,
-            n_estimators=200,
-            max_depth=3,
-            learning_rate=0.06
-        )
-        model.fit(X, y)
+        train_df, valid_df = self.dataset.load()
+        X_train = train_df[FEATURE_COLUMNS].values
+        y_train = train_df["label"].values
+        X_val = valid_df[FEATURE_COLUMNS].values
+        y_val = valid_df["label"].values
 
-        idx = int(0.8 * len(X))
-        y_pred = model.predict(X[idx:])
-        r2 = float(r2_score(y[idx:], y_pred))
-        mae = float(mean_absolute_error(y[idx:], y_pred))
+        result = self.trainer.train_and_select(X_train, y_train, X_val, y_val)
+        self._best_info = result["best"]
+        self._best_model = joblib.load(self._best_info["path"])
 
-        with self._lock:
-            self.model = model
-            self.model_version = f"risk-ml-gbr-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
-
+        metrics = self._best_info["metrics"]
         return TrainResponse(
-            model_version=self.model_version,
-            metrics={"r2": round(r2, 3), "mae": round(mae, 3)},
-            samples=len(X)
+            model_version=f'{self._best_info["name"]}',
+            metrics={"accuracy": float(metrics["accuracy"]), "f1": float(metrics["f1"])},
+            samples=int(len(train_df) + len(valid_df))
         )
 
-    def assess(self, req: AssessRequest) -> RiskContext:
-        s = req.signals
-        x = to_features(s).reshape(1, -1)
+    def scheduled_retrain(self):
+        if self._retrain_lock:
+            return
+        self._retrain_lock = True
+        try:
+            # Garante dataset; não altera seed aqui
+            self.dataset.ensure_or_generate()
+            train_df, valid_df = self.dataset.load()
+            X_train = train_df[FEATURE_COLUMNS].values
+            y_train = train_df["label"].values
+            X_val = valid_df[FEATURE_COLUMNS].values
+            y_val = valid_df["label"].values
 
-        with self._lock:
-            model = self.model
-            model_version = self.model_version
+            result = self.trainer.train_and_select(X_train, y_train, X_val, y_val)
+            self._best_info = result["best"]
+            self._best_model = joblib.load(self._best_info["path"])
+        except Exception as e:
+            print(f"Scheduled retrain failed: {e}")
+        finally:
+            self._retrain_lock = False
 
-        if model is not None:
-            pred = float(np.clip(model.predict(x)[0], 0.0, 1.0))
-        else:
-            pred = float(np.clip(
-                0.15 * SEVERITY_WEIGHTS.get(s.global_alert_level, 0.5) +
-                0.12 * 0.5 +
-                0.12 * campaigns_severity_max(s.current_campaigns) +
-                0.14 * min(1.0, s.incident_rate_7d / 12.0) +
-                0.16 * s.anomaly_index_global +
-                0.10 * min(1.0, s.patch_delay_days_p50 / 30.0) +
-                0.10 * EXPOSURE_WEIGHTS.get(s.exposure_level, 0.5) +
-                0.10 * s.compliance_debt_score, 0.0, 1.0
-            ))
-            if s.maintenance_window:
-                pred *= 1.05
-            if s.business_critical_period:
-                pred *= 1.08
-            pred = float(np.clip(pred, 0.0, 1.0))
-            model_version = "risk-general-fallback-0.1.0"
+    def assess(self, req: AssessRequest) -> Optional[RiskContext]:
+        if self._best_model is None:
+            self._load_best_from_disk()
+        if self._best_model is None:
+            return None
 
-        level = self._map_level(pred)
-        policies = self.cfg.get_policy_overrides(level)
+        # Extrai features conforme GeneralSignals
+        sig = req.signals.model_dump()
+        enc = encode_row(sig)
+        x = np.array([[enc[c] for c in FEATURE_COLUMNS]])
+        pred = self._best_model.predict(x)[0]
 
-        threat_intel = {
-            "global_severity": "medium",
-            "campaigns": s.current_campaigns or [],
-            "confidence": "medium"
-        }
+        # map label -> score/level/anomaly
+        label_to_level = {0: "low", 1: "medium", 2: "high"}
+        level = label_to_level.get(int(pred), "low")
+        score_map = {"low": 0.25, "medium": 0.55, "high": 0.8}
+        anomaly = float(enc["anomaly_index_global"])
 
-        return RiskContext(
-            score=round(pred, 3),
-            level=level,
-            anomaly_score=round(s.anomaly_index_global, 3),
-            threat_intel=threat_intel,
-            recent_incidents=int(s.incident_rate_7d),
-            policy_overrides=policies,
-            timestamp=datetime.utcnow(),
-            model_version=model_version
-        )
-
-    def _map_level(self, score: float) -> str:
-        thr = self.cfg.get_policy_thresholds()
-        if score >= thr["critical"]:
-            return "critical"
-        if score >= thr["high"]:
-            return "high"
-        if score >= thr["medium"]:
-            return "medium"
-        if score >= thr["low"]:
-            return "low"
-        return "very_low"
+        return self._to_response(score=score_map[level], level=level, anomaly_score=anomaly)
