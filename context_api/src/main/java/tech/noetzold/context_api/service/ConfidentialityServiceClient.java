@@ -31,7 +31,6 @@ public class ConfidentialityServiceClient {
                 payload.put("request_id", requestId);
             }
 
-            // content_pointer conforme schema do Flask
             if (contentPointer != null && !contentPointer.isEmpty()) {
                 Map<String, Object> cp = new HashMap<>();
                 if (contentPointer.get("ref") != null) cp.put("ref", contentPointer.get("ref"));
@@ -39,11 +38,9 @@ public class ConfidentialityServiceClient {
                 if (contentPointer.get("metadata") != null) cp.put("metadata", contentPointer.get("metadata"));
                 payload.put("content_pointer", cp);
             } else {
-                // Se o schema exigir sempre content_pointer, envie um objeto vazio
                 payload.put("content_pointer", new HashMap<>());
             }
 
-            // Reduz source/destination aos campos aceitos pelo schema
             if (src != null && src.ip() != null) {
                 Map<String, Object> sourceMin = new HashMap<>();
                 sourceMin.put("ip", src.ip());
