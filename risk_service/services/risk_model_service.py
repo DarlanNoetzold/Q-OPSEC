@@ -129,38 +129,138 @@ class DatasetManager:
         return train_df, valid_df
 
 
+# services/risk_model_service.py (substituir a classe ModelCandidateFactory inteira por esta)
+
 class ModelCandidateFactory:
     @staticmethod
     def candidates(random_state: int = 42) -> List[Tuple[str, Any]]:
-        models = []
-        # Modelos clássicos
-        models.append(("logreg", Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf", LogisticRegression(max_iter=1000, random_state=random_state))
-        ])))
-        models.append(("rf", RandomForestClassifier(n_estimators=300, random_state=random_state)))
-        models.append(("gb", GradientBoostingClassifier(random_state=random_state)))
-        models.append(("mlp", Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf", MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=600, random_state=random_state))
-        ])))
-        models.append(("linsvc", Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf", LinearSVC(random_state=random_state))
-        ])))
+        models: List[Tuple[str, Any]] = []
 
-        if HAS_XGB:
-            models.append(("xgb", XGBClassifier(
-                n_estimators=400, max_depth=6, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8,
-                random_state=random_state, n_jobs=2, eval_metric="mlogloss"
-            )))
-        if HAS_LGBM:
-            models.append(("lgbm", LGBMClassifier(
-                n_estimators=400, num_leaves=63, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8,
+        # 5+ modelos clássicos/estado-da-arte
+        models.append((
+            "logreg",
+            Pipeline([
+                ("scaler", StandardScaler()),
+                ("clf", LogisticRegression(max_iter=2000, random_state=random_state))
+            ])
+        ))
+
+        models.append((
+            "rf",
+            RandomForestClassifier(
+                n_estimators=400,
+                max_depth=None,
+                min_samples_split=2,
+                min_samples_leaf=1,
+                bootstrap=True,
                 random_state=random_state
-            )))
-        return models
+            )
+        ))
 
+        models.append((
+            "gb",
+            GradientBoostingClassifier(
+                n_estimators=300,
+                learning_rate=0.05,
+                max_depth=3,
+                subsample=0.9,
+                random_state=random_state
+            )
+        ))
+
+        models.append((
+            "linsvc",
+            Pipeline([
+                ("scaler", StandardScaler()),
+                ("clf", LinearSVC(
+                    C=1.0,
+                    loss="squared_hinge",
+                    random_state=random_state
+                ))
+            ])
+        ))
+
+        # Se disponível, XGBoost e LightGBM
+        if HAS_XGB:
+            models.append((
+                "xgb",
+                XGBClassifier(
+                    n_estimators=500,
+                    max_depth=6,
+                    learning_rate=0.05,
+                    subsample=0.8,
+                    colsample_bytree=0.8,
+                    reg_lambda=1.0,
+                    random_state=random_state,
+                    n_jobs=2,
+                    eval_metric="mlogloss",
+                    tree_method="hist"
+                )
+            ))
+        if HAS_LGBM:
+            models.append((
+                "lgbm",
+                LGBMClassifier(
+                    n_estimators=700,
+                    num_leaves=63,
+                    learning_rate=0.04,
+                    subsample=0.8,
+                    colsample_bytree=0.8,
+                    reg_lambda=1.0,
+                    random_state=random_state
+                )
+            ))
+
+        # Garante pelo menos 5 modelos clássicos mesmo sem XGB/LGBM
+        # adiciona ExtraTrees e SVC-RBF como alternativas
+        from sklearn.ensemble import ExtraTreesClassifier
+        from sklearn.svm import SVC
+        models.append((
+            "extratrees",
+            ExtraTreesClassifier(
+                n_estimators=500,
+                max_depth=None,
+                random_state=random_state
+            )
+        ))
+        models.append((
+            "svm_rbf",
+            Pipeline([
+                ("scaler", StandardScaler()),
+                ("clf", SVC(kernel="rbf", C=2.0, gamma="scale", probability=False, random_state=random_state))
+            ])
+        ))
+
+        # +5 redes neurais (MLPs) com variações de largura e profundidade
+        mlp_configs = [
+            ("mlp_small", (64, 32)),
+            ("mlp_medium", (128, 64, 32)),
+            ("mlp_deep", (256, 128, 64, 32)),
+            ("mlp_bn_like", (128, 128, 64)),   # simulando profundidade
+            ("mlp_wide", (256, 256, 128)),
+        ]
+        for name, layers in mlp_configs:
+            models.append((
+                name,
+                Pipeline([
+                    ("scaler", StandardScaler()),
+                    ("clf", MLPClassifier(
+                        hidden_layer_sizes=layers,
+                        activation="relu",
+                        solver="adam",
+                        alpha=1e-4,
+                        learning_rate="adaptive",
+                        max_iter=800,
+                        batch_size=64,
+                        random_state=random_state,
+                        early_stopping=True,
+                        n_iter_no_change=20,
+                        validation_fraction=0.15
+                    ))
+                ])
+            ))
+
+        return models
 
 class ModelTrainer:
     def __init__(self, criterion: str = "accuracy"):
