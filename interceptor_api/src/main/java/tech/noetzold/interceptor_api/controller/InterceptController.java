@@ -18,7 +18,6 @@ public class InterceptController {
 
     @PostMapping
     public ResponseEntity<InterceptResponse> intercept(@RequestBody InterceptRequest req) {
-        InterceptResponse resp = interceptService.intercept(req);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(interceptService.intercept(req));
     }
 }
