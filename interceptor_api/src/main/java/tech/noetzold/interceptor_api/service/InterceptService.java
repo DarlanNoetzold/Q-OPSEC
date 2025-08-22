@@ -3,8 +3,11 @@ package tech.noetzold.interceptor_api.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.noetzold.interceptor_api.client.ContextApiClient;
+import tech.noetzold.interceptor_api.model.ContextRequest;
+import tech.noetzold.interceptor_api.model.ContextResponse;
+import tech.noetzold.interceptor_api.model.InterceptRequest;
+import tech.noetzold.interceptor_api.model.InterceptResponse;
 
-// service/InterceptService.java
 @Service
 public class InterceptService {
     @Autowired
