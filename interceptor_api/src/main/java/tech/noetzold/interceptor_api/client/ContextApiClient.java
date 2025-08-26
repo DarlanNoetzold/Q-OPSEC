@@ -8,7 +8,12 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class ContextApiClient {
-    private final RestTemplate restTemplate = new RestTemplate();
+
+    private final RestTemplate restTemplate;
+
+    public ContextApiClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Value("${context.api.url:http://localhost:8081/context}")
     private String contextApiUrl;
