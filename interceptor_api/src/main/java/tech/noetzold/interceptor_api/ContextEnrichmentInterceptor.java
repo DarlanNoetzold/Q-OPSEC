@@ -2,7 +2,6 @@ package tech.noetzold.interceptor_api;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tech.noetzold.interceptor_api.client.ContextApiClient;
@@ -26,11 +25,10 @@ public class ContextEnrichmentInterceptor implements HandlerInterceptor {
             String sourceId = request.getHeader("X-Source-Id");
             String destinationId = request.getHeader("X-Destination-Id");
 
-            String content = (String) request.getAttribute("rawBody"); // opcional, se capturar corpo
             ContextRequest ctxReq = ContextRequest.builder()
                     .sourceId(sourceId)
                     .destinationId(destinationId)
-                    .content(content)
+                    .content(null)
                     .metadata(Collections.emptyMap())
                     .build();
 
