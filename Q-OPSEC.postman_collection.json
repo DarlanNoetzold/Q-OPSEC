@@ -46,8 +46,30 @@
 				{
 					"name": "train",
 					"request": {
-						"method": "GET",
-						"header": []
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "POST",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8083/confidentiality/train",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"confidentiality",
+								"train"
+							]
+						}
 					},
 					"response": []
 				}
@@ -158,6 +180,105 @@
 							"path": [
 								"context",
 								"enrich"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "enrich 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"request_id\": \"uuid-ctx-123\",\n\"source_hint\": {\n\"ip\": \"192.168.0.10\",\n\"user_agent\": \"Mozilla/5.0\"\n},\n\"destination_hint\": {\n\"host\": \"api.local\",\n\"service_id\": \"svc-001\",\n\"path\": \"/pay\"\n},\n\"headers\": {\n\"X-User-Id\": \"user-123\",\n\"X-Device-Id\": \"dev-456\"\n},\n\"content_pointer\": {\n\"text\": \"fatura #123, valor R$ 500,00, cliente 98765432100\",\n\"mime\": \"text/plain\"\n}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/context/enrich",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"context",
+								"enrich"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "interceptor_api",
+			"item": [
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "intercept",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Source-Id",
+								"value": "device-123"
+							},
+							{
+								"key": "X-Destination-Id",
+								"value": "service-payments"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"message\": \"Transfer request for client 123, card 4111111111111111\",\n\"sourceId\": \"device-123\",\n\"destinationId\": \"service-payments\",\n\"metadata\": {\n\"doc_type\": \"finance\",\n\"app\": \"mobile\"\n}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/intercept",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"intercept"
 							]
 						}
 					},
