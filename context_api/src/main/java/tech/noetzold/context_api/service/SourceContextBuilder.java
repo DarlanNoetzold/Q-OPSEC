@@ -32,7 +32,6 @@ public class SourceContextBuilder {
             srcIp = "0.0.0.0";
         }
 
-        // Headers via servlet request, com hint como override
         String userAgent = (String) sh.getOrDefault("user_agent", getHeader(httpReq, req, "User-Agent"));
         String userId = (String) sh.getOrDefault("user_id", getHeader(httpReq, req, "X-User-Id"));
         String deviceId = (String) sh.getOrDefault("device_id", getHeader(httpReq, req, "X-Device-Id"));
