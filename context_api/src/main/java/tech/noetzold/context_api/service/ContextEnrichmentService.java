@@ -44,20 +44,21 @@ public class ContextEnrichmentService {
 
         // Persistência
         try {
-            String headersJson = req.headers() != null ? objectMapper.writeValueAsString(req.headers()) : "{}";
-            String sourceJson = objectMapper.writeValueAsString(source);
-            String destJson = objectMapper.writeValueAsString(dest);
-            String riskJson = objectMapper.writeValueAsString(risk);
-            String confJson = objectMapper.writeValueAsString(conf);
+            var headersNode = objectMapper.valueToTree(req.headers() != null ? req.headers() : java.util.Map.of());
+            var sourceNode = objectMapper.valueToTree(source);
+            var destNode   = objectMapper.valueToTree(dest);
+            var riskNode   = objectMapper.valueToTree(risk);
+            var confNode   = objectMapper.valueToTree(conf);
 
             ContextRecord rec = new ContextRecord(
                     req.request_id(),
-                    headersJson,
-                    sourceJson,
-                    destJson,
-                    riskJson,
-                    confJson
+                    headersNode,
+                    sourceNode,
+                    destNode,
+                    riskNode,
+                    confNode
             );
+
             recordRepo.save(rec);
         } catch (Exception e) {
             log.warn("Error to persist ContextRecord", e);
