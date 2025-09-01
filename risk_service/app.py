@@ -22,8 +22,10 @@ def create_app():
     def health():
         return jsonify({"status": "ok"}), 200
 
-    # Scheduler para re-treinar a cada hora
+    # Scheduler para jobs automáticos
     scheduler = BackgroundScheduler(daemon=True)
+
+    # Re-treinar a cada hora
     scheduler.add_job(
         func=service.scheduled_retrain,
         trigger="interval",
@@ -32,9 +34,19 @@ def create_app():
         max_instances=1,
         replace_existing=True
     )
+
+    # Limpeza de modelos antigos a cada 3 dias (usa RiskModelService)
+    scheduler.add_job(
+        func=service.scheduled_cleanup,   # << aqui é o método do RiskModelService
+        trigger="interval",
+        days=3,
+        id="cleanup_old_models",
+        max_instances=1,
+        replace_existing=True
+    )
+
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown(wait=False))
-
     return app
 
 app = create_app()
