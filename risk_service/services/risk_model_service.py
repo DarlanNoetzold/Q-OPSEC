@@ -6,6 +6,7 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
+from services.model_cleanup_service import ModelCleanupService
 
 from models.schemas import AssessRequest, TrainRequest, RiskContext, TrainResponse
 from repositories.config_repo import DATA_DIR, MODELS_DIR, set_best_model, get_best_model_info, read_registry, \
@@ -332,6 +333,61 @@ class RiskModelService:
             timestamp=now,
             model_version=self._best_info["name"] if self._best_info else "unknown"
         )
+
+    def cleanup_old_models(self,
+                           keep_best_n: int = 10,
+                           max_age_days: int = 30,
+                           min_accuracy_threshold: float = 0.5,
+                           dry_run: bool = True) -> Dict[str, Any]:
+        """Limpa modelos antigos"""
+        cleanup_service = ModelCleanupService(
+            MODELS_DIR,
+            os.path.join(DATA_DIR, "registry.json")
+        )
+
+        result = cleanup_service.cleanup_old_models(
+            keep_best_n=keep_best_n,
+            max_age_days=max_age_days,
+            min_accuracy_threshold=min_accuracy_threshold,
+            dry_run=dry_run
+        )
+
+        # Se removeu o modelo atual, recarregar o melhor
+        if not dry_run and result["models_removed"] > 0:
+            self._load_best_from_disk()
+        return result
+
+    def get_cleanup_recommendations(self) -> Dict[str, Any]:
+        """Obtém recomendações de limpeza"""
+        cleanup_service = ModelCleanupService(
+            MODELS_DIR,
+            os.path.join(DATA_DIR, "registry.json")
+        )
+        return cleanup_service.get_cleanup_recommendations()
+
+    def scheduled_cleanup(self):
+        """Executa uma limpeza periódica com parâmetros conservadores"""
+        try:
+            recommendations = self.get_cleanup_recommendations()
+
+            keep_best = max(5, recommendations.get("suggested_keep_best_n", 5))
+            max_age = max(60, recommendations.get("suggested_max_age_days", 60))
+            min_acc = min(0.4, recommendations.get("suggested_min_accuracy", 0.5))
+
+            result = self.cleanup_old_models(
+                keep_best_n=keep_best,
+                max_age_days=max_age,
+                min_accuracy_threshold=min_acc,
+                dry_run=False
+            )
+
+            print(f"Limpeza automática: {result['models_removed']} removidos, "
+                  f"{result['space_freed_mb']:.2f}MB liberados")
+            return result
+
+        except Exception as e:
+            print(f"Erro na limpeza automática: {e}")
+            return {"error": str(e)}
 
     def train(self, req: TrainRequest) -> TrainResponse:
         # Gera dataset se necessário
