@@ -20,12 +20,9 @@ def write_registry(registry: Dict[str, Any]) -> None:
 
 def set_best_model(model_info: Dict[str, Any]) -> None:
     registry = read_registry()
-    # remove best flag anterior
     for m in registry.get("models", []):
         m.pop("best", None)
-    # marca best
     model_info["best"] = True
-    # atualiza/insere
     updated = [m for m in registry.get("models", []) if m.get("path") != model_info["path"]]
     updated.append(model_info)
     registry["models"] = sorted(updated, key=lambda x: x.get("metrics", {}).get("accuracy", 0), reverse=True)
