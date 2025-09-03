@@ -1,4 +1,13 @@
 fallback:
   if_qkd_unavailable: Kyber1024
   if_pqc_unavailable: AES256_GCM
-  default: AES256_GCM
+  if_classic_unavailable: AES128_GCM
+  default: ChaCha20_Poly1305
+priority:
+  - QKD_BB84
+  - QKD_E91
+  - Kyber1024
+  - AES256_GCM
+  - Hybrid_PQC_RSA
+  - RSA4096
+  - ChaCha20_Poly1305
