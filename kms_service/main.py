@@ -6,6 +6,12 @@ from storage import save_session, get_session
 
 app = FastAPI(title="KMS Service", version="2.0.0")
 
+from key_manager import get_supported_algorithms
+
+@app.get("/kms/supported_algorithms")
+def supported_algorithms():
+    return get_supported_algorithms()
+
 @app.post("/kms/create_key", response_model=KeyResponse)
 async def create_key(req: CreateKeyRequest):
     session_id, alg, key_material, expires = build_session(req.session_id, req.algorithm, req.ttl_seconds)
