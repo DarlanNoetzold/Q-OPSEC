@@ -33,7 +33,8 @@ def negotiate_algorithms(src_props, dst_props):
     if chosen.startswith(("Kyber", "Dilithium", "Falcon", "Sphincs")) and False:
         return policies["fallback"]["if_pqc_unavailable"], True
 
-    return chosen, False
+    session_id = str(uuid.uuid4())
+    return chosen, session_id
 
 
 def create_session(alg: str, ttl_seconds: int = 300):
