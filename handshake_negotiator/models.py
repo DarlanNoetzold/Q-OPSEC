@@ -1,18 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timedelta
-import uuid
+from datetime import datetime
 
+class NegotiationRequest(BaseModel):
+    source: str
+    destination: str
+    proposed: List[str]
 
-class HandshakeRequest(BaseModel):
-    source: str = Field(..., example="node-A")
-    destination: str = Field(..., example="node-B")
-    proposed: List[str] = Field(..., example=["QKD_BB84", "Kyber1024", "AES256_GCM"])
-
-
-class HandshakeResponse(BaseModel):
+class NegotiationResponse(BaseModel):
     negotiated: str
-    session_key_id: str
+    session_id: str
+    key_material: str
     expires_at: datetime
-    fallback_used: Optional[bool] = False
-    message: str
+    fallback_used: bool = False
+    message: Optional[str] = None
