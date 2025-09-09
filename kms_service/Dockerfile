@@ -15,8 +15,8 @@ RUN git clone --depth 1 https://github.com/open-quantum-safe/liboqs \
  && cmake --build liboqs/build \
  && cmake --install liboqs/build --prefix /usr/local
 
-# Instala oqs-python e demais deps
-RUN pip install --no-cache-dir oqs fastapi uvicorn[standard] cryptography redis httpx sqlalchemy psycopg2-binary qunetsim
+# Instala oqs-python (principal) e pqcrypto (fallback) + demais deps
+RUN pip install --no-cache-dir oqs pqcrypto fastapi uvicorn[standard] cryptography redis httpx sqlalchemy psycopg2-binary qunetsim
 
 # Copia seu serviço
 WORKDIR /app
