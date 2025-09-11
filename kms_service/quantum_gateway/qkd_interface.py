@@ -1,26 +1,19 @@
+"""
+QKD Interface - Quantum Key Distribution Protocol Simulations
+
+Each protocol returns raw key material as bytes (pseudo-random).
+"""
+
 import os
-from quantum_gateway.compatibility_layer import to_session_key
 
-def _simulate_qkd_key(size: int = 32):
-    return os.urandom(size)
+def _random_key(bits: int = 256) -> bytes:
+    """Generate pseudo-random key material of given size in bits."""
+    return os.urandom(bits // 8)
 
-def generate_bb84_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_e91_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_cv_qkd_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_mdi_qkd_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_decoy_state_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_sarg04_key():
-    return to_session_key(_simulate_qkd_key())
-
-def generate_di_qkd_key():
-    return to_session_key(_simulate_qkd_key())
+def qkd_bb84_simulation() -> bytes: return _random_key()
+def qkd_e91_simulation() -> bytes: return _random_key()
+def qkd_cv_simulation() -> bytes: return _random_key()
+def qkd_mdi_simulation() -> bytes: return _random_key()
+def qkd_sarg04_simulation() -> bytes: return _random_key()
+def qkd_decoy_state_simulation() -> bytes: return _random_key()
+def qkd_device_independent_simulation() -> bytes: return _random_key()
