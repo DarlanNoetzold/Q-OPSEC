@@ -1,16 +1,17 @@
 import base64
 import os
-from datetime import datetime, timedelta
+import time
+from typing import Optional, Tuple
+import uuid
 from crypto_utils import derive_key
 from quantum_gateway.gateway import generate_key_from_gateway
-from quantum_gateway.compatibility_layer import to_session_key
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from cryptography.hazmat.primitives import serialization
 
-# ========================================
+# ====
 # liboqs (Open Quantum Safe) - principal
-# ========================================
+# ====
 OQS_AVAILABLE = False
 try:
     import oqs
@@ -22,12 +23,11 @@ except ImportError:
     OQS_AVAILABLE = False
     print("liboqs-python não disponível")
 
-# ========================================
+# ====
 # pqcrypto fallback (se disponível)
-# ========================================
+# ====
 PQC_AVAILABLE = False
 try:
-    # Tenta importar apenas os módulos que realmente existem
     import pqcrypto
 
     # Verifica se tem KEMs disponíveis
@@ -43,7 +43,8 @@ except ImportError:
     print("pqcrypto não disponível")
     PQC_AVAILABLE = False
 
-def _normalize_oqs_algorithm(requested: str, kem_mechs: list[str], sig_mechs: list[str]) -> tuple[str | None, str]:
+
+def _normalize_oqs_algorithm(requested: str, kem_mechs: list, sig_mechs: list) -> Tuple[Optional[str], str]:
     """
     Tenta mapear o nome solicitado para um mecanismo disponível pelo OQS.
     Retorna (normalized_name_ou_None, category: 'kem'|'sig'|'')
@@ -69,7 +70,7 @@ def _normalize_oqs_algorithm(requested: str, kem_mechs: list[str], sig_mechs: li
         "Dilithium3": "ML-DSA-65",
         "Dilithium5": "ML-DSA-87",
 
-        # Alguns pacotes expõem falcon em caixa alta, outros com hífen
+        # Falcon variants
         "Falcon-512": "Falcon-512",
         "Falcon-1024": "Falcon-1024",
         "FALCON-512": "Falcon-512",
@@ -96,6 +97,7 @@ def _normalize_oqs_algorithm(requested: str, kem_mechs: list[str], sig_mechs: li
             return m, "sig"
 
     return None, ""
+
 
 def _oqs_kem_mechanisms():
     """Detecta KEMs disponíveis no liboqs (compatibilidade multi-versão)"""
@@ -196,7 +198,7 @@ def _get_pqcrypto_sigs():
     return available_sigs
 
 
-def generate_key(algorithm: str):
+def generate_key(algorithm: str) -> Tuple[str, str]:
     """
     Gera chave de sessão segura via:
     1. QKD (Quantum Gateway)
@@ -207,16 +209,16 @@ def generate_key(algorithm: str):
     Retorna: (algorithm_used, key_material_base64)
     """
 
-    # ========================================
+    # ====
     # 1. QKD via Quantum Gateway
-    # ========================================
+    # ====
     chosen_algo, key_material = generate_key_from_gateway(algorithm)
     if key_material:
         return chosen_algo, key_material
 
-    # ========================================
+    # ====
     # 2. PQC via liboqs (principal)
-    # ========================================
+    # ====
     if OQS_AVAILABLE:
         kem_mechs = _oqs_kem_mechanisms()
         sig_mechs = _oqs_sig_mechanisms()
@@ -239,196 +241,85 @@ def generate_key(algorithm: str):
             except Exception as e:
                 print(f"Erro ao gerar Signature {normalized} via liboqs: {e}")
 
-    # ========================================
-    # 3. PQC via pqcrypto (fallback)
-    # ========================================
+    # ====
+    # 3. PQC via pqcrypto (fallback) - implementação mais robusta
+    # ====
     if PQC_AVAILABLE:
-        # KEMs - NTRU family
-        if algorithm == "NTRU-HRSS-701":
+        pqc_kem_map = {
+            "NTRU-HRSS-701": ("pqcrypto.kem.ntruhrss701", "ntruhrss701"),
+            "NTRU-HPS-2048-509": ("pqcrypto.kem.ntruhps2048509", "ntruhps2048509"),
+            "NTRU-HPS-2048-677": ("pqcrypto.kem.ntruhps2048677", "ntruhps2048677"),
+            "LightSaber": ("pqcrypto.kem.lightsaber", "lightsaber"),
+            "Saber": ("pqcrypto.kem.saber", "saber"),
+            "FireSaber": ("pqcrypto.kem.firesaber", "firesaber"),
+            "FrodoKEM-640-AES": ("pqcrypto.kem.frodokem640aes", "frodokem640aes"),
+            "FrodoKEM-976-AES": ("pqcrypto.kem.frodokem976aes", "frodokem976aes"),
+            "FrodoKEM-1344-AES": ("pqcrypto.kem.frodokem1344aes", "frodokem1344aes")
+        }
+
+        pqc_sig_map = {
+            "Dilithium2": ("pqcrypto.sign.dilithium2", "dilithium2"),
+            "Dilithium3": ("pqcrypto.sign.dilithium3", "dilithium3"),
+            "Dilithium5": ("pqcrypto.sign.dilithium5", "dilithium5"),
+            "Falcon-512": ("pqcrypto.sign.falcon512", "falcon512"),
+            "Falcon-1024": ("pqcrypto.sign.falcon1024", "falcon1024"),
+            "SPHINCS+-SHA256-128s": ("pqcrypto.sign.sphincssha256128ssimple", "sphincssha256128ssimple"),
+            "SPHINCS+-SHA256-192s": ("pqcrypto.sign.sphincssha256192ssimple", "sphincssha256192ssimple"),
+            "SPHINCS+-SHA256-256s": ("pqcrypto.sign.sphincssha256256ssimple", "sphincssha256256ssimple")
+        }
+
+        # Tenta KEMs
+        if algorithm in pqc_kem_map:
+            module_path, module_name = pqc_kem_map[algorithm]
             try:
-                from pqcrypto.kem import ntruhrss701
-                pk, sk = ntruhrss701.generate_keypair()
-                ct, ss = ntruhrss701.encapsulate(pk)
+                module = __import__(module_path, fromlist=[module_name])
+                pk, sk = module.generate_keypair()
+                ct, ss = module.encapsulate(pk)
                 return algorithm, base64.b64encode(ss).decode()
             except ImportError:
                 pass
 
-        if algorithm == "NTRU-HPS-2048-509":
+        # Tenta Signatures
+        if algorithm in pqc_sig_map:
+            module_path, module_name = pqc_sig_map[algorithm]
             try:
-                from pqcrypto.kem import ntruhps2048509
-                pk, sk = ntruhps2048509.generate_keypair()
-                ct, ss = ntruhps2048509.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "NTRU-HPS-2048-677":
-            try:
-                from pqcrypto.kem import ntruhps2048677
-                pk, sk = ntruhps2048677.generate_keypair()
-                ct, ss = ntruhps2048677.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        # KEMs - SABER family
-        if algorithm == "LightSaber":
-            try:
-                from pqcrypto.kem import lightsaber
-                pk, sk = lightsaber.generate_keypair()
-                ct, ss = lightsaber.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "Saber":
-            try:
-                from pqcrypto.kem import saber
-                pk, sk = saber.generate_keypair()
-                ct, ss = saber.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "FireSaber":
-            try:
-                from pqcrypto.kem import firesaber
-                pk, sk = firesaber.generate_keypair()
-                ct, ss = firesaber.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        # KEMs - FrodoKEM family
-        if algorithm == "FrodoKEM-640-AES":
-            try:
-                from pqcrypto.kem import frodokem640aes
-                pk, sk = frodokem640aes.generate_keypair()
-                ct, ss = frodokem640aes.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "FrodoKEM-976-AES":
-            try:
-                from pqcrypto.kem import frodokem976aes
-                pk, sk = frodokem976aes.generate_keypair()
-                ct, ss = frodokem976aes.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "FrodoKEM-1344-AES":
-            try:
-                from pqcrypto.kem import frodokem1344aes
-                pk, sk = frodokem1344aes.generate_keypair()
-                ct, ss = frodokem1344aes.encapsulate(pk)
-                return algorithm, base64.b64encode(ss).decode()
-            except ImportError:
-                pass
-
-        # Signatures - Dilithium family
-        if algorithm == "Dilithium2":
-            try:
-                from pqcrypto.sign import dilithium2
-                pk, sk = dilithium2.generate_keypair()
+                module = __import__(module_path, fromlist=[module_name])
+                pk, sk = module.generate_keypair()
                 return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
             except ImportError:
                 pass
 
-        if algorithm == "Dilithium3":
-            try:
-                from pqcrypto.sign import dilithium3
-                pk, sk = dilithium3.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "Dilithium5":
-            try:
-                from pqcrypto.sign import dilithium5
-                pk, sk = dilithium5.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        # Signatures - Falcon family
-        if algorithm == "Falcon-512":
-            try:
-                from pqcrypto.sign import falcon512
-                pk, sk = falcon512.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "Falcon-1024":
-            try:
-                from pqcrypto.sign import falcon1024
-                pk, sk = falcon1024.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        # Signatures - SPHINCS+ family
-        if algorithm == "SPHINCS+-SHA256-128s":
-            try:
-                from pqcrypto.sign import sphincssha256128ssimple
-                pk, sk = sphincssha256128ssimple.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "SPHINCS+-SHA256-192s":
-            try:
-                from pqcrypto.sign import sphincssha256192ssimple
-                pk, sk = sphincssha256192ssimple.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-        if algorithm == "SPHINCS+-SHA256-256s":
-            try:
-                from pqcrypto.sign import sphincssha256256ssimple
-                pk, sk = sphincssha256256ssimple.generate_keypair()
-                return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
-            except ImportError:
-                pass
-
-    # ========================================
+    # ====
     # 4. Clássicos (sempre disponíveis)
-    # ========================================
+    # ====
+    classical_algorithms = {
+        # AES family
+        "AES256_GCM": lambda: AESGCM.generate_key(bit_length=256),
+        "AES128_GCM": lambda: AESGCM.generate_key(bit_length=128),
 
-    # AES family
-    if algorithm == "AES256_GCM":
-        key = AESGCM.generate_key(bit_length=256)
-        return algorithm, base64.b64encode(key).decode()
+        # ChaCha20-Poly1305
+        "ChaCha20_Poly1305": lambda: ChaCha20Poly1305.generate_key(),
 
-    if algorithm == "AES128_GCM":
-        key = AESGCM.generate_key(bit_length=128)
-        return algorithm, base64.b64encode(key).decode()
+        # Legacy (não recomendados)
+        "3DES": lambda: os.urandom(24),  # 3DES usa 192 bits
+        "Blowfish": lambda: os.urandom(32),  # Blowfish aceita até 448 bits
+    }
 
-    # ChaCha20-Poly1305
-    if algorithm == "ChaCha20_Poly1305":
-        key = ChaCha20Poly1305.generate_key()
+    if algorithm in classical_algorithms:
+        key = classical_algorithms[algorithm]()
         return algorithm, base64.b64encode(key).decode()
 
     # RSA (deriva material da chave privada)
-    if algorithm == "RSA2048":
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048
-        )
-        key_bytes = private_key.private_bytes(
-            encoding=serialization.Encoding.DER,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        )
-        return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
+    rsa_algorithms = {
+        "RSA2048": 2048,
+        "RSA4096": 4096
+    }
 
-    if algorithm == "RSA4096":
+    if algorithm in rsa_algorithms:
+        key_size = rsa_algorithms[algorithm]
         private_key = rsa.generate_private_key(
             public_exponent=65537,
-            key_size=4096
+            key_size=key_size
         )
         key_bytes = private_key.private_bytes(
             encoding=serialization.Encoding.DER,
@@ -438,70 +329,83 @@ def generate_key(algorithm: str):
         return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
 
     # ECC (Elliptic Curve Cryptography)
-    if algorithm == "ECDH_P256":
-        private_key = ec.generate_private_key(ec.SECP256R1())
-        key_bytes = private_key.private_bytes(
-            encoding=serialization.Encoding.DER,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        )
+    ecc_algorithms = {
+        "ECDH_P256": ec.SECP256R1(),
+        "ECDH_P384": ec.SECP384R1(),
+        "ECDH_Curve25519": ec.X25519()
+    }
+
+    if algorithm in ecc_algorithms:
+        curve = ecc_algorithms[algorithm]
+        private_key = ec.generate_private_key(curve)
+
+        if algorithm == "ECDH_Curve25519":
+            key_bytes = private_key.private_bytes(
+                encoding=serialization.Encoding.Raw,
+                format=serialization.PrivateFormat.Raw,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+        else:
+            key_bytes = private_key.private_bytes(
+                encoding=serialization.Encoding.DER,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
         return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
 
-    if algorithm == "ECDH_P384":
-        private_key = ec.generate_private_key(ec.SECP384R1())
-        key_bytes = private_key.private_bytes(
-            encoding=serialization.Encoding.DER,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        )
-        return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
-
-    if algorithm == "ECDH_Curve25519":
-        private_key = ec.generate_private_key(ec.X25519())
-        key_bytes = private_key.private_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PrivateFormat.Raw,
-            encryption_algorithm=serialization.NoEncryption()
-        )
-        return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
-
-    # 3DES (legacy, não recomendado)
-    if algorithm == "3DES":
-        key = os.urandom(24)  # 3DES usa 192 bits (24 bytes)
-        return algorithm, base64.b64encode(derive_key(key, 32)).decode()
-
-    # Blowfish (legacy)
-    if algorithm == "Blowfish":
-        key = os.urandom(32)  # Blowfish aceita chaves de 32-448 bits
-        return algorithm, base64.b64encode(derive_key(key, 32)).decode()
+    # Fallback para QKD quando não disponível
+    if algorithm.startswith("QKD"):
+        print(f"[KMS] QKD solicitado ({algorithm}) mas não gerou material. Aplicando fallback para AES256_GCM.")
+        key = AESGCM.generate_key(bit_length=256)
+        return "AES256_GCM", base64.b64encode(key).decode()
 
     # Se chegou aqui, algoritmo não suportado
     raise ValueError(f"Algoritmo '{algorithm}' não suportado pelo KMS")
 
 
-def build_session(session_id: str, algorithm: str, ttl: int = 300):
+def build_session(session_id: Optional[str], algorithm: str, ttl_seconds: int) -> Tuple[
+    str, str, str, int, bool, Optional[str], str]:
     """
-    Constrói uma sessão completa com chave gerada.
-
-    Args:
-        session_id: ID único da sessão
-        algorithm: Algoritmo para geração da chave
-        ttl: Time-to-live em segundos
+    Constrói uma sessão de chave completa.
 
     Returns:
-        tuple: (session_id, algorithm_used, key_material_base64, expires_datetime)
+        Tuple com: (session_id, selected_algorithm, key_material, expires_at,
+                   fallback_applied, fallback_reason, source_of_key)
     """
-    alg, key_material = generate_key(algorithm)
-    expires = datetime.utcnow() + timedelta(seconds=ttl)
-    return session_id, alg, key_material, expires
+    # Gera chave
+    selected_alg, key_material = generate_key(algorithm)
+
+    # Detecta fallback
+    fallback_applied = selected_alg != algorithm
+    fallback_reason = None
+    if fallback_applied:
+        if algorithm.startswith("QKD"):
+            fallback_reason = "QKD_UNAVAILABLE"
+        elif algorithm.upper().startswith(
+                ("KYBER", "ML-KEM", "DILITHIUM", "FALCON", "SPHINCS", "NTRU", "SABER", "FRODO")):
+            fallback_reason = "PQC_UNAVAILABLE"
+        else:
+            fallback_reason = "ALGO_NOT_SUPPORTED"
+
+    # Inferir fonte da chave para telemetria
+    if selected_alg.startswith("QKD"):
+        source_of_key = "qkd"
+    elif selected_alg.upper().startswith(
+            ("KYBER", "ML-KEM", "DILITHIUM", "FALCON", "SPHINCS", "NTRU", "SABER", "FRODO")):
+        source_of_key = "pqc"
+    else:
+        source_of_key = "classical"
+
+    # Calcula expiração
+    expires_at = int(time.time()) + int(ttl_seconds)
+    sid = session_id or str(uuid.uuid4())
+
+    return sid, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key
 
 
 def get_supported_algorithms():
     """
     Retorna lista de todos os algoritmos suportados pelo KMS.
-
-    Returns:
-        dict: Categorias de algoritmos disponíveis
     """
     supported = {
         "classical": [
@@ -541,59 +445,67 @@ def get_supported_algorithms():
 def get_algorithm_info(algorithm: str):
     """
     Retorna informações sobre um algoritmo específico.
-
-    Args:
-        algorithm: Nome do algoritmo
-
-    Returns:
-        dict: Informações do algoritmo (categoria, segurança, etc.)
     """
     info = {
         "algorithm": algorithm,
         "category": "unknown",
         "security_level": "unknown",
-        "key_size": "32",  # padrão: 256 bits
-        "quantum_resistant": False
+        "key_size_bits": 256,  # padrão: 256 bits
+        "quantum_resistant": False,
+        "recommended": True
     }
 
-    # Clássicos
+    # Clássicos simétricos
     if algorithm in ["AES256_GCM", "ChaCha20_Poly1305"]:
         info.update({
             "category": "symmetric",
             "security_level": "high",
-            "quantum_resistant": False
+            "quantum_resistant": False,
+            "recommended": True
         })
-    elif algorithm in ["AES128_GCM"]:
+    elif algorithm == "AES128_GCM":
         info.update({
             "category": "symmetric",
             "security_level": "medium",
-            "quantum_resistant": False
+            "key_size_bits": 128,
+            "quantum_resistant": False,
+            "recommended": True
         })
+
+    # Clássicos assimétricos
     elif algorithm.startswith("RSA"):
+        key_size = int(algorithm.replace("RSA", ""))
         info.update({
             "category": "asymmetric",
-            "security_level": "high" if "4096" in algorithm else "medium",
-            "quantum_resistant": False
+            "security_level": "high" if key_size >= 4096 else "medium",
+            "key_size_bits": key_size,
+            "quantum_resistant": False,
+            "recommended": key_size >= 2048
         })
     elif algorithm.startswith("ECDH"):
         info.update({
             "category": "asymmetric",
             "security_level": "high",
-            "quantum_resistant": False
+            "quantum_resistant": False,
+            "recommended": True
         })
 
-    # PQC
-    elif algorithm.startswith(("Kyber", "NTRU", "Saber", "Frodo")):
+    # PQC KEMs
+    elif algorithm.startswith(("Kyber", "ML-KEM", "NTRU", "Saber", "Frodo")):
         info.update({
             "category": "pqc_kem",
             "security_level": "high",
-            "quantum_resistant": True
+            "quantum_resistant": True,
+            "recommended": True
         })
-    elif algorithm.startswith(("Dilithium", "Falcon", "SPHINCS")):
+
+    # PQC Signatures
+    elif algorithm.startswith(("Dilithium", "ML-DSA", "Falcon", "SPHINCS")):
         info.update({
             "category": "pqc_signature",
             "security_level": "high",
-            "quantum_resistant": True
+            "quantum_resistant": True,
+            "recommended": True
         })
 
     # QKD
@@ -601,7 +513,17 @@ def get_algorithm_info(algorithm: str):
         info.update({
             "category": "qkd",
             "security_level": "maximum",
-            "quantum_resistant": True
+            "quantum_resistant": True,
+            "recommended": True
+        })
+
+    # Legacy (não recomendados)
+    elif algorithm in ["3DES", "Blowfish"]:
+        info.update({
+            "category": "legacy",
+            "security_level": "low",
+            "quantum_resistant": False,
+            "recommended": False
         })
 
     return info
