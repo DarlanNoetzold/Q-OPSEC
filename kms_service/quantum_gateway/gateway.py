@@ -1,43 +1,58 @@
-# quantum_gateway/gateway.py
+"""
+Quantum Gateway - QKD Key Generation Interface
+
+This module is responsible only for QKD (Quantum Key Distribution) algorithms.
+It does not handle classical or PQC algorithms. Those are managed by the KMS core.
+"""
+
 import os
-from base64 import b64encode
+import base64
 from quantum_gateway.qkd_interface import (
-    generate_bb84_key,
-    generate_e91_key,
-    generate_cv_qkd_key,
-    generate_mdi_qkd_key,
-    generate_decoy_state_key,
-    generate_sarg04_key,
-    generate_di_qkd_key,
+    qkd_bb84_simulation,
+    qkd_e91_simulation,
+    qkd_cv_simulation,
+    qkd_mdi_simulation,
+    qkd_sarg04_simulation,
+    qkd_decoy_state_simulation,
+    qkd_device_independent_simulation,
 )
 
+# Map of supported QKD algorithms to their simulation functions
 QKD_ALGORITHMS = {
-    "QKD_BB84": generate_bb84_key,
-    "QKD_E91": generate_e91_key,
-    "QKD_CV": generate_cv_qkd_key,
-    "QKD_MDI": generate_mdi_qkd_key,
-    "QKD_DecoyState": generate_decoy_state_key,
-    "QKD_SARG04": generate_sarg04_key,
-    "QKD_DI": generate_di_qkd_key,
+    "QKD_BB84": qkd_bb84_simulation,
+    "QKD_E91": qkd_e91_simulation,
+    "QKD_CV": qkd_cv_simulation,
+    "QKD_MDI": qkd_mdi_simulation,
+    "QKD_SARG04": qkd_sarg04_simulation,
+    "QKD_DecoyState": qkd_decoy_state_simulation,
+    "QKD_DI": qkd_device_independent_simulation,
 }
 
+
 def generate_key_from_gateway(algorithm: str):
-    qkd_enabled = os.getenv("QKD_AVAILABLE", "false").lower() == "true"
-    qkd_enabled = 1
-    if not qkd_enabled:
-        print(f"[QKD Gateway] QKD_AVAILABLE != true (valor='{os.getenv('QKD_AVAILABLE')}'). Ignorando QKD.")
-        return None, None
+    """
+    Try to generate a key using the QKD Gateway.
+
+    Returns:
+        (algorithm, Base64-encoded key_material) if QKD is available and supported
+        (algorithm, None) if QKD is unavailable or unsupported
+    """
+    qkd_available = os.getenv("QKD_AVAILABLE", "false").lower() == "true"
+
+    if not qkd_available:
+        print(f"[QKD Gateway] QKD not available (env QKD_AVAILABLE != true). Ignoring request for {algorithm}.")
+        return algorithm, None
 
     if algorithm not in QKD_ALGORITHMS:
-        print(f"[QKD Gateway] Algoritmo não mapeado: {algorithm}")
-        return None, None
+        if algorithm.upper().startswith("QKD"):
+            print(f"[QKD Gateway] Requested QKD algorithm not implemented: {algorithm}")
+        else:
+            print(f"[QKD Gateway] Ignored non-QKD algorithm: {algorithm}")
+        return algorithm, None
 
     try:
-        key_material = QKD_ALGORITHMS[algorithm]()
-        if not key_material:
-            print(f"[QKD Gateway] Função retornou vazio para {algorithm}")
-            return None, None
-        return algorithm, b64encode(key_material).decode()
+        key = QKD_ALGORITHMS[algorithm]()
+        return algorithm, base64.b64encode(key).decode()
     except Exception as e:
-        print(f"[QKD Gateway] Erro ao gerar chave com {algorithm}: {e}")
-        return None, None
+        print(f"[QKD Gateway] Error running simulation for {algorithm}: {e}")
+        return algorithm, None
