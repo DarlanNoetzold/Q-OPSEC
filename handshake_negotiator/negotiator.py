@@ -2,6 +2,7 @@ import yaml
 import uuid
 import random
 from datetime import datetime, timedelta
+from models import NegotiationRequest
 
 
 def load_policies(path: str = "policies.yaml"):
@@ -13,29 +14,29 @@ def is_quantum_available() -> bool:
     return random.random() > 0.4  # ~60% disponível
 
 
-def negotiate_algorithms(src_props, dst_props):
+def negotiate_algorithms(req: NegotiationRequest):
+    proposed = req.proposed
+    dst_props = req.dst_props or {}
+    dst_algorithms = dst_props.get("algorithms", proposed)
+
     policies = load_policies()
     priority = policies.get("priority", [])
 
-    # interseção entre os algoritmos propostos
-    common = [alg for alg in priority if alg in src_props and alg in dst_props]
+    common = [alg for alg in priority if alg in proposed and alg in dst_algorithms]
 
     if not common:
-        return policies["fallback"]["default"], True
+        return policies["fallback"]["default"], str(uuid.uuid4())
 
     chosen = common[0]
 
-    # Teste de disponibilidade quântica
     if chosen.startswith("QKD") and not is_quantum_available():
-        return policies["fallback"]["if_qkd_unavailable"], True
+        return policies["fallback"]["if_qkd_unavailable"], str(uuid.uuid4())
 
-    # Se PQC ainda não estiver disponível (simulação futura)
     if chosen.startswith(("Kyber", "Dilithium", "Falcon", "Sphincs")) and False:
-        return policies["fallback"]["if_pqc_unavailable"], True
+        return policies["fallback"]["if_pqc_unavailable"], str(uuid.uuid4())
 
     session_id = str(uuid.uuid4())
     return chosen, session_id
-
 
 def create_session(alg: str, ttl_seconds: int = 300):
     session_id = str(uuid.uuid4())
