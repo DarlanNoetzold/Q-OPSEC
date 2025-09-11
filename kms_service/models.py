@@ -30,7 +30,7 @@ class CreateKeyResponse(BaseModel):
     requested_algorithm: str
     selected_algorithm: str
     key_material: str
-    expires_at: int
+    expires_at: datetime          # <-- aqui: datetime
     fallback_applied: bool = False
-    fallback_reason: Optional[str] = None  # e.g., QKD_UNAVAILABLE, ALGO_NOT_SUPPORTED
+    fallback_reason: Optional[str] = None
     source_of_key: str  # "qkd" | "pqc" | "classical"
