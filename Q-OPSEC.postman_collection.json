@@ -72,6 +72,41 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "clean up models",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"dry_run\": false}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8083/confidentiality/cleanup/all",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"confidentiality",
+								"cleanup",
+								"all"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -145,6 +180,41 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "cleanup models",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"dry_run\": false}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/risk/cleanup/all",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"risk",
+								"cleanup",
+								"all"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -171,12 +241,12 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/context/enrich",
+							"raw": "http://localhost:8081/context/enrich",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8080",
+							"port": "8081",
 							"path": [
 								"context",
 								"enrich"
@@ -279,6 +349,323 @@
 							"port": "8080",
 							"path": [
 								"intercept"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "handshake_negotiator",
+			"item": [
+				{
+					"name": "handshake",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n    \"source\": \"node-A\",\n    \"destination\": \"node-B\",\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"PQC\"],\n        \"compliance\": [\"HIPAA\", \"GDPR\"],\n        \"max_latency_ms\": 50\n    },\n    \"proposed\": [\"QKD_BB84\", \"Kyber1024\", \"AES256_GCM\"]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 3",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"client-A\",\n  \"destination\": \"server-A\",\n  \"dst_props\": {\n    \"hardware\": [\"PQC\"],\n    \"compliance\": [\"HIPAA\"]\n  },\n  \"proposed\": [\"Kyber1024\", \"Dilithium5\", \"AES256_GCM\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 4",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"old-node\",\n  \"destination\": \"legacy-server\",\n  \"dst_props\": {\n    \"hardware\": [\"CPU_ONLY\"],\n    \"compliance\": [\"PCI-DSS\"]\n  },\n  \"proposed\": [\"RSA4096\", \"AES256_GCM\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 5",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"node-X\",\n  \"destination\": \"node-Y\",\n  \"dst_props\": {\n    \"hardware\": [\"ASIC\"]\n  },\n  \"proposed\": [\"AlgoInexistente1\", \"AlgoInexistente2\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 6",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"hybrid-client\",\n  \"destination\": \"hybrid-server\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\", \"PQC\", \"Classical\"],\n    \"max_latency_ms\": 150\n  },\n  \"proposed\": [\"Hybrid_PQC_RSA\", \"AES256_GCM\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "kms_service",
+			"item": [
+				{
+					"name": "create_key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n        \"session_id\": \"sess-001\",\n        \"algorithm\": \"QKD_BB84\",\n        \"ttl_seconds\": 120\n      }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8002/kms/create_key",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get_key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8002/kms/get_key/sess-001",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"get_key",
+								"sess-001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create_key 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n        \"session_id\": \"sess-pqc\",\n        \"algorithm\": \"Kyber1024\",\n        \"ttl_seconds\": 180\n      }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8002/kms/create_key",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "supported_algorithms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8002/kms/supported_algorithms",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"supported_algorithms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"node-A\",\n  \"destination\": \"node-B\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
 							]
 						}
 					},
