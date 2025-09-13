@@ -1,7 +1,7 @@
 import os
 
 # Server configuration
-HOST = os.getenv("KDE_HOST", "0.0.0.0")
+HOST = os.getenv("KDE_HOST", "localhost")
 PORT = int(os.getenv("KDE_PORT", "8003"))
 
 # Delivery timeouts
