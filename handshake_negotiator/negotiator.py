@@ -2,20 +2,17 @@ import yaml
 import uuid
 import random
 from datetime import datetime, timedelta
-from models import NegotiationRequest
 from typing import Tuple
-
+from models import NegotiationRequest
 
 def load_policies(path: str = "policies.yaml"):
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
-
 def is_quantum_available() -> bool:
     return random.random() > 0.4  # ~60% disponível
 
-
-def negotiate_algorithms(req: NegotiationRequest) -> Tuple[str, str, bool, str]:
+def negotiate_algorithms(req: NegotiationRequest) -> Tuple[str, str, bool, str | None]:
     """
     Negotiate algorithms based on policies.
 
@@ -39,21 +36,19 @@ def negotiate_algorithms(req: NegotiationRequest) -> Tuple[str, str, bool, str]:
         return fallback_alg, session_id, True, "NO_COMMON_ALGORITHMS"
 
     chosen = common[0]
-    original_choice = chosen
 
     # Check QKD availability
     if chosen.startswith("QKD") and not is_quantum_available():
         chosen = policies["fallback"]["if_qkd_unavailable"]
         return chosen, session_id, True, "QKD_UNAVAILABLE"
 
-    # Check PQC availability (currently disabled with False)
+    # Check PQC availability (placeholder desativado)
     if chosen.startswith(("Kyber", "Dilithium", "Falcon", "Sphincs")) and False:
         chosen = policies["fallback"]["if_pqc_unavailable"]
         return chosen, session_id, True, "PQC_UNAVAILABLE"
 
     # No fallback needed
     return chosen, session_id, False, None
-
 
 def create_session(alg: str, ttl_seconds: int = 300):
     session_id = str(uuid.uuid4())
