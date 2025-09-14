@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException, Response
 import uvicorn
 from models import CreateKeyRequest, CreateKeyResponse, KeyResponse
 from key_manager import build_session, get_supported_algorithms, get_algorithm_info
-from storage import save_session, get_session
+from storage import save_session, get_session, get_session_by_request
+from datetime import datetime
 
 app = FastAPI(title="KMS Service", version="2.0.0")
 
@@ -19,55 +20,79 @@ def algorithm_info(algorithm: str):
     return get_algorithm_info(algorithm)
 
 
+def _to_unix_ts(value) -> int:
+    # Normaliza expires_at para int (Unix epoch)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, datetime):
+        return int(value.timestamp())
+    # fallback (não deveria ocorrer)
+    return int(value)
+
+
 @app.post("/kms/create_key", response_model=CreateKeyResponse)
-async def create_key(req: CreateKeyRequest, response: Response):
-    """
-    Create a new session key using the specified algorithm.
+async def create_key(req: CreateKeyRequest):
+    # build_session agora retorna (session_id, request_id, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key)
+    session_id, request_id, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key = build_session(
+        req.session_id,
+        req.request_id,
+        req.algorithm,
+        req.ttl_seconds
+    )
 
-    - If strict=True and a fallback occurs, returns 409
-    - Otherwise, applies fallback and informs in the response
-    """
-    try:
-        sid, selected_alg, key_material, expires_at, fb_applied, fb_reason, src = build_session(
-            req.session_id, req.algorithm, req.ttl_seconds
-        )
+    # Salva no storage (mantendo a interface atual que recebe um dict)
+    await save_session(
+        session_id,
+        request_id,
+        selected_alg,
+        key_material,
+        expires_at,
+        source_of_key  # se sua assinatura tiver source com default, este pode ser opcional
+    )
 
-        # Strict mode → error if fallback was applied
-        if req.strict and fb_applied:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Requested '{req.algorithm}' but used '{selected_alg}' due to {fb_reason}"
-            )
+    return CreateKeyResponse(
+        session_id=session_id,
+        request_id=request_id,
+        requested_algorithm=req.algorithm,
+        selected_algorithm=selected_alg,
+        key_material=key_material,
+        expires_at=expires_at,  # int
+        fallback_applied=fallback_applied,
+        fallback_reason=fallback_reason,
+        source_of_key=source_of_key
+    )
 
-        # Add observability headers
-        response.headers["X-KMS-Requested-Algorithm"] = req.algorithm
-        response.headers["X-KMS-Selected-Algorithm"] = selected_alg
-        if fb_applied:
-            response.headers["X-KMS-Fallback"] = fb_reason or "UNKNOWN"
 
-        # Save session in storage
-        await save_session({
-            "session_id": sid,
-            "algorithm": selected_alg,
-            "key_material": key_material,
-            "expires_at": expires_at,
-            "source": src
-        })
+@app.get("/kms/get_key/{session_id}", response_model=KeyResponse)
+async def get_key_by_session(session_id: str):
+    sess = await get_session(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Not found or expired")
 
-        return CreateKeyResponse(
-            session_id=sid,
-            requested_algorithm=req.algorithm,
-            selected_algorithm=selected_alg,
-            key_material=key_material,
-            expires_at=expires_at,
-            fallback_applied=fb_applied,
-            fallback_reason=fb_reason,
-            source_of_key=src,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return KeyResponse(
+        session_id=sess["session_id"],
+        request_id=sess.get("request_id", ""),  # se faltar por migração antiga
+        algorithm=sess["algorithm"],
+        key_material=sess["key_material"],
+        expires_at=_to_unix_ts(sess["expires_at"])  # normaliza para int
+    )
+
+
+@app.get("/kms/get_key", response_model=KeyResponse)
+async def get_key_by_request(request_id: str):
+    sess = await get_session_by_request(request_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Not found or expired")
+
+    return KeyResponse(
+        session_id=sess["session_id"],
+        request_id=sess.get("request_id", request_id),
+        algorithm=sess["algorithm"],
+        key_material=sess["key_material"],
+        expires_at=_to_unix_ts(sess["expires_at"])
+    )
 
 
 @app.get("/kms/session/{session_id}", response_model=KeyResponse)
