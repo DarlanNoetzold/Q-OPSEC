@@ -439,13 +439,36 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
     raise ValueError(f"Algorithm '{algorithm}' is not supported by the KMS")
 
 
-def build_session(session_id: Optional[str], algorithm: str, ttl_seconds: int) -> Tuple[
-    str, str, str, datetime, bool, Optional[str], str]:
+def build_session(
+    session_id: Optional[str],
+    request_id: str,  # <- NOVO: Adicionar request_id aqui
+    algorithm: str,
+    ttl_seconds: int
+) -> Tuple[str, str, str, int, bool, Optional[str], str, str]:
     """
     Build a complete key session with metadata.
+
+    Args:
+    session_id: Optional session identifier (generated if None)
+    request_id: Unique identifier for the original request (from Context API) # <- NOVO
+    algorithm: Requested cryptographic algorithm
+    ttl_seconds: Time-to-live for the session in seconds
+
+    Returns:
+    Tuple containing:
+    - session_id: Unique session identifier
+    - request_id: Unique request identifier # <- NOVO
+    - selected_algorithm: Actually used algorithm (may differ due to fallback)
+    - key_material: Base64-encoded key material
+    - expires_at: Unix timestamp when session expires
+    - fallback_applied: Whether fallback was used
+    - fallback_reason: Reason for fallback (if any)
+    - source_of_key: Source category ('qkd', 'pqc', 'classical')
     """
+    # Generate the key
     selected_alg, key_material = generate_key(algorithm)
 
+    # Detect if fallback was applied
     fallback_applied = selected_alg != algorithm
     fallback_reason = None
     if fallback_applied:
@@ -457,19 +480,20 @@ def build_session(session_id: Optional[str], algorithm: str, ttl_seconds: int) -
         else:
             fallback_reason = "ALGO_NOT_SUPPORTED"
 
+    # Determine key source for telemetry
     if selected_alg.startswith("QKD"):
         source_of_key = "qkd"
     elif selected_alg.upper().startswith(
-            ("KYBER", "ML-KEM", "DILITHIUM", "FALCON", "SPHINCS", "NTRU", "SABER", "FRODO")):
+        ("KYBER", "ML-KEM", "DILITHIUM", "FALCON", "SPHINCS", "NTRU", "SABER", "FRODO")):
         source_of_key = "pqc"
     else:
         source_of_key = "classical"
 
-    # expiration as datetime (not int)
-    expires_at = datetime.utcnow() + timedelta(seconds=int(ttl_seconds))
+    # Calculate expiration timestamp
+    expires_at = int(time.time()) + int(ttl_seconds)
     sid = session_id or str(uuid.uuid4())
 
-    return sid, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key
+    return sid, request_id, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key
 
 
 def get_supported_algorithms():
