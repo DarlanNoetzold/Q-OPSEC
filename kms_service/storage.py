@@ -62,33 +62,47 @@ def _init_redis() -> bool:
         return False
 
 
-def _init_sqlite() -> bool:
-    """Initialize SQLite database (lazy)."""
+def _init_sqlite():
+    """Inicializa banco SQLite"""
     global _sqlite_conn
-    if _sqlite_conn is not None:
-        return True
-    try:
-        _sqlite_conn = sqlite3.connect(SQLITE_PATH, check_same_thread=False)
-        _sqlite_conn.execute("""
-            CREATE TABLE IF NOT EXISTS key_sessions (
-                session_id TEXT PRIMARY KEY,
-                algorithm TEXT NOT NULL,
-                key_material TEXT NOT NULL,
-                expires_at INTEGER NOT NULL,
-                source TEXT,
-                created_at INTEGER DEFAULT (strftime('%s', 'now'))
-            )
-        """)
-        _sqlite_conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_expires_at ON key_sessions(expires_at)
-        """)
-        _sqlite_conn.commit()
-        print(f"[Storage] SQLite initialized: {SQLITE_PATH}")
-        return True
-    except Exception as e:
-        print(f"[Storage] SQLite init error: {e}")
-        _sqlite_conn = None
-        return False
+    if _sqlite_conn is None:
+        try:
+            _sqlite_conn = sqlite3.connect(SQLITE_PATH, check_same_thread=False)
+            _sqlite_conn.execute("""
+                CREATE TABLE IF NOT EXISTS key_sessions (
+                    session_id TEXT PRIMARY KEY,
+                    request_id TEXT NOT NULL,  -- <- NOVO
+                    algorithm TEXT NOT NULL,
+                    key_material TEXT NOT NULL,
+                    expires_at INTEGER NOT NULL,
+                    source TEXT,
+                    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+                )
+            """)
+            _sqlite_conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_expires_at ON key_sessions(expires_at)
+            """)
+            _sqlite_conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_request_id ON key_sessions(request_id)  -- <- NOVO
+            """)
+
+            # Migração: adicionar coluna request_id se não existir
+            try:
+                _sqlite_conn.execute("ALTER TABLE key_sessions ADD COLUMN request_id TEXT")
+                _sqlite_conn.commit()
+                print("[Storage] Coluna request_id adicionada à tabela existente")
+            except sqlite3.OperationalError:
+                # Coluna já existe
+                pass
+
+            _sqlite_conn.commit()
+            print(f"[Storage] SQLite inicializado: {SQLITE_PATH}")
+            return True
+        except Exception as e:
+            print(f"[Storage] Erro ao inicializar SQLite: {e}")
+            _sqlite_conn = None
+            return False
+    return True
 
 
 def _cleanup_expired():
@@ -124,75 +138,82 @@ def _cleanup_expired():
             print(f"[Storage] Removed {len(expired_keys)} expired sessions from memory")
 
 
-async def save_session(session_data: Dict[str, Any]) -> bool:
+async def save_session(session_id: str, request_id: str, algorithm: str, key_material: str, expires_at: int,
+                       source: str = "unknown") -> bool:
     """
-    Save a key session.
+    Salva uma sessão de chave.
 
     Args:
-        session_data: Dict with keys:
-            - session_id (str)
-            - algorithm (str)
-            - key_material (str)
-            - expires_at (datetime or int epoch)
-            - source (str)
+        session_id: ID único da sessão
+        request_id: ID único da requisição (do Context API)  # <- NOVO
+        algorithm: Algoritmo usado
+        key_material: Material da chave (base64)
+        expires_at: Timestamp de expiração
+        source: Fonte da chave (qkd/pqc/classical)
 
     Returns:
-        True if saved successfully.
+        bool: True se salvou com sucesso
     """
-    session_id = session_data["session_id"]
+    session_data = {
+        "session_id": session_id,
+        "request_id": request_id,  # <- NOVO
+        "algorithm": algorithm,
+        "key_material": key_material,
+        "expires_at": expires_at,
+        "source": source
+    }
 
-    # Normalize expires_at -> epoch
-    expires_epoch = _to_epoch(session_data["expires_at"])
-
-    # Prepare a serializable dict for storage
-    data_to_store = dict(session_data)
-    data_to_store["expires_at"] = expires_epoch
-
-    ttl_seconds = max(1, expires_epoch - int(time.time()))
+    ttl_seconds = max(1, expires_at - int(time.time()))
 
     try:
         if STORAGE_BACKEND == "redis":
             if not _init_redis():
-                return await _save_memory(data_to_store)
+                return await _save_memory(session_data)
 
-            # Store with TTL
+            # Salva no Redis com TTL automático
             _redis_client.setex(
                 f"kms:session:{session_id}",
                 ttl_seconds,
-                json.dumps(data_to_store)
+                json.dumps(session_data)
+            )
+            # Também mapeia request_id -> session_id
+            _redis_client.setex(
+                f"kms:request:{request_id}",  # <- NOVO
+                ttl_seconds,
+                session_id
             )
             return True
 
-        if STORAGE_BACKEND == "sqlite":
+        elif STORAGE_BACKEND == "sqlite":
             if not _init_sqlite():
-                return await _save_memory(data_to_store)
+                return await _save_memory(session_data)
 
             _sqlite_conn.execute("""
                 INSERT OR REPLACE INTO key_sessions 
-                (session_id, algorithm, key_material, expires_at, source)
-                VALUES (?, ?, ?, ?, ?)
+                (session_id, request_id, algorithm, key_material, expires_at, source)  -- <- NOVO: request_id
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (
                 session_id,
-                data_to_store["algorithm"],
-                data_to_store["key_material"],
-                expires_epoch,
-                data_to_store.get("source", "unknown")
+                request_id,  # <- NOVO
+                algorithm,
+                key_material,
+                expires_at,
+                source
             ))
             _sqlite_conn.commit()
 
-            # Periodic cleanup
+            # Cleanup periódico
             if hash(session_id) % 100 == 0:
                 _cleanup_expired()
 
             return True
 
-        # Default: memory
-        return await _save_memory(data_to_store)
+        else:  # memory
+            return await _save_memory(session_data)
 
     except Exception as e:
-        print(f"[Storage] Error saving session {session_id}: {e}")
-        # Fallback to memory on error
-        return await _save_memory(data_to_store)
+        print(f"[Storage] Erro ao salvar sessão {session_id}: {e}")
+        return await _save_memory(session_data)
 
 
 async def _save_memory(session_data: Dict[str, Any]) -> bool:
@@ -268,6 +289,56 @@ async def get_session(session_id: str) -> Optional[Dict[str, Any]]:
         print(f"[Storage] Error retrieving session {session_id}: {e}")
         return None
 
+async def get_session_by_request(request_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Recupera uma sessão de chave por request_id.
+
+    Args:
+        request_id: ID da requisição original (do Context API)
+
+    Returns:
+        Dict com dados da sessão ou None se não encontrada/expirada
+    """
+    current_time = int(time.time())
+
+    try:
+        if STORAGE_BACKEND == "redis" and _redis_client:
+            # Busca session_id pelo request_id
+            session_id = _redis_client.get(f"kms:request:{request_id}")
+            if session_id:
+                return await get_session(session_id)
+            return None
+
+        elif STORAGE_BACKEND == "sqlite" and _sqlite_conn:
+            cursor = _sqlite_conn.execute("""
+                SELECT session_id, request_id, algorithm, key_material, expires_at, source
+                FROM key_sessions 
+                WHERE request_id = ? AND expires_at > ?
+            """, (request_id, current_time))
+
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "session_id": row[0],
+                    "request_id": row[1],
+                    "algorithm": row[2],
+                    "key_material": row[3],
+                    "expires_at": row[4],
+                    "source": row[5] or "unknown"
+                }
+            return None
+
+        else:  # memory
+            # Busca linear na memória
+            for session_data in _memory_store.values():
+                if (session_data.get("request_id") == request_id and
+                    session_data.get("expires_at", 0) > current_time):
+                    return session_data
+            return None
+
+    except Exception as e:
+        print(f"[Storage] Erro ao recuperar sessão por request_id {request_id}: {e}")
+        return None
 
 async def delete_session(session_id: str) -> bool:
     """
