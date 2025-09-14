@@ -1,7 +1,7 @@
 import os
 
 # Server configuration
-HOST = os.getenv("KDE_HOST", "localhost")
+HOST = os.getenv("KDE_HOST", "0.0.0.0")
 PORT = int(os.getenv("KDE_PORT", "8003"))
 
 # Delivery timeouts
@@ -21,3 +21,6 @@ FILE_DELIVERY_BASE_PATH = os.getenv("FILE_DELIVERY_PATH", "./delivered_keys")
 # HSM Configuration
 HSM_LIBRARY_PATH = os.getenv("HSM_LIBRARY_PATH", "/usr/lib/libpkcs11.so")
 HSM_SLOT_ID = int(os.getenv("HSM_SLOT_ID", "0"))
+
+# Supported methods (canonical)
+SUPPORTED_METHODS = ["API", "MQTT", "HSM", "FILE"]
