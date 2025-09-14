@@ -1,14 +1,15 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import Dict, Any
+
 from models import DeliveryRequest, DeliveryResponse
 from destination_engine import deliver_key, get_delivery_status, list_deliveries
-from config import HOST, PORT
+from config import HOST, PORT, SUPPORTED_METHODS
 
 app = FastAPI(
     title="OraculumPrisec Key Destination Engine",
     description="Secure key delivery system supporting multiple transport methods",
-    version="1.0.0"
+    version="1.1.0",
 )
 
 
@@ -16,49 +17,49 @@ app = FastAPI(
 async def root():
     return {
         "service": "OraculumPrisec Key Destination Engine",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "status": "operational",
-        "supported_methods": ["API", "MQTT", "HSM", "FILE"]
+        "supported_methods": SUPPORTED_METHODS,
     }
 
 
 @app.post("/deliver", response_model=DeliveryResponse)
 async def deliver(req: DeliveryRequest):
     """
-    Deliver key material to the specified destination using the chosen method.
+    Entrega o material de chave ao destino especificado usando o método escolhido.
 
-    Supported delivery methods:
+    Métodos suportados:
     - API: HTTP/REST endpoint
     - MQTT: Message broker
     - HSM: Hardware Security Module
-    - FILE: Secure file system
+    - FILE: Sistema de arquivos seguro
     """
     result = await deliver_key(req)
 
     if result.status == "failed":
-        raise HTTPException(status_code=500, detail=result.message)
+        # Propaga erro HTTP com o detalhe do handler
+        raise HTTPException(status_code=500, detail=result.message or "Delivery failed")
 
     return result
 
 
 @app.get("/delivery/{delivery_id}", response_model=DeliveryResponse)
 async def get_delivery(delivery_id: str):
-    """Get the status of a specific delivery."""
+    """Recupera o status de uma entrega específica."""
     result = get_delivery_status(delivery_id)
-
     if not result:
         raise HTTPException(status_code=404, detail="Delivery not found")
-
     return result
 
 
 @app.get("/deliveries")
 async def list_all_deliveries() -> Dict[str, Any]:
-    """List all tracked deliveries."""
+    """Lista todas as entregas trackeadas (debug/admin)."""
     deliveries = list_deliveries()
+    # FastAPI serializa modelos Pydantic automaticamente
     return {
         "total": len(deliveries),
-        "deliveries": deliveries
+        "deliveries": deliveries,
     }
 
 
@@ -68,7 +69,6 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "OraculumPrisec KDE",
-        "timestamp": "2025-09-11T19:30:00Z"
     }
 
 
