@@ -1,79 +1,155 @@
 import uuid
-import asyncio
 from datetime import datetime
-from typing import Dict, Any, Optional
-from models import DeliveryRequest, DeliveryResponse
-from delivery_methods.api_delivery import deliver_via_api
-from delivery_methods.mqtt_delivery import deliver_via_mqtt
-from delivery_methods.hsm_delivery import deliver_via_hsm
-from delivery_methods.file_delivery import deliver_via_file
+from typing import Dict, Any, Optional, Tuple, Union
 
-# Registry of delivery methods
-DELIVERY_METHODS = {
+from models import DeliveryRequest, DeliveryResponse
+from config import SUPPORTED_METHODS
+
+# As implementações reais devem existir em delivery_methods/*
+# Mantemos a assinatura esperada: (req: DeliveryRequest, delivery_id: str) -> DeliveryResponse
+# Se algum handler retornar tupla, nós normalizamos abaixo.
+try:
+    from delivery_methods.api_delivery import deliver_via_api    # type: ignore
+except Exception:  # fallback opcional para evitar crash se módulo não existir em dev
+    deliver_via_api = None
+
+try:
+    from delivery_methods.mqtt_delivery import deliver_via_mqtt  # type: ignore
+except Exception:
+    deliver_via_mqtt = None
+
+try:
+    from delivery_methods.hsm_delivery import deliver_via_hsm    # type: ignore
+except Exception:
+    deliver_via_hsm = None
+
+try:
+    from delivery_methods.file_delivery import deliver_via_file  # type: ignore
+except Exception:
+    deliver_via_file = None
+
+# Registry de métodos
+DELIVERY_METHODS: Dict[str, Optional[object]] = {
     "API": deliver_via_api,
     "MQTT": deliver_via_mqtt,
     "HSM": deliver_via_hsm,
     "FILE": deliver_via_file,
 }
 
-# In-memory delivery tracking (in production, use Redis/DB)
+# Tracking in-memory (em produção, use Redis/DB)
 delivery_tracker: Dict[str, DeliveryResponse] = {}
+delivery_attempts: Dict[str, int] = {}
+
+
+def _build_response(
+    req: DeliveryRequest,
+    delivery_id: str,
+    status: str,
+    message: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> DeliveryResponse:
+    return DeliveryResponse(
+        session_id=req.session_id,
+        request_id=req.request_id,
+        destination=req.destination,
+        status=status,
+        delivery_method=req.delivery_method,
+        timestamp=datetime.utcnow(),
+        delivery_id=delivery_id,
+        message=message,
+        metadata=metadata,
+    )
+
+
+def _normalize_handler_result(
+    req: DeliveryRequest,
+    delivery_id: str,
+    result: Union[
+        DeliveryResponse,
+        Tuple[str, str],
+        Tuple[str, str, Optional[Dict[str, Any]]],
+    ],
+) -> DeliveryResponse:
+    """
+    Aceita:
+      - DeliveryResponse (retorno já pronto do handler)
+      - (status, message)
+      - (status, message, metadata)
+    E normaliza para DeliveryResponse.
+    """
+    if isinstance(result, DeliveryResponse):
+        return result
+
+    if isinstance(result, tuple):
+        if len(result) == 2:
+            status, message = result
+            return _build_response(req, delivery_id, status=status, message=message)
+        elif len(result) == 3:
+            status, message, metadata = result
+            return _build_response(req, delivery_id, status=status, message=message, metadata=metadata)
+
+    # fallback seguro
+    return _build_response(req, delivery_id, status="failed", message="Invalid handler return format")
 
 
 async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
     """
-    Main delivery orchestrator.
-    Routes the delivery request to the appropriate method handler.
+    Orquestra a entrega.
+    - Valida método
+    - Invoca handler
+    - Normaliza retorno
+    - Registra tracking
     """
     delivery_id = str(uuid.uuid4())
+    method = (req.delivery_method or "").upper()
 
-    print(f"[KDE] Starting delivery {delivery_id} for session {req.session_id}")
-    print(f"[KDE] Method: {req.delivery_method}, Destination: {req.destination}")
-
-    try:
-        # Get the delivery method handler
-        delivery_handler = DELIVERY_METHODS.get(req.delivery_method.upper())
-
-        if not delivery_handler:
-            return DeliveryResponse(
-                session_id=req.session_id,
-                destination=req.destination,
-                status="failed",
-                delivery_method=req.delivery_method,
-                timestamp=datetime.utcnow(),
-                delivery_id=delivery_id,
-                message=f"Unsupported delivery method: {req.delivery_method}"
-            )
-
-        # Execute the delivery
-        result = await delivery_handler(req, delivery_id)
-
-        # Track the delivery
+    if method not in SUPPORTED_METHODS:
+        result = _build_response(
+            req,
+            delivery_id,
+            status="failed",
+            message=f"Unsupported delivery method: {req.delivery_method}",
+        )
         delivery_tracker[delivery_id] = result
-
-        print(f"[KDE] Delivery {delivery_id} completed with status: {result.status}")
+        delivery_attempts[delivery_id] = 1
         return result
 
-    except Exception as e:
-        error_result = DeliveryResponse(
-            session_id=req.session_id,
-            destination=req.destination,
+    handler = DELIVERY_METHODS.get(method)
+    if handler is None:
+        result = _build_response(
+            req,
+            delivery_id,
             status="failed",
-            delivery_method=req.delivery_method,
-            timestamp=datetime.utcnow(),
-            delivery_id=delivery_id,
-            message=f"Delivery error: {str(e)}"
+            message=f"No handler available for method: {method}",
         )
-        delivery_tracker[delivery_id] = error_result
-        print(f"[KDE] Delivery {delivery_id} failed: {e}")
-        return error_result
+        delivery_tracker[delivery_id] = result
+        delivery_attempts[delivery_id] = 1
+        return result
+
+    try:
+        # Alguns handlers podem ter assinatura assíncrona, outros síncrona
+        handler_result = await handler(req, delivery_id)  # type: ignore
+        result = _normalize_handler_result(req, delivery_id, handler_result)
+    except Exception as e:
+        result = _build_response(
+            req,
+            delivery_id,
+            status="failed",
+            message=f"Delivery exception: {e}",
+        )
+
+    # Track
+    delivery_tracker[delivery_id] = result
+    delivery_attempts[delivery_id] = delivery_attempts.get(delivery_id, 0) + 1
+
+    return result
 
 
 def get_delivery_status(delivery_id: str) -> Optional[DeliveryResponse]:
-    """Get the status of a specific delivery."""
+    """Retorna o status de uma entrega específica."""
     return delivery_tracker.get(delivery_id)
 
 
 def list_deliveries() -> Dict[str, DeliveryResponse]:
-    """List all tracked deliveries."""
+    """Lista todas as entregas trackeadas."""
     return delivery_tracker.copy()
