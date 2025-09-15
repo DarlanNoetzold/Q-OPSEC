@@ -9,6 +9,7 @@ import java.util.Map;
 @Builder
 public class ContextRequest {
     private String sourceId;
+    private String requestId;
     private String destinationId;
     private String content;
     private Map<String, Object> metadata;
