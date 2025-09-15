@@ -2,21 +2,16 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class EncryptRequest(BaseModel):
-    # Identificação do contexto (pelo menos um deve ser fornecido)
     session_id: Optional[str] = None
     request_id: Optional[str] = None
 
-    # Algoritmo de cifra pretendido
     algorithm: str = Field(..., description="AES256_GCM | CHACHA20_POLY1305")
 
-    # Dados do payload em base64 (opcional se for buscar no Context API via request_id)
     plaintext_b64: Optional[str] = None
 
-    # Associated Authenticated Data opcional (base64). Se ausente, um AAD padrão será usado.
     aad_b64: Optional[str] = None
 
-    # Quando True (default), se plaintext_b64 não for enviado, busca no Context API via request_id
-    fetch_from_context: bool = True
+    fetch_from_interceptor: bool = True
 
 class EncryptResponse(BaseModel):
     session_id: str
