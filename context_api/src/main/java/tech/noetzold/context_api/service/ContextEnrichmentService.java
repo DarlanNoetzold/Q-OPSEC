@@ -1,4 +1,3 @@
-// src/main/java/tech/noetzold/context_api/service/ContextEnrichmentService.java
 package tech.noetzold.context_api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +41,6 @@ public class ContextEnrichmentService {
         RiskContext risk = riskFacade.getRisk(req.request_id(), source, dest);
         ContentConfidentiality conf = confFacade.classify(req.request_id(), req.content_pointer(), source, dest);
 
-        // Persistência
         try {
             var headersNode = objectMapper.valueToTree(req.headers() != null ? req.headers() : java.util.Map.of());
             var sourceNode = objectMapper.valueToTree(source);
