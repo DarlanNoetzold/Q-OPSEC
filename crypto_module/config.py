@@ -4,7 +4,7 @@ import os
 KMS_BASE_URL = os.getenv("KMS_BASE_URL", "http://localhost:8002")
 
 # Endereço do Context API (para buscar payload usando request_id)
-CONTEXT_API_BASE_URL = os.getenv("CONTEXT_API_BASE_URL", "http://localhost:8005")
+CONTEXT_API_BASE_URL = os.getenv("CONTEXT_API_BASE_URL", "http://localhost:8081")
 
 # Tempo limite para requests HTTP
 HTTP_TIMEOUT = float(os.getenv("CRYPTO_HTTP_TIMEOUT", "10.0"))
