@@ -3,9 +3,7 @@ package tech.noetzold.context_api.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tech.noetzold.context_api.model.EnrichRequest;
-import tech.noetzold.context_api.model.EnrichResponse;
-import tech.noetzold.context_api.model.ContextRecord;
+import tech.noetzold.context_api.model.*;
 import tech.noetzold.context_api.service.ContextEnrichmentService;
 import tech.noetzold.context_api.repository.ContextRecordRepository;
 
@@ -25,6 +23,11 @@ public class ContextController {
     @PostMapping("/enrich")
     public EnrichResponse enrich(@RequestBody EnrichRequest req, HttpServletRequest httpReq) {
         return service.enrichAll(req, httpReq);
+    }
+
+    @PostMapping("/enrich/simple")
+    public EnrichResponse enrichSimple(@RequestBody InterceptorPayload payload, HttpServletRequest httpReq) {
+        return service.enrichFromInterceptor(payload, httpReq);
     }
 
     @GetMapping("/record")
