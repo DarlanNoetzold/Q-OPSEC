@@ -15,7 +15,7 @@ public class ContextApiClient {
         this.restTemplate = restTemplate;
     }
 
-    @Value("${context.api.url:http://localhost:8081/context/enrich}")
+    @Value("${context.api.url:http://localhost:8081/context/enrich/simple}")
     private String contextApiUrl;
 
     public ContextResponse getContext(ContextRequest req) {
