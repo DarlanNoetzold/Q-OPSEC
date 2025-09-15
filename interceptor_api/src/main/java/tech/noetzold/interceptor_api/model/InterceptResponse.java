@@ -8,5 +8,6 @@ import lombok.*;
 @Builder
 public class InterceptResponse {
     private String status;
+    private String requestId;     // <-- acrescentado
     private ContextResponse context;
 }
