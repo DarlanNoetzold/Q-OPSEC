@@ -10,9 +10,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 
 from config import (
     KMS_BASE_URL,
-    CONTEXT_API_BASE_URL,
     HTTP_TIMEOUT,
-    CONTEXT_TIMEOUT,
     AESGCM_NONCE_SIZE,
     CHACHA20_NONCE_SIZE,
     HKDF_SALT,
@@ -20,7 +18,7 @@ from config import (
     HKDF_INFO_DECRYPT,
 )
 
-# ---------- Helpers ----------
+# ---- Helpers ----
 
 def b64e(data: bytes) -> str:
     return base64.b64encode(data).decode("utf-8")
@@ -41,17 +39,19 @@ def _hkdf_derive(key_material_b64: str, length: int, info: bytes) -> bytes:
 def _now_epoch() -> int:
     return int(datetime.utcnow().timestamp())
 
+# ---- KMS key/context fetch ----
+
 async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]) -> dict:
-    if not session_id and not request_id:
-        raise ValueError("Either session_id or request_id must be provided")
+    """
+    Busca contexto de chave no KMS. No seu fluxo atual, exige session_id.
+    request_id é ignorado aqui (mantido por compatibilidade de assinatura).
+    """
+    if not session_id:
+        raise ValueError("session_id is required to fetch key from KMS")
 
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        if session_id:
-            url = f"{KMS_BASE_URL}/kms/get_key/{session_id}"
-            resp = await client.get(url)
-        else:
-            url = f"{KMS_BASE_URL}/kms/get_key"
-            resp = await client.get(url, params={"request_id": request_id})
+        url = f"{KMS_BASE_URL}/kms/get_key/{session_id}"
+        resp = await client.get(url)
 
     if resp.status_code != 200:
         raise RuntimeError(f"KMS get_key failed ({resp.status_code}): {resp.text}")
@@ -64,33 +64,31 @@ async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]
 
     return ctx
 
-async def fetch_payload_from_context(request_id: str) -> str:
-    """Busca o payload (base64) no Context API via request_id"""
-    if not request_id:
-        raise ValueError("request_id required to fetch payload from Context API")
+# ---- Interceptor fetch ----
 
-    url = f"{CONTEXT_API_BASE_URL}/context/payload"
-    async with httpx.AsyncClient(timeout=CONTEXT_TIMEOUT) as client:
+async def fetch_message_from_interceptor(request_id: str) -> dict:
+    """Busca a mensagem original no Interceptor API pelo request_id"""
+    if not request_id:
+        raise ValueError("request_id required to fetch message from Interceptor")
+
+    url = "http://localhost:8080/intercept/message"
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         resp = await client.get(url, params={"request_id": request_id})
 
     if resp.status_code != 200:
-        raise RuntimeError(f"Context API fetch failed ({resp.status_code}): {resp.text}")
+        raise RuntimeError(f"Interceptor fetch failed ({resp.status_code}): {resp.text}")
 
-    data = resp.json()
-    payload_b64 = data.get("payload_b64")
-    if not payload_b64:
-        raise RuntimeError("Context API response missing payload_b64")
+    return resp.json()
 
-    return payload_b64
-
-# ---------- AEAD operations ----------
+# ---- AEAD operations ----
 
 def _derive_aead_key(ctx: dict, algorithm: str, for_encrypt: bool) -> Tuple[bytes, int]:
-    if algorithm.upper() == "AES256_GCM":
+    alg = algorithm.upper()
+    if alg == "AES256_GCM":
         length = 32
         info = HKDF_INFO_ENCRYPT if for_encrypt else HKDF_INFO_DECRYPT
         return _hkdf_derive(ctx["key_material"], length, info), AESGCM_NONCE_SIZE
-    elif algorithm.upper() == "CHACHA20_POLY1305":
+    elif alg == "CHACHA20_POLY1305":
         length = 32
         info = HKDF_INFO_ENCRYPT if for_encrypt else HKDF_INFO_DECRYPT
         return _hkdf_derive(ctx["key_material"], length, info), CHACHA20_NONCE_SIZE
