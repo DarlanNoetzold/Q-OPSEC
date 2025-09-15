@@ -10,6 +10,23 @@ from crypto_engine import (
     b64e,
 )
 from config import HOST, PORT
+from datetime import datetime
+
+def _to_unix_ts(value) -> int:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        try:
+            # tenta parse ISO 8601
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return int(dt.timestamp())
+        except Exception:
+            raise ValueError(f"Invalid expires_at format: {value}")
+    if isinstance(value, datetime):
+        return int(value.timestamp())
+    return int(value)
 
 app = FastAPI(
     title="OraculumPrisec Crypto Module",
@@ -52,7 +69,7 @@ async def encrypt(req: EncryptRequest):
             algorithm=req.algorithm,
             nonce_b64=nonce_b64,
             ciphertext_b64=ciphertext_b64,
-            expires_at=ctx["expires_at"],
+            expires_at=_to_unix_ts(ctx["expires_at"]),  # <-- normaliza
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
