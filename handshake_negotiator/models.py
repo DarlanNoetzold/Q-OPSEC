@@ -22,3 +22,8 @@ class NegotiationResponse(BaseModel):
     message: Optional[str] = None
     delivery_id: Optional[str] = None
     delivery_status: Optional[str] = None
+
+    crypto_nonce_b64: Optional[str] = None
+    crypto_ciphertext_b64: Optional[str] = None
+    crypto_algorithm: Optional[str] = None
+    crypto_expires_at: Optional[int] = None
