@@ -20,7 +20,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
 # Backend configuration
-STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "memory")  # "redis", "sqlite", "memory"
+STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "redis")  # "redis", "sqlite", "memory"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 SQLITE_PATH = os.getenv("SQLITE_PATH", "kms_sessions.db")
 
