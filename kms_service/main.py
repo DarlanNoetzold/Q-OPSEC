@@ -10,31 +10,26 @@ app = FastAPI(title="KMS Service", version="2.0.0")
 
 @app.get("/kms/supported_algorithms")
 def supported_algorithms():
-    """List all algorithms supported by the KMS"""
     return get_supported_algorithms()
 
 
 @app.get("/kms/algorithm_info/{algorithm}")
 def algorithm_info(algorithm: str):
-    """Return detailed information about a specific algorithm"""
     return get_algorithm_info(algorithm)
 
 
 def _to_unix_ts(value) -> int:
-    # Normaliza expires_at para int (Unix epoch)
     if isinstance(value, int):
         return value
     if isinstance(value, float):
         return int(value)
     if isinstance(value, datetime):
         return int(value.timestamp())
-    # fallback (não deveria ocorrer)
     return int(value)
 
 
 @app.post("/kms/create_key", response_model=CreateKeyResponse)
 async def create_key(req: CreateKeyRequest):
-    # build_session agora retorna (session_id, request_id, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key)
     session_id, request_id, selected_alg, key_material, expires_at, fallback_applied, fallback_reason, source_of_key = build_session(
         req.session_id,
         req.request_id,
@@ -42,14 +37,13 @@ async def create_key(req: CreateKeyRequest):
         req.ttl_seconds
     )
 
-    # Salva no storage (mantendo a interface atual que recebe um dict)
     await save_session(
         session_id,
         request_id,
         selected_alg,
         key_material,
         expires_at,
-        source_of_key  # se sua assinatura tiver source com default, este pode ser opcional
+        source_of_key
     )
 
     return CreateKeyResponse(
@@ -73,10 +67,10 @@ async def get_key_by_session(session_id: str):
 
     return KeyResponse(
         session_id=sess["session_id"],
-        request_id=sess.get("request_id", ""),  # se faltar por migração antiga
+        request_id=sess.get("request_id", ""),
         algorithm=sess["algorithm"],
         key_material=sess["key_material"],
-        expires_at=_to_unix_ts(sess["expires_at"])  # normaliza para int
+        expires_at=_to_unix_ts(sess["expires_at"])
     )
 
 
@@ -97,7 +91,6 @@ async def get_key_by_request(request_id: str):
 
 @app.get("/kms/session/{session_id}", response_model=KeyResponse)
 async def get_key(session_id: str):
-    """Retrieve an existing session key by ID"""
     sess = await get_session(session_id)
     if not sess:
         raise HTTPException(status_code=404, detail="Session not found or expired")
@@ -106,7 +99,6 @@ async def get_key(session_id: str):
 
 @app.delete("/kms/session/{session_id}")
 async def delete_key(session_id: str):
-    """Remove a session key (revocation)"""
     from storage import delete_session
     success = await delete_session(session_id)
     if not success:
@@ -116,7 +108,6 @@ async def delete_key(session_id: str):
 
 @app.get("/health")
 def health_check():
-    """KMS health check - verifies component status"""
     from key_manager import OQS_AVAILABLE, PQC_AVAILABLE
     import os
 
