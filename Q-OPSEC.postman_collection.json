@@ -275,15 +275,76 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/context/enrich",
+							"raw": "http://localhost:8081/context/enrich",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8080",
+							"port": "8081",
 							"path": [
 								"context",
 								"enrich"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "consult",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/context/record?request_id=uuid-ctx-123",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"context",
+								"record"
+							],
+							"query": [
+								{
+									"key": "request_id",
+									"value": "uuid-ctx-123"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "enrich simple",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_1234567890_abcd1234\",\n    \"sourceId\": \"app1-user-42\",\n    \"destinationId\": \"service-orders\",\n    \"content\": \"Pedido #123 processado\",\n    \"metadata\": {\n      \"host\": \"orders.internal\",\n      \"path\": \"/api/v1/orders\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"device_id\": \"dev-123\",\n      \"priority\": \"high\"\n    }\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/context/enrich/simple",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"context",
+								"enrich",
+								"simple"
 							]
 						}
 					},
@@ -321,19 +382,11 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
-							},
-							{
-								"key": "X-Source-Id",
-								"value": "device-123"
-							},
-							{
-								"key": "X-Destination-Id",
-								"value": "service-payments"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\"message\": \"Transfer request for client 123, card 4111111111111111\",\n\"sourceId\": \"device-123\",\n\"destinationId\": \"service-payments\",\n\"metadata\": {\n\"doc_type\": \"finance\",\n\"app\": \"mobile\"\n}\n}",
+							"raw": "{\n    \"message\": \"Olá, mundo!\",\n    \"sourceId\": \"app1\",\n    \"destinationId\": \"app2\",\n    \"metadata\": {\"priority\": \"high\"}\n  }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -349,6 +402,32 @@
 							"port": "8080",
 							"path": [
 								"intercept"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get request_id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/intercept/message?request_id=req_1757960432832_22dac2e5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"intercept",
+								"message"
+							],
+							"query": [
+								{
+									"key": "request_id",
+									"value": "req_1757960432832_22dac2e5"
+								}
 							]
 						}
 					},
@@ -371,7 +450,40 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n    \"source\": \"node-A\",\n    \"destination\": \"node-B\",\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"PQC\"],\n        \"compliance\": [\"HIPAA\", \"GDPR\"],\n        \"max_latency_ms\": 50\n    },\n    \"proposed\": [\"QKD_BB84\", \"Kyber1024\", \"AES256_GCM\"]\n    }",
+							"raw": "    {\n    \"source\": \"node-A\",\n    \"destination\": \"http://localhost:9000\",\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"PQC\"],\n        \"compliance\": [\"HIPAA\", \"GDPR\"],\n        \"max_latency_ms\": 50\n    },\n    \"proposed\": [\"QKD_BB84\", \"Kyber1024\", \"AES256_GCM\"]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"request_id\": \"req_1757960432832_22dac2e5\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -437,7 +549,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"source\": \"old-node\",\n  \"destination\": \"legacy-server\",\n  \"dst_props\": {\n    \"hardware\": [\"CPU_ONLY\"],\n    \"compliance\": [\"PCI-DSS\"]\n  },\n  \"proposed\": [\"RSA4096\", \"AES256_GCM\"]\n}",
+							"raw": "{\n\"request_id\": \"req_ab123\",\n  \"source\": \"old-node\",\n  \"destination\": \"legacy-server\",\n  \"dst_props\": {\n    \"hardware\": [\"CPU_ONLY\"],\n    \"compliance\": [\"PCI-DSS\"]\n  },\n  \"proposed\": [\"RSA4096\", \"AES256_GCM\"]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -504,6 +616,39 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"source\": \"hybrid-client\",\n  \"destination\": \"hybrid-server\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\", \"PQC\", \"Classical\"],\n    \"max_latency_ms\": 150\n  },\n  \"proposed\": [\"Hybrid_PQC_RSA\", \"AES256_GCM\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8001/handshake",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"handshake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "handshake 7",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_ab123\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": { \"hardware\": [\"QKD\",\"PQC\"], \"max_latency_ms\": 50 },\n  \"proposed\": [\"QKD_BB84\",\"Kyber1024\",\"AES256_GCM\"]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -639,7 +784,7 @@
 					"response": []
 				},
 				{
-					"name": "handshake 2",
+					"name": "create_key 3",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -650,7 +795,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"source\": \"node-A\",\n  \"destination\": \"node-B\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
+							"raw": "{\n    \"session_id\": null,\n    \"request_id\": \"req_123456\",\n    \"algorithm\": \"AES256_GCM\",\n    \"ttl_seconds\": 120\n  }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -658,14 +803,361 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8001/handshake",
+							"raw": "http://localhost:8002/kms/create_key",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8001",
+							"port": "8002",
 							"path": [
-								"handshake"
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get_key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8002/kms/get_key/7c0f964a-c884-494f-b050-39fc8c786f52",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"get_key",
+								"7c0f964a-c884-494f-b050-39fc8c786f52"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get_key by req",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8002/kms/get_key?request_id=req_123456",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"get_key"
+							],
+							"query": [
+								{
+									"key": "request_id",
+									"value": "req_123456"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "key_destination_engine",
+			"item": [
+				{
+					"name": "deliver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_id\": \"test-session-123\",\n  \"destination\": \"localhost:9000\",\n  \"delivery_method\": \"API\",\n  \"algorithm\": \"AES256_GCM\",\n  \"key_material\": \"WnXqT+ghsifEnq9NImKF/lcG96yDO256jYZzvEPTx7o=\",\n  \"expires_at\": \"2025-09-11T19:21:13.047859\",\n  \"metadata\": {\"note\":\"test\"}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8003/deliver",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8003",
+							"path": [
+								"deliver"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deliver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"sess_123\",\n    \"request_id\": \"req_456\",\n    \"destination\": \"http://localhost:9000/receiver\",\n    \"delivery_method\": \"API\",\n    \"key_material\": \"base64key...\",\n    \"algorithm\": \"AES256_GCM\",\n    \"expires_at\": 1893456000,\n    \"metadata\": {\n      \"headers\": {\"X-Env\": \"dev\"}\n    }\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8003/deliver",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8003",
+							"path": [
+								"deliver"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "crypto_module",
+			"item": [
+				{
+					"name": "encrypt from request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"0a88446e-3ce5-4de2-a2b4-8f63866d6a52\",\n    \"request_id\": \"uuid-ctx-123\",\n    \"algorithm\": \"AES256_GCM\",\n    \"plaintext_b64\": \"U2Vuc2l0aXZlIERhdGEg8J+Yig==\",\n    \"aad_b64\": \"c2Vzc2lvbj1TWVh8dXNlcj1hbmE=\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8004/encrypt",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8004",
+							"path": [
+								"encrypt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "encrypt from context",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_1757960432832_22dac2e5\",\n    \"algorithm\": \"AES256_GCM\",\n    \"fetch_from_context\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8004/encrypt",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8004",
+							"path": [
+								"encrypt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "encrypt from intercept",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"request_id\": \"req_1757960432832_22dac2e5\",\r\n  \"session_id\": \"a3252a91-7d3a-41c7-b99f-1dd1ae254515\",\r\n  \"algorithm\": \"AES256_GCM\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8004/encrypt/by-request-id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8004",
+							"path": [
+								"encrypt",
+								"by-request-id"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "validation_sen_api",
+			"item": [
+				{
+					"name": "send",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "receiver",
+			"item": [
+				{
+					"name": "receiver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"request_id\":\"req_123\", \"session_id\":\"sess_456\", \"key_material\":\"base64key\", \"algorithm\":\"AES256_GCM\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/receiver",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"receiver"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "decrypt",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_123\",\n    \"nonce_b64\": \"NONCE_BASE64\",\n    \"ciphertext_b64\": \"CIPHER_BASE64\",\n    \"algorithm\": \"AES256_GCM\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/decrypt",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"decrypt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "keys",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9000/keys",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"keys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9000/logs?limit=5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"logs"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
 							]
 						}
 					},
