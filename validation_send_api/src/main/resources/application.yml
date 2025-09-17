@@ -1,0 +1,20 @@
+server:
+  port: 8005
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/validation_send
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update   # para dev; em prod use migrações (Flyway)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
