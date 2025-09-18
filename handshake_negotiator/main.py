@@ -6,11 +6,12 @@ from models import NegotiationRequest, NegotiationResponse
 from negotiator import negotiate_algorithms
 from urllib.parse import urlsplit, urlunsplit
 
-app = FastAPI(title="Handshake Negotiator", version="2.2.0")
+app = FastAPI(title="Handshake Negotiator", version="2.3.0")
 
 KMS_URL = "http://localhost:8002/kms/create_key"
 KDE_URL = "http://localhost:8003/deliver"
 CRYPTO_URL = "http://localhost:8004/encrypt/by-request-id"
+VALIDATION_URL = "http://localhost:8005/validation/send"  # novo
 
 def normalize_destination(dest: str) -> str:
     try:
@@ -31,20 +32,17 @@ async def handshake(req: NegotiationRequest):
     requested_alg = req.proposed[0] if req.proposed else "UNKNOWN"
     chosen_alg, session_id, _, _ = negotiate_algorithms(req)
 
-    # 1) KMS: criar/registrar chave para a sessão
+    # 1) KMS
     kms_payload = {
         "session_id": session_id,
         "request_id": request_id,
         "algorithm": chosen_alg,
         "ttl_seconds": 300
     }
-
     async with httpx.AsyncClient(timeout=15.0) as client:
         kms_resp = await client.post(KMS_URL, json=kms_payload)
-
     if kms_resp.status_code != 200:
         raise HTTPException(status_code=500, detail=f"Erro ao criar chave no KMS: {kms_resp.text}")
-
     try:
         key_data = kms_resp.json()
     except Exception as e:
@@ -61,7 +59,7 @@ async def handshake(req: NegotiationRequest):
         "Negotiation completed successfully"
     )
 
-    # 2) KDE: entregar chave/dados
+    # 2) KDE
     normalized_dest = normalize_destination(req.destination)
     delivery_payload = {
         "session_id": key_data["session_id"],
@@ -72,11 +70,8 @@ async def handshake(req: NegotiationRequest):
         "algorithm": actual_selected,
         "expires_at": key_data["expires_at"]
     }
-
     async with httpx.AsyncClient(timeout=15.0) as client:
         kde_resp = await client.post(KDE_URL, json=delivery_payload)
-
-    kde_data: dict | str
     if kde_resp.status_code != 200:
         kde_data = {"error": f"HTTP {kde_resp.status_code}", "body": kde_resp.text}
     else:
@@ -85,13 +80,12 @@ async def handshake(req: NegotiationRequest):
         except Exception:
             kde_data = {"raw": kde_resp.text}
 
-    # 3) CRYPTO: solicitar criptografia da mensagem do Interceptor
+    # 3) CRYPTO
     crypto_payload = {
         "request_id": request_id,
         "session_id": key_data["session_id"],
         "algorithm": actual_selected
     }
-
     async with httpx.AsyncClient(timeout=15.0) as client:
         crypto_resp = await client.post(CRYPTO_URL, json=crypto_payload)
 
@@ -108,12 +102,37 @@ async def handshake(req: NegotiationRequest):
             crypto_algorithm = c.get("algorithm")
             crypto_expires_at = c.get("expires_at")
         except Exception:
-            # se parsing falhar, mantém None
             pass
-    else:
-        # opcional: incorporar status de erro do crypto no delivery_status
-        pass
 
+    # 4) VALIDATION SEND API (encaminhar para a origem/receiver)
+    validation_data: dict | str
+    if crypto_nonce_b64 and crypto_ciphertext_b64:
+        validation_payload = {
+            "requestId": request_id,
+            "sessionId": key_data["session_id"],
+            "selectedAlgorithm": actual_selected,
+            "cryptoNonceB64": crypto_nonce_b64,
+            "cryptoCiphertextB64": crypto_ciphertext_b64,
+            "cryptoAlgorithm": crypto_algorithm or actual_selected,
+            "cryptoExpiresAt": crypto_expires_at,
+            # opcional, se tiver um sourceId no seu NegotiationRequest
+            "sourceId": getattr(req, "source_id", None),
+            # para onde o Validation deve reenviar (receiver)
+            "originUrl": normalized_dest
+        }
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            v_resp = await client.post(VALIDATION_URL, json=validation_payload)
+        if v_resp.status_code != 200:
+            validation_data = {"error": f"HTTP {v_resp.status_code}", "body": v_resp.text}
+        else:
+            try:
+                validation_data = v_resp.json()
+            except Exception:
+                validation_data = {"raw": v_resp.text}
+    else:
+        validation_data = {"skip": "no crypto output available"}
+
+    # Retorno final
     return NegotiationResponse(
         request_id=request_id,
         session_id=key_data["session_id"],
@@ -125,7 +144,10 @@ async def handshake(req: NegotiationRequest):
         fallback_reason=actual_reason,
         source_of_key=actual_source,
         message=message,
-        delivery_status=str({"kde": kde_data}),  # mantém KDE aqui
+        delivery_status=str({
+            "kde": kde_data,
+            "validation": validation_data
+        }),
         crypto_nonce_b64=crypto_nonce_b64,
         crypto_ciphertext_b64=crypto_ciphertext_b64,
         crypto_algorithm=crypto_algorithm,
