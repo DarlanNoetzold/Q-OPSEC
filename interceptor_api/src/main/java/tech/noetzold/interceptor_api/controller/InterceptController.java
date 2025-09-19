@@ -25,7 +25,6 @@ public class InterceptController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Opcional: compatível com o Crypto Module
     @GetMapping("/payload")
     public ResponseEntity<PayloadResponse> getPayloadByRequestId(@RequestParam("request_id") String requestId) {
         return interceptService.getMessageByRequestId(requestId)
