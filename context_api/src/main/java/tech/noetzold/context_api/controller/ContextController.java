@@ -7,6 +7,8 @@ import tech.noetzold.context_api.model.*;
 import tech.noetzold.context_api.service.ContextEnrichmentService;
 import tech.noetzold.context_api.repository.ContextRecordRepository;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/context")
 public class ContextController {
@@ -32,8 +34,20 @@ public class ContextController {
 
     @GetMapping("/record")
     public ResponseEntity<ContextRecord> getRecordByRequestId(@RequestParam("request_id") String requestId) {
-        return recordRepo.findByRequestId(requestId)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            return recordRepo.findByRequestId(requestId)
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+            List<ContextRecord> records = recordRepo.findAll()
+                    .stream()
+                    .filter(r -> requestId.equals(r.getRequestId()))
+                    .toList();
+
+            if (records.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(records.get(0));
+        }
     }
 }
