@@ -45,15 +45,9 @@ def health():
 
 @conf_bp.route("/cleanup/all", methods=["POST"])
 def cleanup_all_conf_models():
-    """
-    Remove todos os modelos de confidencialidade (conf_model_*.joblib),
-    zera o registry desses modelos e reseta o modelo em memória.
-    Body opcional: {"dry_run": true}
-    """
     payload = request.get_json(silent=True) or {}
     dry_run = bool(payload.get("dry_run", False))
 
-    # Apenas conf_model_* (para não apagar modelos de risco)
     files = glob.glob(os.path.join(MODELS_DIR, "conf_model_*.joblib"))
     total_size_mb = 0.0
     removed = 0
@@ -76,7 +70,6 @@ def cleanup_all_conf_models():
             registry["best_conf_model"] = None
             write_registry(registry)
 
-            # reseta instância em memória
             _service._best_model = None
             _service._best_info = None
         except Exception as e:
@@ -93,7 +86,6 @@ def cleanup_all_conf_models():
 
 @conf_bp.route("/cleanup", methods=["POST"])
 def cleanup_conf_models():
-    """Limpeza inteligente de modelos de confidencialidade"""
     payload = request.get_json(silent=True) or {}
 
     dry_run = payload.get("dry_run", True)
@@ -113,5 +105,4 @@ def cleanup_conf_models():
 
 @conf_bp.route("/cleanup/recommendations", methods=["GET"])
 def cleanup_recommendations():
-    """Recomendações de limpeza para modelos de confidencialidade"""
     return jsonify(_service.get_cleanup_recommendations())
