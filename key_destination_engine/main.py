@@ -25,19 +25,9 @@ async def root():
 
 @app.post("/deliver", response_model=DeliveryResponse)
 async def deliver(req: DeliveryRequest):
-    """
-    Entrega o material de chave ao destino especificado usando o método escolhido.
-
-    Métodos suportados:
-    - API: HTTP/REST endpoint
-    - MQTT: Message broker
-    - HSM: Hardware Security Module
-    - FILE: Sistema de arquivos seguro
-    """
     result = await deliver_key(req)
 
     if result.status == "failed":
-        # Propaga erro HTTP com o detalhe do handler
         raise HTTPException(status_code=500, detail=result.message or "Delivery failed")
 
     return result
@@ -45,7 +35,6 @@ async def deliver(req: DeliveryRequest):
 
 @app.get("/delivery/{delivery_id}", response_model=DeliveryResponse)
 async def get_delivery(delivery_id: str):
-    """Recupera o status de uma entrega específica."""
     result = get_delivery_status(delivery_id)
     if not result:
         raise HTTPException(status_code=404, detail="Delivery not found")
@@ -54,9 +43,7 @@ async def get_delivery(delivery_id: str):
 
 @app.get("/deliveries")
 async def list_all_deliveries() -> Dict[str, Any]:
-    """Lista todas as entregas trackeadas (debug/admin)."""
     deliveries = list_deliveries()
-    # FastAPI serializa modelos Pydantic automaticamente
     return {
         "total": len(deliveries),
         "deliveries": deliveries,
@@ -65,7 +52,6 @@ async def list_all_deliveries() -> Dict[str, Any]:
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
     return {
         "status": "healthy",
         "service": "OraculumPrisec KDE",
