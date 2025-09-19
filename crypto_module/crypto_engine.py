@@ -42,10 +42,6 @@ def _now_epoch() -> int:
 # ---- KMS key/context fetch ----
 
 async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]) -> dict:
-    """
-    Busca contexto de chave no KMS. No seu fluxo atual, exige session_id.
-    request_id é ignorado aqui (mantido por compatibilidade de assinatura).
-    """
     if not session_id:
         raise ValueError("session_id is required to fetch key from KMS")
 
@@ -67,7 +63,6 @@ async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]
 # ---- Interceptor fetch ----
 
 async def fetch_message_from_interceptor(request_id: str) -> dict:
-    """Busca a mensagem original no Interceptor API pelo request_id"""
     if not request_id:
         raise ValueError("request_id required to fetch message from Interceptor")
 
