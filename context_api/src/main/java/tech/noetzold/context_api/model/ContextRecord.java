@@ -16,7 +16,7 @@ public class ContextRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "request_id", length = 120)
+    @Column(name = "requestId", length = 120)
     private String requestId;
 
     @JdbcTypeCode(SqlTypes.JSON)
