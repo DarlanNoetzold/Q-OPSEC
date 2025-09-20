@@ -18,10 +18,9 @@ public class RiskServiceClient {
 
     private final WebClient webClient;
 
-    // Configurações de retry
-    private static final int MAX_RETRIES = 3;                 // até 3 tentativas após treinar
-    private static final Duration RETRY_DELAY = Duration.ofSeconds(2); // espera entre tentativas
-    private static final Duration TIMEOUT = Duration.ofMillis(1000);   // timeout das chamadas
+    private static final int MAX_RETRIES = 3;
+    private static final Duration RETRY_DELAY = Duration.ofSeconds(2);
+    private static final Duration TIMEOUT = Duration.ofMillis(1500);
 
     public RiskServiceClient(@Qualifier("riskWebClient") WebClient riskWebClient) {
         this.webClient = riskWebClient;
@@ -29,9 +28,7 @@ public class RiskServiceClient {
 
     public Optional<RiskContext> assessGeneral(String requestId, Map<String, Object> signals) {
         try {
-            Map<String, Object> payload = new HashMap<>();
-            if (requestId != null) payload.put("requestId", requestId);
-            if (signals != null) payload.put("signals", signals);
+            Map<String, Object> payload = buildAssessPayload(requestId, signals);
 
             AssessOutcome first = doAssess(payload);
             if (first.context().isPresent()) {
@@ -56,6 +53,35 @@ public class RiskServiceClient {
         }
     }
 
+    private Map<String, Object> buildAssessPayload(String requestId, Map<String, Object> signals) {
+        Map<String, Object> payload = new HashMap<>();
+
+        // request_id obrigatório (snake_case)
+        payload.put("request_id", (requestId != null && !requestId.isBlank())
+                ? requestId
+                : "req_" + System.currentTimeMillis());
+
+        // signals: garantir objeto não-nulo e saneado
+        Map<String, Object> s = new HashMap<>();
+        if (signals != null) {
+            for (Map.Entry<String, Object> e : signals.entrySet()) {
+                if (e.getKey() == null) continue;
+                Object v = e.getValue();
+                if (v == null) continue;
+                // permite apenas tipos simples comuns ao schema
+                if (v instanceof String || v instanceof Number || v instanceof Boolean) {
+                    s.put(toSnakeCase(e.getKey()), v);
+                }
+            }
+        }
+        if (s.isEmpty()) {
+            s.put("global_alert_level", "low");
+        }
+
+        payload.put("signals", s);
+        return payload;
+    }
+
     private AssessOutcome doAssess(Map<String, Object> payload) {
         try {
             return webClient.post()
@@ -67,16 +93,26 @@ public class RiskServiceClient {
                             return resp.bodyToMono(RiskContext.class)
                                     .map(rc -> new AssessOutcome(Optional.ofNullable(rc), false));
                         } else if (status == HttpStatus.SERVICE_UNAVAILABLE) {
+                            // 503 -> modelo não pronto
                             return Mono.just(new AssessOutcome(Optional.empty(), true));
+                        } else if (status == HttpStatus.BAD_REQUEST) {
+                            // 400 -> loga corpo para identificar exatamente o campo inválido
+                            return resp.bodyToMono(String.class)
+                                    .doOnNext(body -> System.err.println("Risk 400 payload error: " + body))
+                                    .then(Mono.just(new AssessOutcome(Optional.empty(), false)));
                         } else {
                             return Mono.just(new AssessOutcome(Optional.empty(), false));
                         }
                     })
                     .timeout(TIMEOUT)
-                    .onErrorResume(e -> Mono.just(new AssessOutcome(Optional.empty(), false)))
+                    .onErrorResume(e -> {
+                        System.err.println("Risk assess error: " + e.getMessage());
+                        return Mono.just(new AssessOutcome(Optional.empty(), false));
+                    })
                     .blockOptional()
                     .orElse(new AssessOutcome(Optional.empty(), false));
         } catch (Exception e) {
+            System.err.println("Risk assess exception: " + e.getMessage());
             return new AssessOutcome(Optional.empty(), false);
         }
     }
@@ -105,17 +141,17 @@ public class RiskServiceClient {
         }
     }
 
-    private record AssessOutcome(Optional<RiskContext> context, boolean modelNotReady) {}
-
-    public Map<String, Object> buildBasicSignals(String geoRegion, String mfaStatus, String exposureLevel) {
-        Map<String, Object> signals = new HashMap<>();
-        if (geoRegion != null) signals.put("geo_region", geoRegion);
-        if (mfaStatus != null) signals.put("mfa_status", mfaStatus);
-        if (exposureLevel != null) signals.put("exposure_level", exposureLevel);
-        // defaults exemplares
-        signals.putIfAbsent("anomaly_index_global", 0.0);
-        signals.putIfAbsent("incident_rate_7d", 0);
-        signals.putIfAbsent("maintenance_window", false);
-        return signals;
+    private String toSnakeCase(String key) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : key.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                sb.append('_').append(Character.toLowerCase(c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString().replaceAll("__+", "_");
     }
+
+    private record AssessOutcome(Optional<RiskContext> context, boolean modelNotReady) {}
 }
