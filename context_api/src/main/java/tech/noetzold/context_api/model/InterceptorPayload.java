@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 public record InterceptorPayload(
-        @JsonProperty("request_id")
+        @JsonProperty("requestId")
         String requestId,
         String sourceId,
         String destinationId,
