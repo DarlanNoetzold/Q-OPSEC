@@ -33,7 +33,7 @@ public class ContextController {
     }
 
     @GetMapping("/record")
-    public ResponseEntity<ContextRecord> getRecordByRequestId(@RequestParam("request_id") String requestId) {
+    public ResponseEntity<ContextRecord> getRecordByRequestId(@RequestParam("requestId") String requestId) {
         try {
             return recordRepo.findByRequestId(requestId)
                     .map(ResponseEntity::ok)
