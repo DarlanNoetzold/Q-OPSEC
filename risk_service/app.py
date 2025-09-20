@@ -10,7 +10,6 @@ def ensure_dirs():
     os.makedirs("data", exist_ok=True)
     os.makedirs("models", exist_ok=True)
 
-# Singleton service instance
 service = RiskModelService()
 
 def create_app():
@@ -22,10 +21,8 @@ def create_app():
     def health():
         return jsonify({"status": "ok"}), 200
 
-    # Scheduler para jobs automáticos
     scheduler = BackgroundScheduler(daemon=True)
 
-    # Re-treinar a cada hora
     scheduler.add_job(
         func=service.scheduled_retrain,
         trigger="interval",
@@ -35,7 +32,6 @@ def create_app():
         replace_existing=True
     )
 
-    # Limpeza de modelos antigos a cada 3 dias (usa RiskModelService)
     scheduler.add_job(
         func=service.scheduled_cleanup,   # << aqui é o método do RiskModelService
         trigger="interval",
