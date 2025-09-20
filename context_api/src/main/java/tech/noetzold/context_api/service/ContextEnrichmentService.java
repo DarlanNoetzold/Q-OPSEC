@@ -40,13 +40,13 @@ public class ContextEnrichmentService {
 
     @Transactional
     public EnrichResponse enrichAll(EnrichRequest req, HttpServletRequest httpReq) {
-        log.info("EnrichAll called with request_id: {}", req.request_id());
+        log.info("EnrichAll called with requestId: {}", req.requestId());
 
         SourceContext source = srcBuilder.build(req.source_hint(), req, httpReq);
         DestinationContext dest = destBuilder.build(req.destination_hint(), req);
 
-        RiskContext risk = riskFacade.getRisk(req.request_id(), source, dest);
-        ContentConfidentiality conf = confFacade.classify(req.request_id(), req.content_pointer(), source, dest);
+        RiskContext risk = riskFacade.getRisk(req.requestId(), source, dest);
+        ContentConfidentiality conf = confFacade.classify(req.requestId(), req.content_pointer(), source, dest);
 
         try {
             var headersNode = objectMapper.valueToTree(req.headers() != null ? req.headers() : java.util.Map.of());
@@ -56,7 +56,7 @@ public class ContextEnrichmentService {
             var confNode   = objectMapper.valueToTree(conf);
 
             ContextRecord rec = new ContextRecord(
-                    req.request_id(),
+                    req.requestId(),
                     headersNode,
                     sourceNode,
                     destNode,
@@ -65,17 +65,17 @@ public class ContextEnrichmentService {
             );
 
             recordRepo.save(rec);
-            log.info("ContextRecord saved with request_id: {}", req.request_id());
+            log.info("ContextRecord saved with requestId: {}", req.requestId());
         } catch (Exception e) {
             log.warn("Error to persist ContextRecord", e);
         }
 
-        return new EnrichResponse(req.request_id(), source, dest, risk, conf);
+        return new EnrichResponse(req.requestId(), source, dest, risk, conf);
     }
 
     @Transactional
     public EnrichResponse enrichFromInterceptor(InterceptorPayload payload, HttpServletRequest httpReq) {
-        log.info("EnrichFromInterceptor called with request_id: {}", payload.requestId());
+        log.info("EnrichFromInterceptor called with requestId: {}", payload.requestId());
 
         String reqId = (payload.requestId() != null && !payload.requestId().isBlank())
                 ? payload.requestId()
