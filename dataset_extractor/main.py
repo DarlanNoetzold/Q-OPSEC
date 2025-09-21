@@ -486,7 +486,7 @@ def main():
 
         # Exporta uma amostra pequena para testes
         logger.info("Exportando amostra para testes...")
-        sample_df = generator.export_dataset('context_dataset_sample.csv', sample_size=100)
+        sample_df = generator.export_dataset('context_dataset_sample.csv', sample_size=1000)
 
         logger.info("✅ Processo concluído com sucesso!")
         logger.info("Arquivos gerados:")
