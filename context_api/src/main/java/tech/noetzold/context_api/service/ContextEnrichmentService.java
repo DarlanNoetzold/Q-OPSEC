@@ -40,13 +40,17 @@ public class ContextEnrichmentService {
 
     @Transactional
     public EnrichResponse enrichAll(EnrichRequest req, HttpServletRequest httpReq) {
-        log.info("EnrichAll called with requestId: {}", req.requestId());
+        String resolvedReqId = (req.requestId() != null && !req.requestId().isBlank())
+                ? req.requestId()
+                : "req_" + System.currentTimeMillis() + "_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+
+        log.info("EnrichAll called with requestId: {}", resolvedReqId);
 
         SourceContext source = srcBuilder.build(req.source_hint(), req, httpReq);
         DestinationContext dest = destBuilder.build(req.destination_hint(), req);
 
-        RiskContext risk = riskFacade.getRisk(req.requestId(), source, dest);
-        ContentConfidentiality conf = confFacade.classify(req.requestId(), req.content_pointer(), source, dest);
+        RiskContext risk = riskFacade.getRisk(resolvedReqId, source, dest);
+        ContentConfidentiality conf = confFacade.classify(resolvedReqId, req.content_pointer(), source, dest);
 
         try {
             var headersNode = objectMapper.valueToTree(req.headers() != null ? req.headers() : java.util.Map.of());
@@ -56,7 +60,7 @@ public class ContextEnrichmentService {
             var confNode   = objectMapper.valueToTree(conf);
 
             ContextRecord rec = new ContextRecord(
-                    req.requestId(),
+                    resolvedReqId,
                     headersNode,
                     sourceNode,
                     destNode,
@@ -65,12 +69,12 @@ public class ContextEnrichmentService {
             );
 
             recordRepo.save(rec);
-            log.info("ContextRecord saved with requestId: {}", req.requestId());
+            log.info("ContextRecord saved with requestId: {}", resolvedReqId);
         } catch (Exception e) {
             log.warn("Error to persist ContextRecord", e);
         }
 
-        return new EnrichResponse(req.requestId(), source, dest, risk, conf);
+        return new EnrichResponse(resolvedReqId, source, dest, risk, conf);
     }
 
     @Transactional
