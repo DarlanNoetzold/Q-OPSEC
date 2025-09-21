@@ -56,19 +56,16 @@ public class RiskServiceClient {
     private Map<String, Object> buildAssessPayload(String requestId, Map<String, Object> signals) {
         Map<String, Object> payload = new HashMap<>();
 
-        // request_id obrigatório (snake_case)
         payload.put("request_id", (requestId != null && !requestId.isBlank())
                 ? requestId
                 : "req_" + System.currentTimeMillis());
 
-        // signals: garantir objeto não-nulo e saneado
         Map<String, Object> s = new HashMap<>();
         if (signals != null) {
             for (Map.Entry<String, Object> e : signals.entrySet()) {
                 if (e.getKey() == null) continue;
                 Object v = e.getValue();
                 if (v == null) continue;
-                // permite apenas tipos simples comuns ao schema
                 if (v instanceof String || v instanceof Number || v instanceof Boolean) {
                     s.put(toSnakeCase(e.getKey()), v);
                 }
@@ -93,10 +90,8 @@ public class RiskServiceClient {
                             return resp.bodyToMono(RiskContext.class)
                                     .map(rc -> new AssessOutcome(Optional.ofNullable(rc), false));
                         } else if (status == HttpStatus.SERVICE_UNAVAILABLE) {
-                            // 503 -> modelo não pronto
                             return Mono.just(new AssessOutcome(Optional.empty(), true));
                         } else if (status == HttpStatus.BAD_REQUEST) {
-                            // 400 -> loga corpo para identificar exatamente o campo inválido
                             return resp.bodyToMono(String.class)
                                     .doOnNext(body -> System.err.println("Risk 400 payload error: " + body))
                                     .then(Mono.just(new AssessOutcome(Optional.empty(), false)));
