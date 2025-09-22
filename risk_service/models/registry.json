@@ -62,6 +62,70 @@
       "metrics": {
         "accuracy": 0.9583333333333334,
         "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "linsvc",
+      "path": "models\\model_linsvc_1758496462.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "logreg",
+      "path": "models\\model_logreg_1758496460.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "linsvc",
+      "path": "models\\model_linsvc_1758500062.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "logreg",
+      "path": "models\\model_logreg_1758500060.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "linsvc",
+      "path": "models\\model_linsvc_1758503662.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "logreg",
+      "path": "models\\model_logreg_1758503660.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "linsvc",
+      "path": "models\\model_linsvc_1758507262.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
+      }
+    },
+    {
+      "name": "logreg",
+      "path": "models\\model_logreg_1758507260.joblib",
+      "metrics": {
+        "accuracy": 0.9583333333333334,
+        "f1": 0.6304026987138941
       },
       "best": true
     },
@@ -92,6 +156,38 @@
     {
       "name": "mlp_wide",
       "path": "models\\model_mlp_wide_1758492865.joblib",
+      "metrics": {
+        "accuracy": 0.9416666666666667,
+        "f1": 0.6137465738983766
+      }
+    },
+    {
+      "name": "mlp_wide",
+      "path": "models\\model_mlp_wide_1758496464.joblib",
+      "metrics": {
+        "accuracy": 0.9416666666666667,
+        "f1": 0.6137465738983766
+      }
+    },
+    {
+      "name": "mlp_wide",
+      "path": "models\\model_mlp_wide_1758500064.joblib",
+      "metrics": {
+        "accuracy": 0.9416666666666667,
+        "f1": 0.6137465738983766
+      }
+    },
+    {
+      "name": "mlp_wide",
+      "path": "models\\model_mlp_wide_1758503665.joblib",
+      "metrics": {
+        "accuracy": 0.9416666666666667,
+        "f1": 0.6137465738983766
+      }
+    },
+    {
+      "name": "mlp_wide",
+      "path": "models\\model_mlp_wide_1758507265.joblib",
       "metrics": {
         "accuracy": 0.9416666666666667,
         "f1": 0.6137465738983766
@@ -162,6 +258,70 @@
       }
     },
     {
+      "name": "mlp_medium",
+      "path": "models\\model_mlp_medium_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6063756063756064
+      }
+    },
+    {
+      "name": "mlp_deep",
+      "path": "models\\model_mlp_deep_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6081764824934224
+      }
+    },
+    {
+      "name": "mlp_medium",
+      "path": "models\\model_mlp_medium_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6063756063756064
+      }
+    },
+    {
+      "name": "mlp_deep",
+      "path": "models\\model_mlp_deep_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6081764824934224
+      }
+    },
+    {
+      "name": "mlp_medium",
+      "path": "models\\model_mlp_medium_1758503664.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6063756063756064
+      }
+    },
+    {
+      "name": "mlp_deep",
+      "path": "models\\model_mlp_deep_1758503664.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6081764824934224
+      }
+    },
+    {
+      "name": "mlp_medium",
+      "path": "models\\model_mlp_medium_1758507264.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6063756063756064
+      }
+    },
+    {
+      "name": "mlp_deep",
+      "path": "models\\model_mlp_deep_1758507264.joblib",
+      "metrics": {
+        "accuracy": 0.9333333333333333,
+        "f1": 0.6081764824934224
+      }
+    },
+    {
       "name": "svm_rbf",
       "path": "models\\model_svm_rbf_1758482065.joblib",
       "metrics": {
@@ -226,6 +386,70 @@
       }
     },
     {
+      "name": "svm_rbf",
+      "path": "models\\model_svm_rbf_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.7571578670869451
+      }
+    },
+    {
+      "name": "mlp_bn_like",
+      "path": "models\\model_mlp_bn_like_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.5991933278643696
+      }
+    },
+    {
+      "name": "svm_rbf",
+      "path": "models\\model_svm_rbf_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.7571578670869451
+      }
+    },
+    {
+      "name": "mlp_bn_like",
+      "path": "models\\model_mlp_bn_like_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.5991933278643696
+      }
+    },
+    {
+      "name": "svm_rbf",
+      "path": "models\\model_svm_rbf_1758503663.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.7571578670869451
+      }
+    },
+    {
+      "name": "mlp_bn_like",
+      "path": "models\\model_mlp_bn_like_1758503664.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.5991933278643696
+      }
+    },
+    {
+      "name": "svm_rbf",
+      "path": "models\\model_svm_rbf_1758507263.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.7571578670869451
+      }
+    },
+    {
+      "name": "mlp_bn_like",
+      "path": "models\\model_mlp_bn_like_1758507264.joblib",
+      "metrics": {
+        "accuracy": 0.925,
+        "f1": 0.5991933278643696
+      }
+    },
+    {
       "name": "mlp_small",
       "path": "models\\model_mlp_small_1758482065.joblib",
       "metrics": {
@@ -258,6 +482,38 @@
       }
     },
     {
+      "name": "mlp_small",
+      "path": "models\\model_mlp_small_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.9083333333333333,
+        "f1": 0.5776523375307571
+      }
+    },
+    {
+      "name": "mlp_small",
+      "path": "models\\model_mlp_small_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.9083333333333333,
+        "f1": 0.5776523375307571
+      }
+    },
+    {
+      "name": "mlp_small",
+      "path": "models\\model_mlp_small_1758503663.joblib",
+      "metrics": {
+        "accuracy": 0.9083333333333333,
+        "f1": 0.5776523375307571
+      }
+    },
+    {
+      "name": "mlp_small",
+      "path": "models\\model_mlp_small_1758507263.joblib",
+      "metrics": {
+        "accuracy": 0.9083333333333333,
+        "f1": 0.5776523375307571
+      }
+    },
+    {
       "name": "rf",
       "path": "models\\model_rf_1758482061.joblib",
       "metrics": {
@@ -284,6 +540,38 @@
     {
       "name": "rf",
       "path": "models\\model_rf_1758492861.joblib",
+      "metrics": {
+        "accuracy": 0.9,
+        "f1": 0.5640033386448137
+      }
+    },
+    {
+      "name": "rf",
+      "path": "models\\model_rf_1758496461.joblib",
+      "metrics": {
+        "accuracy": 0.9,
+        "f1": 0.5640033386448137
+      }
+    },
+    {
+      "name": "rf",
+      "path": "models\\model_rf_1758500061.joblib",
+      "metrics": {
+        "accuracy": 0.9,
+        "f1": 0.5640033386448137
+      }
+    },
+    {
+      "name": "rf",
+      "path": "models\\model_rf_1758503661.joblib",
+      "metrics": {
+        "accuracy": 0.9,
+        "f1": 0.5640033386448137
+      }
+    },
+    {
+      "name": "rf",
+      "path": "models\\model_rf_1758507261.joblib",
       "metrics": {
         "accuracy": 0.9,
         "f1": 0.5640033386448137
@@ -386,6 +674,102 @@
       }
     },
     {
+      "name": "gb",
+      "path": "models\\model_gb_1758496462.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5619903667463116
+      }
+    },
+    {
+      "name": "xgb",
+      "path": "models\\model_xgb_1758496462.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5546635640876478
+      }
+    },
+    {
+      "name": "lgbm",
+      "path": "models\\model_lgbm_1758496462.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5585950692333671
+      }
+    },
+    {
+      "name": "gb",
+      "path": "models\\model_gb_1758500062.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5619903667463116
+      }
+    },
+    {
+      "name": "xgb",
+      "path": "models\\model_xgb_1758500062.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5546635640876478
+      }
+    },
+    {
+      "name": "lgbm",
+      "path": "models\\model_lgbm_1758500062.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5585950692333671
+      }
+    },
+    {
+      "name": "gb",
+      "path": "models\\model_gb_1758503662.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5619903667463116
+      }
+    },
+    {
+      "name": "xgb",
+      "path": "models\\model_xgb_1758503663.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5546635640876478
+      }
+    },
+    {
+      "name": "lgbm",
+      "path": "models\\model_lgbm_1758503663.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5585950692333671
+      }
+    },
+    {
+      "name": "gb",
+      "path": "models\\model_gb_1758507262.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5619903667463116
+      }
+    },
+    {
+      "name": "xgb",
+      "path": "models\\model_xgb_1758507262.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5546635640876478
+      }
+    },
+    {
+      "name": "lgbm",
+      "path": "models\\model_lgbm_1758507263.joblib",
+      "metrics": {
+        "accuracy": 0.8916666666666667,
+        "f1": 0.5585950692333671
+      }
+    },
+    {
       "name": "extratrees",
       "path": "models\\model_extratrees_1758482065.joblib",
       "metrics": {
@@ -416,11 +800,43 @@
         "accuracy": 0.8833333333333333,
         "f1": 0.5416077877217774
       }
+    },
+    {
+      "name": "extratrees",
+      "path": "models\\model_extratrees_1758496463.joblib",
+      "metrics": {
+        "accuracy": 0.8833333333333333,
+        "f1": 0.5416077877217774
+      }
+    },
+    {
+      "name": "extratrees",
+      "path": "models\\model_extratrees_1758500063.joblib",
+      "metrics": {
+        "accuracy": 0.8833333333333333,
+        "f1": 0.5416077877217774
+      }
+    },
+    {
+      "name": "extratrees",
+      "path": "models\\model_extratrees_1758503663.joblib",
+      "metrics": {
+        "accuracy": 0.8833333333333333,
+        "f1": 0.5416077877217774
+      }
+    },
+    {
+      "name": "extratrees",
+      "path": "models\\model_extratrees_1758507263.joblib",
+      "metrics": {
+        "accuracy": 0.8833333333333333,
+        "f1": 0.5416077877217774
+      }
     }
   ],
   "best_model": {
     "name": "logreg",
-    "path": "models\\model_logreg_1758492860.joblib",
+    "path": "models\\model_logreg_1758507260.joblib",
     "metrics": {
       "accuracy": 0.9583333333333334,
       "f1": 0.6304026987138941
