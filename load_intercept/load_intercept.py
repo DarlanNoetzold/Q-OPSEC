@@ -145,20 +145,17 @@ def rand_request_id() -> str:
     return str(uuid.uuid4())
 
 def rand_traceparent(rng: random.Random) -> str:
-    # W3C traceparent: version-traceId-parentId-flags
     trace_id = uuid.uuid4().hex
     parent_id = rng.getrandbits(64).to_bytes(8, "big").hex()
     return f"00-{trace_id}-{parent_id}-01"
 
 def iso_now_ms() -> str:
-    # ISO com ms
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + f".{int((time.time()%1)*1000):03d}Z"
 
 def compute_hash(content: str) -> str:
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 def maybe_longer_text(rng: random.Random, base: str) -> str:
-    # Repete parágrafos para criar mensagens longas ocasionalmente
     repeats = rng.choices([1, 2, 3, 5, 8], weights=[0.6, 0.2, 0.1, 0.07, 0.03], k=1)[0]
     return "\n\n".join([base] * repeats)
 
@@ -199,19 +196,15 @@ def rand_metadata(rng: random.Random, message: str) -> Dict[str, Any]:
     device = rand_device_info(rng)
     net = rand_network(rng)
 
-    # Sinais para sensibilidade/classificação
     user_label = rng.choice(USER_LABELS) if rng.random() < 0.6 else None
 
-    # PII derivada (sintética)
     sample_email = user["email"]
     sample_phone = rand_phone(rng)
     sample_card = rng.choice(CARDS)
     pii = rand_pii_flags(rng, sample_email, sample_phone, sample_card)
 
-    # Hints de política/cripto/entrega
     policy = rand_policy_hints(rng)
 
-    # Content metadata
     content_type = rng.choice(["text/plain", "text/markdown", "application/json"])
     encoding = rng.choice(["utf-8", "utf-16", "latin-1"])
     content_hash = compute_hash(message)
@@ -240,7 +233,6 @@ def rand_metadata(rng: random.Random, message: str) -> Dict[str, Any]:
             "length": len(message),
             "hash_sha256": content_hash,
         },
-        # Extras para testar arrays/objetos variados
         "labels": rng.sample(
             ["urgent", "todo", "follow-up", "investigate", "auto", "manual"], rng.randint(0, 3)
         ),
@@ -248,7 +240,6 @@ def rand_metadata(rng: random.Random, message: str) -> Dict[str, Any]:
         "score": round(rng.uniform(0, 1), 3),
     }
 
-    # Campos eventuais
     if rng.random() < 0.35:
         meta["ticket_id"] = f"TKT-{rng.randint(10000,99999)}"
     if rng.random() < 0.25:
@@ -273,17 +264,15 @@ def maybe_corrupt_payload(rng: random.Random, payload: Dict[str, Any], invalid_r
         return payload
 
     choice = rng.choice(["drop_field", "wrong_type", "empty_message", "huge_message", "bad_metadata"])
-    corrupted = json.loads(json.dumps(payload))  # deep copy
+    corrupted = json.loads(json.dumps(payload))
 
     if choice == "drop_field":
-        # Remove um campo essencial aleatório
         to_drop = rng.choice(["message", "sourceId", "destinationId", "metadata"])
         corrupted.pop(to_drop, None)
 
     elif choice == "wrong_type":
-        # Troca tipos (ex: metadata vira string)
         pick = rng.choice(["message", "sourceId", "destinationId", "metadata"])
-        corrupted[pick] = 12345  # tipo inválido
+        corrupted[pick] = 12345
 
     elif choice == "empty_message":
         corrupted["message"] = ""
@@ -311,30 +300,25 @@ async def worker(session: aiohttp.ClientSession, url: str, idx: int, rng_seed: i
     sourceId, destinationId = rand_ids(rng)
     metadata = rand_metadata(rng, message)
 
-    # Monte headers com rastreabilidade
     headers = {
         "Content-Type": "application/json",
         "X-Source-Id": sourceId,
         "X-Destination-Id": destinationId,
         "X-Request-Id": request_id,
         "traceparent": traceparent,
-        # Opcional multitenant se existir no user
         "X-Tenant-Id": metadata["user"].get("tenant_id") or "public",
     }
 
-    # Payload mínimo + ricos metadados (mantém contrato)
     payload = {
         "message": message,
         "sourceId": sourceId,
         "destinationId": destinationId,
         "metadata": {
             **metadata,
-            # Sinalizamos também o requestId aqui, caso seja útil no backend
             "requestId": request_id,
         },
     }
 
-    # Eventualmente inserir campos adicionais de teste dentro de metadata
     if rng.random() < 0.15:
         payload["metadata"]["debug"] = {
             "note": "extra fields for compatibility tests",
