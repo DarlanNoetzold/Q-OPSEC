@@ -33,11 +33,9 @@ def run_train_once(cfg: DefaultConfig):
     print(f"[INFO] Best model: {best.best_name} "
           f"(acc_cv={best.best_cv_metrics['accuracy']:.4f}, f1_macro_cv={best.best_cv_metrics['f1_macro']:.4f})")
 
-    # Avaliar no holdout
     holdout = evaluate_holdout(best.pipeline, best.X_test, best.y_test, cfg.allowed_classes)
     print(f"[HOLDOUT] accuracy={holdout['accuracy']:.4f}, f1_macro={holdout['f1_macro']:.4f}")
 
-    # Registrar
     registry = ModelRegistry(cfg.registry_dir)
     tag = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     save_path = registry.save(
