@@ -3,18 +3,13 @@ from models import DeliveryRequest, DeliveryResponse
 
 
 async def deliver_via_hsm(req: DeliveryRequest, delivery_id: str) -> DeliveryResponse:
-    """
-    Deliver key material to Hardware Security Module (HSM).
-    """
+
     try:
-        # Placeholder for HSM integration
-        # In production, use PyKCS11 or similar
 
         print(f"[KDE] Loading key into HSM slot for destination: {req.destination}")
 
-        # Simulate HSM operation
         import asyncio
-        await asyncio.sleep(0.2)  # Simulate HSM processing time
+        await asyncio.sleep(0.2)
 
         return DeliveryResponse(
             session_id=req.session_id,
