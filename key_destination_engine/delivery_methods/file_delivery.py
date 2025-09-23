@@ -5,7 +5,6 @@ from config import FILE_DELIVERY_BASE_PATH
 from models import DeliveryRequest
 
 async def deliver_via_file(req: DeliveryRequest, delivery_id: str):
-    # Se destination for path absoluto, usa. Caso contrário, salva em base/path/session_id.key
     dest = req.destination
     if not dest or dest.strip() == "":
         dest = os.path.join(FILE_DELIVERY_BASE_PATH, f"{req.session_id}.key")
