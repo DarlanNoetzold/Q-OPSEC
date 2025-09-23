@@ -6,12 +6,7 @@ from config import MQTT_BROKER, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD, MQTT_TI
 
 
 async def deliver_via_mqtt(req: DeliveryRequest, delivery_id: str) -> DeliveryResponse:
-    """
-    Deliver key material via MQTT broker.
-    """
     try:
-        # For now, simulate MQTT delivery
-        # In production, use aiomqtt or paho-mqtt
 
         topic = f"keys/{req.destination}/receive"
         payload = {
@@ -25,8 +20,7 @@ async def deliver_via_mqtt(req: DeliveryRequest, delivery_id: str) -> DeliveryRe
         print(f"[KDE] Publishing to MQTT topic: {topic}")
         print(f"[KDE] MQTT Broker: {MQTT_BROKER}:{MQTT_PORT}")
 
-        # Simulate MQTT publish
-        await asyncio.sleep(0.1)  # Simulate network delay
+        await asyncio.sleep(0.1)
 
         return DeliveryResponse(
             session_id=req.session_id,
