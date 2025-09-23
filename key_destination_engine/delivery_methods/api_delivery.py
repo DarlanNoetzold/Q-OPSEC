@@ -5,7 +5,6 @@ from config import API_TIMEOUT
 from models import DeliveryRequest
 
 def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], Dict[str, Any]]:
-    # Método HTTP (POST por padrão)
     method = "POST"
     headers: Dict[str, str] = {}
     body: Dict[str, Any] = {
@@ -24,13 +23,11 @@ def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], D
         headers = {str(k): str(v) for k, v in meta["headers"].items()}
 
     if isinstance(meta.get("body"), dict):
-        # Permite sobrescrever o body padrão
         body = meta["body"]
 
     return method, headers, body
 
 async def deliver_via_api(req: DeliveryRequest, delivery_id: str):
-    # Inicializa url no início para evitar 'unbound local variable'
     url = req.destination
 
     if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
