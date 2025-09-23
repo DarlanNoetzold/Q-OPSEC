@@ -6,29 +6,16 @@ import os
 from datetime import datetime
 import logging
 
-# Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class ContextDatasetGenerator:
     def __init__(self, db_config):
-        """
-        Inicializa o gerador de dataset
-
-        Args:
-            db_config (dict): Configurações do banco de dados
-                - host: hostname do PostgreSQL
-                - port: porta (default 5432)
-                - database: nome do banco
-                - username: usuário
-                - password: senha
-        """
         self.db_config = db_config
         self.engine = None
         self.connection_string = f"postgresql://{db_config['username']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
 
     def connect(self):
-        """Estabelece conexão com o banco"""
         try:
             self.engine = create_engine(self.connection_string)
             logger.info("Conexão com PostgreSQL estabelecida com sucesso")
@@ -50,7 +37,6 @@ class ContextDatasetGenerator:
             return False
 
     def create_ml_view(self):
-        """Cria a view de features para ML"""
 
         ml_view_sql = """
         CREATE OR REPLACE VIEW context_records_ml AS
@@ -149,7 +135,6 @@ class ContextDatasetGenerator:
             return False
 
     def create_labels_view(self):
-        """Cria a view com labels para treinamento"""
 
         labels_view_sql = """
         CREATE OR REPLACE VIEW context_records_labels AS
@@ -225,7 +210,6 @@ class ContextDatasetGenerator:
             return False
 
     def get_dataset_info(self):
-        """Retorna informações sobre o dataset"""
 
         info_sql = """
         SELECT 
@@ -250,7 +234,6 @@ class ContextDatasetGenerator:
 
         try:
             with self.engine.connect() as conn:
-                # Informações gerais
                 info_df = pd.read_sql(info_sql, conn)
                 logger.info("Informações do dataset:")
                 logger.info(f"Total de registros: {info_df.iloc[0]['total_records']}")
@@ -258,7 +241,6 @@ class ContextDatasetGenerator:
                 logger.info(f"Scripts de criptografia únicos: {info_df.iloc[0]['encryption_scripts']}")
                 logger.info(f"Período: {info_df.iloc[0]['oldest_record']} até {info_df.iloc[0]['newest_record']}")
 
-                # Distribuição das classes
                 dist_df = pd.read_sql(distribution_sql, conn)
                 logger.info("\nDistribuição das classes:")
                 print(dist_df.to_string(index=False))
@@ -270,15 +252,7 @@ class ContextDatasetGenerator:
             return None, None
 
     def export_dataset(self, output_file='context_dataset.csv', sample_size=None):
-        """
-        Exporta o dataset para CSV
 
-        Args:
-            output_file (str): Nome do arquivo de saída
-            sample_size (int): Tamanho da amostra (None para todos os registros)
-        """
-
-        # Query principal para exportação
         export_sql = """
         SELECT
             id, request_id, created_at,
@@ -316,16 +290,13 @@ class ContextDatasetGenerator:
             with self.engine.connect() as conn:
                 df = pd.read_sql(export_sql, conn)
 
-                # Salva o CSV
                 df.to_csv(output_file, index=False)
                 logger.info(f"Dataset exportado para '{output_file}' com {len(df)} registros")
 
-                # Estatísticas básicas
                 logger.info("\nEstatísticas do dataset exportado:")
                 logger.info(f"Shape: {df.shape}")
                 logger.info(f"Colunas: {list(df.columns)}")
 
-                # Distribuição das classes target
                 logger.info("\nDistribuição Security Level:")
                 print(df['security_level_label'].value_counts())
 
@@ -339,9 +310,6 @@ class ContextDatasetGenerator:
             return None
 
     def create_feature_engineering_dataset(self, output_file='context_dataset_engineered.csv'):
-        """
-        Cria um dataset com feature engineering mais avançado
-        """
 
         advanced_sql = """
         WITH feature_engineering AS (
@@ -441,9 +409,7 @@ class ContextDatasetGenerator:
 
 
 def main():
-    """Função principal"""
 
-    # Configuração do banco - AJUSTE AQUI SUAS CREDENCIAIS
     db_config = {
         'host': 'localhost',
         'port': 5432,
@@ -452,10 +418,8 @@ def main():
         'password': 'postgres'  # MUDE PARA SUA SENHA
     }
 
-    # Inicializa o gerador
     generator = ContextDatasetGenerator(db_config)
 
-    # Conecta ao banco
     if not generator.connect():
         logger.error("Falha na conexão. Verifique as credenciais do banco.")
         return
@@ -471,20 +435,16 @@ def main():
     if not generator.create_labels_view():
         return
 
-    # Obtém informações do dataset
     logger.info("Analisando dataset...")
     info_df, dist_df = generator.get_dataset_info()
 
     if info_df is not None:
-        # Exporta dataset básico
         logger.info("Exportando dataset básico...")
         basic_df = generator.export_dataset('context_dataset_basic.csv')
 
-        # Exporta dataset com feature engineering
         logger.info("Exportando dataset com feature engineering...")
         advanced_df = generator.create_feature_engineering_dataset('context_dataset_advanced.csv')
 
-        # Exporta uma amostra pequena para testes
         logger.info("Exportando amostra para testes...")
         sample_df = generator.export_dataset('context_dataset_sample.csv', sample_size=1000)
 
