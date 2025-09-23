@@ -9,7 +9,6 @@ class DeliveryRequest(BaseModel):
     delivery_method: str  # "API", "MQTT", "HSM", "FILE"
     key_material: str
     algorithm: str
-    # Negotiator envia epoch (int). Mantemos int para evitar erro de validação.
     expires_at: int = Field(..., description="Unix epoch (seconds)")
     metadata: Optional[Dict[str, Any]] = None
 
@@ -20,7 +19,7 @@ class DeliveryResponse(BaseModel):
     status: str                 # "delivered" | "failed" | "pending"
     delivery_method: str
     timestamp: datetime
-    delivery_id: str            # ID único da entrega
+    delivery_id: str
     message: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
