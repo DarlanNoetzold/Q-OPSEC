@@ -16,6 +16,8 @@ def run_train_once(cfg: DefaultConfig):
     df, dropped = normalize_labels(df, cfg.target_col)
     if dropped:
         print(f"[WARN] Dropped rows with invalid labels: {dropped}")
+
+    # Falha se o CSV não tiver pelo menos 2 classes
     ensure_classes(df, cfg.target_col, cfg.allowed_classes)
     print_summary_classes(df, cfg.target_col)
 
@@ -50,22 +52,25 @@ def run_train_once(cfg: DefaultConfig):
             "cv_splits": cfg.cv_splits,
             "test_size": cfg.test_size,
             "data_path": str(cfg.data_path),
-            "target_col": cfg.target_col
-        }
+            "target_col": cfg.target_col,
+            "n_samples": len(df),
+            "n_features": len([c for c in df.columns if c != cfg.target_col])
+        },
+        candidates=best.candidates
     )
-    print(f"[REGISTRY] Saved best model to {save_path}")
+    print(f"[REGISTRY] Saved best model '{best.best_name}' to {save_path}")
 
 def main():
     parser = argparse.ArgumentParser(description="classify_scheduler")
     parser.add_argument("--mode", choices=["train-once", "schedule"], default="train-once")
-    parser.add_argument("--data", type=str, required=True, help="Path to CSV dataset")
+    parser.add_argument("--data", type=str, required=True)
     parser.add_argument("--registry", type=str, default="./model_registry")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--cv-splits", type=int, default=5)
     parser.add_argument("--max-models", type=int, default=20)
     parser.add_argument("--target-col", type=str, default="security_level_label")
-    parser.add_argument("--cron", type=str, default="0 */6 * * *", help="CRON for schedule, default every 6h")
+    parser.add_argument("--cron", type=str, default="0 */6 * * *")
     args = parser.parse_args()
 
     cfg = DefaultConfig(
