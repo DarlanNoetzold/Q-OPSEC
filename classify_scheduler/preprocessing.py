@@ -26,7 +26,7 @@ def build_preprocessor(df: pd.DataFrame, target_col: str) -> Tuple[ColumnTransfo
     numeric_transformer = Pipeline(steps=[
         ("scaler", StandardScaler(with_mean=False))
     ])
-    categorical_transformer = OneHotEncoder(handle_unknown="ignore", sparse=True)
+    categorical_transformer = OneHotEncoder(handle_unknown="ignore")
 
     pre = ColumnTransformer(
         transformers=[
