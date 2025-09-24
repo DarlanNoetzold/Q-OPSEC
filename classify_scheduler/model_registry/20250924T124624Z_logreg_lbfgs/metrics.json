@@ -1,0 +1,76 @@
+{
+  "model_name": "logreg_lbfgs",
+  "classes": [
+    "Critical",
+    "High",
+    "Low",
+    "Medium",
+    "Very High",
+    "Very Low"
+  ],
+  "cv_metrics": {
+    "accuracy": 1.0,
+    "f1_macro": 1.0
+  },
+  "holdout_metrics": {
+    "accuracy": 1.0,
+    "f1_macro": 1.0,
+    "confusion_matrix": [
+      [
+        35,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        27,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        33,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        33,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        34,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        38
+      ]
+    ]
+  },
+  "meta": {
+    "seed": 42,
+    "cv_splits": 5,
+    "test_size": 0.2,
+    "data_path": "context_dataset_advanced.csv",
+    "target_col": "security_level_label"
+  }
+}
