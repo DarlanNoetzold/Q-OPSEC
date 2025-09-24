@@ -1,0 +1,6 @@
+{
+  "saved_model_name": "logreg_lbfgs",
+  "artifact_path": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20250924T180526Z_logreg_lbfgs\\model.pkl",
+  "tag": "20250924T180526Z",
+  "dir": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20250924T180526Z_logreg_lbfgs"
+}
