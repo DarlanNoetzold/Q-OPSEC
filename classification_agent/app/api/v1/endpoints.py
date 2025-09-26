@@ -3,17 +3,13 @@ API endpoints for the Classification Agent.
 """
 import time
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
 
 from ...core.config import settings
 from ...core.security import get_current_user, require_auth
 from ...core.logging import get_logger
-from ...models.schemas import (
-    HealthResponse, ModelInfo, PredictRequest, PredictResponse,
-    ModelReloadRequest, ModelReloadResponse, MetricsResponse,
-    PredictionResult
-)
 from ...services.model_service import model_service, ModelLoadError, PredictionError
 from ...services.metrics_service import metrics_service
 from ...utils.exceptions import (
@@ -24,51 +20,105 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
+# Schemas locais para padronizar respostas sem conflitar com "model_"
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    model_loaded: bool
+    model_name: Optional[str] = None
+    uptime_seconds: float
+    model_config = {"protected_namespaces": ()}
+
+
+class ModelReloadRequest(BaseModel):
+    force: bool = False
+    model_config = {"protected_namespaces": ()}
+
+
+class ModelReloadResponse(BaseModel):
+    status: str
+    model_name: Optional[str] = None
+    previous_model: Optional[str] = None
+    message: str
+    model_config = {"protected_namespaces": ()}
+
+
+class PredictionRequest(BaseModel):
+    data: Any = Field(..., description="Objeto ou lista de objetos com os dados para predição")
+    return_probabilities: bool = True
+    model_config = {"protected_namespaces": ()}
+
+
+class PredictionResult(BaseModel):
+    label: str
+    confidence: Optional[float] = None
+    probabilities: Optional[Dict[str, float]] = None
+    input_hash: Optional[str] = None
+    model_config = {"protected_namespaces": ()}
+
+
+class PredictResponse(BaseModel):
+    results: List[PredictionResult]
+    model_name: Optional[str] = None
+    model_version: Optional[str] = None
+    classes: List[str] = []
+    prediction_time_ms: float
+    batch_size: int
+    model_config = {"protected_namespaces": ()}
+
+
+class MetricsResponse(BaseModel):
+    total_requests: int
+    total_predictions: int
+    average_response_time_ms: float
+    error_rate: float
+    model_reload_count: int
+    uptime_seconds: float
+    last_prediction_at: Optional[datetime] = None
+    current_model: Optional[str] = None
+    model_config = {"protected_namespaces": ()}
+
+
 @router.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     """Health check endpoint."""
     health_data = metrics_service.get_health_status()
-
     return HealthResponse(
-        status=health_data["status"],
+        status=health_data.get("status", "unknown"),
         version=settings.api_version,
-        model_loaded=health_data["model_loaded"],
-        model_name=health_data.get("model_name"),
-        uptime_seconds=health_data["uptime_seconds"]
+        model_loaded=health_data.get("model_loaded", model_service.is_model_loaded()),
+        model_name=health_data.get("model_name", model_service.model_name),
+        uptime_seconds=health_data.get("uptime_seconds", 0.0),
     )
 
 
-@router.get("/model", response_model=ModelInfo, tags=["Model"])
+@router.get("/model", tags=["Model"])
 async def get_model_info(user: Dict[str, Any] = Depends(get_current_user)):
     """Get information about the currently loaded model."""
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
-    model_info = model_service.get_model_info()
-    if not model_info:
+    info = model_service.get_model_info()
+    if not info:
         raise ModelNotLoadedException("Model information not available")
 
-    return model_info
+    return info
 
 
 @router.post("/model/reload", response_model=ModelReloadResponse, tags=["Model"])
 async def reload_model(
-        request: ModelReloadRequest = ModelReloadRequest(),
-        user: Dict[str, Any] = Depends(require_auth)
+    request: ModelReloadRequest = ModelReloadRequest(),
+    user: Dict[str, Any] = Depends(require_auth),
 ):
     """Reload the model from registry."""
     try:
         previous_model = model_service.model_name if model_service.is_model_loaded() else None
-
-        # Attempt to reload
-        reloaded = model_service.load_latest_model(force=request.force)
+        reloaded = await model_service.load_latest_model(force=request.force)
 
         if reloaded:
             metrics_service.record_model_reload(model_service.model_name)
             message = "Model reloaded successfully"
-            logger.info("Model reloaded",
-                        new_model=model_service.model_name,
-                        previous_model=previous_model)
+            logger.info("Model reloaded", new_model=model_service.model_name, previous_model=previous_model)
         else:
             message = "Model was already up to date"
 
@@ -76,90 +126,76 @@ async def reload_model(
             status="success",
             model_name=model_service.model_name,
             previous_model=previous_model,
-            message=message
+            message=message,
         )
 
     except ModelLoadError as e:
         logger.error("Model reload failed", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to reload model: {str(e)}"
+            detail=f"Failed to reload model: {str(e)}",
         )
 
 
 @router.post("/predict", response_model=PredictResponse, tags=["Prediction"])
 async def predict(
-        request: PredictRequest,
-        http_request: Request,
-        user: Dict[str, Any] = Depends(get_current_user)
+    request: PredictionRequest,
+    http_request: Request,
+    user: Dict[str, Any] = Depends(get_current_user),
 ):
     """Make predictions on input data."""
     start_time = time.time()
 
-    # Check if model is loaded
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
     try:
-        # Validate input data
         validation_errors = model_service.validate_input(request.data)
         if validation_errors:
             raise ValidationException(
                 "Input validation failed",
-                details={"validation_errors": validation_errors}
+                details={"validation_errors": validation_errors},
             )
 
-        # Make predictions
         labels, probabilities, input_hashes = model_service.predict(
-            request.data,
-            include_probabilities=request.include_probabilities
+            request.data, include_probabilities=request.return_probabilities
         )
 
-        # Calculate batch size
         batch_size = 1 if isinstance(request.data, dict) else len(request.data)
-
-        # Record metrics
         metrics_service.record_prediction(model_service.model_name, batch_size)
 
-        # Build response
-        results = []
+        results: List[PredictionResult] = []
         for i, label in enumerate(labels):
-            confidence = None
-            probs = None
-
-            if probabilities and i < len(probabilities):
-                probs = probabilities[i]
-                # Confidence is the probability of the predicted class
-                confidence = probs.get(label, 0.0)
-
-            result = PredictionResult(
-                label=label,
-                confidence=confidence,
-                probabilities=probs,
-                input_hash=input_hashes[i] if i < len(input_hashes) else None
+            probs = probabilities[i] if probabilities and i < len(probabilities) else None
+            conf = probs.get(label) if probs else None
+            results.append(
+                PredictionResult(
+                    label=str(label),
+                    confidence=conf,
+                    probabilities=probs,
+                    input_hash=input_hashes[i] if i < len(input_hashes) else None,
+                )
             )
-            results.append(result)
 
-        prediction_time = (time.time() - start_time) * 1000  # Convert to ms
+        prediction_time = (time.time() - start_time) * 1000.0
 
-        response = PredictResponse(
+        resp = PredictResponse(
             results=results,
             model_name=model_service.model_name,
-            model_version=None,  # Could be added to model metadata
-            classes=model_service.classes,
+            model_version=model_service.model_version,
+            classes=model_service.classes or [],
             prediction_time_ms=round(prediction_time, 2),
-            batch_size=batch_size
+            batch_size=batch_size,
         )
 
         logger.info(
             "Prediction completed",
-            request_id=getattr(http_request.state, 'request_id', None),
+            request_id=getattr(http_request.state, "request_id", None),
             model_name=model_service.model_name,
             batch_size=batch_size,
-            prediction_time_ms=prediction_time
+            prediction_time_ms=resp.prediction_time_ms,
         )
-
-        return response
+        return resp
 
     except PredictionError as e:
         logger.error("Prediction failed", error=str(e))
@@ -172,17 +208,16 @@ async def predict(
 @router.get("/metrics", response_model=MetricsResponse, tags=["Monitoring"])
 async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
     """Get API metrics and statistics."""
-    metrics_data = metrics_service.get_metrics()
-
+    m = metrics_service.get_metrics()
     return MetricsResponse(
-        total_requests=metrics_data["total_requests"],
-        total_predictions=metrics_data["total_predictions"],
-        average_response_time_ms=metrics_data["average_response_time_ms"],
-        error_rate=metrics_data["error_rate"],
-        model_reload_count=metrics_data["model_reload_count"],
-        uptime_seconds=metrics_data["uptime_seconds"],
-        last_prediction_at=metrics_data["last_prediction_at"],
-        current_model=metrics_data["current_model"]
+        total_requests=m.get("total_requests", 0),
+        total_predictions=m.get("total_predictions", 0),
+        average_response_time_ms=m.get("average_response_time_ms", 0.0),
+        error_rate=m.get("error_rate", 0.0),
+        model_reload_count=m.get("model_reload_count", 0),
+        uptime_seconds=m.get("uptime_seconds", 0.0),
+        last_prediction_at=m.get("last_prediction_at"),
+        current_model=m.get("current_model"),
     )
 
 
@@ -192,55 +227,33 @@ async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
-    model_info = model_service.get_model_info()
-    if not model_info:
+    info = model_service.get_model_info()
+    if not info:
         raise ModelNotLoadedException("Model information not available")
 
-    # Additional manifest information
+    classes = info.get("classes", [])
+    required_columns = info.get("required_columns", [])
     manifest = {
-        "model_name": model_info.saved_model_name,
-        "classes": model_info.classes,
-        "required_columns": model_info.required_columns,
+        "model_name": info.get("saved_model_name") or info.get("model_name") or model_service.model_name,
+        "classes": classes,
+        "required_columns": required_columns,
         "input_schema": {
             "type": "object",
-            "properties": {col: {"type": "any"} for col in model_info.required_columns},
-            "required": model_info.required_columns
+            "properties": {col: {"type": "any"} for col in required_columns},
+            "required": required_columns,
         },
         "output_schema": {
             "type": "object",
             "properties": {
-                "label": {"type": "string", "enum": model_info.classes},
+                "label": {"type": "string", "enum": classes},
                 "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 "probabilities": {
                     "type": "object",
-                    "properties": {cls: {"type": "number"} for cls in model_info.classes}
-                }
-            }
+                    "properties": {cls: {"type": "number"} for cls in classes},
+                },
+            },
         },
-        "metadata": model_info.meta,
-        "loaded_at": model_info.loaded_at
+        "metadata": info.get("meta", {}),
+        "loaded_at": info.get("loaded_at"),
     }
-
     return manifest
-
-
-@router.post("/validate", tags=["Validation"])
-async def validate_input(
-        request: PredictRequest,
-        user: Dict[str, Any] = Depends(get_current_user)
-):
-    """Validate input data without making predictions."""
-    if not model_service.is_model_loaded():
-        raise ModelNotLoadedException("No model is currently loaded")
-
-    validation_errors = model_service.validate_input(request.data)
-
-    batch_size = 1 if isinstance(request.data, dict) else len(request.data)
-
-    return {
-        "valid": len(validation_errors) == 0,
-        "errors": validation_errors,
-        "batch_size": batch_size,
-        "required_columns": model_service.required_columns,
-        "model_name": model_service.model_name
-    }
