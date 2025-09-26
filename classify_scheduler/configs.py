@@ -1,7 +1,24 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-ALLOWED_CLASSES = ["Very Low", "Low", "Medium", "High", "Very High", "Critical"]
+# Ordem de severidade (0 = mais crítico, 5 = menos crítico)
+SECURITY_ORDER = ["Critical", "Very High", "High", "Medium", "Low", "Very Low"]
+
+# Mapeamento canônico para normalização
+CANONICAL = {
+    "very low": "Very Low",
+    "verylow": "Very Low",
+    "very_low": "Very Low",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "very high": "Very High",
+    "veryhigh": "Very High",
+    "very_high": "Very High",
+    "critical": "Critical",
+}
+
+ALLOWED_CLASSES = SECURITY_ORDER  # Usar a ordem de severidade
 
 @dataclass
 class DefaultConfig:
