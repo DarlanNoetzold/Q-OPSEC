@@ -5,6 +5,7 @@ import time
 import uuid
 from typing import Callable
 from fastapi import Request, Response
+from fastapi.encoders import jsonable_encoder
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..core.logging import get_logger
@@ -94,7 +95,7 @@ class CORSMiddleware:
     def get_cors_config():
         """Get CORS configuration."""
         from fastapi.middleware.cors import CORSMiddleware
-        from ..core.config import settings
+        from .config import settings
 
         return {
             "middleware_class": CORSMiddleware,
