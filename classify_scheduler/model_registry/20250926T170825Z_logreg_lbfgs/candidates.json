@@ -1,0 +1,79 @@
+{
+  "candidates": [
+    {
+      "name": "logreg_lbfgs",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "linear_svm_calibrated",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "svc_rbf_std",
+      "cv_accuracy": 0.17375,
+      "cv_f1_macro": 0.07074327689999332
+    },
+    {
+      "name": "svc_rbf_tuned",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "rf_balanced",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "rf_deeper",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "et_balanced",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "et_fast",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "gb",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "hgb_std",
+      "cv_accuracy": 0.99875,
+      "cv_f1_macro": 0.9988173046996576
+    },
+    {
+      "name": "hgb_reg",
+      "cv_accuracy": 0.99875,
+      "cv_f1_macro": 0.9988173046996576
+    },
+    {
+      "name": "mlp_medium",
+      "cv_accuracy": 0.18250000000000002,
+      "cv_f1_macro": 0.05142762237042735
+    },
+    {
+      "name": "mlp_wide",
+      "cv_accuracy": 0.29375000000000007,
+      "cv_f1_macro": 0.15414794024943768
+    },
+    {
+      "name": "knn_dist",
+      "cv_accuracy": 0.9949999999999999,
+      "cv_f1_macro": 0.9943923279684579
+    },
+    {
+      "name": "gnb_dense",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    }
+  ]
+}
