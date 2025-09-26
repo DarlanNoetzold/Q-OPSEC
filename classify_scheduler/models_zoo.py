@@ -17,12 +17,15 @@ import numpy as np
 
 from utils import available
 
+
 # Transformer simples para converter matriz esparsa em densa (para GaussianNB)
 class DenseTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
+
     def transform(self, X, y=None):
         return X.toarray() if hasattr(X, "toarray") else np.asarray(X)
+
 
 def make_models(preprocessor) -> Dict[str, Pipeline]:
     models: Dict[str, Pipeline] = {}
