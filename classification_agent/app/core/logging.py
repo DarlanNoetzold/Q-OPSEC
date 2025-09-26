@@ -2,9 +2,8 @@
 Structured logging configuration.
 """
 import sys
+import logging
 import structlog
-from typing import Any, Dict
-from pathlib import Path
 
 from .config import settings
 
@@ -12,19 +11,27 @@ from .config import settings
 def configure_logging() -> None:
     """Configure structured logging."""
 
-    # Configure structlog
+    log_level_mapping = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+    log_level = log_level_mapping.get(settings.log_level.upper(), logging.INFO)
+
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer() if settings.is_development else structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer()
+            if settings.is_development
+            else structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(structlog.stdlib, settings.log_level.upper(), structlog.stdlib.INFO)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
         logger_factory=structlog.WriteLoggerFactory(
-            file=open(settings.log_file, "a") if settings.log_file else sys.stdout
+            file=open(settings.log_file, "a", encoding="utf-8") if settings.log_file else sys.stdout
         ),
         cache_logger_on_first_use=True,
     )
@@ -43,13 +50,13 @@ class RequestLoggingMiddleware:
         self.logger = get_logger("request")
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
+        if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
 
         request_id = scope.get("request_id", "unknown")
-        method = scope["method"]
-        path = scope["path"]
+        method = scope.get("method")
+        path = scope.get("path")
 
         # Log request start
         self.logger.info(
@@ -57,12 +64,12 @@ class RequestLoggingMiddleware:
             request_id=request_id,
             method=method,
             path=path,
-            client=scope.get("client", ["unknown", 0])[0]
+            client=(scope.get("client") or ["unknown", 0])[0]
         )
 
         async def send_wrapper(message):
-            if message["type"] == "http.response.start":
-                status_code = message["status"]
+            if message.get("type") == "http.response.start":
+                status_code = message.get("status")
                 self.logger.info(
                     "Request completed",
                     request_id=request_id,
