@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import numpy as np
 import pandas as pd
 
@@ -9,6 +9,8 @@ from sklearn.metrics import make_scorer, accuracy_score, f1_score
 
 from preprocessing import build_preprocessor
 from models_zoo import make_models
+from configs import SECURITY_ORDER
+
 
 @dataclass
 class TrainResult:
@@ -19,6 +21,9 @@ class TrainResult:
     X_test: pd.DataFrame
     y_test: np.ndarray
     candidates: List[Dict[str, Any]]
+    ordered_classes: List[str]  # Classes ordenadas por severidade
+    feature_columns: List[str]  # Colunas reais de features (não IDs)
+
 
 def _scorers():
     return {
@@ -26,15 +31,16 @@ def _scorers():
         "f1_macro": make_scorer(f1_score, average="macro", zero_division=0),
     }
 
+
 def train_and_select_best(
-    df: pd.DataFrame,
-    target_col: str,
-    test_size: float,
-    seed: int,
-    n_splits: int,
-    scoring_primary: str,
-    scoring_secondary: str,
-    max_models: int = 20
+        df: pd.DataFrame,
+        target_col: str,
+        test_size: float,
+        seed: int,
+        n_splits: int,
+        scoring_primary: str,
+        scoring_secondary: str,
+        max_models: int = 20
 ) -> TrainResult:
     df = df.copy()
     y_raw = df[target_col].astype(str).values
@@ -45,6 +51,14 @@ def train_and_select_best(
 
     print(f"[INFO] Training with {len(le.classes_)} classes: {list(le.classes_)}")
     print(f"[INFO] Dataset shape: {X.shape}")
+
+    # Reordenar classes por severidade (não alfabética)
+    original_classes = list(le.classes_)
+    ordered_classes = [cls for cls in SECURITY_ORDER if cls in original_classes]
+
+    print(f"[INFO] Classes originais (LabelEncoder): {original_classes}")
+    print(f"[INFO] Classes reordenadas por severidade (0=Critical ... 5=Very Low): {ordered_classes}")
+    print(f"[INFO] Mapeamento: {dict(enumerate(ordered_classes))}")
 
     # garantir viabilidade do CV
     unique, counts = np.unique(y, return_counts=True)
@@ -59,7 +73,10 @@ def train_and_select_best(
         X, y, test_size=test_size, random_state=seed, stratify=y
     )
 
+    # Build preprocessor e capturar feature columns
     pre, feat_cols = build_preprocessor(X_train, target_col=None)
+    print(f"[INFO] Feature columns (after preprocessing): {list(feat_cols)}")
+
     models = make_models(pre)
     names = list(models.keys())[:max_models]
     print(f"[INFO] Training {len(names)} models: {names}")
@@ -107,5 +124,7 @@ def train_and_select_best(
         label_encoder=le,
         X_test=X_test,
         y_test=y_test,
-        candidates=candidates
+        candidates=candidates,
+        ordered_classes=ordered_classes,
+        feature_columns=list(feat_cols)  # Colunas reais de features
     )
