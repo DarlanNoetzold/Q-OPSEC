@@ -4,7 +4,7 @@ Security utilities for authentication and authorization.
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from fastapi import HTTPException, Security, Depends
+from fastapi import HTTPException, Security, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -59,8 +59,24 @@ class SecurityManager:
 security_manager = SecurityManager()
 
 
-async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)):
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security)
+):
     """Dependency to get current authenticated user."""
+    # Check for X-API-Key header first
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        if security_manager.verify_api_key(api_key):
+            return {"user": "api_key_user", "auth_type": "api_key"}
+        else:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid API key",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    # Check for Bearer token
     if not credentials:
         if settings.api_key:  # API key required but not provided
             raise HTTPException(
