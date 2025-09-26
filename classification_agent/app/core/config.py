@@ -1,42 +1,32 @@
-"""
-Configuration management for the Classification Agent API.
-"""
-import os
-from pathlib import Path
-from typing import Optional, List
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from typing import Optional
 
 
 class Settings(BaseSettings):
-    """Application settings."""
-
-    # Environment
-    environment: str = "development"
-    debug: bool = False
-    log_level: str = "INFO"
-
     # API Configuration
-    api_host: str = "0.0.0.0"
-    api_port: int = 8080
-    api_prefix: str = "/api/v1"
     api_title: str = "Classification Agent API"
     api_version: str = "1.0.0"
-    api_description: str = "API for ML model classification predictions"
+    api_prefix: str = "/api/v1"
+    debug: bool = False
+
+    # Server Configuration
+    host: str = "0.0.0.0"
+    port: int = 8080
 
     # Security
-    secret_key: str = "change-this-in-production"
-    api_key: Optional[str] = None
+    secret_key: str = "your-super-secret-key-change-this-in-production"
+    api_key: str = "your-api-key-for-authentication"
     access_token_expire_minutes: int = 30
-    allowed_hosts: List[str] = ["*"]
 
-    # Model Configuration
-    model_registry_dir: str = "./model_registry"
-    auto_reload_model: bool = True
-    model_cache_ttl: int = 300  # seconds
-    max_prediction_batch_size: int = 1000
+    # MongoDB Configuration
+    mongodb_url: str = "mongodb://daily:daily123@localhost:27017/daily?authSource=admin "
+    mongodb_database: str = "classification_agent"
 
-    # Database
-    database_url: str = "sqlite:///./classification_agent.db"
+    # ML Model Registry - renomeado (evita conflitos "model_")
+    ml_registry_dir: str = r"C:\Projetos\Q-OPSEC\classify_scheduler\model_registry"
+    ml_registry_latest_file: str = "latest.json"
+    auto_reload_ml: bool = True
+    ml_cache_ttl: int = 300
 
     # Monitoring
     enable_metrics: bool = True
@@ -44,31 +34,21 @@ class Settings(BaseSettings):
 
     # Rate Limiting
     rate_limit_requests: int = 100
-    rate_limit_window: int = 60  # seconds
+    rate_limit_window: int = 60
 
     # Logging
-    log_format: str = "json"
+    log_level: str = "INFO"
     log_file: Optional[str] = None
+    is_development: bool = True
 
-    @validator("model_registry_dir")
-    def validate_registry_dir(cls, v):
-        path = Path(v)
-        if not path.exists():
-            raise ValueError(f"Model registry directory does not exist: {v}")
-        return str(path.resolve())
+    # CORS
+    allowed_hosts: list = ["*"]
 
-    @property
-    def is_development(self) -> bool:
-        return self.environment.lower() == "development"
-
-    @property
-    def is_production(self) -> bool:
-        return self.environment.lower() == "production"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "protected_namespaces": ()  # evita conflito com "model_"
+    }
 
 
-# Global settings instance
 settings = Settings()
