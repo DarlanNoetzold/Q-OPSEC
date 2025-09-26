@@ -5,10 +5,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
 from pydantic import ValidationError
 
 from ..core.logging import get_logger
-from ..models.schemas import ErrorResponse, ValidationErrorResponse, ValidationErrorDetail
+from ..models.database import ErrorResponse, ValidationErrorResponse, ValidationErrorDetail
 from ..services.metrics_service import metrics_service
 
 logger = get_logger(__name__)
@@ -44,8 +45,8 @@ class ValidationException(ClassificationAgentException):
 
 
 async def classification_agent_exception_handler(
-        request: Request,
-        exc: ClassificationAgentException
+    request: Request,
+    exc: ClassificationAgentException
 ) -> JSONResponse:
     """Handle custom Classification Agent exceptions."""
     request_id = getattr(request.state, 'request_id', None)
@@ -81,7 +82,7 @@ async def classification_agent_exception_handler(
 
     return JSONResponse(
         status_code=status_code,
-        content=error_response.dict()
+        content=jsonable_encoder(error_response.dict())
     )
 
 
@@ -106,13 +107,13 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=error_response.dict()
+        content=jsonable_encoder(error_response.dict())
     )
 
 
 async def validation_exception_handler(
-        request: Request,
-        exc: RequestValidationError
+    request: Request,
+    exc: RequestValidationError
 ) -> JSONResponse:
     """Handle request validation errors."""
     request_id = getattr(request.state, 'request_id', None)
@@ -143,7 +144,7 @@ async def validation_exception_handler(
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error_response.dict()
+        content=jsonable_encoder(error_response.dict())
     )
 
 
@@ -169,7 +170,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.dict()
+        content=jsonable_encoder(error_response.dict())
     )
 
 
