@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
+import requests
 
 from ...core.config import settings
 from ...core.security import get_current_user, require_auth
@@ -20,7 +21,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-# Schemas locais para padronizar respostas sem conflitar com "model_"
+# Schemas
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -46,6 +47,7 @@ class ModelReloadResponse(BaseModel):
 class PredictionRequest(BaseModel):
     data: Any = Field(..., description="Objeto ou lista de objetos com os dados para predição")
     return_probabilities: bool = True
+    send_to_rl: bool = False   # 🔥 Novo: decidir se envia para RL Engine
     model_config = {"protected_namespaces": ()}
 
 
@@ -54,6 +56,7 @@ class PredictionResult(BaseModel):
     confidence: Optional[float] = None
     probabilities: Optional[Dict[str, float]] = None
     input_hash: Optional[str] = None
+    rl_decision: Optional[str] = None   # 🔥 Novo campo
     model_config = {"protected_namespaces": ()}
 
 
@@ -79,9 +82,10 @@ class MetricsResponse(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
+# -------------------- Endpoints --------------------
+
 @router.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
-    """Health check endpoint."""
     health_data = metrics_service.get_health_status()
     return HealthResponse(
         status=health_data.get("status", "unknown"),
@@ -94,7 +98,6 @@ async def health_check():
 
 @router.get("/model", tags=["Model"])
 async def get_model_info(user: Dict[str, Any] = Depends(get_current_user)):
-    """Get information about the currently loaded model."""
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
@@ -110,7 +113,6 @@ async def reload_model(
     request: ModelReloadRequest = ModelReloadRequest(),
     user: Dict[str, Any] = Depends(require_auth),
 ):
-    """Reload the model from registry."""
     try:
         previous_model = model_service.model_name if model_service.is_model_loaded() else None
         reloaded = await model_service.load_latest_model(force=request.force)
@@ -143,7 +145,6 @@ async def predict(
     http_request: Request,
     user: Dict[str, Any] = Depends(get_current_user),
 ):
-    """Make predictions on input data."""
     start_time = time.time()
 
     if not model_service.is_model_loaded():
@@ -164,6 +165,28 @@ async def predict(
         batch_size = 1 if isinstance(request.data, dict) else len(request.data)
         metrics_service.record_prediction(model_service.model_name, batch_size)
 
+        rl_decisions: List[Optional[str]] = [None] * batch_size
+
+        # 🔥 integração opcional com RL Engine
+        if request.send_to_rl:
+            RL_ENGINE_URL = getattr(settings, "rl_engine_url", "http://localhost:9000/act")
+            items = [request.data] if isinstance(request.data, dict) else request.data
+            for i, (label, item) in enumerate(zip(labels, items)):
+                ctx = {
+                    "security_level": str(label),
+                    "risk_score": item.get("risk_score", 0.0),
+                    "conf_score": item.get("conf_score", 0.0),
+                    "src": item.get("src_geo"),
+                    "dst": item.get("dst_service_type"),
+                }
+                try:
+                    rl_response = requests.post(RL_ENGINE_URL, json=ctx, timeout=2)
+                    rl_response.raise_for_status()
+                    rl_decisions[i] = rl_response.json().get("decision", None)
+                except Exception as e:
+                    logger.warning("RL Engine unavailable, fallback ignored", error=str(e))
+                    rl_decisions[i] = None
+
         results: List[PredictionResult] = []
         for i, label in enumerate(labels):
             probs = probabilities[i] if probabilities and i < len(probabilities) else None
@@ -174,6 +197,7 @@ async def predict(
                     confidence=conf,
                     probabilities=probs,
                     input_hash=input_hashes[i] if i < len(input_hashes) else None,
+                    rl_decision=rl_decisions[i],
                 )
             )
 
@@ -207,7 +231,6 @@ async def predict(
 
 @router.get("/metrics", response_model=MetricsResponse, tags=["Monitoring"])
 async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
-    """Get API metrics and statistics."""
     m = metrics_service.get_metrics()
     return MetricsResponse(
         total_requests=m.get("total_requests", 0),
@@ -223,7 +246,6 @@ async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
 
 @router.get("/model/manifest", tags=["Model"])
 async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
-    """Get detailed model manifest including required columns and types."""
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
@@ -251,6 +273,7 @@ async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
                     "type": "object",
                     "properties": {cls: {"type": "number"} for cls in classes},
                 },
+                "rl_decision": {"type": ["string", "null"]},
             },
         },
         "metadata": info.get("meta", {}),
