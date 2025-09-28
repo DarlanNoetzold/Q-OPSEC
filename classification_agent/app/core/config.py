@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # Server Configuration
     host: str = "0.0.0.0"
-    port: int = 8080
+    port: int = 8088
 
     # Security
     secret_key: str = "your-super-secret-key-change-this-in-production"
