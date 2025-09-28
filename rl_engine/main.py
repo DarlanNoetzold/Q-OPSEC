@@ -7,8 +7,8 @@ from service import RLEngineService
 from negotiator_client import send_to_handshake
 
 class Settings:
-    host: str = "0.0.0.0"
-    port: int = 9000
+    host: str = "localhost"
+    port: int = 9009
     debug: bool = False
     log_level: str = "info"
     registry_path: str = "./rl_registry.json"
@@ -29,7 +29,7 @@ class ContextRequest(BaseModel):
 
 @app.post("/act")
 def act(req: ContextRequest):
-    payload = rl_service.build_negotiation_payload(req.dict())
+    payload = rl_service.build_negotiation_payload(req.model_dump())
     result = send_to_handshake(settings.handshake_url, payload)
     return {"negotiation": result, "payload": payload}
 
