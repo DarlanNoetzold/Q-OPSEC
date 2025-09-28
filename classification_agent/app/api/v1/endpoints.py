@@ -47,7 +47,7 @@ class ModelReloadResponse(BaseModel):
 class PredictionRequest(BaseModel):
     data: Any = Field(..., description="Objeto ou lista de objetos com os dados para predição")
     return_probabilities: bool = True
-    send_to_rl: bool = False   # 🔥 Novo: decidir se envia para RL Engine
+    send_to_rl: bool = False
     model_config = {"protected_namespaces": ()}
 
 
@@ -167,25 +167,31 @@ async def predict(
 
         rl_decisions: List[Optional[str]] = [None] * batch_size
 
-        # 🔥 integração opcional com RL Engine
         if request.send_to_rl:
-            RL_ENGINE_URL = getattr(settings, "rl_engine_url", "http://localhost:9000/act")
-            items = [request.data] if isinstance(request.data, dict) else request.data
-            for i, (label, item) in enumerate(zip(labels, items)):
-                ctx = {
-                    "security_level": str(label),
-                    "risk_score": item.get("risk_score", 0.0),
-                    "conf_score": item.get("conf_score", 0.0),
-                    "src": item.get("src_geo"),
-                    "dst": item.get("dst_service_type"),
+            RL_ENGINE_URL = getattr(settings, "rl_engine_url", "http://localhost:9009/act")
+
+            rl_payload = {
+                "request_id": request.data.get("request_id_resolved"),
+                "source": "node-A",  # pode vir do context_api ou settings
+                "destination": "http://localhost:9000",
+                "security_level": labels[0],  # pegar o resultado da predição
+                "risk_score": request.data.get("risk_score", 0.0),
+                "conf_score": request.data.get("conf_score", 0.0),
+                "dst_props": {
+                    "hardware": ["QKD"],  # ou algo derivado de request.data
+                    "compliance": ["GDPR"],
+                    "max_latency_ms": 10
                 }
-                try:
-                    rl_response = requests.post(RL_ENGINE_URL, json=ctx, timeout=2)
-                    rl_response.raise_for_status()
-                    rl_decisions[i] = rl_response.json().get("decision", None)
-                except Exception as e:
-                    logger.warning("RL Engine unavailable, fallback ignored", error=str(e))
-                    rl_decisions[i] = None
+            }
+
+            try:
+                rl_response = requests.post(RL_ENGINE_URL, json=rl_payload)
+                rl_response.raise_for_status()
+                rl_result = rl_response.json()
+                print(rl_result)
+            except Exception as e:
+                logger.warning("RL Engine unavailable, fallback ignored", error=str(e))
+                rl_result = {"error": str(e)}
 
         results: List[PredictionResult] = []
         for i, label in enumerate(labels):
