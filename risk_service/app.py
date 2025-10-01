@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, jsonify
 from controllers.risk_controller import risk_bp
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -33,7 +32,7 @@ def create_app():
     )
 
     scheduler.add_job(
-        func=service.scheduled_cleanup,   # << aqui é o método do RiskModelService
+        func=service.scheduled_cleanup,
         trigger="interval",
         days=3,
         id="cleanup_old_models",
