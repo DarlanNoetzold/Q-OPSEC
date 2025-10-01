@@ -1,4 +1,3 @@
-# services/risk_model_service.py
 from typing import Tuple, Dict, Any, Optional, List
 from datetime import datetime
 import os
@@ -68,7 +67,6 @@ def encode_row(signals: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def synth_label(row: Dict[str, Any]) -> int:
-    # Heurística simples para gerar um label consistente com risco
     score = (
             0.2 * row["global_alert_level_idx"]
             + 0.3 * row["anomaly_index_global"]
@@ -79,7 +77,7 @@ def synth_label(row: Dict[str, Any]) -> int:
             + (0.1 if row["business_critical_period"] else 0.0)
             - (0.05 if row["maintenance_window"] else 0.0)
     )
-    # 0/1/2 -> very_low/low/medium/high/critical mapearemos depois
+    # 0/1/2 -> very_low/low/medium/high/critical
     if score < 0.4:
         return 0
     elif score < 0.8:
@@ -130,14 +128,11 @@ class DatasetManager:
         return train_df, valid_df
 
 
-# services/risk_model_service.py (substituir a classe ModelCandidateFactory inteira por esta)
-
 class ModelCandidateFactory:
     @staticmethod
     def candidates(random_state: int = 42) -> List[Tuple[str, Any]]:
         models: List[Tuple[str, Any]] = []
 
-        # 5+ modelos clássicos/estado-da-arte
         models.append((
             "logreg",
             Pipeline([
@@ -181,7 +176,6 @@ class ModelCandidateFactory:
             ])
         ))
 
-        # Se disponível, XGBoost e LightGBM
         if HAS_XGB:
             models.append((
                 "xgb",
@@ -212,8 +206,6 @@ class ModelCandidateFactory:
                 )
             ))
 
-        # Garante pelo menos 5 modelos clássicos mesmo sem XGB/LGBM
-        # adiciona ExtraTrees e SVC-RBF como alternativas
         from sklearn.ensemble import ExtraTreesClassifier
         from sklearn.svm import SVC
         models.append((
@@ -232,7 +224,6 @@ class ModelCandidateFactory:
             ])
         ))
 
-        # +5 redes neurais (MLPs) com variações de largura e profundidade
         mlp_configs = [
             ("mlp_small", (64, 32)),
             ("mlp_medium", (128, 64, 32)),
@@ -286,11 +277,9 @@ class ModelTrainer:
         if not results:
             raise Exception("No models trained successfully")
 
-        # escolhe melhor
         key = (lambda r: r["metrics"]["accuracy"]) if self.criterion == "accuracy" else (lambda r: r["metrics"]["f1"])
         best = max(results, key=key)
 
-        # atualiza registry
         registry = read_registry()
         all_models = registry.get("models", [])
         all_models.extend(results)
@@ -339,7 +328,6 @@ class RiskModelService:
                            max_age_days: int = 30,
                            min_accuracy_threshold: float = 0.5,
                            dry_run: bool = True) -> Dict[str, Any]:
-        """Limpa modelos antigos"""
         cleanup_service = ModelCleanupService(
             MODELS_DIR,
             os.path.join(DATA_DIR, "registry.json")
@@ -352,13 +340,11 @@ class RiskModelService:
             dry_run=dry_run
         )
 
-        # Se removeu o modelo atual, recarregar o melhor
         if not dry_run and result["models_removed"] > 0:
             self._load_best_from_disk()
         return result
 
     def get_cleanup_recommendations(self) -> Dict[str, Any]:
-        """Obtém recomendações de limpeza"""
         cleanup_service = ModelCleanupService(
             MODELS_DIR,
             os.path.join(DATA_DIR, "registry.json")
@@ -366,7 +352,6 @@ class RiskModelService:
         return cleanup_service.get_cleanup_recommendations()
 
     def scheduled_cleanup(self):
-        """Executa uma limpeza periódica com parâmetros conservadores"""
         try:
             recommendations = self.get_cleanup_recommendations()
 
@@ -390,7 +375,6 @@ class RiskModelService:
             return {"error": str(e)}
 
     def train(self, req: TrainRequest) -> TrainResponse:
-        # Gera dataset se necessário
         n = max(50, min(5000, req.n))
         seed = req.seed if req.seed is not None else 42
         self.dataset.ensure_or_generate(n_train=int(0.8 * n), n_valid=int(0.2 * n), seed=seed)
@@ -417,7 +401,6 @@ class RiskModelService:
             return
         self._retrain_lock = True
         try:
-            # Garante dataset; não altera seed aqui
             self.dataset.ensure_or_generate()
             train_df, valid_df = self.dataset.load()
             X_train = train_df[FEATURE_COLUMNS].values
@@ -439,13 +422,11 @@ class RiskModelService:
         if self._best_model is None:
             return None
 
-        # Extrai features conforme GeneralSignals
         sig = req.signals.model_dump()
         enc = encode_row(sig)
         x = np.array([[enc[c] for c in FEATURE_COLUMNS]])
         pred = self._best_model.predict(x)[0]
 
-        # map label -> score/level/anomaly
         label_to_level = {0: "low", 1: "medium", 2: "high"}
         level = label_to_level.get(int(pred), "low")
         score_map = {"low": 0.25, "medium": 0.55, "high": 0.8}
