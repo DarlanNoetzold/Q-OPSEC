@@ -38,7 +38,6 @@ CLASS_LABELS = ["public", "internal", "confidential", "restricted"]
 
 
 def synth_corpus(n_per_class: int, seed: int) -> Tuple[List[str], List[str]]:
-    """Gera corpus sintético para treinamento de classificação de confidencialidade"""
     rng = random.Random(seed)
 
     templates = {
@@ -84,7 +83,6 @@ def synth_corpus(n_per_class: int, seed: int) -> Tuple[List[str], List[str]]:
         ]
     }
 
-    # Vocabulário de ruído para evitar overfitting
     noise_vocab = [f"token{rng.randint(1000, 9999)}" for _ in range(50)]
 
     X, y = [], []
@@ -93,7 +91,6 @@ def synth_corpus(n_per_class: int, seed: int) -> Tuple[List[str], List[str]]:
         for _ in range(n_per_class):
             base = rng.choice(template_list)
 
-            # Adiciona perturbações específicas por classe
             extra = ""
             if label in ("confidential", "restricted") and rng.random() < 0.6:
                 if rng.random() < 0.5:
@@ -103,14 +100,12 @@ def synth_corpus(n_per_class: int, seed: int) -> Tuple[List[str], List[str]]:
                 if label == "restricted" and rng.random() < 0.3:
                     extra += f" password {rng.choice(['admin123', 'secret_key', 'P@ssw0rd'])} "
 
-            # Adiciona ruído aleatório
             if rng.random() < 0.3:
                 extra += " " + " ".join(rng.sample(noise_vocab, k=min(2, len(noise_vocab))))
 
             X.append(base + extra)
             y.append(label)
 
-    # Embaralha os dados
     combined = list(zip(X, y))
     rng.shuffle(combined)
     X, y = zip(*combined)
@@ -128,11 +123,9 @@ class DatasetManager:
         if os.path.exists(self.train_csv) and os.path.exists(self.valid_csv):
             return
 
-        # Gera dataset de treino
         X_train, y_train = synth_corpus(n_per_class, seed)
         train_df = pd.DataFrame({"text": X_train, "label": y_train})
 
-        # Gera dataset de validação com seed diferente
         X_valid, y_valid = synth_corpus(n_per_class // 4, seed + 1000)
         valid_df = pd.DataFrame({"text": X_valid, "label": y_valid})
 
@@ -150,7 +143,6 @@ class NLPModelCandidateFactory:
     def candidates(random_state: int = 42) -> List[Tuple[str, Any]]:
         models: List[Tuple[str, Any]] = []
 
-        # Vectorizers variados
         vectorizers = [
             ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.8, max_features=5000)),
             ("tfidf_char", TfidfVectorizer(analyzer='char', ngram_range=(2, 4), max_features=3000)),
@@ -158,7 +150,6 @@ class NLPModelCandidateFactory:
             ("hash", HashingVectorizer(n_features=4096, ngram_range=(1, 2)))
         ]
 
-        # Classificadores clássicos para NLP
         classifiers = [
             ("logreg", LogisticRegression(max_iter=1000, random_state=random_state, C=1.0)),
             ("nb_multi", MultinomialNB(alpha=0.1)),
@@ -167,7 +158,6 @@ class NLPModelCandidateFactory:
             ("rf", RandomForestClassifier(n_estimators=200, random_state=random_state, max_depth=10))
         ]
 
-        # Combina vectorizers com classificadores
         for vec_name, vectorizer in vectorizers:
             for clf_name, classifier in classifiers:
                 if vec_name == "hash" and clf_name.startswith("nb"):
@@ -180,7 +170,6 @@ class NLPModelCandidateFactory:
                 ])
                 models.append((model_name, pipeline))
 
-        # Modelos de ensemble avançados (se disponíveis)
         if HAS_XGB:
             models.append((
                 "tfidf_xgb",
@@ -210,7 +199,6 @@ class NLPModelCandidateFactory:
                 ])
             ))
 
-        # Redes neurais (MLPs) com diferentes arquiteturas
         mlp_configs = [
             ("mlp_small", (100, 50)),
             ("mlp_medium", (200, 100, 50)),
@@ -276,18 +264,15 @@ class NLPModelTrainer:
         if not results:
             raise Exception("No models trained successfully")
 
-        # Seleciona o melhor modelo
         key = (lambda r: r["metrics"]["accuracy"]) if self.criterion == "accuracy" else (
             lambda r: r["metrics"]["f1_macro"])
         best = max(results, key=key)
 
-        # Atualiza registry
         registry = read_registry()
         all_models = registry.get("conf_models", [])
         all_models.extend(results)
         registry["conf_models"] = sorted(all_models, key=lambda r: r["metrics"]["f1_macro"], reverse=True)
 
-        # Marca o melhor modelo
         best["best"] = True
         registry["best_conf_model"] = best
         write_registry(registry)
@@ -320,7 +305,6 @@ class ConfidentialityModelService:
                 self._best_info = None
 
     def train(self, req: TrainRequest) -> TrainResponse:
-        # Gera dataset se necessário
         n_per_class = max(20, min(500, req.n_per_class if hasattr(req, 'n_per_class') else 100))
         seed = req.seed if req.seed is not None else 42
 
@@ -378,7 +362,6 @@ class ConfidentialityModelService:
             return self._fallback_classify(req)
 
         try:
-            # Predição com o melhor modelo
             if hasattr(self._best_model, "predict_proba"):
                 proba = self._best_model.predict_proba([text])[0]
                 classes = self._best_model.classes_
@@ -391,12 +374,10 @@ class ConfidentialityModelService:
                 probs = {cls: 0.25 for cls in CLASS_LABELS}
                 probs[label] = score
 
-            # Pattern scanning (DLP-lite)
             findings = self.patterns.scan(text)
             pattern_tags = self.patterns.tags_from_findings(findings)
             detected = [f["type"] for f in findings]
 
-            # Ajustes baseados em padrões
             boost = 0.0
             if any(f["type"] == "credit_card" for f in findings):
                 boost += 0.15
@@ -405,7 +386,6 @@ class ConfidentialityModelService:
                 boost += 0.08
                 label = self._escalate(label, "confidential")
 
-            # Ajustes baseados em metadata
             doc_type = (meta.get("doc_type") or "").lower()
             if doc_type in ("hr", "finance", "legal"):
                 boost += 0.05
@@ -435,11 +415,9 @@ class ConfidentialityModelService:
         return target if order.get(target, 0) > order.get(current, 0) else current
 
     def _fallback_classify(self, req: ClassifyRequest) -> ContentConfidentiality:
-        """Classificação heurística quando o modelo não está disponível"""
         text = (req.content_pointer.sample_text or "").strip().lower()
         meta = req.content_pointer.metadata or {}
 
-        # Heurística baseada em palavras-chave
         if any(k in text for k in ["credit card", "iban", "private key", "credential", "ssn", "password"]):
             label, score = "restricted", 0.9
         elif any(k in text for k in ["salary", "contract", "pii", "personal data", "customer", "financial"]):
@@ -469,17 +447,14 @@ class ConfidentialityModelService:
                            max_age_days: int = 30,
                            min_accuracy_threshold: float = 0.5,
                            dry_run: bool = True) -> Dict[str, Any]:
-        """Limpa modelos de confidencialidade antigos"""
 
         from services.model_cleanup_service import ModelCleanupService
 
-        # Usa um registry específico para modelos de confidencialidade
         cleanup_service = ModelCleanupService(
             MODELS_DIR,
             os.path.join(DATA_DIR, "registry.json")
         )
 
-        # Modifica temporariamente para trabalhar apenas com conf_models
         result = self._cleanup_conf_models_only(
             keep_best_n=keep_best_n,
             max_age_days=max_age_days,
@@ -487,7 +462,6 @@ class ConfidentialityModelService:
             dry_run=dry_run
         )
 
-        # Se removeu o modelo atual, recarrega o melhor disponível
         if not dry_run and result["models_removed"] > 0:
             self._load_best_from_disk()
 
@@ -495,7 +469,6 @@ class ConfidentialityModelService:
 
     def _cleanup_conf_models_only(self, keep_best_n: int, max_age_days: int,
                                   min_accuracy_threshold: float, dry_run: bool) -> Dict[str, Any]:
-        """Limpeza específica para modelos de confidencialidade"""
 
         cleanup_stats = {
             "models_analyzed": 0,
@@ -509,7 +482,6 @@ class ConfidentialityModelService:
         }
 
         try:
-            # 1. Carrega registry e filtra apenas conf_models
             registry = read_registry()
             conf_models = registry.get("conf_models", [])
             cleanup_stats["models_analyzed"] = len(conf_models)
@@ -518,7 +490,6 @@ class ConfidentialityModelService:
                 print("Nenhum modelo de confidencialidade encontrado no registry")
                 return cleanup_stats
 
-            # 2. Filtra modelos válidos (arquivo existe)
             valid_models = []
             for model in conf_models:
                 if os.path.exists(model["path"]):
@@ -527,36 +498,29 @@ class ConfidentialityModelService:
                     model["file_age_days"] = (time.time() - stat.st_mtime) / (24 * 3600)
                     valid_models.append(model)
 
-            # 3. Aplica critérios de limpeza
             models_to_keep = []
             models_to_remove = []
 
-            # Ordena por f1_macro (melhor primeiro)
             valid_models.sort(key=lambda x: x["metrics"].get("f1_macro", 0), reverse=True)
 
             for i, model in enumerate(valid_models):
                 keep_reasons = []
                 remove_reasons = []
 
-                # Critério 1: Top N melhores
                 if i < keep_best_n:
                     keep_reasons.append(f"top_{keep_best_n}_best")
 
-                # Critério 2: Idade
                 if model["file_age_days"] > max_age_days:
                     remove_reasons.append(f"older_than_{max_age_days}_days")
 
-                # Critério 3: Accuracy mínima
                 if model["metrics"].get("accuracy", 0) < min_accuracy_threshold:
                     remove_reasons.append(f"accuracy_below_{min_accuracy_threshold}")
 
-                # Decisão final
                 if keep_reasons and not remove_reasons:
                     models_to_keep.append(model)
                 elif remove_reasons and not keep_reasons:
                     models_to_remove.append(model)
                 elif keep_reasons and remove_reasons:
-                    # Conflito: prioriza manter se está no top N
                     if f"top_{keep_best_n}_best" in keep_reasons:
                         models_to_keep.append(model)
                     else:
@@ -564,7 +528,6 @@ class ConfidentialityModelService:
                 else:
                     models_to_keep.append(model)
 
-            # 4. Remove arquivos
             for model in models_to_remove:
                 file_path = model["path"]
                 if os.path.exists(file_path):
@@ -580,12 +543,10 @@ class ConfidentialityModelService:
                     cleanup_stats["space_freed_mb"] += file_size_mb
                     cleanup_stats["removed_files"].append(file_path)
 
-            # 5. Atualiza registry
             if not dry_run:
                 registry["conf_models"] = models_to_keep
-                # Atualiza best_conf_model se necessário
                 if models_to_keep:
-                    registry["best_conf_model"] = models_to_keep[0]  # O primeiro é o melhor
+                    registry["best_conf_model"] = models_to_keep[0]
                 else:
                     registry["best_conf_model"] = None
                 write_registry(registry)
@@ -594,7 +555,6 @@ class ConfidentialityModelService:
             cleanup_stats["models_kept"] = len(models_to_keep)
             cleanup_stats["kept_files"] = [m["path"] for m in models_to_keep]
 
-            # 6. Remove arquivos órfãos de confidencialidade
             orphaned_count = self._cleanup_orphaned_conf_files(models_to_keep, dry_run)
             cleanup_stats["orphaned_files_removed"] = orphaned_count
 
@@ -606,12 +566,8 @@ class ConfidentialityModelService:
             return cleanup_stats
 
     def _cleanup_orphaned_conf_files(self, valid_models: List[Dict], dry_run: bool) -> int:
-        """Remove arquivos conf_model_*.joblib órfãos"""
-
-        # Paths dos modelos válidos no registry
         valid_paths = {model["path"] for model in valid_models}
 
-        # Todos os arquivos conf_model_*.joblib no diretório
         all_conf_files = glob.glob(os.path.join(MODELS_DIR, "conf_model_*.joblib"))
 
         orphaned_count = 0
@@ -627,20 +583,16 @@ class ConfidentialityModelService:
         return orphaned_count
 
     def get_cleanup_recommendations(self) -> Dict[str, Any]:
-        """Obtém recomendações de limpeza para modelos de confidencialidade"""
-
         registry = read_registry()
         models = registry.get("conf_models", [])
 
         if not models:
             return {"recommendation": "no_conf_models_found"}
 
-        # Estatísticas atuais
         total_models = len(models)
         accuracies = [m["metrics"].get("accuracy", 0) for m in models]
         f1_scores = [m["metrics"].get("f1_macro", 0) for m in models]
 
-        # Calcula idades dos arquivos
         ages_days = []
         total_size_mb = 0
 
@@ -671,7 +623,6 @@ class ConfidentialityModelService:
             }
         }
 
-        # Sugestões baseadas no estado atual
         if total_models > 15:
             recommendations["suggested_keep_best_n"] = 8
         elif total_models > 8:
@@ -692,12 +643,9 @@ class ConfidentialityModelService:
         return recommendations
 
     def scheduled_cleanup(self):
-        """Limpeza automática para modelos de confidencialidade com parâmetros conservadores"""
-
         try:
             recommendations = self.get_cleanup_recommendations()
 
-            # Parâmetros conservadores para NLP (modelos mais caros de treinar)
             keep_best = max(4, recommendations.get("suggested_keep_best_n", 4))
             max_age = max(45, recommendations.get("suggested_max_age_days", 45))
             min_acc = min(0.5, recommendations.get("suggested_min_accuracy", 0.6))
