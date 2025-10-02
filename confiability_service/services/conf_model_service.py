@@ -161,7 +161,7 @@ class NLPModelCandidateFactory:
         for vec_name, vectorizer in vectorizers:
             for clf_name, classifier in classifiers:
                 if vec_name == "hash" and clf_name.startswith("nb"):
-                    continue  # NB não funciona bem com features negativas do HashingVectorizer
+                    continue
 
                 model_name = f"{vec_name}_{clf_name}"
                 pipeline = Pipeline([
