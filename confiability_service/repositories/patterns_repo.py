@@ -3,7 +3,6 @@ from typing import List, Dict
 
 class PatternsRepository:
     def __init__(self):
-        # Simplified patterns
         self._patterns = {
             "credit_card": re.compile(r"(?<!\d)(?:\d[ -]*?){13,16}(?!\d)"),
             "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
