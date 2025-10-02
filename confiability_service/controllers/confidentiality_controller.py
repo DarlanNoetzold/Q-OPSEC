@@ -82,7 +82,6 @@ def classify():
     headers_preview = {k: v for k, v in request.headers.items() if k.lower() in ("content-type", "user-agent", "x-request-id")}
     payload = request.get_json(silent=True) or {}
 
-    # Pré-logs do payload
     request_id = payload.get("request_id") if isinstance(payload, dict) else None
     content_pointer = payload.get("content_pointer") if isinstance(payload, dict) else None
     src = payload.get("source") if isinstance(payload, dict) else None
@@ -116,7 +115,6 @@ def classify():
                 "message": "Train the model first or wait for the hourly retrain."
             }), 503
 
-        # Loga highlights + dump truncado
         classified_dump = classified.model_dump() if hasattr(classified, "model_dump") else classified.__dict__
         highlights = {
             "label": classified_dump.get("label"),
