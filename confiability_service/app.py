@@ -1,4 +1,3 @@
-# app.py (atualizado para incluir confidentiality service)
 from flask import Flask, jsonify
 from controllers.confidentiality_controller import conf_bp
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -12,7 +11,6 @@ def ensure_dirs():
     os.makedirs("models", exist_ok=True)
 
 
-# Singleton service instances
 conf_service = ConfidentialityModelService()
 
 
