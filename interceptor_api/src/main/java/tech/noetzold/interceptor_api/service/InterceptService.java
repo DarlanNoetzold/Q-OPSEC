@@ -92,7 +92,6 @@ public class InterceptService {
 
         CompletableFuture.runAsync(() -> {
             try {
-                // Delay antes de enviar (não bloqueia a thread do request)
                 if (forwardDelayMs > 0) {
                     try {
                         Thread.sleep(forwardDelayMs);
