@@ -26,8 +26,6 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gerencia o ciclo de vida da aplicação"""
-    # Startup
     logger.info("Starting Classification Agent API")
 
     try:
@@ -35,7 +33,6 @@ async def lifespan(app: FastAPI):
         await db_service.connect()
         logger.info("Database connected successfully")
 
-        # Carrega o modelo mais recente
         try:
             await model_service.load_latest_model()  # Agora é async
             logger.info("Model loaded successfully")
@@ -45,14 +42,11 @@ async def lifespan(app: FastAPI):
         yield
 
     finally:
-        # Shutdown
         logger.info("Shutting down Classification Agent API")
         await db_service.disconnect()
 
 
 def create_app() -> FastAPI:
-    """Cria e configura a aplicação FastAPI"""
-
     app = FastAPI(
         title=settings.api_title,
         version=settings.api_version,
@@ -60,7 +54,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan
     )
 
-    # CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_hosts,
@@ -69,16 +62,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Custom middlewares
     app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_requests)
     app.add_middleware(ErrorHandlingMiddleware)
     app.add_middleware(MetricsMiddleware)
     app.add_middleware(RequestIDMiddleware)
 
-    # Exception handlers
     setup_exception_handlers(app)
 
-    # Rotas
     app.include_router(router, prefix=settings.api_prefix)
 
     return app
