@@ -1,5 +1,5 @@
 server:
-  port: 8005
+    port: 8005
 
 spring:
   datasource:
@@ -8,7 +8,7 @@ spring:
     password: postgres
   jpa:
     hibernate:
-      ddl-auto: update   # para dev; em prod use migrações (Flyway)
+      ddl-auto: update   # para dev; em prod use migraï¿½ï¿½es (Flyway)
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
