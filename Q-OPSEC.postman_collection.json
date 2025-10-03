@@ -1164,6 +1164,238 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "classification_agent",
+			"item": [
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							}
+						],
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/health",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "model",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							}
+						],
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/model",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"model"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "manifest",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							}
+						],
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/model/manifest",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"model",
+								"manifest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"force\": true}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/model/reload",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"model",
+								"reload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "include_probabilities",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"send_to_rl\": true,\n  \"data\": {\n    \"request_id_resolved\": \"req_123\",\n    \"created_at\": \"2025-09-24T09:44:40.438788\",\n    \"risk_score\": 0.11,\n    \"conf_score\": 0.085,\n    \"combined_score\": 0.117,\n    \"risk_level\": \"Low\",\n    \"conf_classification\": \"confidential\",\n    \"src_geo\": \"EU\",\n    \"src_device_type\": \"iot\",\n    \"dst_service_type\": \"web\",\n    \"dst_security_policy\": \"high\",\n    \"src_mfa_status_norm\": \"disabled\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"predict"
+							],
+							"query": [
+								{
+									"key": "include_probabilities",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "include_probabilities batchs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "your-api-key-for-authentication"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"data\": [\n    {\n      \"request_id_resolved\": \"req_001\",\n      \"created_at\": \"2025-09-24T19:12:05Z\",\n      \"risk_score\": 0.05,\n      \"conf_score\": 0.03,\n      \"combined_score\": 0.06,\n      \"risk_level\": \"Low\",\n      \"conf_classification\": \"public\",\n      \"src_geo\": \"BR\",\n      \"src_device_type\": \"desktop\",\n      \"dst_service_type\": \"web\",\n      \"dst_security_policy\": \"low\",\n      \"src_mfa_status_norm\": \"disabled\"\n    },\n    {\n      \"request_id_resolved\": \"req_002\",\n      \"created_at\": \"2025-09-25T08:30:00\",\n      \"risk_score\": 0.61,\n      \"conf_score\": 0.44,\n      \"combined_score\": 0.57,\n      \"risk_level\": \"High\",\n      \"conf_classification\": \"confidential\",\n      \"src_geo\": \"DE\",\n      \"src_device_type\": \"server\",\n      \"dst_service_type\": \"db\",\n      \"dst_security_policy\": \"high\",\n      \"src_mfa_status_norm\": \"enabled\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "8088",
+							"path": [
+								"api",
+								"v1",
+								"predict"
+							],
+							"query": [
+								{
+									"key": "include_probabilities",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
