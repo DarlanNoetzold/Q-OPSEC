@@ -12,8 +12,9 @@ import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, Body, Query
 from pydantic import BaseModel, Field
+import subprocess
 
-APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.2.1")
+APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.4.0")
 
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = BASE_DIR / "services.yaml"
@@ -39,86 +40,91 @@ def env_for_service(cfg: Dict[str, Any]) -> Dict[str, str]:
         env[str(k)] = str(v)
     return env
 
-async def start_service(name: str) -> Dict[str, Any]:
-    cfg = service_cfg(name)
-    if name in STATE and STATE[name].get("proc") and STATE[name]["proc"].poll() is None:
-        return {"status": "running", "pid": STATE[name]["proc"].pid}
-
-    cwd = (BASE_DIR / cfg["cwd"]).resolve() if cfg.get("cwd") else BASE_DIR
-    cmd = cfg["start"]
+def pidfile_path(name: str) -> Path:
+    # Respeita pid_file do YAML; se não houver, usa logs_dir/name.pid
+    custom = service_cfg(name).get("pid_file")
+    if custom:
+        return (BASE_DIR / custom).resolve()
     logs_dir = Path(CONFIG["paths"]["logs_dir"]).resolve()
-    log_file = (logs_dir / f"{name}.log").as_posix()
+    return logs_dir / f"{name}.pid"
 
-    Path(logs_dir).mkdir(parents=True, exist_ok=True)
-    stdout = open(log_file, "ab", buffering=0)
-    stderr = stdout
+def write_pidfile(name: str, pid: int):
+    p = pidfile_path(name)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(str(pid), encoding="utf-8")
 
-    env = env_for_service(cfg)
+def read_pidfile(name: str) -> Optional[int]:
+    p = pidfile_path(name)
+    if p.exists():
+        try:
+            return int(p.read_text(encoding="utf-8").strip())
+        except Exception:
+            return None
+    return None
 
-    creationflags = 0
-    if sys.platform.startswith("win"):
-        creationflags = 0x00000010  # CREATE_NEW_CONSOLE
-
-    proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        cwd=cwd.as_posix(),
-        env=env,
-        stdout=stdout,
-        stderr=stderr,
-        creationflags=creationflags if sys.platform.startswith("win") else 0,
-    )
-
-    STATE[name] = {
-        "proc": proc,
-        "pid": proc.pid,
-        "started_at": time.time(),
-        "log_file": log_file,
-        "health": cfg.get("health"),
-    }
-    return {"status": "started", "pid": proc.pid, "log_file": log_file}
-
-async def stop_service(name: str, timeout: float = 8.0) -> Dict[str, Any]:
-    if name not in STATE or STATE[name].get("proc") is None:
-        return {"status": "not_running"}
-    proc = STATE[name]["proc"]
-    pid = STATE[name]["pid"]
-    if proc.poll() is not None:
-        return {"status": "not_running"}
-
+def is_pid_running(pid: int) -> bool:
+    if pid is None:
+        return False
     try:
         if sys.platform.startswith("win"):
-            proc.terminate()
+            out = subprocess.check_output(
+                ["tasklist", "/FI", f"PID eq {pid}"],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            return str(pid) in out.decode(errors="ignore")
         else:
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            os.kill(pid, 0)
+            return True
     except Exception:
-        try:
-            proc.terminate()
-        except Exception:
-            pass
+        return False
 
+def kill_pid_windows(pid: int) -> bool:
     try:
-        await asyncio.wait_for(proc.wait(), timeout=timeout)
-        return {"status": "stopped", "pid": pid}
-    except asyncio.TimeoutError:
-        try:
-            proc.kill()
-        except Exception:
-            pass
-        return {"status": "killed", "pid": pid}
+        subprocess.check_call(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        return True
+    except Exception:
+        return False
 
-async def restart_service(name: str) -> Dict[str, Any]:
-    await stop_service(name)
-    return await start_service(name)
-
-async def check_health(url: str, timeout: float = 6.0) -> Tuple[bool, Optional[int], Optional[str]]:
-    if not url:
-        return (False, None, "no health url")
+def find_pid_by_port_windows(port: int) -> Optional[int]:
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.get(url)
-        return (r.status_code == 200, r.status_code, r.text[:200])
-    except Exception as e:
-        return (False, None, str(e))
+        cmd = f'netstat -ano | findstr :{port}'
+        out = subprocess.check_output(
+            cmd, shell=True, creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        lines = out.decode(errors="ignore").splitlines()
+        # Tenta pegar PID da última coluna das linhas que citam a porta
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 5 and parts[-1].isdigit():
+                return int(parts[-1])
+    except Exception:
+        return None
+    return None
+
+def find_pid_by_port_unix(port: int) -> Optional[int]:
+    # Tenta lsof, depois fuser
+    try:
+        out = subprocess.check_output(["lsof", f"-i:{port}", "-sTCP:LISTEN", "-Pn"])
+        lines = out.decode(errors="ignore").splitlines()
+        for ln in lines[1:]:
+            parts = ln.split()
+            if len(parts) >= 2 and parts[1].isdigit():
+                return int(parts[1])
+    except Exception:
+        pass
+    try:
+        out = subprocess.check_output(["fuser", "-n", "tcp", str(port)])
+        # fuser retorna pids separados por espaço
+        txt = out.decode(errors="ignore").strip()
+        for token in txt.split():
+            if token.isdigit():
+                return int(token)
+    except Exception:
+        pass
+    return None
 
 def tail_log(path: str, lines: int = 200) -> List[str]:
     p = Path(path)
@@ -147,23 +153,284 @@ class RequestSpec(BaseModel):
     params: Dict[str, Any] = Field(default_factory=dict)
     timeout: float = 15.0
 
+async def start_service(name: str) -> Dict[str, Any]:
+    cfg = service_cfg(name)
+    # Já rodando com handle?
+    if name in STATE and STATE[name].get("proc") and getattr(STATE[name]["proc"], "poll", lambda: None)() is None:
+        return {"status": "running", "pid": STATE[name]["proc"].pid}
+
+    # Já rodando por PID file?
+    exist_pid = read_pidfile(name)
+    if exist_pid and is_pid_running(exist_pid):
+        STATE[name] = {
+            "proc": None,
+            "pid": exist_pid,
+            "started_at": None,
+            "log_file": cfg.get("log_file"),
+            "health": cfg.get("health"),
+            "popen": True
+        }
+        return {"status": "running", "pid": exist_pid}
+
+    cwd = (BASE_DIR / cfg["cwd"]).resolve() if cfg.get("cwd") else BASE_DIR
+    cmd = cfg["start"]
+    logs_dir = Path(CONFIG["paths"]["logs_dir"]).resolve()
+    log_file = (BASE_DIR / (cfg.get("log_file") or (logs_dir / f"{name}.log"))).as_posix()
+
+    Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    # No Windows, 'buffering=0' é inválido em texto — abre em binário para safe append
+    stdout = open(log_file, "ab")
+    stderr = stdout
+    env = env_for_service(cfg)
+
+    if sys.platform.startswith("win"):
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=cwd.as_posix(),
+                env=env,
+                stdout=stdout,
+                stderr=stderr,
+                creationflags=creationflags,
+                shell=False
+            )
+        except FileNotFoundError:
+            # Para comandos .cmd/.bat no PATH
+            proc = subprocess.Popen(
+                " ".join(cmd),
+                cwd=cwd.as_posix(),
+                env=env,
+                stdout=stdout,
+                stderr=stderr,
+                creationflags=creationflags,
+                shell=True
+            )
+        write_pidfile(name, proc.pid)
+        STATE[name] = {
+            "proc": proc,
+            "pid": proc.pid,
+            "started_at": time.time(),
+            "log_file": log_file,
+            "health": cfg.get("health"),
+            "popen": True
+        }
+        return {"status": "started", "pid": proc.pid, "log_file": log_file}
+
+    # Unix-like: prefer asyncio
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            cwd=cwd.as_posix(),
+            env=env,
+            stdout=stdout,
+            stderr=stderr,
+        )
+        write_pidfile(name, proc.pid)
+        STATE[name] = {
+            "proc": proc,
+            "pid": proc.pid,
+            "started_at": time.time(),
+            "log_file": log_file,
+            "health": cfg.get("health"),
+            "popen": False
+        }
+        return {"status": "started", "pid": proc.pid, "log_file": log_file}
+    except NotImplementedError:
+        # fallback raro
+        proc = subprocess.Popen(
+            cmd,
+            cwd=cwd.as_posix(),
+            env=env,
+            stdout=stdout,
+            stderr=stderr,
+            shell=False
+        )
+        write_pidfile(name, proc.pid)
+        STATE[name] = {
+            "proc": proc,
+            "pid": proc.pid,
+            "started_at": time.time(),
+            "log_file": log_file,
+            "health": cfg.get("health"),
+            "popen": True
+        }
+        return {"status": "started", "pid": proc.pid, "log_file": log_file}
+
+async def graceful_shutdown_if_possible(cfg: Dict[str, Any]) -> None:
+    shutdown_url = None
+    if cfg.get("health") and "actuator/health" in cfg["health"]:
+        shutdown_url = cfg["health"].replace("/actuator/health", "/actuator/shutdown")
+    if not shutdown_url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            await client.post(shutdown_url)
+        await asyncio.sleep(1.5)
+    except Exception:
+        pass
+
+async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
+    cfg = service_cfg(name)
+    state = STATE.get(name, {})
+    proc = state.get("proc")
+    pid = state.get("pid")
+    port = cfg.get("port")
+
+    # 1) Graceful shutdown via Actuator (se houver)
+    await graceful_shutdown_if_possible(cfg)
+
+    # 2) Descobrir PID: STATE -> pidfile -> porta
+    if not pid:
+        pid = read_pidfile(name)
+
+    # Se Windows e com mvn/mvnw que spawna java.exe, descubra por porta
+    if not pid and port:
+        if sys.platform.startswith("win"):
+            pid = find_pid_by_port_windows(int(port))
+        else:
+            pid = find_pid_by_port_unix(int(port))
+
+    # Sem PID e sem porta => nada a fazer
+    if not pid and not port:
+        return {"status": "not_running"}
+
+    # 3) Se temos handle Popen/asyncio, tenta parar via handle
+    if proc is not None:
+        # Tenta terminate/kill no handle
+        if hasattr(proc, "terminate"):
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+            # Espera sair
+            start_t = time.time()
+            while (time.time() - start_t) < timeout:
+                try:
+                    if proc.poll() is not None:
+                        break
+                except AttributeError:
+                    # asyncio subprocess
+                    if proc.returncode is not None:
+                        break
+                await asyncio.sleep(0.2)
+            # Se ainda vivo, kill
+            try:
+                # Popen tem kill(); asyncio também
+                proc.kill()
+            except Exception:
+                pass
+        # Continua para checar porta/PID e limpar pidfile
+
+    # 4) Kill por PID (se ainda estiver vivo)
+    if pid and is_pid_running(pid):
+        if sys.platform.startswith("win"):
+            kill_pid_windows(pid)
+        else:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                start_t = time.time()
+                while (time.time() - start_t) < timeout and is_pid_running(pid):
+                    await asyncio.sleep(0.2)
+                if is_pid_running(pid):
+                    os.kill(pid, signal.SIGKILL)
+            except Exception:
+                pass
+
+    # 5) Se ainda há alguém na porta, mate o PID da porta (multi-processo, wrapper)
+    if port:
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            port_pid = None
+            if sys.platform.startswith("win"):
+                port_pid = find_pid_by_port_windows(int(port))
+            else:
+                port_pid = find_pid_by_port_unix(int(port))
+            if port_pid is None:
+                break
+            if pid is None or port_pid != pid:
+                # Kill do processo real que está na porta
+                if sys.platform.startswith("win"):
+                    kill_pid_windows(port_pid)
+                else:
+                    try:
+                        os.kill(port_pid, signal.SIGTERM)
+                        await asyncio.sleep(0.5)
+                        if find_pid_by_port_unix(int(port)) is not None:
+                            os.kill(port_pid, signal.SIGKILL)
+                    except Exception:
+                        pass
+            await asyncio.sleep(0.5)
+
+    # 6) Limpa pidfile se processo caiu
+    try:
+        pf = pidfile_path(name)
+        if not pid or not is_pid_running(pid):
+            pf.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+    # 7) Status final: confirma que porta liberou e PID não existe
+    still_running = bool(pid and is_pid_running(pid))
+    still_on_port = False
+    if port:
+        if sys.platform.startswith("win"):
+            still_on_port = find_pid_by_port_windows(int(port)) is not None
+        else:
+            still_on_port = find_pid_by_port_unix(int(port)) is not None
+
+    if not still_running and not still_on_port:
+        return {"status": "stopped", "pid": pid}
+    if not still_running and still_on_port:
+        return {"status": "killed", "pid": pid}
+    return {"status": "not_running", "pid": pid}
+
+async def restart_service(name: str) -> Dict[str, Any]:
+    await stop_service(name)
+    return await start_service(name)
+
+async def check_health(url: str, timeout: float = 6.0) -> Tuple[bool, Optional[int], Optional[str]]:
+    if not url:
+        return (False, None, "no health url")
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.get(url)
+        return (r.status_code == 200, r.status_code, r.text[:200])
+    except Exception as e:
+        return (False, None, str(e))
+
 @APP.on_event("startup")
 def _startup():
     load_config()
+    # Recarrega STATE de PID files
+    for name, cfg in CONFIG.get("services", {}).items():
+        pid = read_pidfile(name)
+        if pid and is_pid_running(pid):
+            STATE[name] = {
+                "proc": None,                   # sem handle, mas reconhece processo
+                "pid": pid,
+                "started_at": None,
+                "log_file": cfg.get("log_file"),
+                "health": cfg.get("health"),
+                "popen": True
+            }
 
 @APP.get("/services")
 def list_services():
     out = []
     for name, cfg in CONFIG.get("services", {}).items():
         state = STATE.get(name, {})
+        pid = state.get("pid") or read_pidfile(name)
+        running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
         out.append({
             "name": name,
-            "pid": state.get("pid"),
-            "running": bool(state.get("proc") and state["proc"].poll() is None),
+            "pid": pid,
+            "running": running,
             "started_at": state.get("started_at"),
             "health": cfg.get("health"),
             "log_file": state.get("log_file") or cfg.get("log_file"),
             "type": cfg.get("type"),
+            "port": cfg.get("port"),
         })
     return out
 
@@ -183,13 +450,14 @@ async def api_restart(name: str):
 async def api_status(name: str):
     state = STATE.get(name, {})
     cfg = service_cfg(name)
-    running = state.get("proc") and state["proc"].poll() is None
+    pid = state.get("pid") or read_pidfile(name)
+    running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
     health_url = cfg.get("health")
     ok, code, text = await check_health(health_url) if health_url else (False, None, None)
     return {
         "name": name,
-        "running": bool(running),
-        "pid": state.get("pid"),
+        "running": running,
+        "pid": pid,
         "health_ok": ok,
         "health_code": code,
         "health_sample": text,
@@ -197,10 +465,19 @@ async def api_status(name: str):
 
 @APP.get("/services/{name}/logs")
 def api_logs(name: str, lines: int = Query(200, ge=1, le=2000)):
-    log_file = STATE.get(name, {}).get("log_file") or service_cfg(name).get("log_file")
-    if not log_file:
-        raise HTTPException(status_code=404, detail="No log_file configured")
+    cfg = service_cfg(name)
+    log_file = (STATE.get(name, {}).get("log_file")
+                or cfg.get("log_file")
+                or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix())
     return {"name": name, "log_file": log_file, "tail": tail_log(log_file, lines)}
+
+class RequestSpec(BaseModel):
+    method: str = Field(..., pattern="(?i)^(GET|POST|PUT|DELETE|PATCH)$")
+    url: str
+    headers: Dict[str, str] = Field(default_factory=dict)
+    json: Optional[Dict[str, Any]] = None
+    params: Dict[str, Any] = Field(default_factory=dict)
+    timeout: float = 15.0
 
 @APP.post("/request")
 async def api_request(spec: RequestSpec):
@@ -249,7 +526,7 @@ async def demo_predict(api_key: Optional[str] = None):
     }
     headers = {
         "Content-Type": "application/json",
-        "X-API-Key": api_key or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication"),
+        "X-API-Key": api_key or os.environ.get("CLASSIFY_API_KEY", service_cfg("classification_agent").get("env", {}).get("CLASSIFY_API_KEY", "your-api-key-for-authentication")),
     }
     url = "http://127.0.0.1:8088/api/v1/predict"
     try:
@@ -260,4 +537,4 @@ async def demo_predict(api_key: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run("orchestrator:APP", host="0.0.0.0", port=8090, reload=True)
+    uvicorn.run("orchestrator:APP", host="0.0.0.0", port=8090, reload=False)
