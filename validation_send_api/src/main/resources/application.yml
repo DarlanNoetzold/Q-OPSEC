@@ -1,6 +1,12 @@
 server:
     port: 8005
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include=*:
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/validation_send
@@ -8,7 +14,7 @@ spring:
     password: postgres
   jpa:
     hibernate:
-      ddl-auto: update   # para dev; em prod use migra��es (Flyway)
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
