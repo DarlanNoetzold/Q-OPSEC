@@ -2,7 +2,6 @@ services:
   interceptor_api:
     type: spring
     cwd: "./interceptor_api"
-    # Em Windows, mvnw.cmd/mvn.cmd é comum. Se preferir 1 processo só, troque por ["java", "-jar", "target/interceptor_api.jar"]
     start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
     health: "http://127.0.0.1:8080/actuator/health"
     port: 8080
@@ -32,7 +31,7 @@ services:
 
   dataset_extractor:
     type: script
-    cwd: "./dataset_procedure"
+    cwd: "./dataset_extractor"
     start: ["python", "main.py"]
     health: ""
     pid_file: "./logs/dataset_extractor.pid"
