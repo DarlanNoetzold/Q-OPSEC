@@ -50,7 +50,7 @@ services:
   key_destination_engine:
     type: fastapi
     cwd: "./key_destination_engine"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]  # sem --reload p/ evitar processos filhos
+    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
     health: "http://127.0.0.1:8003/health"
     port: 8003
     pid_file: "./logs/key_destination_engine.pid"
@@ -60,8 +60,8 @@ services:
   confiability_service:
     type: fastapi
     cwd: "./confiability_service"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8083"]
-    health: "http://127.0.0.1:8083/health"
+    start: ["python app.py"]
+    health: "http://127.0.0.1:8083/confidentiality/health"
     port: 8083
     pid_file: "./logs/confiability_service.pid"
     log_file: "./logs/confiability_service.log"
