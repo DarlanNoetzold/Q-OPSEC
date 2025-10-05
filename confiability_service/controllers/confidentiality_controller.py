@@ -18,7 +18,7 @@ if not logger.handlers:
 logger.setLevel(logging.INFO)
 
 # ---------- Utils ----------
-MAX_PREVIEW = 2000  # tamanho máximo do preview de payload/resp
+MAX_PREVIEW = 2000
 
 def _truncate(s: str, limit: int = MAX_PREVIEW) -> str:
     if s is None:
