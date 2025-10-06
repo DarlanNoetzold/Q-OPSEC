@@ -109,8 +109,8 @@ services:
 
   classification_agent:
     type: fastapi
-    cwd: "./classify_agent"
-    start: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8088"]
+    cwd: "./classification_agent"
+    start: ["python main.py"]
     health: "http://127.0.0.1:8088/api/v1/health"
     metrics: "http://127.0.0.1:9090/metrics"
     port: 8088
@@ -122,7 +122,7 @@ services:
   rl_engine:
     type: fastapi
     cwd: "./rl_engine"
-    start: ["uvicorn", "rl_engine.main:app", "--host", "0.0.0.0", "--port", "9009"]
+    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9009"]
     health: "http://127.0.0.1:9009/docs"
     port: 9009
     pid_file: "./logs/rl_engine.pid"
