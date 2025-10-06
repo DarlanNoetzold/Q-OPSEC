@@ -49,6 +49,10 @@ def _len_safe(x) -> int:
 
 # ---------- Endpoints ----------
 
+@risk_bp.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "service": "confidentiality"}), 200
+
 @risk_bp.route("/train", methods=["POST"])
 def train():
     t0 = time.time()
