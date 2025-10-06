@@ -80,8 +80,8 @@ services:
   risk_service:
     type: fastapi
     cwd: "./risk_service"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8082"]
-    health: "http://127.0.0.1:8082/health"
+    start: ["python app.py"]
+    health: "http://127.0.0.1:8082/risk/health"
     port: 8082
     pid_file: "./logs/risk_service.pid"
     log_file: "./logs/risk_service.log"
