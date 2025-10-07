@@ -41,7 +41,6 @@ def env_for_service(cfg: Dict[str, Any]) -> Dict[str, str]:
     return env
 
 def pidfile_path(name: str) -> Path:
-    # Respeita pid_file do YAML; se não houver, usa logs_dir/name.pid
     custom = service_cfg(name).get("pid_file")
     if custom:
         return (BASE_DIR / custom).resolve()
@@ -95,7 +94,6 @@ def find_pid_by_port_windows(port: int) -> Optional[int]:
             cmd, shell=True, creationflags=subprocess.CREATE_NO_WINDOW
         )
         lines = out.decode(errors="ignore").splitlines()
-        # Tenta pegar PID da última coluna das linhas que citam a porta
         for line in lines:
             parts = line.split()
             if len(parts) >= 5 and parts[-1].isdigit():
@@ -105,7 +103,6 @@ def find_pid_by_port_windows(port: int) -> Optional[int]:
     return None
 
 def find_pid_by_port_unix(port: int) -> Optional[int]:
-    # Tenta lsof, depois fuser
     try:
         out = subprocess.check_output(["lsof", f"-i:{port}", "-sTCP:LISTEN", "-Pn"])
         lines = out.decode(errors="ignore").splitlines()
@@ -117,7 +114,6 @@ def find_pid_by_port_unix(port: int) -> Optional[int]:
         pass
     try:
         out = subprocess.check_output(["fuser", "-n", "tcp", str(port)])
-        # fuser retorna pids separados por espaço
         txt = out.decode(errors="ignore").strip()
         for token in txt.split():
             if token.isdigit():
@@ -488,7 +484,7 @@ async def api_request(spec: RequestSpec):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@APP.post("/services/all/start")
+@APP.post("/start/all")
 async def start_all():
     order = CONFIG.get("startup_order", list(CONFIG.get("services", {}).keys()))
     results = []
@@ -497,7 +493,7 @@ async def start_all():
         await asyncio.sleep(1.0)
     return results
 
-@APP.post("/services/all/stop")
+@APP.post("/stop/all")
 async def stop_all():
     names = list(CONFIG.get("services", {}).keys())
     results = []
