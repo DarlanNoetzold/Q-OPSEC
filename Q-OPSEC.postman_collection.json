@@ -107,6 +107,26 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/confidentiality/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"confidentiality",
+								"health"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1389,6 +1409,181 @@
 								{
 									"key": "include_probabilities",
 									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "orchestrator",
+			"item": [
+				{
+					"name": "services",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/services",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"services"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "start all",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/start/all",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"start",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stop all",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/stop/all",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"stop",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "start one service",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/services/rl_engine/start",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"services",
+								"rl_engine",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stop one service",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/services/rl_engine/stop",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"services",
+								"rl_engine",
+								"stop"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/services/rl_engine/status",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"services",
+								"rl_engine",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8090/services/rl_engine/logs?lines=2000",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8090",
+							"path": [
+								"services",
+								"rl_engine",
+								"logs"
+							],
+							"query": [
+								{
+									"key": "lines",
+									"value": "2000"
 								}
 							]
 						}
