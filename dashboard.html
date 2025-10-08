@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Q-OPSEC Orchestrator Dashboard</title>
+  <!-- React + ReactDOM + Babel (para JSX no navegador) -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0d0f1a; color: #e5e7eb; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+    .app { min-height: 100vh; background: radial-gradient(1000px 600px at 10% 10%, #1c1f2e 0%, #0d0f1a 60%); }
+    .header { position: sticky; top: 0; z-index: 5; background: rgba(13,15,26,0.7); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .header-inner { max-width: 1280px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; background: linear-gradient(135deg, #8ab4ff, #86efac); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .actions { display: flex; gap: 8px; }
+    .btn { padding: 8px 12px; border-radius: 8px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: all .2s ease; color: #e5e7eb; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-green { background: #10b9811a; border-color: #10b98144; }
+    .btn-green:hover:not(:disabled) { background: #10b98133; }
+    .btn-red { background: #ef44441a; border-color: #ef444444; }
+    .btn-red:hover:not(:disabled) { background: #ef444433; }
+    .btn-ghost { background: #ffffff10; border-color: #ffffff22; }
+    .btn-ghost:hover:not(:disabled) { background: #ffffff1a; }
+
+    .tabs { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tab { background: transparent; border: none; color: #a1a1aa; padding: 12px 4px; margin: 0 12px; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; font-weight: 600; }
+    .tab:hover { color: #e5e7eb; }
+    .tab.active { color: #93c5fd; border-bottom-color: #93c5fd; }
+
+    .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+    .card { background: #111425; border: 1px solid #1f233a; border-radius: 12px; padding: 16px; }
+    .card:hover { border-color: #343a60; }
+
+    .service-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .service-left { display: flex; align-items: center; gap: 10px; }
+    .service-name { font-weight: 700; font-size: 16px; }
+    .badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid; }
+    .badge.ok { color: #10b981; background: #10b9811a; border-color: #10b98133; }
+    .badge.off { color: #9ca3af; background: #9ca3af1a; border-color: #9ca3af33; }
+    .meta { display: flex; gap: 12px; color: #9aa0b4; font-size: 12px; }
+
+    .row { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-sm { padding: 8px 10px; border-radius: 8px; font-size: 13px; border: 1px solid #2a2f4a; background: #161a2f; color: #cbd5e1; }
+    .btn-sm:hover { background: #1b2040; }
+
+    .panel { background: #0f1328; border: 1px solid #1f233a; border-radius: 12px; padding: 16px; }
+    .panel + .panel { margin-top: 12px; }
+
+    .search { display: flex; gap: 10px; }
+    .input { flex: 1; background: #0b0e1f; border: 1px solid #242847; color: #e5e7eb; padding: 10px 12px; border-radius: 8px; }
+    .input:focus { outline: none; border-color: #5b7cff; box-shadow: 0 0 0 2px #5b7cff33; }
+
+    .trace-service { margin-top: 16px; padding: 12px; border-radius: 8px; background: #0d0f1a; border: 1px solid #242847; }
+    .trace-match { margin-top: 10px; padding: 10px; border-left: 3px solid #5b7cff; background: #0b0e1f; border-radius: 6px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: #d1d5db; }
+
+    .flow-step { display: flex; gap: 12px; padding: 12px; background: #0b0e1f; border: 1px solid #242847; border-radius: 8px; }
+    .flow-step + .flow-step { margin-top: 10px; }
+    .chip { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .2px; }
+    .chip.ok { color: #10b981; background: #10b9811a; border: 1px solid #10b98133; }
+    .chip.wait { color: #f59e0b; background: #f59e0b1a; border: 1px solid #f59e0b33; }
+    .chip.err { color: #ef4444; background: #ef44441a; border: 1px solid #ef444433; }
+    .ball { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; background: #0d1022; border: 1px solid #242847; color: #9aa0b4; font-weight: 800; }
+
+    .timeline-item { display: grid; grid-template-columns: 180px 200px 1fr; gap: 12px; padding: 10px; border-left: 3px solid #5b7cff; background: #0b0e1f; border: 1px solid #242847; border-radius: 6px; }
+    .timeline-item + .timeline-item { margin-top: 8px; }
+
+    .logs { max-height: 60vh; overflow: auto; background: #0b0e1f; border: 1px solid #242847; border-radius: 8px; padding: 12px; }
+    .log { padding: 6px 0; border-bottom: 1px dashed #1d2240; }
+    .log:last-child { border-bottom: 0; }
+
+    .note { font-size: 12px; color: #9aa0b4; }
+
+    .notif { position: fixed; right: 16px; top: 16px; padding: 12px 14px; border-radius: 8px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.35); border: 1px solid; }
+    .notif.ok { background: #052e26; color: #86efac; border-color: #10b98155; }
+    .notif.err { background: #3a0b0b; color: #fecaca; border-color: #ef444455; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function App() {
+      const [services, setServices] = React.useState([]);
+      const [activeTab, setActiveTab] = React.useState('services');
+      const [loading, setLoading] = React.useState(false);
+      const [notif, setNotif] = React.useState(null);
+
+      const [selectedService, setSelectedService] = React.useState(null);
+      const [logs, setLogs] = React.useState([]);
+
+      const [requestId, setRequestId] = React.useState('');
+      const [traceData, setTraceData] = React.useState(null);
+      const [flowData, setFlowData] = React.useState(null);
+      const [timelineData, setTimelineData] = React.useState(null);
+      const [activeRequests, setActiveRequests] = React.useState([]);
+
+      // Usa o mesmo host/porta do orchestrator (quando servido por ele)
+      const API = window.location.origin;
+
+      const toast = (msg, type='ok') => {
+        setNotif({ msg, type });
+        setTimeout(() => setNotif(null), 2800);
+      };
+
+      const fetchServices = async () => {
+        try {
+          const r = await fetch(API + '/services');
+          const data = await r.json();
+          setServices(data);
+        } catch (e) {
+          toast('Falha ao carregar serviços', 'err');
+        }
+      };
+
+      const startAll = async () => {
+        setLoading(true);
+        try { await fetch(API + '/start/all', { method: 'POST' }); toast('Todos iniciados'); }
+        catch { toast('Erro ao iniciar todos', 'err'); }
+        setLoading(false); fetchServices();
+      };
+
+      const stopAll = async () => {
+        setLoading(true);
+        try { await fetch(API + '/stop/all', { method: 'POST' }); toast('Todos parados'); }
+        catch { toast('Erro ao parar todos', 'err'); }
+        setLoading(false); fetchServices();
+      };
+
+      const startService = async (name) => {
+        setLoading(true);
+        try { await fetch(`${API}/services/${name}/start`, { method: 'POST' }); toast(`${name} iniciado`); }
+        catch { toast(`Erro ao iniciar ${name}`, 'err'); }
+        setLoading(false); fetchServices();
+      };
+
+      const stopService = async (name) => {
+        setLoading(true);
+        try { await fetch(`${API}/services/${name}/stop`, { method: 'POST' }); toast(`${name} parado`); }
+        catch { toast(`Erro ao parar ${name}`, 'err'); }
+        setLoading(false); fetchServices();
+      };
+
+      const restartService = async (name) => {
+        setLoading(true);
+        try { await fetch(`${API}/services/${name}/restart`, { method: 'POST' }); toast(`${name} reiniciado`); }
+        catch { toast(`Erro ao reiniciar ${name}`, 'err'); }
+        setLoading(false); fetchServices();
+      };
+
+      const viewLogs = async (name) => {
+        setActiveTab('logs');
+        setSelectedService(name);
+        try {
+          const r = await fetch(`${API}/services/${name}/logs?lines=600`);
+          const data = await r.json();
+          setLogs(data.tail || []);
+        } catch {
+          toast(`Erro ao carregar logs de ${name}`, 'err');
+        }
+      };
+
+      // Trace / Flow / Timeline / Active
+      const doTrace = async () => {
+        if (!requestId) return;
+        setActiveTab('trace');
+        try {
+          const r = await fetch(`${API}/trace/${requestId}`);
+          setTraceData(await r.json());
+        } catch { toast('Erro no trace', 'err'); }
+      };
+
+      const loadFlow = async () => {
+        if (!requestId) return;
+        setActiveTab('flow');
+        try {
+          const r = await fetch(`${API}/flow/${requestId}`);
+          setFlowData(await r.json());
+        } catch { toast('Erro ao carregar flow', 'err'); }
+      };
+
+      const loadTimeline = async () => {
+        if (!requestId) return;
+        setActiveTab('timeline');
+        try {
+          const r = await fetch(`${API}/timeline/${requestId}`);
+          setTimelineData(await r.json());
+        } catch { toast('Erro ao carregar timeline', 'err'); }
+      };
+
+      const loadActiveReqs = async () => {
+        setActiveTab('active');
+        try {
+          const r = await fetch(`${API}/requests/active`);
+          const data = await r.json();
+          setActiveRequests(data.active_request_ids || []);
+        } catch { toast('Erro ao listar requests', 'err'); }
+      };
+
+      React.useEffect(() => {
+        fetchServices();
+        const t = setInterval(fetchServices, 5000);
+        return () => clearInterval(t);
+      }, []);
+
+      const ServiceCard = ({ s }) => (
+        <div className="card">
+          <div className="service-header">
+            <div className="service-left">
+              <div className="service-name">{s.name}</div>
+              <span className={'badge ' + (s.running ? 'ok' : 'off')}>
+                {s.running ? 'RUNNING' : 'STOPPED'}
+              </span>
+            </div>
+            <div className="meta">
+              <div>Port {s.port || '-'}</div>
+              <div>PID {s.pid || '-'}</div>
+              <div>{s.type || '-'}</div>
+            </div>
+          </div>
+          <div className="row">
+            <button className="btn-sm" onClick={() => startService(s.name)} disabled={!!s.running || loading}>Start</button>
+            <button className="btn-sm" onClick={() => stopService(s.name)} disabled={!s.running || loading}>Stop</button>
+            <button className="btn-sm" onClick={() => restartService(s.name)} disabled={loading}>Restart</button>
+            <button className="btn-sm" onClick={() => viewLogs(s.name)}>Logs</button>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="app">
+          <header className="header">
+            <div className="header-inner">
+              <div className="brand"><h1>🔐 Q-OPSEC Orchestrator</h1></div>
+              <div className="actions">
+                <button className="btn btn-green" onClick={startAll} disabled={loading}>▶ Start All</button>
+                <button className="btn btn-red" onClick={stopAll} disabled={loading}>■ Stop All</button>
+                <button className="btn btn-ghost" onClick={fetchServices}>↻ Refresh</button>
+              </div>
+            </div>
+            <div className="tabs">
+              <button className={'tab ' + (activeTab==='services'?'active':'')} onClick={()=>setActiveTab('services')}>Services</button>
+              <button className={'tab ' + (activeTab==='trace'?'active':'')} onClick={()=>setActiveTab('trace')}>Trace</button>
+              <button className={'tab ' + (activeTab==='flow'?'active':'')} onClick={()=>setActiveTab('flow')}>Flow</button>
+              <button className={'tab ' + (activeTab==='timeline'?'active':'')} onClick={()=>setActiveTab('timeline')}>Timeline</button>
+              <button className={'tab ' + (activeTab==='active'?'active':'')} onClick={loadActiveReqs}>Active Requests</button>
+              <button className={'tab ' + (activeTab==='logs'?'active':'')} onClick={()=>setActiveTab('logs')}>Logs</button>
+            </div>
+          </header>
+
+          <main className="container">
+            {activeTab === 'services' && (
+              <div className="grid">
+                {services.map(s => <ServiceCard key={s.name} s={s}/>)}
+              </div>
+            )}
+
+            {activeTab === 'trace' && (
+              <div className="panel">
+                <div className="search">
+                  <input className="input" placeholder="Digite o request_id (ex: req_123)"
+                         value={requestId} onChange={e=>setRequestId(e.target.value)}
+                         onKeyDown={(e)=>e.key==='Enter' && doTrace()} />
+                  <button className="btn btn-ghost" onClick={doTrace}>🔍 Trace</button>
+                </div>
+                {traceData && (
+                  <div className="panel" style={{marginTop:12}}>
+                    <div style={{marginBottom:8, fontWeight:700}}>Trace para: {traceData.request_id}</div>
+                    <div className="note">Status: {traceData.status} | Total matches: {traceData.total_matches || 0}</div>
+                    {Object.entries(traceData.services || {}).map(([svc, data]) => (
+                      <div key={svc} className="trace-service">
+                        <div style={{fontWeight:700, color:'#93c5fd', marginBottom:6}}>
+                          {svc} ({data.count} matches)
+                        </div>
+                        {(data.matches || []).map((m, i) => (
+                          <div key={i} className="trace-match">
+                            <div className="note">Linha {m.line_number} | {m.timestamp || 'Sem timestamp'}</div>
+                            <div className="mono" style={{marginTop:6}}>{m.line}</div>
+                            {m.context && m.context.length>0 && (
+                              <details style={{marginTop:6}}>
+                                <summary>Mostrar contexto</summary>
+                                <div className="mono" style={{marginTop:6}}>{m.context.join('\n')}</div>
+                              </details>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'flow' && (
+              <div className="panel">
+                <div className="search">
+                  <input className="input" placeholder="Digite o request_id"
+                         value={requestId} onChange={e=>setRequestId(e.target.value)}
+                         onKeyDown={(e)=>e.key==='Enter' && loadFlow()} />
+                  <button className="btn btn-ghost" onClick={loadFlow}>📊 Ver Flow</button>
+                </div>
+                {flowData && (
+                  <div className="panel">
+                    <div style={{marginBottom:8, fontWeight:700}}>Flow para: {flowData.request_id}</div>
+                    <div className="note">Etapa atual: {flowData.current_step}/{flowData.total_steps}</div>
+                    <div style={{marginTop:12}}>
+                      {(flowData.flow || []).map(step => (
+                        <div key={step.step} className="flow-step">
+                          <div className="ball">{step.step}</div>
+                          <div style={{flex:1}}>
+                            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                              <div style={{fontWeight:800}}>{step.service}</div>
+                              <span className={'chip ' + (
+                                step.status==='processed'?'ok': step.status==='error'?'err':'wait'
+                              )}>
+                                {step.status==='processed'?'Processed': step.status==='error'?'Error':'Pending'}
+                              </span>
+                            </div>
+                            <div className="note" style={{marginTop:4}}>{step.endpoint}</div>
+                            {step.last_seen && <div className="note" style={{marginTop:4}}>Last seen: {step.last_seen}</div>}
+                            {step.error && <div className="mono" style={{marginTop:6, color:'#fecaca'}}>{step.error}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'timeline' && (
+              <div className="panel">
+                <div className="search">
+                  <input className="input" placeholder="Digite o request_id"
+                         value={requestId} onChange={e=>setRequestId(e.target.value)}
+                         onKeyDown={(e)=>e.key==='Enter' && loadTimeline()} />
+                  <button className="btn btn-ghost" onClick={loadTimeline}>⏱ Ver Timeline</button>
+                </div>
+                {timelineData && (
+                  <div className="panel">
+                    <div style={{marginBottom:8, fontWeight:700}}>Timeline de: {timelineData.request_id}</div>
+                    <div className="note">Eventos: {timelineData.total_events}</div>
+                    <div style={{marginTop:12}}>
+                      {(timelineData.timeline || []).map((ev, i) => (
+                        <div key={i} className="timeline-item">
+                          <div className="mono" style={{color:'#9aa0b4'}}>{ev.timestamp}</div>
+                          <div style={{color:'#93c5fd', fontWeight:700}}>{ev.service}</div>
+                          <div className="mono">{ev.line}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'active' && (
+              <div className="panel">
+                <div style={{fontWeight:700, marginBottom:10}}>Active Request IDs ({activeRequests.length})</div>
+                <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))'}}>
+                  {activeRequests.map(id => (
+                    <button key={id} className="card" style={{textAlign:'left', cursor:'pointer'}}
+                      onClick={()=>{ setRequestId(id); setActiveTab('trace'); doTrace(); }}>
+                      <div className="mono">{id}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'logs' && (
+              <div className="panel">
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                  <div style={{fontWeight:700}}>Logs: {selectedService || 'Selecione um serviço na aba Services'}</div>
+                  {selectedService && (
+                    <button className="btn btn-ghost" onClick={()=>viewLogs(selectedService)}>↻ Atualizar</button>
+                  )}
+                </div>
+                <div className="logs">
+                  {logs.length === 0 ? (
+                    <div className="note">Sem linhas para mostrar.</div>
+                  ) : logs.map((ln, i)=>(
+                    <div key={i} className="log mono">{ln}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </main>
+
+          {notif && (
+            <div className={'notif ' + (notif.type==='ok'?'ok':'err')}>{notif.msg}</div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App/>, document.getElementById('root'));
+  </script>
+</body>
+</html>
