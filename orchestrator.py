@@ -21,6 +21,21 @@ CONFIG_PATH = BASE_DIR / "services.yaml"
 STATE: Dict[str, Dict[str, Any]] = {}
 CONFIG: Dict[str, Any] = {}
 
+from fastapi.responses import HTMLResponse
+from starlette.middleware.cors import CORSMiddleware
+
+APP.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@APP.get("/", response_class=HTMLResponse)
+async def dashboard():
+    html_path = BASE_DIR / "dashboard.html"
+    return html_path.read_text(encoding="utf-8")
+
 def load_config():
     global CONFIG
     if not CONFIG_PATH.exists():
@@ -704,7 +719,7 @@ async def timeline(request_id: str):
 async def active_requests():
     """Lista request_ids ativos nos últimos N minutos (heurística)"""
     request_ids = set()
-    pattern = re.compile(r'req[_-][\w\d]+')  # ajuste conforme seu padrão de request_id
+    pattern = re.compile(r'req[_-][\w\d]+')
     
     for name, cfg in CONFIG.get("services", {}).items():
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
