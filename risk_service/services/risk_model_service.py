@@ -1,3 +1,5 @@
+# risk_model_service.py - VERSÃO COMPLETA COM MÉTRICAS ADICIONADAS
+
 from typing import Tuple, Dict, Any, Optional, List
 from datetime import datetime
 import os
@@ -5,6 +7,8 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
+import json
+from pathlib import Path
 from services.model_cleanup_service import ModelCleanupService
 
 from models.schemas import AssessRequest, TrainRequest, RiskContext, TrainResponse
@@ -14,11 +18,18 @@ from repositories.config_repo import DATA_DIR, MODELS_DIR, set_best_model, get_b
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC
+
+# Imports para gráficos
+import matplotlib
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 try:
     from xgboost import XGBClassifier
@@ -228,7 +239,7 @@ class ModelCandidateFactory:
             ("mlp_small", (64, 32)),
             ("mlp_medium", (128, 64, 32)),
             ("mlp_deep", (256, 128, 64, 32)),
-            ("mlp_bn_like", (128, 128, 64)),   # simulando profundidade
+            ("mlp_bn_like", (128, 128, 64)),  # simulando profundidade
             ("mlp_wide", (256, 256, 128)),
         ]
         for name, layers in mlp_configs:
@@ -254,13 +265,136 @@ class ModelCandidateFactory:
 
         return models
 
+
 class ModelTrainer:
     def __init__(self, criterion: str = "accuracy"):
         assert criterion in ("accuracy", "f1"), "criterion must be accuracy or f1"
         self.criterion = criterion
+        self.metrics_dir = Path(os.getcwd()) / "models" / "metrics"
+        self.metrics_dir.mkdir(parents=True, exist_ok=True)
+
+    def _save_training_metrics(self, results: List[Dict], X_val, y_val, best_model_obj, session_id: str):
+        """Salva métricas e gráficos do treinamento"""
+        session_path = self.metrics_dir / session_id
+        session_path.mkdir(parents=True, exist_ok=True)
+
+        # 1. Gráfico de comparação de acurácia de todos os modelos
+        plt.figure(figsize=(12, 6))
+        names = [r["name"] for r in results]
+        accuracies = [r["metrics"]["accuracy"] for r in results]
+        colors = ['#2ecc71' if acc == max(accuracies) else '#3498db' for acc in accuracies]
+
+        plt.barh(names, accuracies, color=colors)
+        plt.xlabel('Accuracy')
+        plt.title('Model Comparison - Accuracy')
+        plt.xlim(0, 1.0)
+        for i, v in enumerate(accuracies):
+            plt.text(v + 0.01, i, f'{v:.4f}', va='center')
+        plt.tight_layout()
+        plt.savefig(session_path / "all_models_accuracy.png", dpi=150, bbox_inches='tight')
+        plt.close()
+
+        # 2. Gráfico de comparação de F1-Score
+        plt.figure(figsize=(12, 6))
+        f1_scores = [r["metrics"]["f1"] for r in results]
+        colors = ['#2ecc71' if f1 == max(f1_scores) else '#e74c3c' for f1 in f1_scores]
+
+        plt.barh(names, f1_scores, color=colors)
+        plt.xlabel('F1-Score (Macro)')
+        plt.title('Model Comparison - F1-Score')
+        plt.xlim(0, 1.0)
+        for i, v in enumerate(f1_scores):
+            plt.text(v + 0.01, i, f'{v:.4f}', va='center')
+        plt.tight_layout()
+        plt.savefig(session_path / "all_models_f1score.png", dpi=150, bbox_inches='tight')
+        plt.close()
+
+        # 3. Scatter plot Accuracy vs F1
+        plt.figure(figsize=(10, 8))
+        plt.scatter(accuracies, f1_scores, s=100, alpha=0.6, c=range(len(names)), cmap='viridis')
+        for i, name in enumerate(names):
+            plt.annotate(name, (accuracies[i], f1_scores[i]), fontsize=8, alpha=0.7)
+        plt.xlabel('Accuracy')
+        plt.ylabel('F1-Score (Macro)')
+        plt.title('Accuracy vs F1-Score')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(session_path / "accuracy_vs_f1.png", dpi=150, bbox_inches='tight')
+        plt.close()
+
+        # 4. Confusion Matrix do melhor modelo
+        y_pred = best_model_obj.predict(X_val)
+        cm = confusion_matrix(y_val, y_pred)
+
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Low', 'Medium', 'High'],
+                    yticklabels=['Low', 'Medium', 'High'])
+        plt.title('Confusion Matrix - Best Model')
+        plt.ylabel('True Label')
+        plt.xlabel('Predicted Label')
+        plt.tight_layout()
+        plt.savefig(session_path / "best_model_confusion_matrix.png", dpi=150, bbox_inches='tight')
+        plt.close()
+
+        # 5. Top 10 modelos ranking
+        top10 = sorted(results, key=lambda x: x["metrics"]["accuracy"], reverse=True)[:10]
+        plt.figure(figsize=(10, 6))
+        top_names = [r["name"] for r in top10]
+        top_acc = [r["metrics"]["accuracy"] for r in top10]
+        top_f1 = [r["metrics"]["f1"] for r in top10]
+
+        x = range(len(top_names))
+        width = 0.35
+        plt.bar([i - width / 2 for i in x], top_acc, width, label='Accuracy', color='#3498db')
+        plt.bar([i + width / 2 for i in x], top_f1, width, label='F1-Score', color='#e74c3c')
+        plt.xlabel('Model')
+        plt.ylabel('Score')
+        plt.title('Top 10 Models Ranking')
+        plt.xticks(x, top_names, rotation=45, ha='right')
+        plt.legend()
+        plt.ylim(0, 1.0)
+        plt.tight_layout()
+        plt.savefig(session_path / "top10_models_ranking.png", dpi=150, bbox_inches='tight')
+        plt.close()
+
+        # 6. Salvar summary JSON
+        best_result = max(results, key=lambda r: r["metrics"]["accuracy"])
+        summary = {
+            "timestamp": datetime.now().isoformat(),
+            "session_id": session_id,
+            "best_model": {
+                "name": best_result["name"],
+                "path": best_result["path"],
+                "metrics": best_result["metrics"]
+            },
+            "dataset_info": {
+                "train_samples": len(X_val) * 4,  # aproximação
+                "test_samples": len(X_val),
+                "total_models_trained": len(results),
+                "features": FEATURE_COLUMNS
+            },
+            "statistics": {
+                "avg_accuracy": sum(r["metrics"]["accuracy"] for r in results) / len(results),
+                "avg_f1_score": sum(r["metrics"]["f1"] for r in results) / len(results),
+                "best_accuracy": max(r["metrics"]["accuracy"] for r in results),
+                "best_f1_score": max(r["metrics"]["f1"] for r in results),
+                "worst_accuracy": min(r["metrics"]["accuracy"] for r in results),
+                "worst_f1_score": min(r["metrics"]["f1"] for r in results)
+            },
+            "all_models": results
+        }
+
+        with open(session_path / "training_summary.json", "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+
+        print(f"Métricas salvas em: {session_path}")
+        return summary
 
     def train_and_select(self, X_train, y_train, X_val, y_val) -> Dict[str, Any]:
+        session_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         results = []
+
         for name, model in ModelCandidateFactory.candidates():
             try:
                 model.fit(X_train, y_train)
@@ -280,13 +414,20 @@ class ModelTrainer:
         key = (lambda r: r["metrics"]["accuracy"]) if self.criterion == "accuracy" else (lambda r: r["metrics"]["f1"])
         best = max(results, key=key)
 
+        # Carregar o melhor modelo para gerar confusion matrix
+        best_model_obj = joblib.load(best["path"])
+
+        # Salvar métricas e gráficos
+        self._save_training_metrics(results, X_val, y_val, best_model_obj, session_id)
+
         registry = read_registry()
         all_models = registry.get("models", [])
         all_models.extend(results)
         registry["models"] = sorted(all_models, key=lambda r: r["metrics"]["accuracy"], reverse=True)
         write_registry(registry)
         set_best_model(best)
-        return {"best": best, "all": results}
+
+        return {"best": best, "all": results, "session_id": session_id}
 
 
 class RiskModelService:
@@ -419,8 +560,8 @@ class RiskModelService:
     def assess(self, req: AssessRequest) -> Optional[RiskContext]:
         if self._best_model is None:
             self._load_best_from_disk()
-        if self._best_model is None:
-            return None
+            if self._best_model is None:
+                return None
 
         sig = req.signals.model_dump()
         enc = encode_row(sig)
