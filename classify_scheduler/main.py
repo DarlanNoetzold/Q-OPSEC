@@ -8,7 +8,7 @@ from utils import seed_everything, normalize_labels, ensure_classes, print_summa
 from trainer import train_and_select_best
 from evaluator import evaluate_holdout
 from registry import ModelRegistry
-from scheduler import schedule_periodic_training
+from scheduler import schedule_periodic_training, save_training_metrics
 
 
 def run_train_once(cfg: DefaultConfig):
@@ -35,10 +35,7 @@ def run_train_once(cfg: DefaultConfig):
         max_models=cfg.max_models,
     )
 
-    print(f"[INFO] Classes originais (LabelEncoder): {list(best.label_encoder.classes_)}")
-    print(f"[INFO] Classes ordenadas por severidade: {best.ordered_classes}")
-    print(f"[INFO] Feature columns (para API): {best.feature_columns}")
-    print(f"[INFO] Mapeamento final: {dict(enumerate(best.ordered_classes))}")
+    print(f"[INFO] Classes reais aprendidas pelo modelo (ordem LabelEncoder): {list(best.label_encoder.classes_)}")
 
     print(
         f"[INFO] Best model: {best.best_name} "
@@ -48,16 +45,19 @@ def run_train_once(cfg: DefaultConfig):
     holdout = evaluate_holdout(best.pipeline, best.X_test, best.y_test, cfg.allowed_classes)
     print(f"[HOLDOUT] accuracy={holdout['accuracy']:.4f}, f1_macro={holdout['f1_macro']:.4f}")
 
-    # USAR FEATURE COLUMNS (não todas as colunas do CSV)
-    required_columns = list(best.feature_columns)
-    print(f"[INFO] Required columns for API: {required_columns}")
+    # Salvar métricas e gráficos
+    session_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    save_training_metrics(best, session_id)
+
+    # Colunas requeridas (todas as colunas de features usadas no treino)
+    required_columns = [c for c in df.columns if c != cfg.target_col]
 
     registry = ModelRegistry(cfg.registry_dir)
     tag = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     save_path = registry.save(
         tag=tag,
         pipeline=best.pipeline,
-        classes=best.ordered_classes,  # USAR CLASSES ORDENADAS, NÃO label_encoder.classes_
+        classes=list(best.label_encoder.classes_),
         cv_metrics=best.best_cv_metrics,
         holdout_metrics=holdout,
         model_name=best.best_name,
@@ -69,7 +69,8 @@ def run_train_once(cfg: DefaultConfig):
             "target_col": cfg.target_col,
             "n_samples": len(df),
             "n_features": len(required_columns),
-            "required_columns": required_columns,  # Só feature columns
+            "required_columns": required_columns,
+            "session_id": session_id,  # Link para as métricas
         },
         candidates=best.candidates,
     )
