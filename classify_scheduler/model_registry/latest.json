@@ -1,8 +1,8 @@
 {
   "saved_model_name": "logreg_lbfgs",
-  "artifact_path": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20251005T130335Z_logreg_lbfgs\\model.pkl",
-  "tag": "20251005T130335Z",
-  "dir": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20251005T130335Z_logreg_lbfgs",
+  "artifact_path": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20251009T175001Z_logreg_lbfgs\\model.pkl",
+  "tag": "20251009T175001Z",
+  "dir": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20251009T175001Z_logreg_lbfgs",
   "classes": [
     "Critical",
     "Very High",
