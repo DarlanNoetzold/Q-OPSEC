@@ -1,13 +1,19 @@
-from flask import Blueprint, request, jsonify
+# risk_controller.py - VERSÃO ATUALIZADA COM ENDPOINTS DE MÉTRICAS
+
+from flask import Blueprint, request, jsonify, send_from_directory
 from models.schemas import AssessRequest, TrainRequest, RiskContext, TrainResponse, validate_payload
 from services.risk_model_service import RiskModelService
 import os, glob, time, json, traceback, logging
 from repositories.config_repo import DATA_DIR, MODELS_DIR, write_registry
+from pathlib import Path
 
 risk_bp = Blueprint("risk", __name__, url_prefix="/risk")
 _service = RiskModelService()
 
-# ---------- Logging setup ----------
+# Diretório de métricas
+METRICS_DIR = Path(os.getcwd()) / "models" / "metrics"
+
+# ---- Logging setup ----
 logger = logging.getLogger("risk_controller")
 if not logger.handlers:
     handler = logging.StreamHandler()
@@ -16,14 +22,16 @@ if not logger.handlers:
     logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# ---------- Utils ----------
-MAX_PREVIEW = 2000  # tamanho máximo do preview de payload/resp
-MAX_LIST_PREVIEW = 100  # limite de itens em listas para log
+# ---- Utils ----
+MAX_PREVIEW = 2000
+MAX_LIST_PREVIEW = 100
+
 
 def _truncate(s: str, limit: int = MAX_PREVIEW) -> str:
     if s is None:
         return ""
-    return s if len(s) <= limit else (s[:limit] + f"... (truncated {len(s)-limit} chars)")
+    return s if len(s) <= limit else (s[:limit] + f"... (truncated {len(s) - limit} chars)")
+
 
 def _json_preview(obj, limit: int = MAX_PREVIEW) -> str:
     try:
@@ -32,8 +40,10 @@ def _json_preview(obj, limit: int = MAX_PREVIEW) -> str:
     except Exception:
         return f"<non-serializable: {type(obj).__name__}>"
 
+
 def _client_ip(req) -> str:
     return request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or request.remote_addr or "-"
+
 
 def _keys(d: dict):
     try:
@@ -41,23 +51,27 @@ def _keys(d: dict):
     except Exception:
         return []
 
+
 def _len_safe(x) -> int:
     try:
         return len(x)
     except Exception:
         return -1
 
-# ---------- Endpoints ----------
+
+# ---- Endpoints ----
 
 @risk_bp.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "confidentiality"}), 200
+    return jsonify({"status": "ok", "service": "risk"}), 200
+
 
 @risk_bp.route("/train", methods=["POST"])
 def train():
     t0 = time.time()
     client_ip = _client_ip(request)
-    headers_preview = {k: v for k, v in request.headers.items() if k.lower() in ("content-type", "user-agent", "x-request-id")}
+    headers_preview = {k: v for k, v in request.headers.items() if
+                       k.lower() in ("content-type", "user-agent", "x-request-id")}
     payload = request.get_json(silent=True) or {}
     logger.info("POST /risk/train from %s | headers=%s | payload=%s",
                 client_ip, _json_preview(headers_preview, 800), _json_preview(payload, 1200))
@@ -82,10 +96,10 @@ def train():
 def assess():
     t0 = time.time()
     client_ip = _client_ip(request)
-    headers_preview = {k: v for k, v in request.headers.items() if k.lower() in ("content-type", "user-agent", "x-request-id")}
+    headers_preview = {k: v for k, v in request.headers.items() if
+                       k.lower() in ("content-type", "user-agent", "x-request-id")}
     payload = request.get_json(silent=True) or {}
 
-    # Pré-logs do payload
     signals = payload.get("signals") if isinstance(payload, dict) else None
     request_id = payload.get("request_id") if isinstance(payload, dict) else None
     logger.info(
@@ -116,7 +130,6 @@ def assess():
                 "message": "Train the model first or wait for the hourly retrain."
             }), 503
 
-        # Loga highlights do contexto de risco + dump truncado
         assessed_dump = assessed.model_dump() if hasattr(assessed, "model_dump") else assessed.__dict__
         highlights = {
             "risk_score": assessed_dump.get("risk_score"),
@@ -190,3 +203,216 @@ def cleanup_all_models():
     except Exception as e:
         logger.error("EXCEPTION /risk/cleanup/all: %s\n%s", str(e), traceback.format_exc())
         return jsonify({"error": "INTERNAL_ERROR", "message": str(e)}), 500
+
+
+# ========== NOVOS ENDPOINTS DE MÉTRICAS ==========
+
+@risk_bp.route("/metrics/latest", methods=["GET"])
+def get_latest_metrics():
+    """
+    Retorna informações sobre a última sessão de treinamento
+    """
+    try:
+        if not METRICS_DIR.exists():
+            return jsonify({"error": "No metrics directory found"}), 404
+
+        # Listar todas as sessões de treinamento
+        sessions = sorted(
+            [p for p in METRICS_DIR.iterdir() if
+             p.is_dir() and (p.name.startswith("training_") or p.name.startswith("retrain_"))],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True
+        )
+
+        if not sessions:
+            return jsonify({"error": "No training sessions found"}), 404
+
+        latest_session = sessions[0]
+        session_id = latest_session.name
+
+        # Ler o arquivo training_summary.json
+        summary_file = latest_session / "training_summary.json"
+        if not summary_file.exists():
+            return jsonify({
+                "session_id": session_id,
+                "error": "Summary file not found"
+            }), 404
+
+        with open(summary_file, "r", encoding="utf-8") as f:
+            summary_data = json.load(f)
+
+        # Listar imagens disponíveis
+        images = [f.name for f in latest_session.iterdir() if f.suffix == ".png"]
+
+        return jsonify({
+            "session_id": session_id,
+            "timestamp": summary_data.get("timestamp"),
+            "best_model": summary_data.get("best_model"),
+            "dataset_info": summary_data.get("dataset_info"),
+            "statistics": summary_data.get("statistics"),
+            "available_images": images,
+            "image_base_url": f"/risk/metrics/{session_id}"
+        }), 200
+
+    except Exception as e:
+        logger.error("EXCEPTION /risk/metrics/latest: %s\n%s", str(e), traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@risk_bp.route("/metrics/sessions", methods=["GET"])
+def list_all_sessions():
+    """
+    Lista todas as sessões de treinamento disponíveis
+    """
+    try:
+        if not METRICS_DIR.exists():
+            return jsonify({"error": "No metrics directory found"}), 404
+
+        sessions = sorted(
+            [p for p in METRICS_DIR.iterdir() if
+             p.is_dir() and (p.name.startswith("training_") or p.name.startswith("retrain_"))],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True
+        )
+
+        sessions_list = []
+        for session_path in sessions:
+            session_id = session_path.name
+            summary_file = session_path / "training_summary.json"
+
+            if summary_file.exists():
+                with open(summary_file, "r", encoding="utf-8") as f:
+                    summary_data = json.load(f)
+
+                sessions_list.append({
+                    "session_id": session_id,
+                    "timestamp": summary_data.get("timestamp"),
+                    "best_model_name": summary_data.get("best_model", {}).get("name"),
+                    "best_accuracy": summary_data.get("best_model", {}).get("metrics", {}).get("accuracy"),
+                    "best_f1_score": summary_data.get("best_model", {}).get("metrics", {}).get("f1"),
+                    "total_models": summary_data.get("dataset_info", {}).get("total_models_trained"),
+                    "url": f"/risk/metrics/{session_id}"
+                })
+            else:
+                sessions_list.append({
+                    "session_id": session_id,
+                    "timestamp": None,
+                    "error": "Summary not found"
+                })
+
+        return jsonify({
+            "total_sessions": len(sessions_list),
+            "sessions": sessions_list
+        }), 200
+
+    except Exception as e:
+        logger.error("EXCEPTION /risk/metrics/sessions: %s\n%s", str(e), traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@risk_bp.route("/metrics/<session_id>", methods=["GET"])
+def get_session_metrics(session_id: str):
+    """
+    Retorna informações detalhadas de uma sessão específica
+    """
+    try:
+        session_path = METRICS_DIR / session_id
+
+        if not session_path.exists() or not session_path.is_dir():
+            return jsonify({"error": f"Session {session_id} not found"}), 404
+
+        summary_file = session_path / "training_summary.json"
+        if not summary_file.exists():
+            return jsonify({"error": "Summary file not found"}), 404
+
+        with open(summary_file, "r", encoding="utf-8") as f:
+            summary_data = json.load(f)
+
+        # Listar imagens disponíveis
+        images = [f.name for f in session_path.iterdir() if f.suffix == ".png"]
+
+        return jsonify({
+            "session_id": session_id,
+            "summary": summary_data,
+            "available_images": images,
+            "image_base_url": f"/risk/metrics/{session_id}"
+        }), 200
+
+    except Exception as e:
+        logger.error("EXCEPTION /risk/metrics/<session_id>: %s\n%s", str(e), traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@risk_bp.route("/metrics/<session_id>/<filename>", methods=["GET"])
+def get_metrics_image(session_id: str, filename: str):
+    """
+    Serve uma imagem específica de métricas
+    """
+    try:
+        session_path = METRICS_DIR / session_id
+
+        if not session_path.exists() or not session_path.is_dir():
+            return jsonify({"error": f"Session {session_id} not found"}), 404
+
+        file_path = session_path / filename
+
+        if not file_path.exists() or file_path.suffix not in [".png", ".jpg", ".jpeg", ".json"]:
+            return jsonify({"error": f"File {filename} not found or invalid type"}), 404
+
+        return send_from_directory(session_path, filename)
+
+    except Exception as e:
+        logger.error("EXCEPTION /risk/metrics/<session_id>/<filename>: %s\n%s", str(e), traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@risk_bp.route("/metrics/compare", methods=["POST"])
+def compare_sessions():
+    """
+    Compara métricas entre múltiplas sessões de treinamento
+    """
+    try:
+        payload = request.get_json(silent=True) or {}
+        session_ids = payload.get("session_ids", [])
+
+        if not session_ids:
+            return jsonify({"error": "No session_ids provided"}), 400
+
+        comparison = []
+
+        for session_id in session_ids:
+            session_path = METRICS_DIR / session_id
+
+            if not session_path.exists():
+                comparison.append({
+                    "session_id": session_id,
+                    "error": "Session not found"
+                })
+                continue
+
+            summary_file = session_path / "training_summary.json"
+            if not summary_file.exists():
+                comparison.append({
+                    "session_id": session_id,
+                    "error": "Summary not found"
+                })
+                continue
+
+            with open(summary_file, "r", encoding="utf-8") as f:
+                summary_data = json.load(f)
+
+            comparison.append({
+                "session_id": session_id,
+                "timestamp": summary_data.get("timestamp"),
+                "best_model": summary_data.get("best_model", {}).get("name"),
+                "metrics": summary_data.get("best_model", {}).get("metrics"),
+                "statistics": summary_data.get("statistics")
+            })
+
+        return jsonify({
+            "comparison": comparison
+        }), 200
+
+    except Exception as e:
+        logger.error("EXCEPTION /risk/metrics/compare: %s\n%s", str(e), traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
