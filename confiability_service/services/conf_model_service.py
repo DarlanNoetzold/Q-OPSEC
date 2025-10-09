@@ -5,6 +5,12 @@ import joblib
 import numpy as np
 import pandas as pd
 import random
+import glob
+import json
+import traceback
+import logging
+from datetime import datetime
+from pathlib import Path
 
 from models.schemas import ClassifyRequest, TrainRequest, ContentConfidentiality, TrainResponse
 from repositories.config_repo import DATA_DIR, MODELS_DIR, set_best_model, get_best_model_info, read_registry, \
@@ -13,12 +19,20 @@ from repositories.patterns_repo import PatternsRepository
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import accuracy_score, f1_score, classification_report, precision_score, recall_score, \
+    confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import LinearSVC, SVC
 from sklearn.naive_bayes import MultinomialNB, ComplementNB
 from sklearn.neural_network import MLPClassifier
+
+# Plotting imports
+import matplotlib
+
+matplotlib.use('Agg')  # Backend sem GUI
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 try:
     from xgboost import XGBClassifier
@@ -35,6 +49,15 @@ except Exception:
     HAS_LGBM = False
 
 CLASS_LABELS = ["public", "internal", "confidential", "restricted"]
+
+# Logger setup
+logger = logging.getLogger("conf_model_service")
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    fmt = logging.Formatter("[%(asctime)s] %(levelname)s %(name)s - %(message)s")
+    handler.setFormatter(fmt)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 def synth_corpus(n_per_class: int, seed: int) -> Tuple[List[str], List[str]]:
@@ -246,6 +269,8 @@ class NLPModelTrainer:
 
                 acc = accuracy_score(y_val, y_pred)
                 f1 = f1_score(y_val, y_pred, average="macro")
+                prec = precision_score(y_val, y_pred, average="macro", zero_division=0)
+                rec = recall_score(y_val, y_pred, average="macro", zero_division=0)
 
                 model_path = os.path.join(MODELS_DIR, f"conf_model_{name}_{int(time.time())}.joblib")
                 joblib.dump(model, model_path)
@@ -253,12 +278,17 @@ class NLPModelTrainer:
                 results.append({
                     "name": name,
                     "path": model_path,
-                    "metrics": {"accuracy": acc, "f1_macro": f1}
+                    "metrics": {
+                        "accuracy": acc,
+                        "f1_macro": f1,
+                        "precision": prec,
+                        "recall": rec
+                    }
                 })
-                print(f"✓ {name}: acc={acc:.3f}, f1={f1:.3f}")
+                print(f"[OK] {name}: acc={acc:.3f}, f1={f1:.3f}, prec={prec:.3f}, rec={rec:.3f}")
 
             except Exception as e:
-                print(f"✗ Failed to train {name}: {e}")
+                print(f"[FAIL] Failed to train {name}: {e}")
                 continue
 
         if not results:
@@ -304,6 +334,251 @@ class ConfidentialityModelService:
                 self._best_model = None
                 self._best_info = None
 
+    def _save_training_metrics(self, training_session_id: str, all_results: List[Dict],
+                               best_model: Dict, X_train, y_train, X_val, y_val):
+        """
+        Salva metricas completas de TODOS os modelos treinados na sessao
+        """
+        try:
+            # Criar diretorio de metricas para esta sessao de treinamento
+            metrics_dir = Path(MODELS_DIR) / "metrics" / training_session_id
+            metrics_dir.mkdir(parents=True, exist_ok=True)
+
+            # Configurar estilo dos graficos
+            sns.set_style("darkgrid")
+            plt.rcParams['figure.facecolor'] = '#0f1328'
+            plt.rcParams['axes.facecolor'] = '#0b0e1f'
+            plt.rcParams['text.color'] = '#e5e7eb'
+            plt.rcParams['axes.labelcolor'] = '#e5e7eb'
+            plt.rcParams['xtick.color'] = '#9aa0b4'
+            plt.rcParams['ytick.color'] = '#9aa0b4'
+            plt.rcParams['grid.color'] = '#242847'
+
+            # Preparar dados de todos os modelos
+            model_names = [r['name'] for r in all_results]
+            accuracies = [r['metrics']['accuracy'] for r in all_results]
+            f1_scores = [r['metrics']['f1_macro'] for r in all_results]
+            precisions = [r['metrics']['precision'] for r in all_results]
+            recalls = [r['metrics']['recall'] for r in all_results]
+
+            # Distribuicao de classes
+            unique, counts = np.unique(y_train, return_counts=True)
+            class_dist = {str(k): int(v) for k, v in zip(unique, counts)}
+
+            # 1. GRAFICO COMPARATIVO DE TODOS OS MODELOS - ACCURACY
+            fig, ax = plt.subplots(figsize=(16, 8))
+            x_pos = np.arange(len(model_names))
+            colors = ['#10b981' if r['name'] == best_model['name'] else '#3b82f6' for r in all_results]
+
+            bars = ax.bar(x_pos, accuracies, color=colors, alpha=0.8, edgecolor='white', linewidth=1.5)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(model_names, rotation=45, ha='right', fontsize=9)
+            ax.set_ylim(0, 1.1)
+            ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+            ax.set_title(f'Model Comparison - Accuracy (Best: {best_model["name"]})',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.axhline(y=0.8, color='#ef4444', linestyle='--', linewidth=1, alpha=0.5, label='Target (0.8)')
+
+            for i, (bar, acc) in enumerate(zip(bars, accuracies)):
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width() / 2., height + 0.02,
+                        f'{acc:.3f}',
+                        ha='center', va='bottom', fontsize=8, fontweight='bold', color='#e5e7eb')
+
+            ax.legend()
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "all_models_accuracy.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 2. GRAFICO COMPARATIVO - F1 SCORE
+            fig, ax = plt.subplots(figsize=(16, 8))
+            colors = ['#8b5cf6' if r['name'] == best_model['name'] else '#f59e0b' for r in all_results]
+
+            bars = ax.bar(x_pos, f1_scores, color=colors, alpha=0.8, edgecolor='white', linewidth=1.5)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(model_names, rotation=45, ha='right', fontsize=9)
+            ax.set_ylim(0, 1.1)
+            ax.set_ylabel('F1 Score (Macro)', fontsize=12, fontweight='bold')
+            ax.set_title(f'Model Comparison - F1 Score (Best: {best_model["name"]})',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.axhline(y=0.8, color='#ef4444', linestyle='--', linewidth=1, alpha=0.5, label='Target (0.8)')
+
+            for i, (bar, f1) in enumerate(zip(bars, f1_scores)):
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width() / 2., height + 0.02,
+                        f'{f1:.3f}',
+                        ha='center', va='bottom', fontsize=8, fontweight='bold', color='#e5e7eb')
+
+            ax.legend()
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "all_models_f1score.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 3. GRAFICO COMPARATIVO - PRECISION vs RECALL
+            fig, ax = plt.subplots(figsize=(16, 8))
+            x_pos = np.arange(len(model_names))
+            width = 0.35
+
+            bars1 = ax.bar(x_pos - width / 2, precisions, width, label='Precision',
+                           color='#10b981', alpha=0.8, edgecolor='white', linewidth=1.5)
+            bars2 = ax.bar(x_pos + width / 2, recalls, width, label='Recall',
+                           color='#3b82f6', alpha=0.8, edgecolor='white', linewidth=1.5)
+
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(model_names, rotation=45, ha='right', fontsize=9)
+            ax.set_ylim(0, 1.1)
+            ax.set_ylabel('Score', fontsize=12, fontweight='bold')
+            ax.set_title('Model Comparison - Precision vs Recall',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.legend()
+
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "all_models_precision_recall.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 4. GRAFICO DE METRICAS DO MELHOR MODELO
+            fig, ax = plt.subplots(figsize=(10, 6))
+            metric_names = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
+            metric_values = [
+                best_model['metrics']['accuracy'],
+                best_model['metrics']['precision'],
+                best_model['metrics']['recall'],
+                best_model['metrics']['f1_macro']
+            ]
+            colors_best = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6']
+
+            bars = ax.bar(metric_names, metric_values, color=colors_best, alpha=0.8,
+                          edgecolor='white', linewidth=1.5)
+            ax.set_ylim(0, 1.1)
+            ax.set_ylabel('Score', fontsize=12, fontweight='bold')
+            ax.set_title(f'Best Model Metrics - {best_model["name"]}',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.axhline(y=0.8, color='#ef4444', linestyle='--', linewidth=1, alpha=0.5, label='Target (0.8)')
+
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width() / 2., height + 0.02,
+                        f'{height:.3f}',
+                        ha='center', va='bottom', fontsize=10, fontweight='bold', color='#e5e7eb')
+
+            ax.legend()
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "best_model_metrics.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 5. MATRIZ DE CONFUSAO DO MELHOR MODELO
+            best_model_obj = joblib.load(best_model['path'])
+            y_pred = best_model_obj.predict(X_val)
+            cm = confusion_matrix(y_val, y_pred)
+
+            fig, ax = plt.subplots(figsize=(10, 8))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                        cbar_kws={'label': 'Count'}, ax=ax,
+                        xticklabels=CLASS_LABELS, yticklabels=CLASS_LABELS,
+                        linewidths=1, linecolor='#242847')
+            ax.set_title(f'Confusion Matrix - {best_model["name"]}',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.set_xlabel('Predicted', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Actual', fontsize=12, fontweight='bold')
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "best_model_confusion_matrix.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 6. DISTRIBUICAO DE CLASSES
+            fig, ax = plt.subplots(figsize=(10, 6))
+            classes = list(class_dist.keys())
+            counts = list(class_dist.values())
+            colors_dist = plt.cm.viridis([i / len(classes) for i in range(len(classes))])
+
+            bars = ax.bar(classes, counts, color=colors_dist, alpha=0.8,
+                          edgecolor='white', linewidth=1.5)
+            ax.set_ylabel('Count', fontsize=12, fontweight='bold')
+            ax.set_xlabel('Class', fontsize=12, fontweight='bold')
+            ax.set_title('Training Data - Class Distribution',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width() / 2., height,
+                        f'{int(height)}',
+                        ha='center', va='bottom', fontsize=10, fontweight='bold', color='#e5e7eb')
+
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "class_distribution.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 7. TOP 10 MODELOS - RANKING
+            top_10 = sorted(all_results, key=lambda x: x['metrics']['f1_macro'], reverse=True)[:10]
+
+            fig, ax = plt.subplots(figsize=(12, 8))
+            top_names = [r['name'] for r in top_10]
+            top_f1 = [r['metrics']['f1_macro'] for r in top_10]
+
+            y_pos = np.arange(len(top_names))
+            colors_rank = plt.cm.viridis([i / len(top_names) for i in range(len(top_names))])
+
+            bars = ax.barh(y_pos, top_f1, color=colors_rank, alpha=0.8,
+                           edgecolor='white', linewidth=1.5)
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(top_names, fontsize=10)
+            ax.set_xlim(0, 1.1)
+            ax.set_xlabel('F1 Score (Macro)', fontsize=12, fontweight='bold')
+            ax.set_title('Top 10 Models - Ranking by F1 Score',
+                         fontsize=14, fontweight='bold', color='#93c5fd')
+            ax.axvline(x=0.8, color='#ef4444', linestyle='--', linewidth=1, alpha=0.5, label='Target (0.8)')
+
+            for i, (bar, f1) in enumerate(zip(bars, top_f1)):
+                width = bar.get_width()
+                ax.text(width + 0.02, bar.get_y() + bar.get_height() / 2.,
+                        f'{f1:.3f}',
+                        ha='left', va='center', fontsize=9, fontweight='bold', color='#e5e7eb')
+
+            ax.legend()
+            plt.tight_layout()
+            plt.savefig(metrics_dir / "top10_models_ranking.png", dpi=150, facecolor='#0f1328')
+            plt.close()
+
+            # 8. SALVAR METRICAS COMO JSON
+            metrics_file = metrics_dir / "training_summary.json"
+            summary_data = {
+                "training_session_id": training_session_id,
+                "timestamp": datetime.now().isoformat(),
+                "best_model": {
+                    "name": best_model['name'],
+                    "path": best_model['path'],
+                    "metrics": best_model['metrics']
+                },
+                "all_models": all_results,
+                "dataset_info": {
+                    "train_samples": int(len(X_train)),
+                    "test_samples": int(len(X_val)),
+                    "class_distribution": class_dist,
+                    "total_models_trained": len(all_results)
+                },
+                "statistics": {
+                    "avg_accuracy": float(np.mean(accuracies)),
+                    "avg_f1_score": float(np.mean(f1_scores)),
+                    "avg_precision": float(np.mean(precisions)),
+                    "avg_recall": float(np.mean(recalls)),
+                    "best_accuracy": float(max(accuracies)),
+                    "best_f1_score": float(max(f1_scores))
+                }
+            }
+
+            with open(metrics_file, "w", encoding="utf-8") as f:
+                json.dump(summary_data, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"Metricas completas salvas em {metrics_dir}")
+            logger.info(f"Total de graficos gerados: 7")
+            logger.info(f"Melhor modelo: {best_model['name']} (F1: {best_model['metrics']['f1_macro']:.3f})")
+
+            return str(metrics_dir)
+
+        except Exception as e:
+            logger.error(f"Erro ao salvar metricas: {e}\n{traceback.format_exc()}")
+            return None
+
     def train(self, req: TrainRequest) -> TrainResponse:
         n_per_class = max(20, min(500, req.n_per_class if hasattr(req, 'n_per_class') else 100))
         seed = req.seed if req.seed is not None else 42
@@ -320,10 +595,29 @@ class ConfidentialityModelService:
         self._best_info = result["best"]
         self._best_model = joblib.load(self._best_info["path"])
 
+        # Gerar ID unico para esta sessao de treinamento
+        training_session_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        # Salvar metricas completas de TODOS os modelos
+        metrics_path = self._save_training_metrics(
+            training_session_id=training_session_id,
+            all_results=result["all"],
+            best_model=self._best_info,
+            X_train=X_train,
+            y_train=y_train,
+            X_val=X_val,
+            y_val=y_val
+        )
+
         metrics = self._best_info["metrics"]
         return TrainResponse(
             model_version=f'{self._best_info["name"]}',
-            metrics={"accuracy": float(metrics["accuracy"]), "f1_macro": float(metrics["f1_macro"])},
+            metrics={
+                "accuracy": float(metrics["accuracy"]),
+                "f1_macro": float(metrics["f1_macro"]),
+                "precision": float(metrics.get("precision", 0)),
+                "recall": float(metrics.get("recall", 0))
+            },
             samples=int(len(train_df) + len(valid_df))
         )
 
@@ -343,6 +637,19 @@ class ConfidentialityModelService:
             result = self.trainer.train_and_select(X_train, y_train, X_val, y_val)
             self._best_info = result["best"]
             self._best_model = joblib.load(self._best_info["path"])
+
+            # Salvar metricas do retrain
+            training_session_id = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self._save_training_metrics(
+                training_session_id=training_session_id,
+                all_results=result["all"],
+                best_model=self._best_info,
+                X_train=X_train,
+                y_train=y_train,
+                X_val=X_val,
+                y_val=y_val
+            )
+
             print(f"Scheduled retrain completed. Best model: {self._best_info['name']}")
         except Exception as e:
             print(f"Scheduled retrain failed: {e}")
@@ -447,13 +754,6 @@ class ConfidentialityModelService:
                            max_age_days: int = 30,
                            min_accuracy_threshold: float = 0.5,
                            dry_run: bool = True) -> Dict[str, Any]:
-
-        from services.model_cleanup_service import ModelCleanupService
-
-        cleanup_service = ModelCleanupService(
-            MODELS_DIR,
-            os.path.join(DATA_DIR, "registry.json")
-        )
 
         result = self._cleanup_conf_models_only(
             keep_best_n=keep_best_n,
@@ -575,9 +875,9 @@ class ConfidentialityModelService:
             if file_path not in valid_paths:
                 if not dry_run:
                     os.remove(file_path)
-                    print(f"Arquivo órfão de confidencialidade removido: {file_path}")
+                    print(f"Arquivo orfao de confidencialidade removido: {file_path}")
                 else:
-                    print(f"[DRY RUN] Removeria arquivo órfão: {file_path}")
+                    print(f"[DRY RUN] Removeria arquivo orfao: {file_path}")
                 orphaned_count += 1
 
         return orphaned_count
@@ -657,11 +957,11 @@ class ConfidentialityModelService:
                 dry_run=False
             )
 
-            print(f"Limpeza automática de confidencialidade: {result['models_removed']} removidos, "
+            print(f"Limpeza automatica de confidencialidade: {result['models_removed']} removidos, "
                   f"{result['space_freed_mb']:.2f}MB liberados")
 
             return result
 
         except Exception as e:
-            print(f"Erro na limpeza automática de confidencialidade: {e}")
+            print(f"Erro na limpeza automatica de confidencialidade: {e}")
             return {"error": str(e)}
