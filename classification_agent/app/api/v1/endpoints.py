@@ -1,12 +1,16 @@
 """
 API endpoints for the Classification Agent.
 """
+import logging
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 import requests
+from pathlib import Path
+import json
 
 from ...core.config import settings
 from ...core.security import get_current_user, require_auth
@@ -19,6 +23,16 @@ from ...utils.exceptions import (
 
 logger = get_logger(__name__)
 router = APIRouter()
+
+# Metrics directory configuration
+METRICS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\models\metrics")
+IMAGE_ALLOWED = {
+    "all_models_accuracy.png",
+    "all_models_f1score.png",
+    "accuracy_vs_f1.png",
+    "best_model_confusion_matrix.png",
+    "top10_models_ranking.png",
+}
 
 
 # Schemas
@@ -80,6 +94,26 @@ class MetricsResponse(BaseModel):
     last_prediction_at: Optional[datetime] = None
     current_model: Optional[str] = None
     model_config = {"protected_namespaces": ()}
+
+
+# -------------------- Helper Functions for Training Metrics --------------------
+
+def _list_training_sessions() -> List[str]:
+    if not METRICS_ROOT.exists():
+        return []
+    sessions = []
+    for p in METRICS_ROOT.iterdir():
+        if p.is_dir() and (p / "training_summary.json").exists():
+            sessions.append(p.name)
+    sessions.sort(reverse=True)  # Mais recentes primeiro
+    return sessions
+
+
+def _get_latest_training_session() -> Optional[Path]:
+    sessions = _list_training_sessions()
+    if not sessions:
+        return None
+    return METRICS_ROOT / sessions[0]
 
 
 # -------------------- Endpoints --------------------
@@ -286,3 +320,99 @@ async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
         "loaded_at": info.get("loaded_at"),
     }
     return manifest
+
+
+# -------------------- Training Metrics Endpoints --------------------
+
+@router.get("/training/sessions", tags=["Training Metrics"])
+async def list_training_sessions(user: Dict[str, Any] = Depends(get_current_user)):
+    sessions = _list_training_sessions()
+    return JSONResponse(content={"sessions": sessions, "total": len(sessions)})
+
+
+@router.get("/training/latest", tags=["Training Metrics"])
+async def get_latest_training_summary(user: Dict[str, Any] = Depends(get_current_user)):
+    latest = _get_latest_training_session()
+    if latest is None:
+        raise HTTPException(status_code=404, detail="No training metrics available")
+
+    summary_path = latest / "training_summary.json"
+    try:
+        with open(summary_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return JSONResponse(content=data)
+    except Exception as e:
+        logger.error("Failed to read training summary", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to read training summary: {str(e)}")
+
+
+@router.get("/training/{session_id}/summary", tags=["Training Metrics"])
+async def get_training_session_summary(
+    session_id: str,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    session_path = METRICS_ROOT / session_id
+    summary_path = session_path / "training_summary.json"
+
+    if not summary_path.exists():
+        raise HTTPException(status_code=404, detail="Session not found or summary missing")
+
+    try:
+        with open(summary_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return JSONResponse(content=data)
+    except Exception as e:
+        logger.error("Failed to read training summary", session_id=session_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to read training summary: {str(e)}")
+
+
+@router.get("/training/{session_id}/images/{image_name}", tags=["Training Metrics"])
+async def get_training_session_image(
+    session_id: str,
+    image_name: str,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    """Retorna uma imagem específica de uma sessão de treinamento"""
+    if image_name not in IMAGE_ALLOWED:
+        raise HTTPException(status_code=400, detail=f"Invalid image name. Allowed: {list(IMAGE_ALLOWED)}")
+
+    session_path = METRICS_ROOT / session_id
+    img_path = session_path / image_name
+
+    if not img_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(str(img_path), media_type="image/png")
+
+
+@router.get("/training/latest/images/{image_name}", tags=["Training Metrics"])
+async def get_latest_training_image(
+    image_name: str,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    if image_name not in IMAGE_ALLOWED:
+        raise HTTPException(status_code=400, detail=f"Invalid image name. Allowed: {list(IMAGE_ALLOWED)}")
+
+    latest = _get_latest_training_session()
+    if latest is None:
+        raise HTTPException(status_code=404, detail="No training metrics available")
+
+    img_path = latest / image_name
+    if not img_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(str(img_path), media_type="image/png")
+
+
+@router.get("/training/images", tags=["Training Metrics"])
+async def list_available_images(user: Dict[str, Any] = Depends(get_current_user)):
+    return JSONResponse(content={
+        "available_images": list(IMAGE_ALLOWED),
+        "description": {
+            "all_models_accuracy.png": "Comparação de acurácia de todos os modelos",
+            "all_models_f1score.png": "Comparação de F1-Score de todos os modelos",
+            "accuracy_vs_f1.png": "Scatter plot de Accuracy vs F1-Score",
+            "best_model_confusion_matrix.png": "Matriz de confusão do melhor modelo",
+            "top10_models_ranking.png": "Ranking dos top 10 modelos"
+        }
+    })
