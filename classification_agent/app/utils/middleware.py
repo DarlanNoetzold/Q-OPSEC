@@ -5,7 +5,7 @@ import time
 import uuid
 from typing import Callable
 from fastapi import Request, Response
-from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..core.logging import get_logger
@@ -68,23 +68,34 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Log the error
             request_id = getattr(request.state, 'request_id', 'unknown')
+
+            # Evita logging de HTTPException (já são tratadas)
+            from fastapi import HTTPException
+            if isinstance(e, HTTPException):
+                # Re-raise HTTPException para ser tratada pelo FastAPI
+                raise
+
             logger.error(
                 "Unhandled exception",
                 request_id=request_id,
                 path=request.url.path,
                 method=request.method,
                 error=str(e),
-                exc_info=True
+                error_type=type(e).__name__,
             )
 
             # Record error metric
             metrics_service.record_error("unhandled_exception")
 
-            # Return generic error response
-            from fastapi import HTTPException
-            raise HTTPException(
+            # Return JSON response instead of raising
+            return JSONResponse(
                 status_code=500,
-                detail="Internal server error"
+                content={
+                    "detail": "Internal server error",
+                    "request_id": request_id,
+                    "error_type": type(e).__name__
+                },
+                headers={"X-Request-ID": request_id}
             )
 
 
@@ -95,7 +106,7 @@ class CORSMiddleware:
     def get_cors_config():
         """Get CORS configuration."""
         from fastapi.middleware.cors import CORSMiddleware
-        from .config import settings
+        from ..core.config import settings
 
         return {
             "middleware_class": CORSMiddleware,
@@ -130,10 +141,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Check rate limit
         if len(self.requests[client_ip]) >= self.requests_per_minute:
-            from fastapi import HTTPException
-            raise HTTPException(
+            return JSONResponse(
                 status_code=429,
-                detail="Rate limit exceeded"
+                content={"detail": "Rate limit exceeded"},
+                headers={"Retry-After": "60"}
             )
 
         # Add current request
