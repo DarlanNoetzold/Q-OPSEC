@@ -1,0 +1,103 @@
+{
+  "saved_model_name": "logreg_lbfgs",
+  "artifact_path": "C:\\Projetos\\Q-OPSEC\\classify_scheduler\\model_registry\\20251009T202040Z_logreg_lbfgs\\model.pkl",
+  "classes": [
+    "Critical",
+    "High",
+    "Low",
+    "Medium",
+    "Very High",
+    "Very Low"
+  ],
+  "cv_metrics": {
+    "accuracy": 1.0,
+    "f1_macro": 1.0
+  },
+  "holdout_metrics": {
+    "accuracy": 1.0,
+    "f1_macro": 1.0,
+    "confusion_matrix": [
+      [
+        35,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        27,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        33,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        33,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        34,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        38
+      ]
+    ]
+  },
+  "meta": {
+    "seed": 42,
+    "cv_splits": 5,
+    "test_size": 0.2,
+    "data_path": "context_dataset_advanced.csv",
+    "target_col": "security_level_label",
+    "n_samples": 1000,
+    "n_features": 21,
+    "required_columns": [
+      "id",
+      "request_id_resolved",
+      "created_at",
+      "risk_score",
+      "conf_score",
+      "combined_score",
+      "risk_level",
+      "conf_classification",
+      "src_geo",
+      "src_device_type",
+      "dst_service_type",
+      "dst_security_policy",
+      "src_mfa_status_norm",
+      "hour_of_day",
+      "day_of_week",
+      "month",
+      "year",
+      "hour_sin",
+      "hour_cos",
+      "day_sin",
+      "day_cos"
+    ],
+    "session_id": "training_20251009_172039"
+  }
+}
