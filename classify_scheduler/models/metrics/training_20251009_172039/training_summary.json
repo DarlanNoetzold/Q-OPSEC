@@ -1,0 +1,127 @@
+{
+  "timestamp": "2025-10-09T17:20:40.552065",
+  "session_id": "training_20251009_172039",
+  "best_model": {
+    "name": "logreg_lbfgs",
+    "cv_metrics": {
+      "accuracy": 1.0,
+      "f1_macro": 1.0
+    }
+  },
+  "statistics": {
+    "avg_accuracy": 0.8402499999999997,
+    "avg_f1_score": 0.8154302495936359,
+    "best_accuracy": 1.0,
+    "best_f1_score": 1.0,
+    "worst_accuracy": 0.17375,
+    "worst_f1_score": 0.07048066095302305
+  },
+  "dataset_info": {
+    "test_samples": 200,
+    "features": [
+      "risk_score",
+      "conf_score",
+      "combined_score",
+      "hour_of_day",
+      "day_of_week",
+      "month",
+      "year",
+      "hour_sin",
+      "hour_cos",
+      "day_sin",
+      "day_cos",
+      "risk_level",
+      "conf_classification",
+      "src_geo",
+      "src_device_type",
+      "dst_service_type",
+      "dst_security_policy",
+      "src_mfa_status_norm"
+    ],
+    "classes": [
+      "Critical",
+      "Very High",
+      "High",
+      "Medium",
+      "Low",
+      "Very Low"
+    ]
+  },
+  "all_models": [
+    {
+      "name": "logreg_lbfgs",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "linear_svm_calibrated",
+      "cv_accuracy": 0.9950000000000001,
+      "cv_f1_macro": 0.9950821466346127
+    },
+    {
+      "name": "svc_rbf_std",
+      "cv_accuracy": 0.17375,
+      "cv_f1_macro": 0.07074327689999332
+    },
+    {
+      "name": "svc_rbf_tuned",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "rf_balanced",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "rf_deeper",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "et_balanced",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "et_fast",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "gb",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    },
+    {
+      "name": "hgb_std",
+      "cv_accuracy": 0.99875,
+      "cv_f1_macro": 0.9988173046996576
+    },
+    {
+      "name": "hgb_reg",
+      "cv_accuracy": 0.99875,
+      "cv_f1_macro": 0.9988173046996576
+    },
+    {
+      "name": "mlp_medium",
+      "cv_accuracy": 0.19999999999999998,
+      "cv_f1_macro": 0.07048066095302305
+    },
+    {
+      "name": "mlp_wide",
+      "cv_accuracy": 0.2425,
+      "cv_f1_macro": 0.10312072204913618
+    },
+    {
+      "name": "knn_dist",
+      "cv_accuracy": 0.9949999999999999,
+      "cv_f1_macro": 0.9943923279684579
+    },
+    {
+      "name": "gnb_dense",
+      "cv_accuracy": 1.0,
+      "cv_f1_macro": 1.0
+    }
+  ]
+}
