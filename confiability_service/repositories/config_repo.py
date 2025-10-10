@@ -4,7 +4,7 @@ import os
 from typing import Dict, Any, Optional
 
 MODELS_DIR = "models"
-DATA_DIR = "data"
+DATA_DIR = "data/v1"
 REGISTRY_PATH = os.path.join(MODELS_DIR, "registry.json")
 
 
