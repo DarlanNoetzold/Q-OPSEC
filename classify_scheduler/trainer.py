@@ -21,8 +21,8 @@ class TrainResult:
     X_test: pd.DataFrame
     y_test: np.ndarray
     candidates: List[Dict[str, Any]]
-    ordered_classes: List[str]  # Classes ordenadas por severidade
-    feature_columns: List[str]  # Colunas reais de features (não IDs)
+    ordered_classes: List[str]
+    feature_columns: List[str]
 
 
 def _scorers():
@@ -52,7 +52,6 @@ def train_and_select_best(
     print(f"[INFO] Training with {len(le.classes_)} classes: {list(le.classes_)}")
     print(f"[INFO] Dataset shape: {X.shape}")
 
-    # Reordenar classes por severidade (não alfabética)
     original_classes = list(le.classes_)
     ordered_classes = [cls for cls in SECURITY_ORDER if cls in original_classes]
 
@@ -60,7 +59,6 @@ def train_and_select_best(
     print(f"[INFO] Classes reordenadas por severidade (0=Critical ... 5=Very Low): {ordered_classes}")
     print(f"[INFO] Mapeamento: {dict(enumerate(ordered_classes))}")
 
-    # garantir viabilidade do CV
     unique, counts = np.unique(y, return_counts=True)
     min_samples = int(min(counts))
     if min_samples < n_splits:
