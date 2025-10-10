@@ -440,13 +440,13 @@ def main():
 
     if info_df is not None:
         logger.info("Exportando dataset básico...")
-        basic_df = generator.export_dataset('context_dataset_basic.csv')
+        basic_df = generator.export_dataset(r'C:\Projetos\Q-OPSEC\classify_scheduler\datasets\v1\context_dataset_basic.csv')
 
         logger.info("Exportando dataset com feature engineering...")
-        advanced_df = generator.create_feature_engineering_dataset('context_dataset_advanced.csv')
+        advanced_df = generator.create_feature_engineering_dataset(r'C:\Projetos\Q-OPSEC\classify_scheduler\datasets\v1\context_dataset_advanced.csv')
 
         logger.info("Exportando amostra para testes...")
-        sample_df = generator.export_dataset('context_dataset_sample.csv', sample_size=1000)
+        sample_df = generator.export_dataset(r'C:\Projetos\Q-OPSEC\classify_scheduler\datasets\v1\context_dataset_sample.csv', sample_size=1000)
 
         logger.info("✅ Processo concluído com sucesso!")
         logger.info("Arquivos gerados:")
