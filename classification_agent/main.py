@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.services.database import db_service
 from app.services.model_service import model_service
 from app.api.v1.endpoints import router
+from app.api.v1 import endpoints_datasets as datasets_api
 from app.utils.middleware import (
     RequestIDMiddleware,
     MetricsMiddleware,
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     setup_exception_handlers(app)
 
     app.include_router(router, prefix=settings.api_prefix)
+    app.include_router(datasets_api.router, prefix=settings.api_prefix)
 
     return app
 
