@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from controllers.confidentiality_controller import conf_bp
+from controllers.dataset_controller import dataset_bp
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.conf_model_service import ConfidentialityModelService
 import os
@@ -18,6 +19,7 @@ def create_app():
     ensure_dirs()
     app = Flask(__name__)
     app.register_blueprint(conf_bp)
+    app.register_blueprint(dataset_bp)
 
     @app.get("/health")
     def health():
