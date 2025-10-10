@@ -41,7 +41,7 @@ services:
   classify_scheduler:
     type: script
     cwd: "./classify_scheduler"
-    start: ["python", "-m", "main", "--mode", "train-once", "--data", "context_dataset_advanced.csv", "--registry", "./model_registry"]
+    start: ["python", "-m", "main", "--mode", "train-once", "--data", "datasets/v1/context_dataset_advanced.csv", "--registry", "./model_registry"]
     health: ""
     pid_file: "./logs/classify_scheduler.pid"
     log_file: "./logs/classify_scheduler.log"
