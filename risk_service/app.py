@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from controllers.risk_controller import risk_bp
 from apscheduler.schedulers.background import BackgroundScheduler
 from services.risk_model_service import RiskModelService
+from controllers.dataset_controller import dataset_bp
 import os
 import atexit
 
@@ -15,6 +16,7 @@ def create_app():
     ensure_dirs()
     app = Flask(__name__)
     app.register_blueprint(risk_bp)
+    app.register_blueprint(dataset_bp)
 
     @app.get("/health")
     def health():
