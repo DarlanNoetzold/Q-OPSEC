@@ -1,0 +1,321 @@
+text,label
+Client contract negotiations and pricing strategies.,confidential
+Strategic business plans and competitive analysis reports.,confidential
+Company policy draft for internal distribution only.,internal
+Database passwords and system administrator credentials. token7201 token7924,restricted
+Payment card numbers and authentication secrets for production.,restricted
+Customer database with contact information and preferences. email jane.smith@example.com  token4582 token5557,confidential
+General guidelines for visitors and FAQ published on website. token2535 token2584,public
+Financial report including revenue projections and client contracts.,confidential
+Internal knowledge base article and onboarding checklist.,internal
+Open dataset description and public API usage examples. token3615 token4257,public
+Employee personal information and medical records. email admin@example.com ,confidential
+Internal training materials and process documentation.,internal
+Security incident reports and vulnerability assessments.,restricted
+"Encryption keys, private certificates, and admin credentials. password admin123  token1106 token5552",restricted
+Internal memo about team processes and meeting notes.,internal
+Security incident reports and vulnerability assessments. email admin@example.com  credit card 4111111111111111  token7201 token7224,restricted
+Open dataset description and public API usage examples.,public
+Security incident reports and vulnerability assessments. token4657 token9279,restricted
+Contains personal data: email addresses and phone numbers of clients. email jane.smith@example.com  token4733 token7924,confidential
+Legal documents under attorney-client privilege.,restricted
+Customer PII records and account identifiers to be restricted.,confidential
+HR document with salary bands and employee performance reviews.,confidential
+HR document with salary bands and employee performance reviews.,confidential
+Department budget planning and resource allocation.,internal
+Financial report including revenue projections and client contracts. token6925 token9928,confidential
+Legal documents under attorney-client privilege. email john.doe@example.com  token4582 token3045,restricted
+Customer PII records and account identifiers to be restricted.,confidential
+General guidelines for visitors and FAQ published on website.,public
+M&A documents and undisclosed strategic plans for executives. email admin@example.com  password admin123 ,restricted
+Legal documents under attorney-client privilege. token4657 token9785,restricted
+Company policy draft for internal distribution only. token4582 token2519,internal
+Database passwords and system administrator credentials. email jane.smith@example.com  token7912 token6635,restricted
+HR document with salary bands and employee performance reviews.,confidential
+Strategic business plans and competitive analysis reports. email jane.smith@example.com  token5803 token9279,confidential
+Department budget planning and resource allocation.,internal
+Internal memo about team processes and meeting notes.,internal
+Strategic business plans and competitive analysis reports. email jane.smith@example.com  token4611 token8359,confidential
+Database passwords and system administrator credentials. email jane.smith@example.com  password secret_key  token2291 token1106,restricted
+M&A documents and undisclosed strategic plans for executives. email admin@example.com  token3547 token2679,restricted
+HR document with salary bands and employee performance reviews. email jane.smith@example.com ,confidential
+Database passwords and system administrator credentials.,restricted
+Internal memo about team processes and meeting notes.,internal
+Open dataset description and public API usage examples. token6925 token9785,public
+Department budget planning and resource allocation.,internal
+Press release about product launch and public event schedule.,public
+Press release about product launch and public event schedule.,public
+Marketing blog post with public information and announcements.,public
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Legal documents under attorney-client privilege.,restricted
+Internal training materials and process documentation.,internal
+Community forum posts and public support articles.,public
+Press release about product launch and public event schedule.,public
+Company news and public statements for media distribution.,public
+Open dataset description and public API usage examples.,public
+Trade secrets and proprietary algorithms.,restricted
+Company policy draft for internal distribution only.,internal
+Open dataset description and public API usage examples. token7201 token5552,public
+"Encryption keys, private certificates, and admin credentials. email jane.smith@example.com ",restricted
+Database passwords and system administrator credentials. token4733 token1520,restricted
+Press release about product launch and public event schedule. token2824 token3615,public
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Contains personal data: email addresses and phone numbers of clients. token1409 token8527,confidential
+Client contract negotiations and pricing strategies. token9279 token4150,confidential
+Internal memo about team processes and meeting notes.,internal
+Customer PII records and account identifiers to be restricted. token5333 token1750,confidential
+Internal knowledge base article and onboarding checklist.,internal
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Press release about product launch and public event schedule. token5506 token8359,public
+Database passwords and system administrator credentials. credit card 5555555555554444 ,restricted
+Sprint retrospective and internal roadmap items.,internal
+"Encryption keys, private certificates, and admin credentials.",restricted
+Financial report including revenue projections and client contracts. token5557 token4811,confidential
+Internal training materials and process documentation.,internal
+Open source project documentation and contribution guidelines. token9928 token4582,public
+Company policy draft for internal distribution only.,internal
+Press release about product launch and public event schedule. token6514 token2519,public
+Company news and public statements for media distribution.,public
+Customer database with contact information and preferences.,confidential
+Open dataset description and public API usage examples.,public
+General guidelines for visitors and FAQ published on website. token2584 token2824,public
+Trade secrets and proprietary algorithms. token5333 token7912,restricted
+Legal documents under attorney-client privilege. email jane.smith@example.com ,restricted
+Press release about product launch and public event schedule.,public
+HR document with salary bands and employee performance reviews. token3286 token1520,confidential
+Database passwords and system administrator credentials. password admin123 ,restricted
+Community forum posts and public support articles.,public
+Open dataset description and public API usage examples.,public
+Open dataset description and public API usage examples. token1750 token1520,public
+Internal training materials and process documentation.,internal
+Community forum posts and public support articles.,public
+HR document with salary bands and employee performance reviews. email john.doe@example.com ,confidential
+Press release about product launch and public event schedule.,public
+Government IDs and bank account IBAN details for high-risk accounts. email jane.smith@example.com  credit card 5555555555554444 ,restricted
+M&A documents and undisclosed strategic plans for executives. token9935 token2824,restricted
+Marketing blog post with public information and announcements. token4657 token2291,public
+Strategic business plans and competitive analysis reports. email john.doe@example.com  token6514 token9935,confidential
+Marketing blog post with public information and announcements.,public
+Government IDs and bank account IBAN details for high-risk accounts. password P@ssw0rd  token1409 token4527,restricted
+Community forum posts and public support articles. token9785 token1106,public
+M&A documents and undisclosed strategic plans for executives. email admin@example.com ,restricted
+Company news and public statements for media distribution.,public
+Company news and public statements for media distribution.,public
+Payment card numbers and authentication secrets for production. email admin@example.com  credit card 4111111111111111  password secret_key ,restricted
+Department budget planning and resource allocation.,internal
+Internal training materials and process documentation. token9785 token1434,internal
+Client contract negotiations and pricing strategies. email admin@example.com  token7912 token4811,confidential
+Customer database with contact information and preferences.,confidential
+Internal communication guidelines and best practices. token4527 token5557,internal
+HR document with salary bands and employee performance reviews. token4733 token7224,confidential
+Client contract negotiations and pricing strategies. email john.doe@example.com ,confidential
+Internal knowledge base article and onboarding checklist.,internal
+Database passwords and system administrator credentials.,restricted
+Client contract negotiations and pricing strategies. token1520 token7873,confidential
+General guidelines for visitors and FAQ published on website.,public
+General guidelines for visitors and FAQ published on website. token1520 token2291,public
+Internal knowledge base article and onboarding checklist. token5803 token2824,internal
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Sprint retrospective and internal roadmap items.,internal
+Internal communication guidelines and best practices. token5012 token3286,internal
+"Encryption keys, private certificates, and admin credentials.",restricted
+Open source project documentation and contribution guidelines. token2424 token9279,public
+Team meeting minutes and project status updates. token1434 token5506,internal
+Community forum posts and public support articles.,public
+Marketing blog post with public information and announcements.,public
+Security incident reports and vulnerability assessments. token3615 token2584,restricted
+Company news and public statements for media distribution.,public
+Community forum posts and public support articles. token4582 token6635,public
+Sprint retrospective and internal roadmap items.,internal
+Trade secrets and proprietary algorithms.,restricted
+Company policy draft for internal distribution only.,internal
+M&A documents and undisclosed strategic plans for executives.,restricted
+Internal knowledge base article and onboarding checklist.,internal
+Internal communication guidelines and best practices. token9279 token9935,internal
+Sprint retrospective and internal roadmap items.,internal
+Marketing blog post with public information and announcements.,public
+Trade secrets and proprietary algorithms.,restricted
+Sprint retrospective and internal roadmap items.,internal
+Open source project documentation and contribution guidelines. token1488 token4257,public
+Security incident reports and vulnerability assessments.,restricted
+Team meeting minutes and project status updates.,internal
+Security incident reports and vulnerability assessments. email admin@example.com  credit card 5555555555554444  password P@ssw0rd ,restricted
+Department budget planning and resource allocation.,internal
+Team meeting minutes and project status updates.,internal
+Marketing blog post with public information and announcements. token2519 token3286,public
+Customer database with contact information and preferences.,confidential
+Customer database with contact information and preferences.,confidential
+Customer database with contact information and preferences.,confidential
+"Encryption keys, private certificates, and admin credentials. token2824 token5557",restricted
+Team meeting minutes and project status updates.,internal
+Government IDs and bank account IBAN details for high-risk accounts.,restricted
+Internal communication guidelines and best practices.,internal
+Department budget planning and resource allocation.,internal
+Company policy draft for internal distribution only.,internal
+Company news and public statements for media distribution.,public
+Open source project documentation and contribution guidelines. token5803 token4150,public
+Strategic business plans and competitive analysis reports.,confidential
+Internal communication guidelines and best practices. token4527 token7201,internal
+Public documentation and user manuals available online.,public
+Employee personal information and medical records.,confidential
+Internal memo about team processes and meeting notes. token8359 token6574,internal
+Sprint retrospective and internal roadmap items.,internal
+Internal training materials and process documentation.,internal
+Internal memo about team processes and meeting notes.,internal
+"Encryption keys, private certificates, and admin credentials. credit card 5555555555554444 ",restricted
+Company policy draft for internal distribution only.,internal
+Financial report including revenue projections and client contracts.,confidential
+Trade secrets and proprietary algorithms.,restricted
+Team meeting minutes and project status updates. token3547 token6881,internal
+HR document with salary bands and employee performance reviews.,confidential
+Company policy draft for internal distribution only.,internal
+HR document with salary bands and employee performance reviews.,confidential
+Open dataset description and public API usage examples.,public
+Team meeting minutes and project status updates.,internal
+General guidelines for visitors and FAQ published on website.,public
+Company policy draft for internal distribution only.,internal
+Open dataset description and public API usage examples.,public
+Internal communication guidelines and best practices.,internal
+Department budget planning and resource allocation.,internal
+Open dataset description and public API usage examples. token2674 token6514,public
+M&A documents and undisclosed strategic plans for executives.,restricted
+Internal memo about team processes and meeting notes. token4733 token2424,internal
+Internal knowledge base article and onboarding checklist.,internal
+Public documentation and user manuals available online. token2674 token7924,public
+Internal knowledge base article and onboarding checklist. token7201 token2535,internal
+Contains personal data: email addresses and phone numbers of clients. email jane.smith@example.com  token3045 token8359,confidential
+Open source project documentation and contribution guidelines. token4811 token4657,public
+Internal communication guidelines and best practices.,internal
+Customer PII records and account identifiers to be restricted. email john.doe@example.com ,confidential
+Strategic business plans and competitive analysis reports. email admin@example.com  token4527 token4657,confidential
+Public documentation and user manuals available online.,public
+Financial report including revenue projections and client contracts. email admin@example.com ,confidential
+Legal documents under attorney-client privilege.,restricted
+Database passwords and system administrator credentials. token7873 token5333,restricted
+Security incident reports and vulnerability assessments.,restricted
+Security incident reports and vulnerability assessments.,restricted
+Team meeting minutes and project status updates.,internal
+Government IDs and bank account IBAN details for high-risk accounts. token3615 token4811,restricted
+Press release about product launch and public event schedule. token5506 token4611,public
+"Encryption keys, private certificates, and admin credentials. email admin@example.com  credit card 5555555555554444 ",restricted
+Customer database with contact information and preferences.,confidential
+Internal knowledge base article and onboarding checklist.,internal
+Trade secrets and proprietary algorithms.,restricted
+Database passwords and system administrator credentials. token3547 token5557,restricted
+Public documentation and user manuals available online. token5552 token1520,public
+Client contract negotiations and pricing strategies.,confidential
+Public documentation and user manuals available online.,public
+Trade secrets and proprietary algorithms. password P@ssw0rd  token6574 token4527,restricted
+Government IDs and bank account IBAN details for high-risk accounts. email john.doe@example.com  credit card 5555555555554444  password secret_key ,restricted
+General guidelines for visitors and FAQ published on website.,public
+Open source project documentation and contribution guidelines. token4657 token3547,public
+Open source project documentation and contribution guidelines. token6514 token6574,public
+Internal knowledge base article and onboarding checklist. token6925 token5552,internal
+Legal documents under attorney-client privilege.,restricted
+Company policy draft for internal distribution only.,internal
+General guidelines for visitors and FAQ published on website. token4150 token8359,public
+Database passwords and system administrator credentials.,restricted
+Client contract negotiations and pricing strategies. email jane.smith@example.com  token6881 token7912,confidential
+Client contract negotiations and pricing strategies. email jane.smith@example.com ,confidential
+Open dataset description and public API usage examples.,public
+Department budget planning and resource allocation.,internal
+Team meeting minutes and project status updates.,internal
+Internal knowledge base article and onboarding checklist. token5803 token2679,internal
+"Encryption keys, private certificates, and admin credentials. token2679 token2139",restricted
+Security incident reports and vulnerability assessments.,restricted
+General guidelines for visitors and FAQ published on website.,public
+Department budget planning and resource allocation.,internal
+Payment card numbers and authentication secrets for production. email john.doe@example.com  password P@ssw0rd  token4582 token4811,restricted
+Employee personal information and medical records.,confidential
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Financial report including revenue projections and client contracts. token7873 token2679,confidential
+Government IDs and bank account IBAN details for high-risk accounts.,restricted
+Open source project documentation and contribution guidelines. token1106 token7873,public
+Customer PII records and account identifiers to be restricted.,confidential
+Team meeting minutes and project status updates.,internal
+Client contract negotiations and pricing strategies. email john.doe@example.com ,confidential
+"Encryption keys, private certificates, and admin credentials. credit card 4111111111111111  token2424 token4257",restricted
+Legal documents under attorney-client privilege. credit card 5555555555554444  password P@ssw0rd  token3045 token4733,restricted
+Team meeting minutes and project status updates.,internal
+Trade secrets and proprietary algorithms.,restricted
+"Encryption keys, private certificates, and admin credentials. email jane.smith@example.com  credit card 4111111111111111 ",restricted
+Customer database with contact information and preferences. token5803 token9785,confidential
+Internal knowledge base article and onboarding checklist. token5803 token7224,internal
+Security incident reports and vulnerability assessments.,restricted
+Internal memo about team processes and meeting notes.,internal
+Trade secrets and proprietary algorithms.,restricted
+HR document with salary bands and employee performance reviews. email jane.smith@example.com  token1711 token2139,confidential
+Customer database with contact information and preferences. token3615 token6574,confidential
+Security incident reports and vulnerability assessments. email admin@example.com  password secret_key ,restricted
+General guidelines for visitors and FAQ published on website. token8527 token6635,public
+Sprint retrospective and internal roadmap items. token1711 token4582,internal
+Strategic business plans and competitive analysis reports.,confidential
+Marketing blog post with public information and announcements. token6514 token6881,public
+Customer database with contact information and preferences.,confidential
+Department budget planning and resource allocation.,internal
+M&A documents and undisclosed strategic plans for executives.,restricted
+Customer PII records and account identifiers to be restricted.,confidential
+Open dataset description and public API usage examples.,public
+Company policy draft for internal distribution only.,internal
+Team meeting minutes and project status updates. token2535 token7912,internal
+Employee personal information and medical records.,confidential
+Open dataset description and public API usage examples.,public
+HR document with salary bands and employee performance reviews. email jane.smith@example.com  token8359 token7201,confidential
+Open dataset description and public API usage examples. token6635 token3286,public
+Customer database with contact information and preferences. token5552 token2424,confidential
+Open source project documentation and contribution guidelines. token4150 token1434,public
+Customer database with contact information and preferences.,confidential
+HR document with salary bands and employee performance reviews.,confidential
+Strategic business plans and competitive analysis reports. email john.doe@example.com ,confidential
+Internal training materials and process documentation. token1750 token9279,internal
+Financial report including revenue projections and client contracts. email jane.smith@example.com ,confidential
+Financial report including revenue projections and client contracts. email jane.smith@example.com ,confidential
+Team meeting minutes and project status updates. token5557 token4657,internal
+Trade secrets and proprietary algorithms. email admin@example.com ,restricted
+Database passwords and system administrator credentials. token6514 token9928,restricted
+Trade secrets and proprietary algorithms. email john.doe@example.com  credit card 5555555555554444  password admin123 ,restricted
+Client contract negotiations and pricing strategies. token7224 token3045,confidential
+Internal knowledge base article and onboarding checklist.,internal
+Community forum posts and public support articles.,public
+Sprint retrospective and internal roadmap items. token2679 token2139,internal
+Database passwords and system administrator credentials.,restricted
+Public documentation and user manuals available online. token6881 token4811,public
+Financial report including revenue projections and client contracts.,confidential
+Open source project documentation and contribution guidelines.,public
+Government IDs and bank account IBAN details for high-risk accounts.,restricted
+Press release about product launch and public event schedule.,public
+M&A documents and undisclosed strategic plans for executives. email john.doe@example.com  credit card 4111111111111111 ,restricted
+Government IDs and bank account IBAN details for high-risk accounts. email jane.smith@example.com ,restricted
+Security incident reports and vulnerability assessments.,restricted
+Financial report including revenue projections and client contracts. email jane.smith@example.com ,confidential
+Company policy draft for internal distribution only. token5803 token7912,internal
+Contains personal data: email addresses and phone numbers of clients.,confidential
+Open source project documentation and contribution guidelines.,public
+Payment card numbers and authentication secrets for production.,restricted
+M&A documents and undisclosed strategic plans for executives. token3286 token4257,restricted
+Client contract negotiations and pricing strategies.,confidential
+Security incident reports and vulnerability assessments. email john.doe@example.com  credit card 4111111111111111  password secret_key ,restricted
+General guidelines for visitors and FAQ published on website.,public
+Open dataset description and public API usage examples.,public
+Internal memo about team processes and meeting notes. token6514 token8527,internal
+Strategic business plans and competitive analysis reports.,confidential
+Company news and public statements for media distribution.,public
+Community forum posts and public support articles.,public
+Customer database with contact information and preferences.,confidential
+Contains personal data: email addresses and phone numbers of clients. email john.doe@example.com ,confidential
+Internal communication guidelines and best practices.,internal
+Marketing blog post with public information and announcements. token1711 token5552,public
+Database passwords and system administrator credentials. email jane.smith@example.com  password secret_key ,restricted
+Contains personal data: email addresses and phone numbers of clients.,confidential
+General guidelines for visitors and FAQ published on website.,public
+Legal documents under attorney-client privilege. email jane.smith@example.com  token5012 token7912,restricted
+Internal communication guidelines and best practices.,internal
+Internal training materials and process documentation.,internal
+Strategic business plans and competitive analysis reports.,confidential
+M&A documents and undisclosed strategic plans for executives. token6574 token8359,restricted
+General guidelines for visitors and FAQ published on website.,public
+Strategic business plans and competitive analysis reports. token5333 token5552,confidential
+Public documentation and user manuals available online. token7924 token2424,public
+Strategic business plans and competitive analysis reports. token4657 token6925,confidential
+HR document with salary bands and employee performance reviews.,confidential
+Security incident reports and vulnerability assessments.,restricted
