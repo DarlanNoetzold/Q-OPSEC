@@ -51,4 +51,4 @@ for i in range(N):
     records.append(record)
 
 df = pd.DataFrame(records)
-df.to_csv("synthetic_context_dataset.csv", index=False)
+df.to_csv("datasets/v1/synthetic_context_dataset1.csv", index=False)
