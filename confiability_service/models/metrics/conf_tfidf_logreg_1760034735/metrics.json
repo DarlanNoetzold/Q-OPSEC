@@ -1,0 +1,45 @@
+{
+  "model_id": "conf_tfidf_logreg_1760034735",
+  "model_name": "tfidf_logreg",
+  "timestamp": "2025-10-09T15:32:15.430162",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "confusion_matrix": [
+      [
+        20,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        20,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        20,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        20
+      ]
+    ],
+    "class_distribution": {
+      "confidential": 80,
+      "internal": 80,
+      "public": 80,
+      "restricted": 80
+    },
+    "train_samples": 320,
+    "test_samples": 80
+  }
+}
