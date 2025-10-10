@@ -5,6 +5,7 @@ services:
     start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
     health: "http://127.0.0.1:8080/actuator/health"
     port: 8080
+    base_url: "http://127.0.0.1:8080"
     pid_file: "./logs/interceptor_api.pid"
     log_file: "./logs/interceptor_api.log"
     env: {}
@@ -15,6 +16,7 @@ services:
     start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
     health: "http://127.0.0.1:8081/actuator/health"
     port: 8081
+    base_url: "http://127.0.0.1:8081"
     pid_file: "./logs/context_api.pid"
     log_file: "./logs/context_api.log"
     env: {}
@@ -25,6 +27,7 @@ services:
     start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
     health: "http://127.0.0.1:8005/actuator/health"
     port: 8005
+    base_url: "http://127.0.0.1:8005"
     pid_file: "./logs/validation_send_api.pid"
     log_file: "./logs/validation_send_api.log"
     env: {}
@@ -53,6 +56,7 @@ services:
     start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
     health: "http://127.0.0.1:8003/health"
     port: 8003
+    base_url: "http://127.0.0.1:8003"
     pid_file: "./logs/key_destination_engine.pid"
     log_file: "./logs/key_destination_engine.log"
     env: {}
@@ -60,9 +64,10 @@ services:
   confiability_service:
     type: fastapi
     cwd: "./confiability_service"
-    start: ["python app.py"]
+    start: ["python", "app.py"]
     health: "http://127.0.0.1:8083/confidentiality/health"
     port: 8083
+    base_url: "http://127.0.0.1:8083"
     pid_file: "./logs/confiability_service.pid"
     log_file: "./logs/confiability_service.log"
     env: {}
@@ -73,6 +78,7 @@ services:
     start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
     health: "http://127.0.0.1:8004/health"
     port: 8004
+    base_url: "http://127.0.0.1:8004"
     pid_file: "./logs/crypto_module.pid"
     log_file: "./logs/crypto_module.log"
     env: {}
@@ -80,9 +86,10 @@ services:
   risk_service:
     type: fastapi
     cwd: "./risk_service"
-    start: ["python app.py"]
+    start: ["python", "app.py"]
     health: "http://127.0.0.1:8082/risk/health"
     port: 8082
+    base_url: "http://127.0.0.1:8082"
     pid_file: "./logs/risk_service.pid"
     log_file: "./logs/risk_service.log"
     env: {}
@@ -93,6 +100,7 @@ services:
     start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--ws", "none"]
     health: "http://127.0.0.1:8001/docs"
     port: 8001
+    base_url: "http://127.0.0.1:8001"
     pid_file: "./logs/handshake_negotiator.pid"
     log_file: "./logs/handshake_negotiator.log"
     env: {}
@@ -103,6 +111,7 @@ services:
     start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]
     health: "http://127.0.0.1:8002/health"
     port: 8002
+    base_url: "http://127.0.0.1:8002"
     pid_file: "./logs/kms_service.pid"
     log_file: "./logs/kms_service.log"
     env: {}
@@ -110,10 +119,11 @@ services:
   classification_agent:
     type: fastapi
     cwd: "./classification_agent"
-    start: ["python main.py"]
+    start: ["python", "main.py"]
     health: "http://127.0.0.1:8088/api/v1/health"
     metrics: "http://127.0.0.1:9090/metrics"
     port: 8088
+    base_url: "http://127.0.0.1:8088"
     pid_file: "./logs/classification_agent.pid"
     log_file: "./logs/classification_agent.log"
     env:
@@ -125,6 +135,7 @@ services:
     start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9009"]
     health: "http://127.0.0.1:9009/docs"
     port: 9009
+    base_url: "http://127.0.0.1:9009"
     pid_file: "./logs/rl_engine.pid"
     log_file: "./logs/rl_engine.log"
     env: {}
