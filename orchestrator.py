@@ -21,7 +21,7 @@ CONFIG_PATH = BASE_DIR / "services.yaml"
 STATE: Dict[str, Dict[str, Any]] = {}
 CONFIG: Dict[str, Any] = {}
 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 APP.add_middleware(
@@ -441,6 +441,8 @@ def list_services():
             "log_file": state.get("log_file") or cfg.get("log_file"),
             "type": cfg.get("type"),
             "port": cfg.get("port"),
+            "start": cfg.get("start"),
+            "cwd": cfg.get("cwd"),    
         })
     return out
 
@@ -703,7 +705,6 @@ async def timeline(request_id: str):
                 "line_number": m["line_number"]
             })
     
-    # Ordena por timestamp
     events_sorted = sorted(
         [e for e in events if e["timestamp"]],
         key=lambda x: x["timestamp"]
@@ -732,6 +733,220 @@ async def active_requests():
         "active_request_ids": sorted(list(request_ids)),
         "count": len(request_ids)
     }
+
+
+class ServiceConfigUpdate(BaseModel):
+    start: Optional[List[str]] = None
+    cwd: Optional[str] = None        
+
+@APP.put("/services/{name}/config")
+async def update_service_config(name: str, config: ServiceConfigUpdate = Body(...)):
+    if name not in CONFIG.get("services", {}):
+        raise HTTPException(status_code=404, detail="Service not found")
+    svc = CONFIG["services"][name]
+    updated = False
+    if config.start is not None:
+        svc["start"] = config.start
+        updated = True
+    if config.cwd is not None:
+        svc["cwd"] = config.cwd
+        updated = True
+    if updated:
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            yaml.safe_dump(CONFIG, f)
+        load_config()
+    return {"status": "updated", "service": name, "config": svc}
+
+
+async def proxy_stream(url: str, headers: dict = None):
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        return StreamingResponse(resp.aiter_bytes(), media_type=resp.headers.get("content-type"))
+
+def get_api_key_for_service(svc):
+    if "env" in svc:
+        return svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    return None
+
+async def proxy_get(url, headers=None):
+    import httpx
+    headers = headers or {}
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
+
+@APP.get("/metrics/{service_name}/sessions")
+async def get_metrics_sessions(service_name: str):
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+    headers = {}
+
+    api_key = None
+    if "env" in svc:
+        api_key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "classification_agent":
+        url = f"{base_url}/api/v1/training/sessions"
+    elif service_name == "confiability_service":
+        url = f"{base_url}/confidentiality/metrics/sessions"
+    elif service_name == "risk_service":
+        url = f"{base_url}/risk/metrics/sessions"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for metrics")
+
+    return await proxy_get(url, headers=headers)
+
+
+@APP.get("/metrics/{service_name}/sessions/{session_id}")
+async def get_metrics_session_detail(service_name: str, session_id: str):
+    if not session_id or session_id == "undefined":
+        raise HTTPException(status_code=400, detail="Invalid session_id")
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+    headers = {}
+
+    api_key = None
+    if "env" in svc:
+        api_key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "classification_agent":
+        url = f"{base_url}/api/v1/training/{session_id}/summary"
+    elif service_name == "confiability_service":
+        url = f"{base_url}/confidentiality/metrics/{session_id}"
+    elif service_name == "risk_service":
+        url = f"{base_url}/risk/metrics/{session_id}"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for metrics")
+
+    return await proxy_get(url, headers=headers)
+
+from fastapi.responses import FileResponse
+
+@APP.get("/metrics/{service_name}/images")
+async def get_metrics_images(service_name: str):
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+
+    headers = {}
+    api_key = None
+    if "env" in svc:
+        api_key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "classification_agent":
+        url = f"{base_url}/api/v1/training/images"
+    elif service_name == "confiability_service":
+        url = f"{base_url}/confidentiality/metrics/images"
+    elif service_name == "risk_service":
+        url = f"{base_url}/risk/metrics/images"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for metrics images")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        if resp.status_code == 200:
+            return resp.json()
+        else:
+            raise HTTPException(status_code=resp.status_code, detail="Failed to fetch images list")
+
+from fastapi.responses import StreamingResponse
+
+@APP.get("/metrics/{service_name}/sessions/{session_id}/{image_name}")
+async def get_metrics_image(service_name: str, session_id: str, image_name: str):
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+
+    local_path = Path(CONFIG["paths"]["logs_dir"]) / "metrics" / service_name / session_id / image_name
+    if local_path.exists():
+        return FileResponse(local_path)
+
+    headers = {}
+    api_key = None
+    if "env" in svc:
+        api_key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "classification_agent":
+        url = f"{base_url}/api/v1/training/{session_id}/images/{image_name}"
+    elif service_name == "confiability_service":
+        url = f"{base_url}/confidentiality/metrics/{session_id}/{image_name}"
+    elif service_name == "risk_service":
+        url = f"{base_url}/risk/metrics/{session_id}/{image_name}"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for metrics images")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        if resp.status_code == 200:
+            return StreamingResponse(resp.aiter_bytes(), media_type=resp.headers.get("content-type"))
+        else:
+            raise HTTPException(status_code=resp.status_code, detail=f"Image not found: {image_name}")
+
+@APP.get("/datasets/{service_name}")
+async def get_datasets(service_name: str):
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+    headers = {}
+
+    api_key = None
+    if "env" in svc:
+        api_key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "classification_agent":
+        url = f"{base_url}/api/v1/datasets"
+    elif service_name == "confiability_service":
+        url = f"{base_url}/datasets"
+    elif service_name == "risk_service":
+        url = f"{base_url}/datasets"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for datasets")
+
+    return await proxy_get(url, headers=headers)
+
+@APP.get("/datasets/{service_name}/{dataset_name}/preview")
+async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n: int = 20):
+    if not file:
+        raise HTTPException(status_code=400, detail="File parameter required")
+    svc = service_cfg(service_name)
+    base_url = svc.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service base_url not configured")
+    headers = {}
+
+    api_key = get_api_key_for_service(svc)
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    if service_name == "confiability_service":
+        url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
+    elif service_name == "risk_service":
+        url = f"{base_url}/risk/datasets/{dataset_name}/preview?file={file}&n={n}"
+    elif service_name == "classification_agent":
+        url = f"{base_url}/api/v1/datasets/{dataset_name}/preview?file={file}&n={n}"
+    else:
+        raise HTTPException(status_code=400, detail="Unknown service for datasets")
+
+    return await proxy_get(url, headers=headers)
 
 if __name__ == "__main__":
     uvicorn.run("orchestrator:APP", host="0.0.0.0", port=8090, reload=False)
