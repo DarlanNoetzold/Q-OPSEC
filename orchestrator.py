@@ -940,7 +940,7 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
     if service_name == "confiability_service":
         url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
     elif service_name == "risk_service":
-        url = f"{base_url}/risk/datasets/{dataset_name}/preview?file={file}&n={n}"
+        url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
     elif service_name == "classification_agent":
         url = f"{base_url}/api/v1/datasets/{dataset_name}/preview?file={file}&n={n}"
     else:
