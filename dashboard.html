@@ -384,6 +384,43 @@
 
     const SERVICES_WITH_METRICS = ['risk_service', 'confiability_service', 'classification_agent'];
 
+    function ImageCarousel({ images, basePath }) {
+      const [currentIndex, setCurrentIndex] = React.useState(0);
+
+      if (!images || images.length === 0) {
+        return <p>No images available.</p>;
+      }
+
+      const prev = () => {
+        setCurrentIndex((currentIndex - 1 + images.length) % images.length);
+      };
+
+      const next = () => {
+        setCurrentIndex((currentIndex + 1) % images.length);
+      };
+
+      const currentImage = images[currentIndex];
+      const imageUrl = `${basePath}/${currentImage}`;
+
+      return (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <button className="btn btn-ghost" onClick={prev} aria-label="Previous image">←</button>
+            <span style={{ margin: '0 1rem' }}>{currentIndex + 1} / {images.length}</span>
+            <button className="btn btn-ghost" onClick={next} aria-label="Next image">→</button>
+          </div>
+          <img
+            src={imageUrl}
+            alt={currentImage}
+            style={{ maxHeight: '400px', maxWidth: '100%', borderRadius: '0.5rem', cursor: 'pointer' }}
+            onClick={() => window.open(imageUrl, '_blank')}
+            tabIndex={0}
+            onKeyDown={e => e.key === 'Enter' && window.open(imageUrl, '_blank')}
+          />
+        </div>
+      );
+    }
+
     function App() {
       const [services, setServices] = useState([]);
       const [activeTab, setActiveTab] = useState('services');
@@ -863,19 +900,10 @@
                   <>
                     <button className="btn btn-ghost" style={{marginBottom: '1rem'}} onClick={backToSessions}>← Back to Sessions</button>
                     <h3 style={{fontWeight: '700', fontSize: '1.125rem', marginBottom: '1rem'}}>{selectedSession.session_id}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {sessionImages.map(img => (
-                        <img
-                          key={img}
-                          src={`/metrics/${metricsService}/sessions/${selectedSession.session_id}/${img}`}
-                          alt={img}
-                          className="rounded border border-gray-700 cursor-pointer max-h-48 object-contain"
-                          onClick={() => window.open(`/metrics/${metricsService}/sessions/${selectedSession.session_id}/${img}`, '_blank')}
-                          tabIndex={0}
-                          onKeyDown={e => e.key === 'Enter' && window.open(`/metrics/${metricsService}/sessions/${selectedSession.session_id}/${img}`, '_blank')}
-                        />
-                      ))}
-                    </div>
+                    <ImageCarousel
+                      images={sessionImages}
+                      basePath={`/metrics/${metricsService}/sessions/${selectedSession.session_id}`}
+                    />
                   </>
                 )}
               </section>
