@@ -8,7 +8,6 @@ from negotiator_client import send_to_handshake
 
 
 class Settings:
-    """Configuration settings"""
     host: str = "localhost"
     port: int = 9009
     debug: bool = False
@@ -16,22 +15,19 @@ class Settings:
     registry_path: str = "./rl_registry.json"
     handshake_url: str = "http://localhost:8001/handshake"
 
-    # Enhanced settings
-    use_dqn: bool = False  # Set to True to use Deep Q-Network
-    policy_type: str = "context_aware"  # Policy type
-    training_mode: bool = True  # Enable training
+    use_dqn: bool = False
+    policy_type: str = "context_aware"
+    training_mode: bool = True
 
 
 settings = Settings()
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Enhanced RL Engine Service",
     description="Adaptive cryptographic algorithm selection using Reinforcement Learning",
     version="2.0.0"
 )
 
-# Initialize RL service
 rl_service = ImprovedRLEngineService(
     registry_path=Path(settings.registry_path),
     use_dqn=settings.use_dqn,
@@ -41,7 +37,6 @@ rl_service.set_training_mode(settings.training_mode)
 
 
 class ContextRequest(BaseModel):
-    """Request model - maintains backward compatibility"""
     request_id: str = Field(..., description="Unique request identifier")
     source: str = Field(..., description="Source node identifier")
     destination: str = Field(..., description="Destination node identifier")
@@ -65,7 +60,6 @@ class ContextRequest(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
-    """Feedback model for learning"""
     request_id: str = Field(..., description="Request identifier")
     success: bool = Field(..., description="Whether negotiation succeeded")
     latency: Optional[float] = Field(None, description="Latency in milliseconds")
@@ -77,18 +71,11 @@ class FeedbackRequest(BaseModel):
           summary="Select cryptographic algorithm",
           description="Main endpoint - selects optimal algorithm and initiates handshake")
 def act(req: ContextRequest):
-    """
-    Main action endpoint - maintains backward compatibility
-    Selects optimal cryptographic algorithm and sends to handshake negotiator
-    """
     try:
-        # Build negotiation payload
         payload = rl_service.build_negotiation_payload(req.model_dump())
 
-        # Send to handshake negotiator
         result = send_to_handshake(settings.handshake_url, payload)
 
-        # Process feedback if available
         if "success" in result:
             outcome = {
                 "success": result.get("success", False),
@@ -120,10 +107,6 @@ def act(req: ContextRequest):
           summary="Provide feedback",
           description="Provide feedback on negotiation outcome for learning")
 def feedback(req: FeedbackRequest):
-    """
-    Feedback endpoint for explicit learning updates
-    Allows external systems to provide feedback
-    """
     try:
         outcome = {
             "success": req.success,
@@ -146,10 +129,6 @@ def feedback(req: FeedbackRequest):
           summary="End training episode",
           description="Mark end of training episode and save learned policy")
 def end_episode():
-    """
-    End current training episode
-    Saves Q-table and decays exploration parameters
-    """
     try:
         rl_service.end_episode()
 
@@ -166,7 +145,6 @@ def end_episode():
          summary="Get performance metrics",
          description="Retrieve current performance metrics")
 def get_metrics():
-    """Get performance metrics"""
     try:
         metrics = rl_service.get_metrics()
         q_stats = rl_service.get_q_table_stats()
@@ -186,7 +164,6 @@ def get_metrics():
           summary="Enable training mode",
           description="Enable training mode for learning")
 def enable_training():
-    """Enable training mode"""
     rl_service.set_training_mode(True)
     return {"status": "training_enabled"}
 
@@ -195,7 +172,6 @@ def enable_training():
           summary="Disable training mode",
           description="Disable training mode (inference only)")
 def disable_training():
-    """Disable training mode"""
     rl_service.set_training_mode(False)
     return {"status": "training_disabled"}
 
@@ -204,7 +180,6 @@ def disable_training():
          summary="Export learned policy",
          description="Export learned policy to file")
 def export_policy(path: str = "./exported_policy.json"):
-    """Export learned policy"""
     try:
         rl_service.export_policy(Path(path))
         return {
@@ -219,7 +194,6 @@ def export_policy(path: str = "./exported_policy.json"):
           summary="Import learned policy",
           description="Import learned policy from file")
 def import_policy(path: str = "./exported_policy.json"):
-    """Import learned policy"""
     try:
         rl_service.import_policy(Path(path))
         return {
@@ -234,7 +208,6 @@ def import_policy(path: str = "./exported_policy.json"):
          summary="Health check",
          description="Check service health")
 def health_check():
-    """Health check endpoint"""
     return {
         "status": "healthy",
         "service": "RL Engine",
@@ -248,7 +221,6 @@ def health_check():
          summary="Service info",
          description="Get service information")
 def root():
-    """Root endpoint with service info"""
     return {
         "service": "Enhanced RL Engine",
         "version": "2.0.0",
