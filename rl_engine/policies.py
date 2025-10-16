@@ -5,20 +5,11 @@ from environment import CryptoAlgorithm
 
 
 class BasePolicy:
-    """Base class for action selection policies"""
-
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action given state and Q-values"""
         raise NotImplementedError
 
 
 class EpsilonGreedyPolicy(BasePolicy):
-    """
-    Epsilon-greedy exploration strategy
-    With probability epsilon: explore (random action)
-    With probability 1-epsilon: exploit (best action)
-    """
-
     def __init__(self, epsilon: float = 0.2, epsilon_decay: float = 0.995,
                  epsilon_min: float = 0.01):
         """
@@ -33,37 +24,26 @@ class EpsilonGreedyPolicy(BasePolicy):
         self.initial_epsilon = epsilon
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action using epsilon-greedy strategy"""
         if not valid_actions:
             return 0
 
-        # Exploration
         if random.random() < self.epsilon:
             return random.choice(valid_actions)
 
-        # Exploitation
         if not q_values:
             return random.choice(valid_actions)
 
-        # Choose best valid action
         valid_q = {a: q_values.get(a, 0.0) for a in valid_actions}
         return max(valid_q, key=valid_q.get)
 
     def decay(self):
-        """Decay epsilon after episode"""
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def reset(self):
-        """Reset epsilon to initial value"""
         self.epsilon = self.initial_epsilon
 
 
 class BoltzmannPolicy(BasePolicy):
-    """
-    Boltzmann (softmax) exploration strategy
-    Selects actions probabilistically based on Q-values
-    """
-
     def __init__(self, temperature: float = 1.0, temperature_decay: float = 0.995,
                  temperature_min: float = 0.1):
         """
@@ -78,14 +58,12 @@ class BoltzmannPolicy(BasePolicy):
         self.initial_temperature = temperature
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action using Boltzmann distribution"""
         if not valid_actions:
             return 0
 
         if not q_values:
             return random.choice(valid_actions)
 
-        # Get Q-values for valid actions
         valid_q = np.array([q_values.get(a, 0.0) for a in valid_actions])
 
         # Compute Boltzmann probabilities
@@ -98,21 +76,14 @@ class BoltzmannPolicy(BasePolicy):
         return valid_actions[action_idx]
 
     def decay(self):
-        """Decay temperature after episode"""
         self.temperature = max(self.temperature_min,
                                self.temperature * self.temperature_decay)
 
     def reset(self):
-        """Reset temperature to initial value"""
         self.temperature = self.initial_temperature
 
 
 class UCBPolicy(BasePolicy):
-    """
-    Upper Confidence Bound (UCB) exploration strategy
-    Balances exploration and exploitation using confidence bounds
-    """
-
     def __init__(self, c: float = 2.0):
         """
         Args:
@@ -123,28 +94,23 @@ class UCBPolicy(BasePolicy):
         self.total_count = 0
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action using UCB strategy"""
         if not valid_actions:
             return 0
 
-        # Initialize counts for new state
         state_key = str(state)
         if state_key not in self.action_counts:
             self.action_counts[state_key] = {a: 0 for a in valid_actions}
 
-        # Ensure all valid actions are in counts
         for a in valid_actions:
             if a not in self.action_counts[state_key]:
                 self.action_counts[state_key][a] = 0
 
-        # Try each action at least once
         for a in valid_actions:
             if self.action_counts[state_key][a] == 0:
                 self.action_counts[state_key][a] += 1
                 self.total_count += 1
                 return a
 
-        # Compute UCB values
         ucb_values = {}
         for a in valid_actions:
             q_value = q_values.get(a, 0.0)
@@ -154,7 +120,6 @@ class UCBPolicy(BasePolicy):
             exploration_bonus = self.c * np.sqrt(np.log(self.total_count + 1) / count)
             ucb_values[a] = q_value + exploration_bonus
 
-        # Select action with highest UCB
         selected_action = max(ucb_values, key=ucb_values.get)
         self.action_counts[state_key][selected_action] += 1
         self.total_count += 1
@@ -162,19 +127,12 @@ class UCBPolicy(BasePolicy):
         return selected_action
 
     def reset(self):
-        """Reset action counts"""
         self.action_counts = {}
         self.total_count = 0
 
 
 class AdaptivePolicy(BasePolicy):
-    """
-    Adaptive policy that switches between strategies
-    based on learning progress
-    """
-
     def __init__(self):
-        """Initialize with multiple strategies"""
         self.epsilon_greedy = EpsilonGreedyPolicy(epsilon=0.3)
         self.boltzmann = BoltzmannPolicy(temperature=1.5)
         self.ucb = UCBPolicy(c=2.0)
@@ -184,7 +142,6 @@ class AdaptivePolicy(BasePolicy):
         self.performance_history = []
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action using current strategy"""
         if self.current_strategy == "epsilon_greedy":
             return self.epsilon_greedy.select_action(state, q_values, valid_actions)
         elif self.current_strategy == "boltzmann":
@@ -195,22 +152,17 @@ class AdaptivePolicy(BasePolicy):
             return random.choice(valid_actions) if valid_actions else 0
 
     def update_strategy(self, episode_reward: float):
-        """Update strategy based on performance"""
         self.episode_count += 1
         self.performance_history.append(episode_reward)
 
-        # Switch strategy every 100 episodes based on performance
         if self.episode_count % 100 == 0 and len(self.performance_history) >= 100:
             recent_performance = np.mean(self.performance_history[-100:])
 
-            # If performance is poor, increase exploration
             if recent_performance < 0:
                 self.current_strategy = "ucb"
-            # If performance is good, use exploitation
             elif recent_performance > 5:
                 self.current_strategy = "epsilon_greedy"
                 self.epsilon_greedy.epsilon = 0.05
-            # Otherwise, use balanced approach
             else:
                 self.current_strategy = "boltzmann"
 
