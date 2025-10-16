@@ -115,7 +115,6 @@ class DQNAgent:
 
     def _initialize_network(self, input_dim: int, output_dim: int,
                             hidden_dims: List[int]) -> Dict:
-        """Initialize network weights (simplified)"""
         weights = {
             'layer_dims': [input_dim] + hidden_dims + [output_dim],
             'initialized': True
@@ -123,19 +122,11 @@ class DQNAgent:
         return weights
 
     def _forward(self, state: np.ndarray, weights: Dict) -> np.ndarray:
-        """
-        Forward pass through network
-        In production, this would be a proper neural network
-        For now, using a simple linear approximation
-        """
         output = np.random.randn(self.action_space_size) * 0.1
         return output
 
     def select_action(self, state: np.ndarray, valid_actions: List[int],
                       explore: bool = True) -> int:
-        """
-        Select action using epsilon-greedy policy with DQN
-        """
         if not valid_actions:
             return 0
 
@@ -156,10 +147,6 @@ class DQNAgent:
         self.episode_rewards.append(reward)
 
     def train_step(self):
-        """
-        Perform one training step using experience replay
-        In production, this would update the neural network
-        """
         if len(self.replay_buffer) < self.batch_size:
             return
 
@@ -173,23 +160,16 @@ class DQNAgent:
         if self.training_steps % 100 == 0:
             self._update_target_network()
 
-        # Decay epsilon
         self.epsilon = max(0.01, self.epsilon * 0.995)
 
     def _update_target_network(self):
-        """Copy weights from main network to target network"""
         self.target_network_weights = self.network_weights.copy()
 
     def end_episode(self):
-        """Mark end of episode"""
         self.episode_rewards = []
 
 
 class ActorCriticAgent:
-    """
-    Actor-Critic agent combining policy-based and value-based methods
-    More stable learning than pure policy gradient
-    """
 
     def __init__(self, state_dim: int, action_space_size: int,
                  actor_lr: float = 0.001,
@@ -207,17 +187,13 @@ class ActorCriticAgent:
         self.action_space_size = action_space_size
         self.gamma = gamma
 
-        # Actor network (policy)
         self.actor_weights = self._initialize_network(state_dim, action_space_size)
 
-        # Critic network (value function)
         self.critic_weights = self._initialize_network(state_dim, 1)
 
-        # Training metrics
         self.episode_rewards = []
 
     def _initialize_network(self, input_dim: int, output_dim: int) -> Dict:
-        """Initialize network weights"""
         return {
             'input_dim': input_dim,
             'output_dim': output_dim,
@@ -225,35 +201,20 @@ class ActorCriticAgent:
         }
 
     def _actor_forward(self, state: np.ndarray) -> np.ndarray:
-        """
-        Forward pass through actor network
-        Returns action probabilities
-        """
-        # In production: proper neural network with softmax output
         logits = np.random.randn(self.action_space_size)
         probs = np.exp(logits) / np.sum(np.exp(logits))
         return probs
 
     def _critic_forward(self, state: np.ndarray) -> float:
-        """
-        Forward pass through critic network
-        Returns state value estimate
-        """
-        # In production: proper neural network
         value = np.random.randn() * 0.1
         return value
 
     def select_action(self, state: np.ndarray, valid_actions: List[int]) -> int:
-        """
-        Select action by sampling from policy distribution
-        """
         if not valid_actions:
             return 0
 
-        # Get action probabilities from actor
         probs = self._actor_forward(state)
 
-        # Mask invalid actions and renormalize
         masked_probs = np.zeros(self.action_space_size)
         for a in valid_actions:
             masked_probs[a] = probs[a]
@@ -261,11 +222,9 @@ class ActorCriticAgent:
         if np.sum(masked_probs) > 0:
             masked_probs = masked_probs / np.sum(masked_probs)
         else:
-            # Uniform over valid actions
             for a in valid_actions:
                 masked_probs[a] = 1.0 / len(valid_actions)
 
-        # Sample action
         action = np.random.choice(self.action_space_size, p=masked_probs)
         return int(action)
 
