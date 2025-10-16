@@ -5620,6 +5620,3593 @@
       }
     },
     {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760185800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760185801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760185801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760185801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760185801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760185801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760185802.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760185802.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760189400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760189401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760189401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760189401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760189401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760189401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760189402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760189402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760193000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760193001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760193001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760193001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760193001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760193001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760193002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760196600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760196601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760196601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760196601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760196601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760196601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760196602.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760200200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760200201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760200201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760200201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760200201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760200201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760200202.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760203800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760203801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760203801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760203801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760203801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760203801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760203802.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760203802.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760207400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760207401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760207401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760207401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760207401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760207401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760207402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760207402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760211000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760211001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760211001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760211001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760211001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760211001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760211002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760211002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760214600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760214601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760214602.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760218200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760218201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760218201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760218201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760218201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760218201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760218202.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760218202.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760221800.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760221801.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760221802.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760225400.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760225401.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760225402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760225402.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760229000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760229001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760229002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760229002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760229002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760229002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760229002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760229003.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760229004.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760232600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760232601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760232602.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760232603.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760232604.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760236200.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760236201.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760236202.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760236202.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760571000.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760571001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760571001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760571001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760571001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760571001.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760571002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760571002.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_logreg",
+      "path": "models\\conf_model_tfidf_logreg_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "best": true
+    },
+    {
+      "name": "tfidf_nb_multi",
+      "path": "models\\conf_model_tfidf_nb_multi_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_nb_comp",
+      "path": "models\\conf_model_tfidf_nb_comp_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_svm_linear",
+      "path": "models\\conf_model_tfidf_svm_linear_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_rf",
+      "path": "models\\conf_model_tfidf_rf_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_logreg",
+      "path": "models\\conf_model_tfidf_char_logreg_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_multi",
+      "path": "models\\conf_model_tfidf_char_nb_multi_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_nb_comp",
+      "path": "models\\conf_model_tfidf_char_nb_comp_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_svm_linear",
+      "path": "models\\conf_model_tfidf_char_svm_linear_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_char_rf",
+      "path": "models\\conf_model_tfidf_char_rf_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_logreg",
+      "path": "models\\conf_model_count_logreg_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_multi",
+      "path": "models\\conf_model_count_nb_multi_1760574600.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_nb_comp",
+      "path": "models\\conf_model_count_nb_comp_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_svm_linear",
+      "path": "models\\conf_model_count_svm_linear_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "count_rf",
+      "path": "models\\conf_model_count_rf_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_logreg",
+      "path": "models\\conf_model_hash_logreg_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_svm_linear",
+      "path": "models\\conf_model_hash_svm_linear_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "hash_rf",
+      "path": "models\\conf_model_hash_rf_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_small",
+      "path": "models\\conf_model_tfidf_mlp_small_1760574601.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_deep",
+      "path": "models\\conf_model_tfidf_mlp_deep_1760574602.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
+      "name": "tfidf_mlp_wide",
+      "path": "models\\conf_model_tfidf_mlp_wide_1760574602.joblib",
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    {
       "name": "tfidf_mlp_balanced",
       "path": "models\\conf_model_tfidf_mlp_balanced_1758483002.joblib",
       "metrics": {
@@ -5878,6 +9465,176 @@
     {
       "name": "tfidf_mlp_balanced",
       "path": "models\\conf_model_tfidf_mlp_balanced_1760124602.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760185802.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760189402.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760193002.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760196602.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760200202.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760203802.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760207402.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760211002.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760214602.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760218202.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760221802.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760225402.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760229004.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760232604.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760236202.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760571002.joblib",
+      "metrics": {
+        "accuracy": 0.9875,
+        "f1_macro": 0.9874921826141339,
+        "precision": 0.9880952380952381,
+        "recall": 0.9875
+      }
+    },
+    {
+      "name": "tfidf_mlp_balanced",
+      "path": "models\\conf_model_tfidf_mlp_balanced_1760574602.joblib",
       "metrics": {
         "accuracy": 0.9875,
         "f1_macro": 0.9874921826141339,
@@ -6152,6 +9909,176 @@
       }
     },
     {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760185801.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760189401.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760193001.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760196601.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760200201.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760203801.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760207401.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760211001.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760214601.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760218201.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760221801.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760225401.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760229003.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760232602.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760236201.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760571001.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
+      "name": "tfidf_mlp_medium",
+      "path": "models\\conf_model_tfidf_mlp_medium_1760574601.joblib",
+      "metrics": {
+        "accuracy": 0.975,
+        "f1_macro": 0.974937343358396,
+        "precision": 0.9772727272727273,
+        "recall": 0.975
+      }
+    },
+    {
       "name": "tfidf_lgbm",
       "path": "models\\conf_model_tfidf_lgbm_1758483001.joblib",
       "metrics": {
@@ -6330,7 +10257,7 @@
   ],
   "best_conf_model": {
     "name": "tfidf_logreg",
-    "path": "models\\conf_model_tfidf_logreg_1760124600.joblib",
+    "path": "models\\conf_model_tfidf_logreg_1760574600.joblib",
     "metrics": {
       "accuracy": 1.0,
       "f1_macro": 1.0,
