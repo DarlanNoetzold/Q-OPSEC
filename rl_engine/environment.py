@@ -208,17 +208,23 @@ class EnhancedEnvironment:
         }
 
     def extract_features(self, context: Dict[str, Any]) -> ContextFeatures:
+        """Extract features from context, handling None values properly."""
         dst_props = context.get("dst_props", {})
         hardware = dst_props.get("hardware", [])
 
         hw_list = [h.upper() for h in (hardware if isinstance(hardware, list) else [])]
 
+        # Helper function to get value or default
+        def get_or_default(key, default):
+            value = context.get(key)
+            return default if value is None else value
+
         return ContextFeatures(
             # Origin
-            source_reputation=context.get("source_reputation", 0.5),
-            source_location_risk=context.get("source_location_risk", 0.5),
+            source_reputation=get_or_default("source_reputation", 0.5),
+            source_location_risk=get_or_default("source_location_risk", 0.5),
             source_device_type=context.get("source", "unknown"),
-            source_behavioral_score=context.get("source_behavioral_score", 0.5),
+            source_behavioral_score=get_or_default("source_behavioral_score", 0.5),
 
             # Destination
             dest_reputation=dst_props.get("reputation", 0.5),
@@ -227,24 +233,24 @@ class EnhancedEnvironment:
             dest_hardware_capabilities=hw_list,
 
             # Application
-            data_sensitivity=context.get("conf_score", 0.5),
+            data_sensitivity=get_or_default("conf_score", 0.5),
             data_type=context.get("data_type", "general"),
-            service_criticality=context.get("service_criticality", 0.5),
+            service_criticality=get_or_default("service_criticality", 0.5),
 
             # Temporal
-            time_of_day=context.get("time_of_day", 12),
-            day_of_week=context.get("day_of_week", 0),
-            is_peak_attack_time=context.get("is_peak_attack_time", False),
+            time_of_day=get_or_default("time_of_day", 12),
+            day_of_week=get_or_default("day_of_week", 0),
+            is_peak_attack_time=get_or_default("is_peak_attack_time", False),
 
             # Risk
-            current_threat_level=context.get("risk_score", 0.5),
-            incident_history_score=context.get("incident_history_score", 0.0),
-            anomaly_score=context.get("anomaly_score", 0.0),
+            current_threat_level=get_or_default("risk_score", 0.5),
+            incident_history_score=get_or_default("incident_history_score", 0.0),
+            anomaly_score=get_or_default("anomaly_score", 0.0),
 
-            # System
-            system_load=context.get("system_load", 0.5),
-            available_resources=context.get("available_resources", 1.0),
-            network_latency=context.get("network_latency", 50.0),
+            # System - CRITICAL: These were causing the None comparison error
+            system_load=get_or_default("system_load", 0.5),
+            available_resources=get_or_default("available_resources", 1.0),
+            network_latency=get_or_default("network_latency", 50.0),
 
             # Quantum
             qkd_available="QKD" in hw_list,
@@ -369,6 +375,21 @@ class EnhancedEnvironment:
 
 
 def map_security_level(risk_score: float, conf_score: float) -> SecurityLevel:
+    """Map risk and confidentiality scores to security level.
+
+    Args:
+        risk_score: Risk score (0-1), can be None
+        conf_score: Confidentiality score (0-1), can be None
+
+    Returns:
+        SecurityLevel enum value
+    """
+    # Handle None values
+    if risk_score is None:
+        risk_score = 0.5
+    if conf_score is None:
+        conf_score = 0.5
+
     combined_score = (risk_score + conf_score) / 2.0
 
     if combined_score < 0.2:
