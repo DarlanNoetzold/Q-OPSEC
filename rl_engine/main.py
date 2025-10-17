@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from service import ImprovedRLEngineService
 from negotiator_client import send_to_handshake
+import traceback
 
 
 class Settings:
@@ -41,8 +42,8 @@ class ContextRequest(BaseModel):
     source: str = Field(..., description="Source node identifier")
     destination: str = Field(..., description="Destination node identifier")
     security_level: str = Field(..., description="Security level classification")
-    risk_score: float = Field(..., ge=0.0, le=1.0, description="Risk score (0-1)")
-    conf_score: float = Field(..., ge=0.0, le=1.0, description="Confidentiality score (0-1)")
+    risk_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Risk score (0-1)")
+    conf_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Confidentiality score (0-1)")
     dst_props: Dict[str, Any] = Field(default_factory=dict, description="Destination properties")
 
     # Optional enhanced fields
@@ -72,7 +73,19 @@ class FeedbackRequest(BaseModel):
           description="Main endpoint - selects optimal algorithm and initiates handshake")
 def act(req: ContextRequest):
     try:
-        payload = rl_service.build_negotiation_payload(req.model_dump())
+        print(f"\\n{'=' * 60}")
+        print(f"DEBUG: Received request")
+        print(f"  request_id: {req.request_id}")
+        print(f"  risk_score: {req.risk_score} (type: {type(req.risk_score)})")
+        print(f"  conf_score: {req.conf_score} (type: {type(req.conf_score)})")
+        print(f"{'=' * 60}\\n")
+
+        req_dict = req.model_dump()
+        print(f"DEBUG: req.model_dump() = {req_dict}")
+        print(f"  risk_score in dict: {req_dict.get('risk_score')} (type: {type(req_dict.get('risk_score'))})")
+        print(f"  conf_score in dict: {req_dict.get('conf_score')} (type: {type(req_dict.get('conf_score'))})")
+
+        payload = rl_service.build_negotiation_payload(req_dict)
 
         result = send_to_handshake(settings.handshake_url, payload)
 
@@ -92,13 +105,24 @@ def act(req: ContextRequest):
         }
 
     except Exception as e:
+        print(f"\\n{'!' * 60}")
+        print(f"ERROR: Exception occurred")
+        print(f"  Error message: {str(e)}")
+        print(f"  Error type: {type(e).__name__}")
+        print(f"\\nFull traceback:")
+        traceback.print_exc()
+        print(f"{'!' * 60}\\n")
+
         # Process failure feedback
         outcome = {
             "success": False,
             "latency": 0.0,
             "resource_usage": 0.0
         }
-        rl_service.process_feedback(req.request_id, outcome)
+        try:
+            rl_service.process_feedback(req.request_id, outcome)
+        except:
+            pass
 
         raise HTTPException(status_code=500, detail=str(e))
 
