@@ -88,8 +88,15 @@ class ImprovedRLEngineService:
         """
         features = self.env.extract_features(context)
 
-        risk_score = context.get("risk_score", 0.5)
-        conf_score = context.get("conf_score", 0.5)
+        # Handle None values properly
+        risk_score = context.get("risk_score")
+        if risk_score is None:
+            risk_score = 0.5
+
+        conf_score = context.get("conf_score")
+        if conf_score is None:
+            conf_score = 0.5
+
         security_level = map_security_level(risk_score, conf_score)
 
         valid_actions_enum = self.env.get_valid_actions(features, security_level)
@@ -173,8 +180,15 @@ class ImprovedRLEngineService:
         return payload
 
     def _get_security_level_name(self, context: Dict[str, Any]) -> str:
-        risk_score = context.get("risk_score", 0.5)
-        conf_score = context.get("conf_score", 0.5)
+        # Handle None values properly
+        risk_score = context.get("risk_score")
+        if risk_score is None:
+            risk_score = 0.5
+
+        conf_score = context.get("conf_score")
+        if conf_score is None:
+            conf_score = 0.5
+
         security_level = map_security_level(risk_score, conf_score)
         return security_level.name
 
