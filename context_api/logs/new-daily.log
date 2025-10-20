@@ -1,22 +1,22 @@
-2025-09-30 16:00:04.959 [main] INFO  t.n.c.ContextApiApplication - Starting ContextApiApplication using Java 23.0.1 with PID 36148 (C:\Projetos\Q-OPSEC\context_api\target\classes started by Darlan in C:\Projetos\Q-OPSEC\context_api)
-2025-09-30 16:00:04.966 [main] INFO  t.n.c.ContextApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-09-30 16:00:06.011 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-09-30 16:00:06.197 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 174 ms. Found 1 JPA repository interface.
-2025-09-30 16:00:06.835 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
-2025-09-30 16:00:06.853 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
-2025-09-30 16:00:06.856 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-09-30 16:00:06.856 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.43]
-2025-09-30 16:00:06.922 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-09-30 16:00:06.923 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1873 ms
-2025-09-30 16:00:07.155 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-09-30 16:00:07.226 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.22.Final
-2025-09-30 16:00:07.256 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-09-30 16:00:07.589 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-09-30 16:00:07.631 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-09-30 16:00:07.836 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@636fccb0
-2025-09-30 16:00:07.839 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-09-30 16:00:07.886 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-09-30 16:00:07.916 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+2025-10-18 13:04:01.216 [main] INFO  t.n.c.ContextApiApplication - Starting ContextApiApplication using Java 23.0.1 with PID 29340 (C:\Projetos\Q-OPSEC\context_api\target\classes started by Darlan in C:\Projetos\Q-OPSEC\context_api)
+2025-10-18 13:04:01.221 [main] INFO  t.n.c.ContextApiApplication - No active profile set, falling back to 1 default profile: "default"
+2025-10-18 13:04:02.103 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-18 13:04:02.250 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 139 ms. Found 1 JPA repository interface.
+2025-10-18 13:04:02.672 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-10-18 13:04:02.684 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-10-18 13:04:02.686 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-18 13:04:02.686 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.43]
+2025-10-18 13:04:02.728 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-10-18 13:04:02.729 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1462 ms
+2025-10-18 13:04:02.927 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-18 13:04:02.981 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.22.Final
+2025-10-18 13:04:03.012 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-10-18 13:04:03.266 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-18 13:04:03.290 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-18 13:04:03.399 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@11dbcb3b
+2025-10-18 13:04:03.400 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-18 13:04:03.427 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-18 13:04:03.443 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 15.13
@@ -24,36 +24,17 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-09-30 16:00:08.693 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-09-30 16:00:08.780 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-09-30 16:00:09.403 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-09-30 16:00:09.846 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
-2025-09-30 16:00:09.866 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path '/'
-2025-09-30 16:00:09.876 [main] INFO  t.n.c.ContextApiApplication - Started ContextApiApplication in 5.694 seconds (process running for 6.166)
-2025-09-30 16:02:10.654 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-09-30 16:02:10.654 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2025-09-30 16:02:10.655 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
-2025-09-30 16:02:10.751 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759258930750_e4ed67ac
-2025-09-30 16:02:10.980 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759258930750_e4ed67ac
-2025-09-30 16:02:11.102 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759258931040_cc0e90f3
-2025-09-30 16:02:11.117 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759258931040_cc0e90f3
-2025-09-30 16:02:51.139 [http-nio-8081-exec-5] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759258971139_c368a560
-2025-09-30 16:02:51.153 [http-nio-8081-exec-5] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759258971139_c368a560
-2025-09-30 16:02:51.173 [http-nio-8081-exec-4] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759258971166_57cd1914
-2025-09-30 16:02:51.185 [http-nio-8081-exec-4] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759258971166_57cd1914
-2025-09-30 16:03:44.716 [http-nio-8081-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759259024716_2acd6619
-2025-09-30 16:03:44.729 [http-nio-8081-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759259024716_2acd6619
-2025-09-30 16:14:33.256 [http-nio-8081-exec-7] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759259673256_9e2eff6c
-2025-09-30 16:14:33.274 [http-nio-8081-exec-7] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759259673256_9e2eff6c
-2025-09-30 16:15:10.213 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759259710213_6e505c32
-2025-09-30 16:15:10.227 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759259710213_6e505c32
-2025-09-30 16:15:10.287 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759259710246_819151df
-2025-09-30 16:15:10.300 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759259710246_819151df
-2025-09-30 16:16:09.703 [http-nio-8081-exec-5] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759259769703_b78fb9d1
-2025-09-30 16:16:09.715 [http-nio-8081-exec-5] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759259769703_b78fb9d1
-2025-09-30 16:38:41.783 [http-nio-8081-exec-10] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759261121783_1719fb73
-2025-09-30 16:38:41.806 [http-nio-8081-exec-10] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759261121783_1719fb73
-2025-09-30 16:41:43.054 [http-nio-8081-exec-6] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759261303054_8fc28845
-2025-09-30 16:41:43.077 [http-nio-8081-exec-6] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759261303054_8fc28845
-2025-09-30 16:42:38.843 [http-nio-8081-exec-8] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1759261358843_9fb8172c
-2025-09-30 16:42:38.856 [http-nio-8081-exec-8] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1759261358843_9fb8172c
+2025-10-18 13:04:04.075 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-18 13:04:04.133 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-18 13:04:04.739 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-18 13:04:05.148 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 13 endpoints beneath base path '/actuator'
+2025-10-18 13:04:05.189 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-10-18 13:04:05.198 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path '/'
+2025-10-18 13:04:05.206 [main] INFO  t.n.c.ContextApiApplication - Started ContextApiApplication in 4.557 seconds (process running for 4.999)
+2025-10-18 13:05:11.440 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-18 13:05:11.441 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-10-18 13:05:11.442 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-10-18 13:05:11.626 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1760803511625_c5ef4dc7
+2025-10-18 13:05:11.905 [http-nio-8081-exec-1] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1760803511625_c5ef4dc7
+2025-10-18 13:06:10.837 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1760803570837_630e7a9a
+2025-10-18 13:06:10.850 [http-nio-8081-exec-3] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1760803570837_630e7a9a
