@@ -1,0 +1,70 @@
+======================================================================
+RL ENGINE - RELATÓRIO EXPERIMENTAL
+======================================================================
+
+INFORMAÇÕES DO EXPERIMENTO
+----------------------------------------------------------------------
+total_requests: 500
+total_episodes: 5
+timestamp: 2025-10-20T17:32:31.712043
+
+MÉTRICAS DE PERFORMANCE
+----------------------------------------------------------------------
+success_rate: 92.40
+avg_latency_ms: 74.26
+std_latency_ms: 76.19
+avg_response_time_s: 6.14
+min_latency_ms: 10.02
+max_latency_ms: 499.39
+
+USO DE ALGORITMOS
+----------------------------------------------------------------------
+AES_256_GCM: 500 vezes
+PQC_KYBER: 200 vezes
+AES_192: 147 vezes
+FALLBACK_AES: 105 vezes
+QKD_MDI-QKD: 100 vezes
+ECC_521: 50 vezes
+HYBRID_ECC_PQC: 47 vezes
+QKD_DECOY: 2 vezes
+PQC_DILITHIUM: 2 vezes
+
+ANÁLISE POR NÍVEL DE SEGURANÇA
+----------------------------------------------------------------------
+
+ULTRA:
+  Requisições: 50
+  Taxa de sucesso: 94.00%
+  Latência média: 77.06ms
+
+HIGH:
+  Requisições: 250
+  Taxa de sucesso: 93.60%
+  Latência média: 68.18ms
+
+VERY_HIGH:
+  Requisições: 100
+  Taxa de sucesso: 93.00%
+  Latência média: 76.93ms
+
+MODERATE:
+  Requisições: 50
+  Taxa de sucesso: 88.00%
+  Latência média: 77.44ms
+
+LOW:
+  Requisições: 50
+  Taxa de sucesso: 88.00%
+  Latência média: 93.40ms
+
+ANÁLISE QKD
+----------------------------------------------------------------------
+Com QKD:
+  Requisições: 200
+  Taxa de sucesso: 92.50%
+  Latência média: 72.99ms
+
+Sem QKD:
+  Requisições: 300
+  Taxa de sucesso: 92.33%
+  Latência média: 75.12ms
