@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 import statistics
 import random
+import json
 
 
 class ImprovedRLExperiment:
@@ -68,93 +69,91 @@ class ImprovedRLExperiment:
         return response.json()
 
     def generate_dynamic_feedback(self, scenario: Dict, proposed_algos: List[str]) -> Dict:
-        """Generate more realistic feedback based on scenario and algorithms"""
+        """Generate realistic feedback with algorithm-specific behavior"""
 
-        # Base success rate by category
         category = scenario.get('category', 'general')
-        base_success_rates = {
-            'quantum': 0.95,
-            'post_quantum': 0.92,
-            'hybrid': 0.90,
-            'classical': 0.88,
-            'stress_test': 0.75,
-            'network_conditions': 0.82,
-            'temporal': 0.85,
-            'low_resources': 0.70
-        }
-
-        base_rate = base_success_rates.get(category, 0.85)
-
-        # Adjust based on security level
         security_level = scenario['context'].get('security_level', 'moderate')
-        security_modifiers = {
-            'ultra': 0.98,
-            'very_high': 0.95,
-            'high': 0.92,
-            'moderate': 0.88,
-            'low': 0.85
-        }
-
-        success_rate = base_rate * security_modifiers.get(security_level, 0.85)
-
-        # Penalize if QKD is needed but not available
         has_qkd = 'QKD' in scenario['context'].get('dst_props', {}).get('hardware', [])
-        needs_high_security = security_level in ['ultra', 'very_high']
 
-        if needs_high_security and not has_qkd:
-            success_rate *= 0.85
-
-        # Determine success
-        success = random.random() < success_rate
-
-        # Latency based on algorithm and conditions
-        base_latencies = {
-            'QKD': (40, 80),
-            'PQC': (25, 50),
-            'HYBRID': (30, 60),
-            'AES': (15, 35),
-            'RSA': (20, 45),
-            'ECC': (18, 40),
-            'FALLBACK': (10, 25)
-        }
-
-        # Determine latency based on first proposed algorithm
-        algo_type = 'AES'  # default
+        # Determine primary algorithm from proposed
+        primary_algo = 'CLASSICAL'
         if proposed_algos:
             first_algo = proposed_algos[0]
-            for key in base_latencies.keys():
-                if key in first_algo:
-                    algo_type = key
-                    break
+            if 'QKD' in first_algo or 'BB84' in first_algo or 'E91' in first_algo or 'CV' in first_algo or 'MDI' in first_algo:
+                primary_algo = 'QKD'
+            elif 'KYBER' in first_algo or 'DILITHIUM' in first_algo or 'FALCON' in first_algo or 'NTRU' in first_algo or 'SABER' in first_algo:
+                primary_algo = 'PQC'
+            elif 'HYBRID' in first_algo:
+                primary_algo = 'HYBRID'
+            elif 'AES' in first_algo or 'RSA' in first_algo or 'ECC' in first_algo:
+                primary_algo = 'CLASSICAL'
 
-        latency_range = base_latencies.get(algo_type, (20, 50))
+        # Success rates based on algorithm and context
+        success_rates = {
+            'QKD': {
+                'with_qkd': {'ultra': 0.98, 'very_high': 0.96, 'high': 0.94, 'moderate': 0.90, 'low': 0.85},
+                'without_qkd': {'ultra': 0.50, 'very_high': 0.45, 'high': 0.40, 'moderate': 0.35, 'low': 0.30}
+            },
+            'PQC': {
+                'with_qkd': {'ultra': 0.95, 'very_high': 0.93, 'high': 0.91, 'moderate': 0.88, 'low': 0.85},
+                'without_qkd': {'ultra': 0.94, 'very_high': 0.92, 'high': 0.90, 'moderate': 0.87, 'low': 0.84}
+            },
+            'HYBRID': {
+                'with_qkd': {'ultra': 0.93, 'very_high': 0.91, 'high': 0.89, 'moderate': 0.86, 'low': 0.83},
+                'without_qkd': {'ultra': 0.92, 'very_high': 0.90, 'high': 0.88, 'moderate': 0.85, 'low': 0.82}
+            },
+            'CLASSICAL': {
+                'with_qkd': {'ultra': 0.75, 'very_high': 0.78, 'high': 0.82, 'moderate': 0.88, 'low': 0.92},
+                'without_qkd': {'ultra': 0.70, 'very_high': 0.75, 'high': 0.80, 'moderate': 0.86, 'low': 0.90}
+            }
+        }
+
+        qkd_key = 'with_qkd' if has_qkd else 'without_qkd'
+        base_success_rate = success_rates[primary_algo][qkd_key].get(security_level, 0.85)
+
+        # Adjust for stress scenarios
+        if category == 'stress_test':
+            base_success_rate *= 0.75
+        elif category == 'low_resources':
+            base_success_rate *= 0.70
+        elif category == 'network_conditions':
+            network_latency = scenario['context'].get('network_latency', 0)
+            if network_latency > 200:
+                base_success_rate *= 0.85
+
+        success = random.random() < base_success_rate
+
+        # Latency based on algorithm type
+        latency_ranges = {
+            'QKD': (45, 85),
+            'PQC': (28, 55),
+            'HYBRID': (32, 65),
+            'CLASSICAL': (18, 40)
+        }
+
+        latency_range = latency_ranges.get(primary_algo, (20, 50))
 
         if success:
             latency = random.uniform(latency_range[0], latency_range[1])
         else:
-            # Failures have higher latency
-            latency = random.uniform(latency_range[1], latency_range[1] * 3)
+            latency = random.uniform(latency_range[1], latency_range[1] * 2.5)
 
-        # Add network latency if specified
+        # Add network latency
         network_latency = scenario['context'].get('network_latency', 0)
         if network_latency:
-            latency += network_latency * 0.3  # 30% of network latency
+            latency += network_latency * 0.25
 
-        # Resource usage based on algorithm and system load
+        # Resource usage
         system_load = scenario['context'].get('system_load', 0.5)
-
         resource_base = {
-            'QKD': 0.75,
-            'PQC': 0.55,
-            'HYBRID': 0.65,
-            'AES': 0.35,
-            'RSA': 0.45,
-            'ECC': 0.40,
-            'FALLBACK': 0.25
+            'QKD': 0.78,
+            'PQC': 0.58,
+            'HYBRID': 0.68,
+            'CLASSICAL': 0.38
         }
 
-        resource_usage = resource_base.get(algo_type, 0.5)
-        resource_usage = min(resource_usage + (system_load * 0.2), 0.95)
+        resource_usage = resource_base.get(primary_algo, 0.5)
+        resource_usage = min(resource_usage + (system_load * 0.15), 0.95)
 
         return {
             'success': success,
@@ -168,12 +167,10 @@ class ImprovedRLExperiment:
 
         result = self.send_request(scenario['context'])
 
-        # Generate realistic feedback
         proposed_algos = result.get('payload', {}).get('proposed', [])
         feedback = self.generate_dynamic_feedback(scenario, proposed_algos)
 
-        # Slower execution - wait between request and feedback
-        time.sleep(0.2)  # 200ms delay
+        time.sleep(0.3)  # 300ms delay
 
         self.send_feedback(
             scenario['context']['request_id'],
@@ -182,7 +179,6 @@ class ImprovedRLExperiment:
             feedback['resource_usage']
         )
 
-        # Store result
         result_data = {
             'scenario_name': scenario['name'],
             'scenario_category': scenario.get('category', 'general'),
@@ -205,23 +201,22 @@ class ImprovedRLExperiment:
 
         self.results.append(result_data)
 
-        # Show feedback result
         status = "✓ SUCCESS" if feedback['success'] else "✗ FAILED"
         print(f"    {status} | Latency: {feedback['latency']:.2f}ms | Resource: {feedback['resource_usage']:.2f}")
 
         return result_data
 
-    def run_experiment(self, scenarios: List[Dict], episodes: int = 15,
-                       iterations_per_episode: int = 8):
+    def run_experiment(self, scenarios: List[Dict], episodes: int = 20,
+                       iterations_per_episode: int = 10):
         """Execute complete experiment"""
         print("=" * 80)
-        print("RL ENGINE - ENHANCED EXPERIMENT v2.0")
+        print("RL ENGINE - ENHANCED EXPERIMENT v3.0")
         print("=" * 80)
         print(f"Episodes: {episodes}")
         print(f"Iterations per episode: {iterations_per_episode}")
         print(f"Unique scenarios: {len(scenarios)}")
         print(f"Total requests: {episodes * iterations_per_episode * len(scenarios)}")
-        print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.25 / 60):.1f} minutes")
+        print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.35 / 60):.1f} minutes")
 
         if not self.health_check():
             print("\\n❌ ERROR: RL Engine is not responding!")
@@ -244,17 +239,15 @@ class ImprovedRLExperiment:
             for iteration in range(iterations_per_episode):
                 print(f"\\n[Iteration {iteration + 1}/{iterations_per_episode}]")
 
-                # Shuffle scenarios for greater variation
                 shuffled_scenarios = random.sample(scenarios, len(scenarios))
 
                 for idx, scenario in enumerate(shuffled_scenarios, 1):
                     print(f"  [{idx}/{len(scenarios)}]", end=" ")
                     self.run_scenario(scenario)
 
-                # Pause between iterations
                 if iteration < iterations_per_episode - 1:
                     print("\\n  ⏸  Pausing between iterations...")
-                    time.sleep(1.0)
+                    time.sleep(1.5)
 
             episode_result = self.end_episode()
             episode_elapsed = time.time() - episode_start
@@ -267,10 +260,9 @@ class ImprovedRLExperiment:
             print(f"\\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
             print(f"  📊 Requests in this episode: {iterations_per_episode * len(scenarios)}")
 
-            # Longer pause between episodes
             if episode < episodes:
                 print(f"  ⏸  Pausing between episodes...")
-                time.sleep(2.0)
+                time.sleep(2.5)
 
         experiment_elapsed = time.time() - experiment_start
 
@@ -327,7 +319,7 @@ class ImprovedRLExperiment:
                 'total_requests': total_requests,
                 'total_episodes': len(self.metrics_history),
                 'timestamp': datetime.now().isoformat(),
-                'version': '2.0'
+                'version': '3.0'
             },
             'performance_metrics': {
                 'success_rate': success_rate,
@@ -374,17 +366,15 @@ class ImprovedRLExperiment:
 
         return report
 
-    def save_results(self, report: Dict, prefix: str = "rl_experiment_v2"):
+    def save_results(self, report: Dict, prefix: str = "rl_experiment_v3"):
         """Save results"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # JSON report
         json_file = f"{prefix}_{timestamp}.json"
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
         print(f"\\n✅ JSON Report: {json_file}")
 
-        # Detailed CSV
         csv_file = f"{prefix}_{timestamp}_details.csv"
         with open(csv_file, 'w', newline='', encoding='utf-8') as f:
             if report['raw_results']:
@@ -393,7 +383,6 @@ class ImprovedRLExperiment:
                 writer.writerows(report['raw_results'])
         print(f"✅ Details CSV: {csv_file}")
 
-        # Metrics CSV
         metrics_csv = f"{prefix}_{timestamp}_metrics.csv"
         with open(metrics_csv, 'w', newline='', encoding='utf-8') as f:
             if report['metrics_history']:
@@ -403,11 +392,10 @@ class ImprovedRLExperiment:
                 writer.writerows(report['metrics_history'])
         print(f"✅ Metrics CSV: {metrics_csv}")
 
-        # Enhanced text summary
         txt_file = f"{prefix}_{timestamp}_summary.txt"
         with open(txt_file, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\\n")
-            f.write("RL ENGINE - ENHANCED EXPERIMENT v2.0\\n")
+            f.write("RL ENGINE - ENHANCED EXPERIMENT v3.0\\n")
             f.write("=" * 80 + "\\n\\n")
 
             f.write("EXPERIMENT INFORMATION\\n")
@@ -420,11 +408,11 @@ class ImprovedRLExperiment:
             for key, value in report['performance_metrics'].items():
                 f.write(f"{key}: {value:.2f}\\n")
 
-            f.write("\\nALGORITHM USAGE (TOP 10)\\n")
+            f.write("\\nALGORITHM USAGE (TOP 15)\\n")
             f.write("-" * 80 + "\\n")
             sorted_algos = sorted(report['algorithm_usage'].items(),
                                   key=lambda x: x[1], reverse=True)
-            for algo, count in sorted_algos[:10]:
+            for algo, count in sorted_algos[:15]:
                 percentage = (count / report['experiment_info']['total_requests']) * 100
                 f.write(f"{algo}: {count} times ({percentage:.1f}%)\\n")
 
@@ -465,9 +453,9 @@ class ImprovedRLExperiment:
         }
 
 
-# ENHANCED SCENARIOS - Greater diversity
-IMPROVED_SCENARIOS = [
-    # === QUANTUM (QKD) - 20% ===
+# BALANCED SCENARIOS - Better distribution
+BALANCED_SCENARIOS = [
+    # === QUANTUM (25%) - 5 scenarios ===
     {
         'name': 'QKD Ultra Security - BB84',
         'category': 'quantum',
@@ -489,30 +477,11 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'QKD High Security - E91',
+        'name': 'QKD Very High - E91',
         'category': 'quantum',
         'context': {
-            'request_id': 'qkd-high-e91-002',
+            'request_id': 'qkd-veryhigh-e91-002',
             'source': 'quantum-node-B',
-            'destination': 'http://localhost:9000',
-            'security_level': 'high',
-            'risk_score': 0.85,
-            'conf_score': 0.90,
-            'data_sensitivity': 0.88,
-            'available_resources': 0.85,
-            'system_load': 0.4,
-            'dst_props': {
-                'hardware': ['QKD'],
-                'compliance': ['GDPR']
-            }
-        }
-    },
-    {
-        'name': 'QKD Very High - CV-QKD',
-        'category': 'quantum',
-        'context': {
-            'request_id': 'qkd-veryhigh-cv-003',
-            'source': 'quantum-node-C',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
             'risk_score': 0.88,
@@ -527,11 +496,11 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'QKD High - MDI-QKD',
+        'name': 'QKD High - CV-QKD',
         'category': 'quantum',
         'context': {
-            'request_id': 'qkd-high-mdi-004',
-            'source': 'quantum-node-D',
+            'request_id': 'qkd-high-cv-003',
+            'source': 'quantum-node-C',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
             'risk_score': 0.82,
@@ -545,13 +514,51 @@ IMPROVED_SCENARIOS = [
             }
         }
     },
+    {
+        'name': 'QKD High - MDI-QKD',
+        'category': 'quantum',
+        'context': {
+            'request_id': 'qkd-high-mdi-004',
+            'source': 'quantum-node-D',
+            'destination': 'http://localhost:9000',
+            'security_level': 'high',
+            'risk_score': 0.80,
+            'conf_score': 0.85,
+            'data_sensitivity': 0.83,
+            'available_resources': 0.78,
+            'system_load': 0.48,
+            'dst_props': {
+                'hardware': ['QKD'],
+                'compliance': ['GDPR']
+            }
+        }
+    },
+    {
+        'name': 'QKD Very High - DECOY',
+        'category': 'quantum',
+        'context': {
+            'request_id': 'qkd-veryhigh-decoy-005',
+            'source': 'quantum-node-E',
+            'destination': 'http://localhost:9000',
+            'security_level': 'very_high',
+            'risk_score': 0.86,
+            'conf_score': 0.90,
+            'data_sensitivity': 0.88,
+            'available_resources': 0.85,
+            'system_load': 0.38,
+            'dst_props': {
+                'hardware': ['QKD', 'QUANTUM'],
+                'compliance': ['HIPAA', 'SOC2']
+            }
+        }
+    },
 
-    # === POST-QUANTUM (PQC) - 25% ===
+    # === POST-QUANTUM (30%) - 6 scenarios ===
     {
         'name': 'PQC Ultra - KYBER',
         'category': 'post_quantum',
         'context': {
-            'request_id': 'pqc-ultra-kyber-005',
+            'request_id': 'pqc-ultra-kyber-006',
             'source': 'pqc-node-A',
             'destination': 'http://localhost:9000',
             'security_level': 'ultra',
@@ -570,7 +577,7 @@ IMPROVED_SCENARIOS = [
         'name': 'PQC Very High - DILITHIUM',
         'category': 'post_quantum',
         'context': {
-            'request_id': 'pqc-veryhigh-dilithium-006',
+            'request_id': 'pqc-veryhigh-dilithium-007',
             'source': 'pqc-node-B',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
@@ -586,30 +593,11 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'PQC High - NTRU',
+        'name': 'PQC Very High - NTRU',
         'category': 'post_quantum',
         'context': {
-            'request_id': 'pqc-high-ntru-007',
+            'request_id': 'pqc-veryhigh-ntru-008',
             'source': 'pqc-node-C',
-            'destination': 'http://localhost:9000',
-            'security_level': 'very_high',
-            'risk_score': 0.80,
-            'conf_score': 0.83,
-            'data_sensitivity': 0.82,
-            'available_resources': 0.68,
-            'system_load': 0.58,
-            'dst_props': {
-                'hardware': [],
-                'compliance': ['ISO27001']
-            }
-        }
-    },
-    {
-        'name': 'PQC Very High - SABER',
-        'category': 'post_quantum',
-        'context': {
-            'request_id': 'pqc-veryhigh-saber-008',
-            'source': 'pqc-node-D',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
             'risk_score': 0.83,
@@ -617,6 +605,25 @@ IMPROVED_SCENARIOS = [
             'data_sensitivity': 0.85,
             'available_resources': 0.72,
             'system_load': 0.52,
+            'dst_props': {
+                'hardware': [],
+                'compliance': ['ISO27001']
+            }
+        }
+    },
+    {
+        'name': 'PQC High - SABER',
+        'category': 'post_quantum',
+        'context': {
+            'request_id': 'pqc-high-saber-009',
+            'source': 'pqc-node-D',
+            'destination': 'http://localhost:9000',
+            'security_level': 'high',
+            'risk_score': 0.78,
+            'conf_score': 0.82,
+            'data_sensitivity': 0.80,
+            'available_resources': 0.68,
+            'system_load': 0.58,
             'dst_props': {
                 'hardware': [],
                 'compliance': ['HIPAA']
@@ -627,7 +634,7 @@ IMPROVED_SCENARIOS = [
         'name': 'PQC Ultra - FALCON',
         'category': 'post_quantum',
         'context': {
-            'request_id': 'pqc-ultra-falcon-009',
+            'request_id': 'pqc-ultra-falcon-010',
             'source': 'pqc-node-E',
             'destination': 'http://localhost:9000',
             'security_level': 'ultra',
@@ -642,13 +649,32 @@ IMPROVED_SCENARIOS = [
             }
         }
     },
+    {
+        'name': 'PQC High - SPHINCS',
+        'category': 'post_quantum',
+        'context': {
+            'request_id': 'pqc-high-sphincs-011',
+            'source': 'pqc-node-F',
+            'destination': 'http://localhost:9000',
+            'security_level': 'high',
+            'risk_score': 0.76,
+            'conf_score': 0.80,
+            'data_sensitivity': 0.78,
+            'available_resources': 0.65,
+            'system_load': 0.60,
+            'dst_props': {
+                'hardware': [],
+                'compliance': ['PCI-DSS']
+            }
+        }
+    },
 
-    # === HYBRID - 20% ===
+    # === HYBRID (20%) - 4 scenarios ===
     {
         'name': 'Hybrid Very High - RSA+PQC',
         'category': 'hybrid',
         'context': {
-            'request_id': 'hybrid-veryhigh-rsa-010',
+            'request_id': 'hybrid-veryhigh-rsa-012',
             'source': 'hybrid-node-A',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
@@ -664,30 +690,11 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'Hybrid Very High - ECC+PQC',
+        'name': 'Hybrid High - ECC+PQC',
         'category': 'hybrid',
         'context': {
-            'request_id': 'hybrid-veryhigh-ecc-011',
+            'request_id': 'hybrid-high-ecc-013',
             'source': 'hybrid-node-B',
-            'destination': 'http://localhost:9000',
-            'security_level': 'very_high',
-            'risk_score': 0.76,
-            'conf_score': 0.80,
-            'data_sensitivity': 0.78,
-            'available_resources': 0.73,
-            'system_load': 0.52,
-            'dst_props': {
-                'hardware': [],
-                'compliance': ['PCI-DSS']
-            }
-        }
-    },
-    {
-        'name': 'Hybrid High - Mixed',
-        'category': 'hybrid',
-        'context': {
-            'request_id': 'hybrid-high-mixed-012',
-            'source': 'hybrid-node-C',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
             'risk_score': 0.72,
@@ -702,11 +709,11 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'Hybrid Very High - Transition',
+        'name': 'Hybrid Very High - Mixed',
         'category': 'hybrid',
         'context': {
-            'request_id': 'hybrid-veryhigh-trans-013',
-            'source': 'hybrid-node-D',
+            'request_id': 'hybrid-veryhigh-mixed-014',
+            'source': 'hybrid-node-C',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
             'risk_score': 0.81,
@@ -720,13 +727,32 @@ IMPROVED_SCENARIOS = [
             }
         }
     },
+    {
+        'name': 'Hybrid High - Transition',
+        'category': 'hybrid',
+        'context': {
+            'request_id': 'hybrid-high-trans-015',
+            'source': 'hybrid-node-D',
+            'destination': 'http://localhost:9000',
+            'security_level': 'high',
+            'risk_score': 0.70,
+            'conf_score': 0.74,
+            'data_sensitivity': 0.72,
+            'available_resources': 0.68,
+            'system_load': 0.58,
+            'dst_props': {
+                'hardware': [],
+                'compliance': ['PCI-DSS']
+            }
+        }
+    },
 
-    # === CLASSICAL - 15% ===
+    # === CLASSICAL (15%) - 3 scenarios ===
     {
         'name': 'Classical High - AES-256',
         'category': 'classical',
         'context': {
-            'request_id': 'classical-high-aes256-014',
+            'request_id': 'classical-high-aes256-016',
             'source': 'classical-node-A',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -742,16 +768,16 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'Classical Moderate - AES-192',
+        'name': 'Classical Moderate - RSA-4096',
         'category': 'classical',
         'context': {
-            'request_id': 'classical-mod-aes192-015',
+            'request_id': 'classical-mod-rsa-017',
             'source': 'classical-node-B',
             'destination': 'http://localhost:9000',
             'security_level': 'moderate',
-            'risk_score': 0.45,
-            'conf_score': 0.50,
-            'data_sensitivity': 0.48,
+            'risk_score': 0.50,
+            'conf_score': 0.55,
+            'data_sensitivity': 0.53,
             'available_resources': 0.55,
             'system_load': 0.65,
             'dst_props': {
@@ -761,10 +787,10 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'Classical High - RSA-4096',
+        'name': 'Classical High - ECC-521',
         'category': 'classical',
         'context': {
-            'request_id': 'classical-high-rsa-016',
+            'request_id': 'classical-high-ecc-018',
             'source': 'classical-node-C',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -780,19 +806,17 @@ IMPROVED_SCENARIOS = [
         }
     },
 
-    # === STRESS TEST - 10% ===
+    # === STRESS & NETWORK (10%) - 2 scenarios ===
     {
-        'name': 'Stress - Peak Attack + QKD',
+        'name': 'Stress - High Load + QKD',
         'category': 'stress_test',
         'context': {
-            'request_id': 'stress-peak-qkd-017',
+            'request_id': 'stress-highload-019',
             'source': 'stress-node-A',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
-            'risk_score': 0.92,
-            'conf_score': 0.88,
-            'is_peak_attack_time': True,
-            'current_threat_level': 0.95,
+            'risk_score': 0.88,
+            'conf_score': 0.85,
             'system_load': 0.88,
             'available_resources': 0.30,
             'dst_props': {
@@ -801,29 +825,10 @@ IMPROVED_SCENARIOS = [
         }
     },
     {
-        'name': 'Stress - Limited Resources',
-        'category': 'low_resources',
-        'context': {
-            'request_id': 'stress-lowres-018',
-            'source': 'stress-node-B',
-            'destination': 'http://localhost:9000',
-            'security_level': 'high',
-            'risk_score': 0.75,
-            'conf_score': 0.78,
-            'system_load': 0.92,
-            'available_resources': 0.20,
-            'dst_props': {
-                'hardware': []
-            }
-        }
-    },
-
-    # === NETWORK CONDITIONS - 10% ===
-    {
         'name': 'Network - High Latency',
         'category': 'network_conditions',
         'context': {
-            'request_id': 'network-highlatency-019',
+            'request_id': 'network-highlatency-020',
             'source': 'network-node-A',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -836,44 +841,25 @@ IMPROVED_SCENARIOS = [
                 'hardware': []
             }
         }
-    },
-    {
-        'name': 'Network - Low Latency + QKD',
-        'category': 'network_conditions',
-        'context': {
-            'request_id': 'network-lowlatency-020',
-            'source': 'network-node-B',
-            'destination': 'http://localhost:9000',
-            'security_level': 'very_high',
-            'risk_score': 0.85,
-            'conf_score': 0.88,
-            'network_latency': 15.0,
-            'available_resources': 0.85,
-            'system_load': 0.35,
-            'dst_props': {
-                'hardware': ['QKD']
-            }
-        }
     }
 ]
 
 
 def main():
     print("\\n" + "=" * 80)
-    print("RL ENGINE - ENHANCED EXPERIMENT v2.0")
+    print("RL ENGINE - ENHANCED EXPERIMENT v3.0")
     print("=" * 80)
 
     experiment = ImprovedRLExperiment(base_url="http://localhost:9009")
 
-    # Execute with more episodes and iterations
     report = experiment.run_experiment(
-        scenarios=IMPROVED_SCENARIOS,
-        episodes=15,  # Increased from 10 to 15
-        iterations_per_episode=8  # Increased from 5 to 8
+        scenarios=BALANCED_SCENARIOS,
+        episodes=20,
+        iterations_per_episode=10
     )
 
     if report:
-        files = experiment.save_results(report, prefix="rl_experiment_v2")
+        files = experiment.save_results(report, prefix="rl_experiment_v3")
 
         print("\\n" + "=" * 80)
         print("GENERATED FILES:")
@@ -890,7 +876,7 @@ def main():
         print(f"Total requests: {report['experiment_info']['total_requests']}")
         print(f"Unique algorithms used: {len(report['algorithm_usage'])}")
 
-        print("\\n✅ Experiment v2.0 completed successfully!")
+        print("\\n✅ Experiment v3.0 completed successfully!")
 
 
 if __name__ == "__main__":
