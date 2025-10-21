@@ -4,6 +4,7 @@ import seaborn as sns
 import numpy as np
 from pathlib import Path
 import sys
+import json
 
 # Style configuration
 sns.set_style("whitegrid")
