@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Dict, List, Any
 import statistics
 import random
-import json
 
 class ForcedBalancedExperiment:
     def __init__(self, base_url: str = "http://localhost:9009"):
@@ -124,7 +123,10 @@ class ForcedBalancedExperiment:
             'QKD': 0.75,
             'PQC': 0.55,
             'HYBRID': 0.65,
-            'CLASSICAL': 0.35
+            'CLASSICAL': 0.35,
+            'AES': 0.30,
+            'RSA': 0.40,
+            'ECC': 0.35
         }
 
         resource_usage = 0.50
@@ -189,23 +191,24 @@ class ForcedBalancedExperiment:
 
         return result_data
 
-    def run_experiment(self, scenarios: List[Dict], episodes: int = 25,
-                       iterations_per_episode: int = 8):
+    def run_experiment(self, scenarios: List[Dict], episodes: int = 30,
+                       iterations_per_episode: int = 10):
         """Execute complete experiment"""
         print("=" * 80)
-        print("RL ENGINE - FORCED BALANCED EXPERIMENT v4.0")
+        print("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0")
         print("=" * 80)
         print(f"Episodes: {episodes}")
         print(f"Iterations per episode: {iterations_per_episode}")
         print(f"Unique scenarios: {len(scenarios)}")
         print(f"Total requests: {episodes * iterations_per_episode * len(scenarios)}")
+        print(f"Expected per algorithm: {episodes * iterations_per_episode} requests")
         print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.25 / 60):.1f} minutes")
 
         if not self.health_check():
-            print("\\n❌ ERROR: RL Engine is not responding!")
+            print("\n❌ ERROR: RL Engine is not responding!")
             return
 
-        print("\\n✅ RL Engine is online!")
+        print("\n✅ RL Engine is online!")
 
         self.enable_training()
         print("✅ Training mode enabled")
@@ -213,15 +216,16 @@ class ForcedBalancedExperiment:
         experiment_start = time.time()
 
         for episode in range(1, episodes + 1):
-            print(f"\\n{'=' * 80}")
+            print(f"\n{'=' * 80}")
             print(f"EPISODE {episode}/{episodes}")
             print(f"{'=' * 80}")
 
             episode_start = time.time()
 
             for iteration in range(iterations_per_episode):
-                print(f"\\n[Iteration {iteration + 1}/{iterations_per_episode}]")
+                print(f"\n[Iteration {iteration + 1}/{iterations_per_episode}]")
 
+                # Shuffle scenarios to avoid patterns
                 shuffled_scenarios = random.sample(scenarios, len(scenarios))
 
                 for idx, scenario in enumerate(shuffled_scenarios, 1):
@@ -239,14 +243,14 @@ class ForcedBalancedExperiment:
             metrics['elapsed_time'] = episode_elapsed
             self.metrics_history.append(metrics)
 
-            print(f"\\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
+            print(f"\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
 
             if episode < episodes:
                 time.sleep(1.5)
 
         experiment_elapsed = time.time() - experiment_start
 
-        print(f"\\n{'=' * 80}")
+        print(f"\n{'=' * 80}")
         print("EXPERIMENT COMPLETED!")
         print(f"{'=' * 80}")
         print(f"Total time: {experiment_elapsed:.2f}s ({experiment_elapsed / 60:.2f} minutes)")
@@ -259,7 +263,7 @@ class ForcedBalancedExperiment:
 
     def generate_report(self) -> Dict:
         """Generate complete report"""
-        print("\\n📊 Generating report...")
+        print("\n📊 Generating report...")
 
         algorithm_usage = {}
         for result in self.results:
@@ -271,42 +275,86 @@ class ForcedBalancedExperiment:
             exp = result['expected_algorithm']
             expected_algo_usage[exp] = expected_algo_usage.get(exp, 0) + 1
 
+        # By security level
+        by_security_level = {}
+        for result in self.results:
+            level = result['security_level']
+            if level not in by_security_level:
+                by_security_level[level] = {
+                    'count': 0,
+                    'success': 0,
+                    'latencies': []
+                }
+            by_security_level[level]['count'] += 1
+            if result['feedback_success']:
+                by_security_level[level]['success'] += 1
+            by_security_level[level]['latencies'].append(result['feedback_latency'])
+
+        # Calculate metrics by security level
+        for level in by_security_level:
+            data = by_security_level[level]
+            data['success_rate'] = (data['success'] / data['count'] * 100) if data['count'] > 0 else 0
+            data['avg_latency'] = statistics.mean(data['latencies']) if data['latencies'] else 0
+            del data['success']
+            del data['latencies']
+
+        # QKD analysis
+        qkd_results = [r for r in self.results if r['has_qkd']]
+        non_qkd_results = [r for r in self.results if not r['has_qkd']]
+
+        qkd_analysis = {
+            'with_qkd': {
+                'count': len(qkd_results),
+                'success_rate': (sum(1 for r in qkd_results if r['feedback_success']) / len(qkd_results) * 100) if qkd_results else 0,
+                'avg_latency': statistics.mean([r['feedback_latency'] for r in qkd_results]) if qkd_results else 0
+            },
+            'without_qkd': {
+                'count': len(non_qkd_results),
+                'success_rate': (sum(1 for r in non_qkd_results if r['feedback_success']) / len(non_qkd_results) * 100) if non_qkd_results else 0,
+                'avg_latency': statistics.mean([r['feedback_latency'] for r in non_qkd_results]) if non_qkd_results else 0
+            }
+        }
+
         total_requests = len(self.results)
         successful_requests = sum(1 for r in self.results if r['feedback_success'])
         success_rate = (successful_requests / total_requests * 100) if total_requests > 0 else 0
 
         latencies = [r['feedback_latency'] for r in self.results]
-        avg_latency = statistics.mean(latencies) if latencies else 0
+        response_times = [r['response_time'] for r in self.results]
 
         report = {
             'experiment_info': {
                 'total_requests': total_requests,
                 'total_episodes': len(self.metrics_history),
                 'timestamp': datetime.now().isoformat(),
-                'version': '4.0'
+                'version': '5.0'
             },
             'performance_metrics': {
-                'success_rate': success_rate,
-                'avg_latency_ms': avg_latency,
-                'min_latency_ms': min(latencies) if latencies else 0,
-                'max_latency_ms': max(latencies) if latencies else 0
+                'success_rate': round(success_rate, 2),
+                'avg_latency_ms': round(statistics.mean(latencies), 2) if latencies else 0,
+                'std_latency_ms': round(statistics.stdev(latencies), 2) if len(latencies) > 1 else 0,
+                'min_latency_ms': round(min(latencies), 2) if latencies else 0,
+                'max_latency_ms': round(max(latencies), 2) if latencies else 0,
+                'avg_response_time_s': round(statistics.mean(response_times), 4) if response_times else 0
             },
             'algorithm_usage': algorithm_usage,
             'expected_algorithm_distribution': expected_algo_usage,
+            'by_security_level': by_security_level,
+            'qkd_analysis': qkd_analysis,
             'metrics_history': self.metrics_history,
             'raw_results': self.results
         }
 
         return report
 
-    def save_results(self, report: Dict, prefix: str = "rl_experiment_v4"):
+    def save_results(self, report: Dict, prefix: str = "rl_experiment_v5"):
         """Save results"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         json_file = f"{prefix}_{timestamp}.json"
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
-        print(f"\\n✅ JSON Report: {json_file}")
+        print(f"\n✅ JSON Report: {json_file}")
 
         csv_file = f"{prefix}_{timestamp}_details.csv"
         with open(csv_file, 'w', newline='', encoding='utf-8') as f:
@@ -318,28 +366,36 @@ class ForcedBalancedExperiment:
 
         txt_file = f"{prefix}_{timestamp}_summary.txt"
         with open(txt_file, 'w', encoding='utf-8') as f:
-            f.write("=" * 80 + "\\n")
-            f.write("RL ENGINE - FORCED BALANCED EXPERIMENT v4.0\\n")
-            f.write("=" * 80 + "\\n\\n")
+            f.write("=" * 80 + "\n")
+            f.write("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0\n")
+            f.write("=" * 80 + "\n\n")
 
-            f.write("PERFORMANCE METRICS\\n")
-            f.write("-" * 80 + "\\n")
+            f.write("PERFORMANCE METRICS\n")
+            f.write("-" * 80 + "\n")
             for key, value in report['performance_metrics'].items():
-                f.write(f"{key}: {value:.2f}\\n")
+                f.write(f"{key}: {value}\n")
 
-            f.write("\\nEXPECTED ALGORITHM DISTRIBUTION\\n")
-            f.write("-" * 80 + "\\n")
+            f.write("\nEXPECTED ALGORITHM DISTRIBUTION (Each should have 300 requests)\n")
+            f.write("-" * 80 + "\n")
             for algo, count in sorted(report['expected_algorithm_distribution'].items()):
                 percentage = (count / report['experiment_info']['total_requests']) * 100
-                f.write(f"{algo}: {count} times ({percentage:.1f}%)\\n")
+                f.write(f"{algo}: {count} requests ({percentage:.1f}%)\n")
 
-            f.write("\\nACTUAL ALGORITHM USAGE (TOP 20)\\n")
-            f.write("-" * 80 + "\\n")
+            f.write("\nACTUAL ALGORITHM USAGE (Proposed by RL Engine)\n")
+            f.write("-" * 80 + "\n")
             sorted_algos = sorted(report['algorithm_usage'].items(),
                                   key=lambda x: x[1], reverse=True)
-            for algo, count in sorted_algos[:20]:
+            for algo, count in sorted_algos:
                 percentage = (count / report['experiment_info']['total_requests']) * 100
-                f.write(f"{algo}: {count} times ({percentage:.1f}%)\\n")
+                f.write(f"{algo}: {count} times ({percentage:.1f}%)\n")
+
+            f.write("\nBY SECURITY LEVEL\n")
+            f.write("-" * 80 + "\n")
+            for level, data in sorted(report['by_security_level'].items()):
+                f.write(f"\n{level.upper()}:\n")
+                f.write(f"  Requests: {data['count']}\n")
+                f.write(f"  Success Rate: {data['success_rate']:.2f}%\n")
+                f.write(f"  Avg Latency: {data['avg_latency']:.2f}ms\n")
 
         print(f"✅ Summary TXT: {txt_file}")
 
@@ -350,9 +406,9 @@ class ForcedBalancedExperiment:
         }
 
 
-# FORCED BALANCED SCENARIOS - Each algorithm gets equal representation
-FORCED_SCENARIOS = [
-    # === QKD BB84 (6.25%) ===
+# PERFECTLY BALANCED SCENARIOS - 20 unique algorithms, each gets exactly 5% (300 requests)
+BALANCED_SCENARIOS = [
+    # === 1. QKD BB84 (5%) ===
     {
         'name': 'QKD BB84 - Ultra Security',
         'category': 'quantum_bb84',
@@ -372,7 +428,7 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === QKD E91 (6.25%) ===
+    # === 2. QKD E91 (5%) ===
     {
         'name': 'QKD E91 - Very High Security',
         'category': 'quantum_e91',
@@ -392,7 +448,7 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === QKD CV-QKD (6.25%) ===
+    # === 3. QKD CV-QKD (5%) ===
     {
         'name': 'QKD CV-QKD - High Security',
         'category': 'quantum_cv',
@@ -412,7 +468,7 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === QKD MDI-QKD (6.25%) ===
+    # === 4. QKD MDI-QKD (5%) ===
     {
         'name': 'QKD MDI-QKD - High Security',
         'category': 'quantum_mdi',
@@ -432,13 +488,33 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === PQC KYBER (6.25%) ===
+    # === 5. QKD DECOY (5%) ===
+    {
+        'name': 'QKD DECOY - Very High Security',
+        'category': 'quantum_decoy',
+        'expected_algorithm': 'QKD_DECOY',
+        'context': {
+            'request_id': 'qkd-decoy-005',
+            'source': 'quantum-decoy-node',
+            'destination': 'http://localhost:9000',
+            'security_level': 'very_high',
+            'risk_score': 0.91,
+            'conf_score': 0.94,
+            'data_sensitivity': 0.93,
+            'dst_props': {
+                'hardware': ['QKD', 'QUANTUM'],
+                'compliance': ['NIST-PQC']
+            }
+        }
+    },
+
+    # === 6. PQC KYBER (5%) ===
     {
         'name': 'PQC KYBER - Ultra Security',
         'category': 'pqc_kyber',
         'expected_algorithm': 'PQC_KYBER',
         'context': {
-            'request_id': 'pqc-kyber-005',
+            'request_id': 'pqc-kyber-006',
             'source': 'pqc-kyber-node',
             'destination': 'http://localhost:9000',
             'security_level': 'ultra',
@@ -452,13 +528,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === PQC DILITHIUM (6.25%) ===
+    # === 7. PQC DILITHIUM (5%) ===
     {
         'name': 'PQC DILITHIUM - Very High Security',
         'category': 'pqc_dilithium',
         'expected_algorithm': 'PQC_DILITHIUM',
         'context': {
-            'request_id': 'pqc-dilithium-006',
+            'request_id': 'pqc-dilithium-007',
             'source': 'pqc-dilithium-node',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
@@ -472,13 +548,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === PQC NTRU (6.25%) ===
+    # === 8. PQC NTRU (5%) ===
     {
         'name': 'PQC NTRU - Very High Security',
         'category': 'pqc_ntru',
         'expected_algorithm': 'PQC_NTRU',
         'context': {
-            'request_id': 'pqc-ntru-007',
+            'request_id': 'pqc-ntru-008',
             'source': 'pqc-ntru-node',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
@@ -492,13 +568,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === PQC SABER (6.25%) ===
+    # === 9. PQC SABER (5%) ===
     {
         'name': 'PQC SABER - High Security',
         'category': 'pqc_saber',
         'expected_algorithm': 'PQC_SABER',
         'context': {
-            'request_id': 'pqc-saber-008',
+            'request_id': 'pqc-saber-009',
             'source': 'pqc-saber-node',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -512,13 +588,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === PQC FALCON (6.25%) ===
+    # === 10. PQC FALCON (5%) ===
     {
         'name': 'PQC FALCON - Ultra Security',
         'category': 'pqc_falcon',
         'expected_algorithm': 'PQC_FALCON',
         'context': {
-            'request_id': 'pqc-falcon-009',
+            'request_id': 'pqc-falcon-010',
             'source': 'pqc-falcon-node',
             'destination': 'http://localhost:9000',
             'security_level': 'ultra',
@@ -532,13 +608,53 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === HYBRID RSA+PQC (6.25%) ===
+    # === 11. PQC SPHINCS+ (5%) ===
+    {
+        'name': 'PQC SPHINCS+ - Very High Security',
+        'category': 'pqc_sphincs',
+        'expected_algorithm': 'PQC_SPHINCS',
+        'context': {
+            'request_id': 'pqc-sphincs-011',
+            'source': 'pqc-sphincs-node',
+            'destination': 'http://localhost:9000',
+            'security_level': 'very_high',
+            'risk_score': 0.89,
+            'conf_score': 0.92,
+            'data_sensitivity': 0.91,
+            'dst_props': {
+                'hardware': [],
+                'compliance': ['NIST-PQC']
+            }
+        }
+    },
+
+    # === 12. HYBRID QKD+PQC (5%) ===
+    {
+        'name': 'HYBRID QKD+PQC - Ultra Security',
+        'category': 'hybrid_qkd_pqc',
+        'expected_algorithm': 'HYBRID_QKD_PQC',
+        'context': {
+            'request_id': 'hybrid-qkd-pqc-012',
+            'source': 'hybrid-qkd-pqc-node',
+            'destination': 'http://localhost:9000',
+            'security_level': 'ultra',
+            'risk_score': 0.97,
+            'conf_score': 0.99,
+            'data_sensitivity': 0.98,
+            'dst_props': {
+                'hardware': ['QKD'],
+                'compliance': ['FIPS-140-3', 'NIST-PQC']
+            }
+        }
+    },
+
+    # === 13. HYBRID RSA+PQC (5%) ===
     {
         'name': 'HYBRID RSA+PQC - Very High',
         'category': 'hybrid_rsa',
         'expected_algorithm': 'HYBRID_RSA_PQC',
         'context': {
-            'request_id': 'hybrid-rsa-010',
+            'request_id': 'hybrid-rsa-013',
             'source': 'hybrid-rsa-node',
             'destination': 'http://localhost:9000',
             'security_level': 'very_high',
@@ -552,13 +668,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === HYBRID ECC+PQC (6.25%) ===
+    # === 14. HYBRID ECC+PQC (5%) ===
     {
         'name': 'HYBRID ECC+PQC - High',
         'category': 'hybrid_ecc',
         'expected_algorithm': 'HYBRID_ECC_PQC',
         'context': {
-            'request_id': 'hybrid-ecc-011',
+            'request_id': 'hybrid-ecc-014',
             'source': 'hybrid-ecc-node',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -572,13 +688,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === RSA 4096 (6.25%) ===
+    # === 15. RSA 4096 (5%) ===
     {
         'name': 'RSA 4096 - High Security',
         'category': 'classical_rsa',
         'expected_algorithm': 'RSA_4096',
         'context': {
-            'request_id': 'rsa-4096-012',
+            'request_id': 'rsa-4096-015',
             'source': 'classical-rsa-node',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -592,13 +708,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === ECC 521 (6.25%) ===
+    # === 16. ECC 521 (5%) ===
     {
         'name': 'ECC 521 - High Security',
         'category': 'classical_ecc',
         'expected_algorithm': 'ECC_521',
         'context': {
-            'request_id': 'ecc-521-013',
+            'request_id': 'ecc-521-016',
             'source': 'classical-ecc-node',
             'destination': 'http://localhost:9000',
             'security_level': 'high',
@@ -612,14 +728,14 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === AES 256 GCM (6.25%) ===
+    # === 17. AES 256 GCM (5%) ===
     {
         'name': 'AES 256 GCM - Moderate Security',
-        'category': 'classical_aes',
+        'category': 'classical_aes256',
         'expected_algorithm': 'AES_256_GCM',
         'context': {
-            'request_id': 'aes-256-014',
-            'source': 'classical-aes-node',
+            'request_id': 'aes-256-017',
+            'source': 'classical-aes256-node',
             'destination': 'http://localhost:9000',
             'security_level': 'moderate',
             'risk_score': 0.55,
@@ -632,13 +748,13 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === AES 192 (6.25%) ===
+    # === 18. AES 192 (5%) ===
     {
         'name': 'AES 192 - Moderate Security',
         'category': 'classical_aes192',
         'expected_algorithm': 'AES_192',
         'context': {
-            'request_id': 'aes-192-015',
+            'request_id': 'aes-192-018',
             'source': 'classical-aes192-node',
             'destination': 'http://localhost:9000',
             'security_level': 'moderate',
@@ -652,13 +768,33 @@ FORCED_SCENARIOS = [
         }
     },
 
-    # === FALLBACK AES (6.25%) ===
+    # === 19. ChaCha20-Poly1305 (5%) ===
+    {
+        'name': 'ChaCha20-Poly1305 - Moderate',
+        'category': 'classical_chacha',
+        'expected_algorithm': 'CHACHA20_POLY1305',
+        'context': {
+            'request_id': 'chacha20-019',
+            'source': 'classical-chacha-node',
+            'destination': 'http://localhost:9000',
+            'security_level': 'moderate',
+            'risk_score': 0.52,
+            'conf_score': 0.57,
+            'data_sensitivity': 0.55,
+            'dst_props': {
+                'hardware': [],
+                'compliance': []
+            }
+        }
+    },
+
+    # === 20. FALLBACK AES (5%) ===
     {
         'name': 'FALLBACK AES - Low Resources',
         'category': 'fallback',
         'expected_algorithm': 'FALLBACK_AES',
         'context': {
-            'request_id': 'fallback-aes-016',
+            'request_id': 'fallback-aes-020',
             'source': 'fallback-node',
             'destination': 'http://localhost:9000',
             'security_level': 'moderate',
@@ -676,36 +812,48 @@ FORCED_SCENARIOS = [
 
 
 def main():
-    print("\\n" + "=" * 80)
-    print("RL ENGINE - FORCED BALANCED EXPERIMENT v4.0")
+    print("\n" + "=" * 80)
+    print("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0")
     print("=" * 80)
+    print("\n📊 DISTRIBUTION PLAN:")
+    print(f"  • 20 unique algorithms")
+    print(f"  • Each algorithm: 5% of total requests")
+    print(f"  • 30 episodes × 10 iterations × 20 scenarios = 6000 total requests")
+    print(f"  • Expected per algorithm: 300 requests (exactly 5%)")
 
     experiment = ForcedBalancedExperiment(base_url="http://localhost:9009")
 
     report = experiment.run_experiment(
-        scenarios=FORCED_SCENARIOS,
-        episodes=25,
-        iterations_per_episode=8
+        scenarios=BALANCED_SCENARIOS,
+        episodes=30,
+        iterations_per_episode=10
     )
 
     if report:
-        files = experiment.save_results(report, prefix="rl_experiment_v4")
+        files = experiment.save_results(report, prefix="rl_experiment_v5_perfect")
 
-        print("\\n" + "=" * 80)
+        print("\n" + "=" * 80)
         print("GENERATED FILES:")
         print("=" * 80)
         for file_type, filename in files.items():
             print(f"  {file_type}: {filename}")
 
-        print("\\n" + "=" * 80)
+        print("\n" + "=" * 80)
         print("QUICK SUMMARY:")
         print("=" * 80)
         print(f"Success rate: {report['performance_metrics']['success_rate']:.2f}%")
         print(f"Average latency: {report['performance_metrics']['avg_latency_ms']:.2f}ms")
         print(f"Total requests: {report['experiment_info']['total_requests']}")
+        print(f"Unique algorithms expected: 20")
         print(f"Unique algorithms used: {len(report['algorithm_usage'])}")
 
-        print("\\n✅ Experiment v4.0 completed successfully!")
+        print("\n📊 ALGORITHM DISTRIBUTION:")
+        print("-" * 80)
+        for algo, count in sorted(report['expected_algorithm_distribution'].items()):
+            percentage = (count / report['experiment_info']['total_requests']) * 100
+            print(f"  {algo}: {count} requests ({percentage:.1f}%)")
+
+        print("\n✅ Experiment v5.0 completed successfully!")
 
 
 if __name__ == "__main__":
