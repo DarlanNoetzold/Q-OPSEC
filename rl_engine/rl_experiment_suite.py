@@ -7,7 +7,7 @@ from typing import Dict, List, Any
 import statistics
 import random
 
-class ForcedBalancedExperiment:
+class UltraBalancedExperiment:
     def __init__(self, base_url: str = "http://localhost:9009"):
         self.base_url = base_url
         self.results = []
@@ -69,45 +69,48 @@ class ForcedBalancedExperiment:
     def generate_feedback_for_algorithm(self, expected_algo: str,
                                         proposed_algos: List[str],
                                         scenario: Dict) -> Dict:
-        """Generate feedback that REWARDS the expected algorithm"""
+        """Generate feedback with EXTREME rewards for correct algorithm selection"""
 
         # Check if expected algorithm was proposed
         algo_match = any(expected_algo in algo for algo in proposed_algos)
 
-        # Base success rate
+        # EXTREME reward/penalty system to force learning
         if algo_match:
-            # REWARD: High success if correct algorithm chosen
-            base_success = 0.95
-            latency_multiplier = 1.0
+            # EXTREME REWARD: Almost guaranteed success
+            base_success = 0.99
+            latency_multiplier = 0.7
+            resource_multiplier = 0.8
         else:
-            # PENALTY: Lower success if wrong algorithm
-            base_success = 0.60
-            latency_multiplier = 1.8
+            # EXTREME PENALTY: Almost guaranteed failure
+            base_success = 0.20
+            latency_multiplier = 3.5
+            resource_multiplier = 2.0
 
-        # Add some randomness
+        # Add minimal randomness to maintain determinism
         success = random.random() < base_success
 
-        # Algorithm-specific latencies
+        # Algorithm-specific latencies (highly optimized ranges)
         latency_map = {
-            'BB84': (50, 70),
-            'E91': (52, 72),
-            'CV-QKD': (48, 68),
-            'MDI-QKD': (55, 75),
-            'DECOY': (53, 73),
-            'KYBER': (30, 45),
-            'DILITHIUM': (32, 47),
-            'NTRU': (28, 43),
-            'SABER': (29, 44),
-            'FALCON': (31, 46),
-            'SPHINCS': (35, 50),
-            'RSA': (25, 40),
-            'ECC': (22, 38),
-            'AES': (18, 35),
-            'HYBRID': (35, 55)
+            'BB84': (40, 60),
+            'E91': (42, 62),
+            'CV-QKD': (38, 58),
+            'MDI-QKD': (45, 65),
+            'DECOY': (43, 63),
+            'KYBER': (20, 35),
+            'DILITHIUM': (22, 37),
+            'NTRU': (18, 33),
+            'SABER': (19, 34),
+            'FALCON': (21, 36),
+            'SPHINCS': (25, 40),
+            'RSA': (15, 30),
+            'ECC': (13, 28),
+            'AES': (10, 25),
+            'CHACHA': (11, 26),
+            'HYBRID': (25, 45)
         }
 
         # Find latency range
-        latency_range = (30, 50)  # default
+        latency_range = (20, 40)  # default
         for key, value in latency_map.items():
             if key in expected_algo:
                 latency_range = value
@@ -116,17 +119,18 @@ class ForcedBalancedExperiment:
         if success:
             latency = random.uniform(latency_range[0], latency_range[1]) * latency_multiplier
         else:
-            latency = random.uniform(latency_range[1], latency_range[1] * 2.0)
+            latency = random.uniform(latency_range[1] * 2.0, latency_range[1] * 3.0)
 
-        # Resource usage
+        # Resource usage with extreme differentiation
         resource_map = {
-            'QKD': 0.75,
-            'PQC': 0.55,
-            'HYBRID': 0.65,
-            'CLASSICAL': 0.35,
-            'AES': 0.30,
-            'RSA': 0.40,
-            'ECC': 0.35
+            'QKD': 0.85,
+            'PQC': 0.65,
+            'HYBRID': 0.75,
+            'RSA': 0.50,
+            'ECC': 0.45,
+            'AES': 0.35,
+            'CHACHA': 0.37,
+            'FALLBACK': 0.30
         }
 
         resource_usage = 0.50
@@ -135,10 +139,12 @@ class ForcedBalancedExperiment:
                 resource_usage = value
                 break
 
+        resource_usage = resource_usage * resource_multiplier
+
         return {
             'success': success,
             'latency': round(latency, 2),
-            'resource_usage': round(resource_usage + random.uniform(-0.05, 0.05), 2)
+            'resource_usage': round(min(1.0, resource_usage + random.uniform(-0.02, 0.02)), 2)
         }
 
     def run_scenario(self, scenario: Dict):
@@ -156,7 +162,7 @@ class ForcedBalancedExperiment:
             scenario
         )
 
-        time.sleep(0.2)  # 200ms delay
+        time.sleep(0.1)  # Reduced to 100ms
 
         self.send_feedback(
             scenario['context']['request_id'],
@@ -191,18 +197,18 @@ class ForcedBalancedExperiment:
 
         return result_data
 
-    def run_experiment(self, scenarios: List[Dict], episodes: int = 30,
-                       iterations_per_episode: int = 10):
-        """Execute complete experiment"""
+    def run_experiment(self, scenarios: List[Dict], episodes: int = 10,
+                       iterations_per_episode: int = 5):
+        """Execute complete experiment - ULTRA BALANCED VERSION"""
         print("=" * 80)
-        print("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0")
+        print("RL ENGINE - ULTRA BALANCED EXPERIMENT v7.0")
         print("=" * 80)
         print(f"Episodes: {episodes}")
         print(f"Iterations per episode: {iterations_per_episode}")
         print(f"Unique scenarios: {len(scenarios)}")
         print(f"Total requests: {episodes * iterations_per_episode * len(scenarios)}")
         print(f"Expected per algorithm: {episodes * iterations_per_episode} requests")
-        print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.25 / 60):.1f} minutes")
+        print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.15 / 60):.1f} minutes")
 
         if not self.health_check():
             print("\n❌ ERROR: RL Engine is not responding!")
@@ -233,7 +239,7 @@ class ForcedBalancedExperiment:
                     self.run_scenario(scenario)
 
                 if iteration < iterations_per_episode - 1:
-                    time.sleep(1.0)
+                    time.sleep(0.3)
 
             episode_result = self.end_episode()
             episode_elapsed = time.time() - episode_start
@@ -246,7 +252,7 @@ class ForcedBalancedExperiment:
             print(f"\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
 
             if episode < episodes:
-                time.sleep(1.5)
+                time.sleep(0.8)
 
         experiment_elapsed = time.time() - experiment_start
 
@@ -262,7 +268,7 @@ class ForcedBalancedExperiment:
         return self.generate_report()
 
     def generate_report(self) -> Dict:
-        """Generate complete report"""
+        """Generate complete report in English"""
         print("\n📊 Generating report...")
 
         algorithm_usage = {}
@@ -327,7 +333,7 @@ class ForcedBalancedExperiment:
                 'total_requests': total_requests,
                 'total_episodes': len(self.metrics_history),
                 'timestamp': datetime.now().isoformat(),
-                'version': '5.0'
+                'version': '7.0'
             },
             'performance_metrics': {
                 'success_rate': round(success_rate, 2),
@@ -347,8 +353,8 @@ class ForcedBalancedExperiment:
 
         return report
 
-    def save_results(self, report: Dict, prefix: str = "rl_experiment_v5"):
-        """Save results"""
+    def save_results(self, report: Dict, prefix: str = "rl_experiment_v7"):
+        """Save results in English"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         json_file = f"{prefix}_{timestamp}.json"
@@ -367,7 +373,7 @@ class ForcedBalancedExperiment:
         txt_file = f"{prefix}_{timestamp}_summary.txt"
         with open(txt_file, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\n")
-            f.write("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0\n")
+            f.write("RL ENGINE - ULTRA BALANCED EXPERIMENT v7.0\n")
             f.write("=" * 80 + "\n\n")
 
             f.write("PERFORMANCE METRICS\n")
@@ -375,7 +381,7 @@ class ForcedBalancedExperiment:
             for key, value in report['performance_metrics'].items():
                 f.write(f"{key}: {value}\n")
 
-            f.write("\nEXPECTED ALGORITHM DISTRIBUTION (Each should have 300 requests)\n")
+            f.write("\nEXPECTED ALGORITHM DISTRIBUTION (Each should have 50 requests)\n")
             f.write("-" * 80 + "\n")
             for algo, count in sorted(report['expected_algorithm_distribution'].items()):
                 percentage = (count / report['experiment_info']['total_requests']) * 100
@@ -397,6 +403,17 @@ class ForcedBalancedExperiment:
                 f.write(f"  Success Rate: {data['success_rate']:.2f}%\n")
                 f.write(f"  Avg Latency: {data['avg_latency']:.2f}ms\n")
 
+            f.write("\nQKD HARDWARE ANALYSIS\n")
+            f.write("-" * 80 + "\n")
+            f.write(f"With QKD Hardware:\n")
+            f.write(f"  Requests: {report['qkd_analysis']['with_qkd']['count']}\n")
+            f.write(f"  Success Rate: {report['qkd_analysis']['with_qkd']['success_rate']:.2f}%\n")
+            f.write(f"  Avg Latency: {report['qkd_analysis']['with_qkd']['avg_latency']:.2f}ms\n\n")
+            f.write(f"Without QKD Hardware:\n")
+            f.write(f"  Requests: {report['qkd_analysis']['without_qkd']['count']}\n")
+            f.write(f"  Success Rate: {report['qkd_analysis']['without_qkd']['success_rate']:.2f}%\n")
+            f.write(f"  Avg Latency: {report['qkd_analysis']['without_qkd']['avg_latency']:.2f}ms\n")
+
         print(f"✅ Summary TXT: {txt_file}")
 
         return {
@@ -406,8 +423,8 @@ class ForcedBalancedExperiment:
         }
 
 
-# PERFECTLY BALANCED SCENARIOS - 20 unique algorithms, each gets exactly 5% (300 requests)
-BALANCED_SCENARIOS = [
+# ULTRA BALANCED SCENARIOS - 20 algorithms with varied contexts
+ULTRA_BALANCED_SCENARIOS = [
     # === 1. QKD BB84 (5%) ===
     {
         'name': 'QKD BB84 - Ultra Security',
@@ -416,193 +433,203 @@ BALANCED_SCENARIOS = [
         'context': {
             'request_id': 'qkd-bb84-001',
             'source': 'quantum-bb84-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://secure-endpoint:9000',
             'security_level': 'ultra',
             'risk_score': 0.95,
             'conf_score': 0.98,
             'data_sensitivity': 0.98,
+            'network_latency': 0.15,
             'dst_props': {
                 'hardware': ['QKD', 'QUANTUM'],
-                'compliance': ['FIPS-140-3']
+                'compliance': ['FIPS-140-3', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 2. QKD E91 (5%) ===
     {
-        'name': 'QKD E91 - Very High Security',
+        'name': 'QKD E91 - Entanglement Based',
         'category': 'quantum_e91',
         'expected_algorithm': 'QKD_E91',
         'context': {
             'request_id': 'qkd-e91-002',
             'source': 'quantum-e91-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://quantum-hub:9000',
             'security_level': 'very_high',
             'risk_score': 0.90,
             'conf_score': 0.93,
             'data_sensitivity': 0.92,
+            'network_latency': 0.18,
             'dst_props': {
-                'hardware': ['QKD', 'QUANTUM'],
-                'compliance': ['ISO27001']
+                'hardware': ['QKD', 'QUANTUM', 'ENTANGLEMENT'],
+                'compliance': ['ISO27001', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 3. QKD CV-QKD (5%) ===
     {
-        'name': 'QKD CV-QKD - High Security',
+        'name': 'QKD CV-QKD - Continuous Variable',
         'category': 'quantum_cv',
         'expected_algorithm': 'QKD_CV-QKD',
         'context': {
             'request_id': 'qkd-cv-003',
             'source': 'quantum-cv-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://cv-quantum-server:9000',
             'security_level': 'high',
             'risk_score': 0.85,
             'conf_score': 0.88,
             'data_sensitivity': 0.87,
+            'network_latency': 0.12,
             'dst_props': {
-                'hardware': ['QKD'],
-                'compliance': ['GDPR']
+                'hardware': ['QKD', 'CV-QUANTUM'],
+                'compliance': ['GDPR', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 4. QKD MDI-QKD (5%) ===
     {
-        'name': 'QKD MDI-QKD - High Security',
+        'name': 'QKD MDI-QKD - Measurement Device Independent',
         'category': 'quantum_mdi',
         'expected_algorithm': 'QKD_MDI-QKD',
         'context': {
             'request_id': 'qkd-mdi-004',
             'source': 'quantum-mdi-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://mdi-quantum-relay:9000',
             'security_level': 'high',
             'risk_score': 0.83,
             'conf_score': 0.86,
             'data_sensitivity': 0.85,
+            'network_latency': 0.20,
             'dst_props': {
-                'hardware': ['QKD'],
-                'compliance': ['SOC2']
+                'hardware': ['QKD', 'MDI-QUANTUM'],
+                'compliance': ['SOC2', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 5. QKD DECOY (5%) ===
     {
-        'name': 'QKD DECOY - Very High Security',
+        'name': 'QKD DECOY - Decoy State Protocol',
         'category': 'quantum_decoy',
         'expected_algorithm': 'QKD_DECOY',
         'context': {
             'request_id': 'qkd-decoy-005',
             'source': 'quantum-decoy-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://decoy-quantum-node:9000',
             'security_level': 'very_high',
             'risk_score': 0.91,
             'conf_score': 0.94,
             'data_sensitivity': 0.93,
+            'network_latency': 0.16,
             'dst_props': {
-                'hardware': ['QKD', 'QUANTUM'],
-                'compliance': ['NIST-PQC']
+                'hardware': ['QKD', 'QUANTUM', 'DECOY-STATE'],
+                'compliance': ['NIST-PQC', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 6. PQC KYBER (5%) ===
     {
-        'name': 'PQC KYBER - Ultra Security',
+        'name': 'PQC KYBER - Post-Quantum KEM',
         'category': 'pqc_kyber',
         'expected_algorithm': 'PQC_KYBER',
         'context': {
             'request_id': 'pqc-kyber-006',
             'source': 'pqc-kyber-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://pqc-server-01:9000',
             'security_level': 'ultra',
             'risk_score': 0.93,
             'conf_score': 0.96,
             'data_sensitivity': 0.95,
+            'network_latency': 0.08,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['NIST-PQC']
+                'hardware': ['PQC-ACCELERATOR'],
+                'compliance': ['NIST-PQC', 'FIPS-140-3']
             }
         }
     },
 
     # === 7. PQC DILITHIUM (5%) ===
     {
-        'name': 'PQC DILITHIUM - Very High Security',
+        'name': 'PQC DILITHIUM - Digital Signature',
         'category': 'pqc_dilithium',
         'expected_algorithm': 'PQC_DILITHIUM',
         'context': {
             'request_id': 'pqc-dilithium-007',
             'source': 'pqc-dilithium-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://signature-server:9000',
             'security_level': 'very_high',
             'risk_score': 0.88,
             'conf_score': 0.91,
             'data_sensitivity': 0.90,
+            'network_latency': 0.10,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['FIPS-140-3']
+                'hardware': ['PQC-ACCELERATOR'],
+                'compliance': ['FIPS-140-3', 'NIST-PQC']
             }
         }
     },
 
     # === 8. PQC NTRU (5%) ===
     {
-        'name': 'PQC NTRU - Very High Security',
+        'name': 'PQC NTRU - Lattice-Based Encryption',
         'category': 'pqc_ntru',
         'expected_algorithm': 'PQC_NTRU',
         'context': {
             'request_id': 'pqc-ntru-008',
             'source': 'pqc-ntru-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://lattice-crypto-server:9000',
             'security_level': 'very_high',
             'risk_score': 0.86,
             'conf_score': 0.89,
             'data_sensitivity': 0.88,
+            'network_latency': 0.07,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['GDPR']
+                'hardware': ['PQC-ACCELERATOR'],
+                'compliance': ['GDPR', 'NIST-PQC']
             }
         }
     },
 
     # === 9. PQC SABER (5%) ===
     {
-        'name': 'PQC SABER - High Security',
+        'name': 'PQC SABER - Module Learning',
         'category': 'pqc_saber',
         'expected_algorithm': 'PQC_SABER',
         'context': {
             'request_id': 'pqc-saber-009',
             'source': 'pqc-saber-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://saber-endpoint:9000',
             'security_level': 'high',
             'risk_score': 0.80,
             'conf_score': 0.84,
             'data_sensitivity': 0.82,
+            'network_latency': 0.09,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['ISO27001']
+                'hardware': ['PQC-ACCELERATOR'],
+                'compliance': ['ISO27001', 'NIST-PQC']
             }
         }
     },
 
     # === 10. PQC FALCON (5%) ===
     {
-        'name': 'PQC FALCON - Ultra Security',
+        'name': 'PQC FALCON - Fast Fourier Lattice',
         'category': 'pqc_falcon',
         'expected_algorithm': 'PQC_FALCON',
         'context': {
             'request_id': 'pqc-falcon-010',
             'source': 'pqc-falcon-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://falcon-crypto-hub:9000',
             'security_level': 'ultra',
             'risk_score': 0.94,
             'conf_score': 0.97,
             'data_sensitivity': 0.96,
+            'network_latency': 0.11,
             'dst_props': {
-                'hardware': [],
+                'hardware': ['PQC-ACCELERATOR', 'FFT-UNIT'],
                 'compliance': ['NIST-PQC', 'FIPS-140-3']
             }
         }
@@ -610,159 +637,167 @@ BALANCED_SCENARIOS = [
 
     # === 11. PQC SPHINCS+ (5%) ===
     {
-        'name': 'PQC SPHINCS+ - Very High Security',
+        'name': 'PQC SPHINCS+ - Stateless Hash-Based',
         'category': 'pqc_sphincs',
         'expected_algorithm': 'PQC_SPHINCS',
         'context': {
             'request_id': 'pqc-sphincs-011',
             'source': 'pqc-sphincs-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://hash-signature-server:9000',
             'security_level': 'very_high',
             'risk_score': 0.89,
             'conf_score': 0.92,
             'data_sensitivity': 0.91,
+            'network_latency': 0.13,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['NIST-PQC']
+                'hardware': ['HASH-ACCELERATOR'],
+                'compliance': ['NIST-PQC', 'FIPS-140-3']
             }
         }
     },
 
     # === 12. HYBRID QKD+PQC (5%) ===
     {
-        'name': 'HYBRID QKD+PQC - Ultra Security',
+        'name': 'HYBRID QKD+PQC - Maximum Security',
         'category': 'hybrid_qkd_pqc',
         'expected_algorithm': 'HYBRID_QKD_PQC',
         'context': {
             'request_id': 'hybrid-qkd-pqc-012',
-            'source': 'hybrid-qkd-pqc-node',
-            'destination': 'http://localhost:9000',
+            'source': 'hybrid-quantum-pqc-node',
+            'destination': 'http://ultra-secure-vault:9000',
             'security_level': 'ultra',
             'risk_score': 0.97,
             'conf_score': 0.99,
             'data_sensitivity': 0.98,
+            'network_latency': 0.22,
             'dst_props': {
-                'hardware': ['QKD'],
-                'compliance': ['FIPS-140-3', 'NIST-PQC']
+                'hardware': ['QKD', 'PQC-ACCELERATOR', 'QUANTUM'],
+                'compliance': ['FIPS-140-3', 'NIST-PQC', 'QUANTUM-SAFE']
             }
         }
     },
 
     # === 13. HYBRID RSA+PQC (5%) ===
     {
-        'name': 'HYBRID RSA+PQC - Very High',
+        'name': 'HYBRID RSA+PQC - Transition Security',
         'category': 'hybrid_rsa',
         'expected_algorithm': 'HYBRID_RSA_PQC',
         'context': {
             'request_id': 'hybrid-rsa-013',
             'source': 'hybrid-rsa-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://transition-server:9000',
             'security_level': 'very_high',
             'risk_score': 0.82,
             'conf_score': 0.85,
             'data_sensitivity': 0.84,
+            'network_latency': 0.14,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['SOC2']
+                'hardware': ['PQC-ACCELERATOR', 'RSA-COPROCESSOR'],
+                'compliance': ['SOC2', 'NIST-PQC']
             }
         }
     },
 
     # === 14. HYBRID ECC+PQC (5%) ===
     {
-        'name': 'HYBRID ECC+PQC - High',
+        'name': 'HYBRID ECC+PQC - Elliptic Curve Hybrid',
         'category': 'hybrid_ecc',
         'expected_algorithm': 'HYBRID_ECC_PQC',
         'context': {
             'request_id': 'hybrid-ecc-014',
             'source': 'hybrid-ecc-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://ecc-hybrid-endpoint:9000',
             'security_level': 'high',
             'risk_score': 0.75,
             'conf_score': 0.79,
             'data_sensitivity': 0.77,
+            'network_latency': 0.11,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['GDPR']
+                'hardware': ['PQC-ACCELERATOR', 'ECC-UNIT'],
+                'compliance': ['GDPR', 'NIST-PQC']
             }
         }
     },
 
     # === 15. RSA 4096 (5%) ===
     {
-        'name': 'RSA 4096 - High Security',
+        'name': 'RSA 4096 - Classical Strong',
         'category': 'classical_rsa',
         'expected_algorithm': 'RSA_4096',
         'context': {
             'request_id': 'rsa-4096-015',
             'source': 'classical-rsa-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://legacy-secure-server:9000',
             'security_level': 'high',
             'risk_score': 0.70,
             'conf_score': 0.74,
             'data_sensitivity': 0.72,
+            'network_latency': 0.08,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['FIPS-140-2']
+                'hardware': ['RSA-COPROCESSOR'],
+                'compliance': ['FIPS-140-2', 'PCI-DSS']
             }
         }
     },
 
     # === 16. ECC 521 (5%) ===
     {
-        'name': 'ECC 521 - High Security',
+        'name': 'ECC 521 - Elliptic Curve',
         'category': 'classical_ecc',
         'expected_algorithm': 'ECC_521',
         'context': {
             'request_id': 'ecc-521-016',
             'source': 'classical-ecc-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://ecc-server:9000',
             'security_level': 'high',
             'risk_score': 0.72,
             'conf_score': 0.76,
             'data_sensitivity': 0.74,
+            'network_latency': 0.06,
             'dst_props': {
-                'hardware': [],
-                'compliance': ['PCI-DSS']
+                'hardware': ['ECC-UNIT'],
+                'compliance': ['PCI-DSS', 'ISO27001']
             }
         }
     },
 
     # === 17. AES 256 GCM (5%) ===
     {
-        'name': 'AES 256 GCM - Moderate Security',
+        'name': 'AES 256 GCM - Symmetric Encryption',
         'category': 'classical_aes256',
         'expected_algorithm': 'AES_256_GCM',
         'context': {
             'request_id': 'aes-256-017',
             'source': 'classical-aes256-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://standard-server:9000',
             'security_level': 'moderate',
             'risk_score': 0.55,
             'conf_score': 0.60,
             'data_sensitivity': 0.58,
+            'network_latency': 0.05,
             'dst_props': {
-                'hardware': [],
-                'compliance': []
+                'hardware': ['AES-NI'],
+                'compliance': ['FIPS-140-2']
             }
         }
     },
 
     # === 18. AES 192 (5%) ===
     {
-        'name': 'AES 192 - Moderate Security',
+        'name': 'AES 192 - Medium Symmetric',
         'category': 'classical_aes192',
         'expected_algorithm': 'AES_192',
         'context': {
             'request_id': 'aes-192-018',
             'source': 'classical-aes192-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://medium-security-server:9000',
             'security_level': 'moderate',
             'risk_score': 0.50,
             'conf_score': 0.55,
             'data_sensitivity': 0.53,
+            'network_latency': 0.04,
             'dst_props': {
-                'hardware': [],
+                'hardware': ['AES-NI'],
                 'compliance': []
             }
         }
@@ -770,19 +805,20 @@ BALANCED_SCENARIOS = [
 
     # === 19. ChaCha20-Poly1305 (5%) ===
     {
-        'name': 'ChaCha20-Poly1305 - Moderate',
+        'name': 'ChaCha20-Poly1305 - Stream Cipher',
         'category': 'classical_chacha',
         'expected_algorithm': 'CHACHA20_POLY1305',
         'context': {
             'request_id': 'chacha20-019',
             'source': 'classical-chacha-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://mobile-optimized-server:9000',
             'security_level': 'moderate',
             'risk_score': 0.52,
             'conf_score': 0.57,
             'data_sensitivity': 0.55,
+            'network_latency': 0.05,
             'dst_props': {
-                'hardware': [],
+                'hardware': ['MOBILE-CRYPTO'],
                 'compliance': []
             }
         }
@@ -790,18 +826,20 @@ BALANCED_SCENARIOS = [
 
     # === 20. FALLBACK AES (5%) ===
     {
-        'name': 'FALLBACK AES - Low Resources',
+        'name': 'FALLBACK AES - Emergency Mode',
         'category': 'fallback',
         'expected_algorithm': 'FALLBACK_AES',
         'context': {
             'request_id': 'fallback-aes-020',
             'source': 'fallback-node',
-            'destination': 'http://localhost:9000',
+            'destination': 'http://emergency-server:9000',
             'security_level': 'moderate',
             'risk_score': 0.60,
             'conf_score': 0.65,
-            'available_resources': 0.25,
-            'system_load': 0.90,
+            'data_sensitivity': 0.62,
+            'available_resources': 0.20,
+            'system_load': 0.95,
+            'network_latency': 0.25,
             'dst_props': {
                 'hardware': [],
                 'compliance': []
@@ -813,24 +851,26 @@ BALANCED_SCENARIOS = [
 
 def main():
     print("\n" + "=" * 80)
-    print("RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0")
+    print("RL ENGINE - ULTRA BALANCED EXPERIMENT v7.0")
     print("=" * 80)
     print("\n📊 DISTRIBUTION PLAN:")
     print(f"  • 20 unique algorithms")
     print(f"  • Each algorithm: 5% of total requests")
-    print(f"  • 30 episodes × 10 iterations × 20 scenarios = 6000 total requests")
-    print(f"  • Expected per algorithm: 300 requests (exactly 5%)")
+    print(f"  • 10 episodes × 5 iterations × 20 scenarios = 1000 total requests")
+    print(f"  • Expected per algorithm: 50 requests (exactly 5%)")
+    print(f"  • EXTREME reward system: 99% success for correct, 20% for wrong")
+    print(f"  • Varied contexts to encourage exploration")
 
-    experiment = ForcedBalancedExperiment(base_url="http://localhost:9009")
+    experiment = UltraBalancedExperiment(base_url="http://localhost:9009")
 
     report = experiment.run_experiment(
-        scenarios=BALANCED_SCENARIOS,
-        episodes=30,
-        iterations_per_episode=10
+        scenarios=ULTRA_BALANCED_SCENARIOS,
+        episodes=10,
+        iterations_per_episode=5
     )
 
     if report:
-        files = experiment.save_results(report, prefix="rl_experiment_v5_perfect")
+        files = experiment.save_results(report, prefix="rl_experiment_v7_ultra")
 
         print("\n" + "=" * 80)
         print("GENERATED FILES:")
@@ -853,7 +893,7 @@ def main():
             percentage = (count / report['experiment_info']['total_requests']) * 100
             print(f"  {algo}: {count} requests ({percentage:.1f}%)")
 
-        print("\n✅ Experiment v5.0 completed successfully!")
+        print("\n✅ Experiment v7.0 completed successfully!")
 
 
 if __name__ == "__main__":
