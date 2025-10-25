@@ -1,0 +1,50 @@
+% Tabela 1: Métricas Gerais de Performance
+\begin{table}[h]
+\centering
+\caption{Métricas Gerais de Performance do RL Engine}
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+Taxa de Sucesso & 65.02\% \\
+Latência Média & 69.88 ms \\
+Desvio Padrão Latência & 26.26 ms \\
+Latência Mínima & 18.02 ms \\
+Latência Máxima & 149.83 ms \\
+Tempo de Resposta Médio & 6.1302 s \\
+\hline
+\end{tabular}
+\label{tab:general_metrics}
+\end{table}
+
+% Tabela 2: Métricas por Nível de Segurança
+\begin{table}[h]
+\centering
+\caption{Métricas por Nível de Segurança}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Nível} & \textbf{Requisições} & \textbf{Taxa Sucesso (\%)} & \textbf{Latência (ms)} \\
+\hline
+very_high & 1800 & 59.28 & 81.86 \\
+moderate & 1200 & 69.25 & 49.80 \\
+high & 1800 & 59.50 & 75.76 \\
+ultra & 1200 & 77.67 & 63.17 \\
+\hline
+\end{tabular}
+\label{tab:security_level_metrics}
+\end{table}
+
+% Tabela 3: Comparação QKD vs Não-QKD
+\begin{table}[h]
+\centering
+\caption{Comparação: QKD vs Não-QKD}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Tipo} & \textbf{Requisições} & \textbf{Taxa Sucesso (\%)} & \textbf{Latência (ms)} \\
+\hline
+Com QKD & 1800 & 65.83 & 97.46 \\
+Sem QKD & 4200 & 64.67 & 58.06 \\
+\hline
+\end{tabular}
+\label{tab:qkd_comparison}
+\end{table}

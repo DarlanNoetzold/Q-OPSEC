@@ -1,0 +1,78 @@
+================================================================================
+RL ENGINE - PERFECTLY BALANCED EXPERIMENT v5.0
+================================================================================
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+success_rate: 65.02
+avg_latency_ms: 69.88
+std_latency_ms: 26.26
+min_latency_ms: 18.02
+max_latency_ms: 149.83
+avg_response_time_s: 6.1302
+
+EXPECTED ALGORITHM DISTRIBUTION (Each should have 300 requests)
+--------------------------------------------------------------------------------
+AES_192: 300 requests (5.0%)
+AES_256_GCM: 300 requests (5.0%)
+CHACHA20_POLY1305: 300 requests (5.0%)
+ECC_521: 300 requests (5.0%)
+FALLBACK_AES: 300 requests (5.0%)
+HYBRID_ECC_PQC: 300 requests (5.0%)
+HYBRID_QKD_PQC: 300 requests (5.0%)
+HYBRID_RSA_PQC: 300 requests (5.0%)
+PQC_DILITHIUM: 300 requests (5.0%)
+PQC_FALCON: 300 requests (5.0%)
+PQC_KYBER: 300 requests (5.0%)
+PQC_NTRU: 300 requests (5.0%)
+PQC_SABER: 300 requests (5.0%)
+PQC_SPHINCS: 300 requests (5.0%)
+QKD_BB84: 300 requests (5.0%)
+QKD_CV-QKD: 300 requests (5.0%)
+QKD_DECOY: 300 requests (5.0%)
+QKD_E91: 300 requests (5.0%)
+QKD_MDI-QKD: 300 requests (5.0%)
+RSA_4096: 300 requests (5.0%)
+
+ACTUAL ALGORITHM USAGE (Proposed by RL Engine)
+--------------------------------------------------------------------------------
+AES_256_GCM: 6000 times (100.0%)
+PQC_KYBER: 4716 times (78.6%)
+QKD_BB84: 1766 times (29.4%)
+AES_192: 326 times (5.4%)
+FALLBACK_AES: 55 times (0.9%)
+PQC_DILITHIUM: 13 times (0.2%)
+ECC_521: 10 times (0.2%)
+PQC_SABER: 10 times (0.2%)
+PQC_NTRU: 9 times (0.1%)
+RSA_4096: 8 times (0.1%)
+HYBRID_ECC_PQC: 6 times (0.1%)
+HYBRID_RSA_PQC: 6 times (0.1%)
+QKD_MDI-QKD: 3 times (0.1%)
+QKD_CV-QKD: 2 times (0.0%)
+QKD_DECOY: 2 times (0.0%)
+QKD_E91: 2 times (0.0%)
+PQC_FALCON: 1 times (0.0%)
+
+BY SECURITY LEVEL
+--------------------------------------------------------------------------------
+
+HIGH:
+  Requests: 1800
+  Success Rate: 59.50%
+  Avg Latency: 75.76ms
+
+MODERATE:
+  Requests: 1200
+  Success Rate: 69.25%
+  Avg Latency: 49.80ms
+
+ULTRA:
+  Requests: 1200
+  Success Rate: 77.67%
+  Avg Latency: 63.17ms
+
+VERY_HIGH:
+  Requests: 1800
+  Success Rate: 59.28%
+  Avg Latency: 81.86ms
