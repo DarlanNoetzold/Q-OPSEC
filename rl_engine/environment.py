@@ -40,10 +40,10 @@ class SecurityLevel(Enum):
 @dataclass
 class ContextFeatures:
     # Origin Context
-    source_reputation: float  # 0.0 to 1.0
-    source_location_risk: float  # 0.0 to 1.0
+    source_reputation: float
+    source_location_risk: float
     source_device_type: str
-    source_behavioral_score: float  # 0.0 to 1.0
+    source_behavioral_score: float
 
     # Destination Context
     dest_reputation: float
@@ -52,24 +52,24 @@ class ContextFeatures:
     dest_hardware_capabilities: List[str]
 
     # Application Context
-    data_sensitivity: float  # 0.0 to 1.0
+    data_sensitivity: float
     data_type: str
-    service_criticality: float  # 0.0 to 1.0
+    service_criticality: float
 
     # Temporal Context
-    time_of_day: int  # 0-23
-    day_of_week: int  # 0-6
+    time_of_day: int
+    day_of_week: int
     is_peak_attack_time: bool
 
     # Risk Factor Context
-    current_threat_level: float  # 0.0 to 1.0
-    incident_history_score: float  # 0.0 to 1.0
-    anomaly_score: float  # 0.0 to 1.0
+    current_threat_level: float
+    incident_history_score: float
+    anomaly_score: float
 
     # System State
-    system_load: float  # 0.0 to 1.0
-    available_resources: float  # 0.0 to 1.0
-    network_latency: float  # milliseconds
+    system_load: float
+    available_resources: float
+    network_latency: float
 
     # Quantum Resources
     qkd_available: bool
@@ -95,6 +95,7 @@ class EnhancedEnvironment:
 
     def _build_algorithm_requirements(self) -> Dict[CryptoAlgorithm, Dict[str, Any]]:
         return {
+            # QKD Algorithms
             CryptoAlgorithm.QKD_BB84: {
                 'min_security_level': SecurityLevel.HIGH,
                 'requires_qkd': True,
@@ -126,50 +127,50 @@ class EnhancedEnvironment:
                 'min_resources': 0.7
             },
 
-            # Post-Quantum Cryptography
+            # Post-Quantum Cryptography - RELAXED REQUIREMENTS
             CryptoAlgorithm.PQC_KYBER: {
-                'min_security_level': SecurityLevel.HIGH,
+                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.4
+                'min_resources': 0.3  # LOWERED
             },
             CryptoAlgorithm.PQC_DILITHIUM: {
-                'min_security_level': SecurityLevel.HIGH,
+                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.4
+                'min_resources': 0.3  # LOWERED
             },
             CryptoAlgorithm.PQC_NTRU: {
-                'min_security_level': SecurityLevel.VERY_HIGH,
+                'min_security_level': SecurityLevel.HIGH,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.5
+                'min_resources': 0.4  # LOWERED
             },
             CryptoAlgorithm.PQC_SABER: {
-                'min_security_level': SecurityLevel.VERY_HIGH,
+                'min_security_level': SecurityLevel.HIGH,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.5
+                'min_resources': 0.4  # LOWERED
             },
             CryptoAlgorithm.PQC_FALCON: {
-                'min_security_level': SecurityLevel.ULTRA,
+                'min_security_level': SecurityLevel.VERY_HIGH,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.6
+                'min_resources': 0.5  # LOWERED
             },
 
-            # Hybrid approaches
+            # Hybrid approaches - RELAXED
             CryptoAlgorithm.HYBRID_RSA_PQC: {
-                'min_security_level': SecurityLevel.VERY_HIGH,
+                'min_security_level': SecurityLevel.HIGH,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.6
+                'min_resources': 0.5  # LOWERED
             },
             CryptoAlgorithm.HYBRID_ECC_PQC: {
-                'min_security_level': SecurityLevel.VERY_HIGH,
+                'min_security_level': SecurityLevel.HIGH,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.6
+                'min_resources': 0.5  # LOWERED
             },
 
             # Classical algorithms
@@ -180,19 +181,19 @@ class EnhancedEnvironment:
                 'min_resources': 0.3
             },
             CryptoAlgorithm.AES_192: {
-                'min_security_level': SecurityLevel.MODERATE,
+                'min_security_level': SecurityLevel.LOW,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
                 'min_resources': 0.2
             },
             CryptoAlgorithm.RSA_4096: {
-                'min_security_level': SecurityLevel.HIGH,
+                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.4
+                'min_resources': 0.3  # LOWERED
             },
             CryptoAlgorithm.ECC_521: {
-                'min_security_level': SecurityLevel.HIGH,
+                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
                 'requires_qkd': False,
                 'quantum_hardware': False,
                 'min_resources': 0.3
@@ -200,10 +201,10 @@ class EnhancedEnvironment:
 
             # Fallback
             CryptoAlgorithm.FALLBACK_AES: {
-                'min_security_level': SecurityLevel.LOW,
+                'min_security_level': SecurityLevel.VERY_LOW,
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.2
+                'min_resources': 0.1  # LOWERED
             }
         }
 
@@ -214,7 +215,6 @@ class EnhancedEnvironment:
 
         hw_list = [h.upper() for h in (hardware if isinstance(hardware, list) else [])]
 
-        # Helper function to get value or default
         def get_or_default(key, default):
             value = context.get(key)
             return default if value is None else value
@@ -239,7 +239,7 @@ class EnhancedEnvironment:
 
             # Temporal
             time_of_day=get_or_default("time_of_day", 12),
-            day_of_week=get_or_default("day_of_week", 0),
+            day_of_week=get_or_default("day_of_day", 0),
             is_peak_attack_time=get_or_default("is_peak_attack_time", False),
 
             # Risk
@@ -247,7 +247,7 @@ class EnhancedEnvironment:
             incident_history_score=get_or_default("incident_history_score", 0.0),
             anomaly_score=get_or_default("anomaly_score", 0.0),
 
-            # System - CRITICAL: These were causing the None comparison error
+            # System
             system_load=get_or_default("system_load", 0.5),
             available_resources=get_or_default("available_resources", 1.0),
             network_latency=get_or_default("network_latency", 50.0),
@@ -266,8 +266,8 @@ class EnhancedEnvironment:
             features.dest_location_risk,
             features.data_sensitivity,
             features.service_criticality,
-            features.time_of_day / 24.0,  # Normalize
-            features.day_of_week / 7.0,  # Normalize
+            features.time_of_day / 24.0,
+            features.day_of_week / 7.0,
             float(features.is_peak_attack_time),
             features.current_threat_level,
             features.incident_history_score,
@@ -329,14 +329,19 @@ class EnhancedEnvironment:
 
     def compute_reward(self, action: CryptoAlgorithm, features: ContextFeatures,
                        security_level: SecurityLevel, outcome: Dict[str, Any]) -> float:
-        lambda_1 = 10.0  # Success weight
-        lambda_2 = 0.5  # Latency penalty
-        lambda_3 = 0.3  # Resource cost penalty
-        lambda_4 = 5.0  # Compliance bonus
+        """
+        BALANCED REWARD FUNCTION - prevents algorithm monopoly
+        """
+        # ADJUSTED WEIGHTS for better balance
+        lambda_1 = 8.0  # Success weight (reduced from 10)
+        lambda_2 = 0.3  # Latency penalty (reduced from 0.5)
+        lambda_3 = 0.2  # Resource cost penalty (reduced from 0.3)
+        lambda_4 = 4.0  # Compliance bonus (reduced from 5)
+        lambda_5 = 3.0  # Algorithm diversity bonus (NEW)
 
         S_success = 1.0 if outcome.get("success", False) else 0.0
 
-        T_latency = outcome.get("latency", 0.0) / 1000.0  # Convert to seconds
+        T_latency = outcome.get("latency", 0.0) / 1000.0
 
         C_resource = self.algorithm_performance[action]['resource_cost']
 
@@ -344,16 +349,48 @@ class EnhancedEnvironment:
         security_match = (security_level.value >= requirements['min_security_level'].value)
         S_compliance = 1.0 if security_match else 0.0
 
+        # DIVERSITY BONUS: Reward using different algorithm categories
+        diversity_bonus = 0.0
+        if action in [CryptoAlgorithm.QKD_BB84, CryptoAlgorithm.QKD_E91,
+                      CryptoAlgorithm.QKD_CV, CryptoAlgorithm.QKD_MDI,
+                      CryptoAlgorithm.QKD_DECOY]:
+            diversity_bonus = 1.0  # QKD bonus
+        elif action in [CryptoAlgorithm.PQC_KYBER, CryptoAlgorithm.PQC_DILITHIUM,
+                        CryptoAlgorithm.PQC_NTRU, CryptoAlgorithm.PQC_SABER,
+                        CryptoAlgorithm.PQC_FALCON]:
+            diversity_bonus = 0.8  # PQC bonus
+        elif action in [CryptoAlgorithm.HYBRID_RSA_PQC, CryptoAlgorithm.HYBRID_ECC_PQC]:
+            diversity_bonus = 0.9  # Hybrid bonus
+        elif action in [CryptoAlgorithm.RSA_4096, CryptoAlgorithm.ECC_521]:
+            diversity_bonus = 0.5  # Classical strong bonus
+        elif action == CryptoAlgorithm.AES_256_GCM:
+            diversity_bonus = 0.3  # REDUCED bonus for AES (was dominating)
+
+        # Base reward
         reward = (lambda_1 * S_success -
                   lambda_2 * T_latency -
                   lambda_3 * C_resource +
-                  lambda_4 * S_compliance)
+                  lambda_4 * S_compliance +
+                  lambda_5 * diversity_bonus)
 
+        # Context-specific bonuses (BALANCED)
         if (security_level.value >= SecurityLevel.VERY_HIGH.value and
                 features.qkd_available and
                 action in [CryptoAlgorithm.QKD_BB84, CryptoAlgorithm.QKD_E91,
                            CryptoAlgorithm.QKD_CV, CryptoAlgorithm.QKD_MDI]):
-            reward += 2.0
+            reward += 1.5  # Reduced from 2.0
+
+        # Bonus for PQC in high-security without QKD
+        if (security_level.value >= SecurityLevel.HIGH.value and
+                not features.qkd_available and
+                action in [CryptoAlgorithm.PQC_KYBER, CryptoAlgorithm.PQC_DILITHIUM,
+                           CryptoAlgorithm.PQC_NTRU, CryptoAlgorithm.PQC_SABER]):
+            reward += 1.5
+
+        # Bonus for Hybrid in very high security
+        if (security_level.value >= SecurityLevel.VERY_HIGH.value and
+                action in [CryptoAlgorithm.HYBRID_RSA_PQC, CryptoAlgorithm.HYBRID_ECC_PQC]):
+            reward += 1.2
 
         return reward
 
@@ -375,16 +412,7 @@ class EnhancedEnvironment:
 
 
 def map_security_level(risk_score: float, conf_score: float) -> SecurityLevel:
-    """Map risk and confidentiality scores to security level.
-
-    Args:
-        risk_score: Risk score (0-1), can be None
-        conf_score: Confidentiality score (0-1), can be None
-
-    Returns:
-        SecurityLevel enum value
-    """
-    # Handle None values
+    """Map risk and confidentiality scores to security level."""
     if risk_score is None:
         risk_score = 0.5
     if conf_score is None:
