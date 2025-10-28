@@ -1,0 +1,83 @@
+% Table 1: General Performance Metrics
+\begin{table}[h]
+\centering
+\caption{General Performance Metrics of RL Engine}
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+Success Rate & 34.70\% \\
+Average Latency & 88.79 ms \\
+Latency Std Dev & 45.83 ms \\
+Minimum Latency & 7.41 ms \\
+Maximum Latency & 222.98 ms \\
+Average Response Time & 6.1261 s \\
+\hline
+\end{tabular}
+\label{tab:general_metrics}
+\end{table}
+
+% Table 2: Metrics by Security Level
+\begin{table}[h]
+\centering
+\caption{Metrics by Security Level}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Level} & \textbf{Requests} & \textbf{Success Rate (\%)} & \textbf{Latency (ms)} \\
+\hline
+high & 300 & 25.00 & 104.20 \\
+very_high & 300 & 21.67 & 113.76 \\
+moderate & 200 & 43.00 & 50.55 \\
+ultra & 200 & 60.50 & 66.49 \\
+\hline
+\end{tabular}
+\label{tab:security_level_metrics}
+\end{table}
+
+% Table 3: QKD vs Non-QKD Comparison
+\begin{table}[h]
+\centering
+\caption{Comparison: QKD vs Non-QKD}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Type} & \textbf{Requests} & \textbf{Success Rate (\%)} & \textbf{Latency (ms)} \\
+\hline
+With QKD & 300 & 32.00 & 131.64 \\
+Without QKD & 700 & 35.86 & 70.43 \\
+\hline
+\end{tabular}
+\label{tab:qkd_comparison}
+\end{table}
+
+% Table 4: Algorithm Distribution
+\begin{table}[h]
+\centering
+\caption{Expected Algorithm Distribution}
+\begin{tabular}{|l|r|r|}
+\hline
+\textbf{Algorithm} & \textbf{Count} & \textbf{Percentage (\%)} \\
+\hline
+AES_192 & 50 & 5.0 \\
+AES_256_GCM & 50 & 5.0 \\
+CHACHA20_POLY1305 & 50 & 5.0 \\
+ECC_521 & 50 & 5.0 \\
+FALLBACK_AES & 50 & 5.0 \\
+HYBRID_ECC_PQC & 50 & 5.0 \\
+HYBRID_QKD_PQC & 50 & 5.0 \\
+HYBRID_RSA_PQC & 50 & 5.0 \\
+PQC_DILITHIUM & 50 & 5.0 \\
+PQC_FALCON & 50 & 5.0 \\
+PQC_KYBER & 50 & 5.0 \\
+PQC_NTRU & 50 & 5.0 \\
+PQC_SABER & 50 & 5.0 \\
+PQC_SPHINCS & 50 & 5.0 \\
+QKD_BB84 & 50 & 5.0 \\
+QKD_CV-QKD & 50 & 5.0 \\
+QKD_DECOY & 50 & 5.0 \\
+QKD_E91 & 50 & 5.0 \\
+QKD_MDI-QKD & 50 & 5.0 \\
+RSA_4096 & 50 & 5.0 \\
+\hline
+\end{tabular}
+\label{tab:algorithm_distribution}
+\end{table}

@@ -1,0 +1,1001 @@
+scenario_name,scenario_category,expected_algorithm,request_id,security_level,risk_score,conf_score,has_qkd,proposed_algorithms,fallback_algorithms,response_time,feedback_success,feedback_latency,feedback_resource_usage,diversity_penalty,timestamp
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152805805206299,True,42.16,0.78,0.0,2025-10-26T14:11:05.014692
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.15082859992981,False,296.66,1.0,0.0,2025-10-26T14:11:13.409923
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1318278312683105,True,93.44,1.0,0.0,2025-10-26T14:11:21.782163
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131691932678223,False,218.47,1.0,0.0,2025-10-26T14:11:30.139974
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123263359069824,True,107.81,1.0,0.0,2025-10-26T14:11:38.498359
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.114095211029053,True,29.92,0.59,0.0,2025-10-26T14:11:46.860799
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.096327781677246,False,137.23,1.0,0.0,2025-10-26T14:11:55.181106
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124568700790405,False,119.91,1.0,0.6,2025-10-26T14:12:03.542032
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.0958428382873535,False,147.08,1.0,0.6,2025-10-26T14:12:11.893166
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13676381111145,False,175.23,1.0,0.6,2025-10-26T14:12:20.275087
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145874977111816,False,187.96,1.0,0.6,2025-10-26T14:12:28.677655
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.12729811668396,False,317.25,1.0,0.9,2025-10-26T14:12:37.024578
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.095931768417358,False,121.14,1.0,0.6,2025-10-26T14:12:45.375975
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137085676193237,False,123.54,1.0,0.6,2025-10-26T14:12:53.771450
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135478973388672,False,153.58,0.8,0.6,2025-10-26T14:13:02.159511
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133553504943848,True,50.9,0.7,0.6,2025-10-26T14:13:10.534104
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15021538734436,True,26.0,0.32,0.6,2025-10-26T14:13:18.943526
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.103379011154175,False,95.39,0.55,0.6,2025-10-26T14:13:27.290563
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.109449148178101,False,101.12,0.62,0.6,2025-10-26T14:13:35.643802
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.112804651260376,False,107.3,0.51,0.3,2025-10-26T14:13:44.002746
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.151234149932861,False,275.23,0.82,0.9,2025-10-26T14:13:52.915961
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123751878738403,False,309.51,1.0,0.9,2025-10-26T14:14:01.291076
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130415201187134,False,268.54,1.0,0.9,2025-10-26T14:14:09.664824
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1474692821502686,False,251.85,1.0,0.9,2025-10-26T14:14:18.061458
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109550476074219,False,288.46,1.0,0.9,2025-10-26T14:14:26.417993
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1311516761779785,False,119.23,0.62,0.6,2025-10-26T14:14:34.783906
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146029949188232,False,121.19,1.0,0.6,2025-10-26T14:14:43.175966
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136011838912964,False,113.0,1.0,0.6,2025-10-26T14:14:51.557310
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.129729747772217,False,119.0,1.0,0.6,2025-10-26T14:14:59.917719
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.12371039390564,False,142.09,1.0,0.6,2025-10-26T14:15:08.297280
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132104158401489,False,200.76,1.0,0.6,2025-10-26T14:15:16.669274
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.159678220748901,False,325.95,1.0,0.9,2025-10-26T14:15:25.086752
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13613748550415,False,108.57,1.0,0.6,2025-10-26T14:15:33.476044
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132372140884399,False,97.04,1.0,0.6,2025-10-26T14:15:41.851586
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154987096786499,False,120.26,0.8,0.6,2025-10-26T14:15:50.230149
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.161592483520508,False,120.78,0.71,0.6,2025-10-26T14:15:58.637644
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13372278213501,True,15.69,0.32,0.6,2025-10-26T14:16:07.014969
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136943817138672,False,87.49,0.52,0.6,2025-10-26T14:16:15.406027
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.161581754684448,False,122.07,0.63,0.6,2025-10-26T14:16:23.799500
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.132430076599121,False,110.2,0.49,0.3,2025-10-26T14:16:32.189235
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.110960006713867,False,213.75,0.81,0.9,2025-10-26T14:16:41.044063
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.165635824203491,False,270.03,1.0,0.9,2025-10-26T14:16:49.444100
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.07132625579834,False,217.02,1.0,0.9,2025-10-26T14:16:57.764079
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129096984863281,False,295.49,1.0,0.9,2025-10-26T14:17:06.156634
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.143123388290405,True,112.52,1.0,0.9,2025-10-26T14:17:14.554262
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140000343322754,False,143.14,0.64,0.6,2025-10-26T14:17:22.937380
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.123396158218384,False,122.1,1.0,0.6,2025-10-26T14:17:31.321061
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13271164894104,False,110.34,1.0,0.6,2025-10-26T14:17:39.695469
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140543222427368,False,141.72,1.0,0.6,2025-10-26T14:17:48.082104
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125586986541748,False,126.68,1.0,0.6,2025-10-26T14:17:56.457936
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144678354263306,False,185.13,1.0,0.6,2025-10-26T14:18:04.862359
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130366325378418,False,239.88,1.0,0.9,2025-10-26T14:18:13.236694
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147088050842285,False,123.81,1.0,0.6,2025-10-26T14:18:21.631187
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.163730621337891,True,42.26,1.0,0.6,2025-10-26T14:18:30.050090
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11063814163208,True,63.6,0.81,0.6,2025-10-26T14:18:38.379504
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142894744873047,False,110.64,0.71,0.6,2025-10-26T14:18:46.769194
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.142632007598877,True,26.33,0.36,0.3,2025-10-26T14:18:55.166323
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147507905960083,True,46.32,0.53,0.6,2025-10-26T14:19:03.567988
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1422364711761475,False,129.1,0.61,0.6,2025-10-26T14:19:11.954374
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.146122932434082,False,118.74,0.47,0.3,2025-10-26T14:19:20.347292
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109675168991089,False,253.29,0.82,0.9,2025-10-26T14:19:29.200496
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.116770029067993,False,221.43,1.0,0.9,2025-10-26T14:19:37.579482
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.157557487487793,True,104.5,1.0,0.9,2025-10-26T14:19:45.994691
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.151214361190796,False,274.69,1.0,0.9,2025-10-26T14:19:54.391773
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.158734083175659,False,248.26,1.0,0.9,2025-10-26T14:20:02.794550
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.158114671707153,True,22.73,0.59,0.6,2025-10-26T14:20:11.187483
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143449306488037,False,149.29,1.0,0.6,2025-10-26T14:20:19.576346
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150727033615112,False,154.52,1.0,0.6,2025-10-26T14:20:27.988504
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.104290246963501,False,154.09,1.0,0.6,2025-10-26T14:20:36.336300
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115628004074097,False,176.42,1.0,0.6,2025-10-26T14:20:44.705636
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11118483543396,False,142.51,1.0,0.6,2025-10-26T14:20:53.061984
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.118109464645386,False,267.48,1.0,0.9,2025-10-26T14:21:01.416721
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124057292938232,False,116.93,1.0,0.6,2025-10-26T14:21:09.771823
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.113970041275024,False,114.51,1.0,0.6,2025-10-26T14:21:18.145782
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.114164113998413,False,105.81,0.76,0.6,2025-10-26T14:21:26.506731
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140530824661255,False,105.55,0.73,0.6,2025-10-26T14:21:34.899897
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146276473999023,False,98.74,0.37,0.6,2025-10-26T14:21:43.291632
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15122652053833,False,113.07,0.5,0.6,2025-10-26T14:21:51.689124
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.119365930557251,False,90.14,0.62,0.6,2025-10-26T14:22:00.041628
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.136947154998779,False,92.2,0.5,0.3,2025-10-26T14:22:08.422308
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.12890887260437,False,249.73,0.82,0.9,2025-10-26T14:22:17.301767
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1365885734558105,False,215.34,1.0,0.9,2025-10-26T14:22:25.666978
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.112101316452026,False,237.7,1.0,0.9,2025-10-26T14:22:34.037017
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.086175203323364,False,243.83,1.0,0.9,2025-10-26T14:22:42.380402
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.105275869369507,False,210.64,1.0,0.9,2025-10-26T14:22:50.701510
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138694763183594,True,29.32,0.64,0.6,2025-10-26T14:22:59.082172
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.100187301635742,False,129.64,1.0,0.6,2025-10-26T14:23:07.407448
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133540868759155,True,51.73,1.0,0.6,2025-10-26T14:23:15.780987
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148524045944214,False,129.16,1.0,0.6,2025-10-26T14:23:24.173860
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1280481815338135,False,184.54,1.0,0.6,2025-10-26T14:23:32.555987
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.107604026794434,False,146.26,1.0,0.6,2025-10-26T14:23:40.905274
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1357948780059814,False,296.54,1.0,0.9,2025-10-26T14:23:49.294771
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147926330566406,False,158.57,1.0,0.6,2025-10-26T14:23:57.700230
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115482807159424,False,108.02,1.0,0.6,2025-10-26T14:24:06.065758
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1327807903289795,False,154.73,0.76,0.6,2025-10-26T14:24:14.457250
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135277271270752,False,140.37,0.71,0.6,2025-10-26T14:24:22.851113
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152643442153931,False,101.55,0.35,0.6,2025-10-26T14:24:31.264686
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.104210615158081,False,111.85,0.53,0.6,2025-10-26T14:24:39.614249
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13451361656189,False,128.68,0.6,0.6,2025-10-26T14:24:47.975022
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.141896486282349,False,120.36,0.46,0.3,2025-10-26T14:24:56.358999
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.107669115066528,False,252.58,0.81,0.9,2025-10-26T14:25:09.787081
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.13350248336792,False,231.77,1.0,0.9,2025-10-26T14:25:18.156431
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.134923934936523,False,281.85,1.0,0.9,2025-10-26T14:25:26.548786
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141156435012817,False,260.8,1.0,0.9,2025-10-26T14:25:34.944623
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.122986793518066,False,251.54,1.0,0.9,2025-10-26T14:25:43.315620
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.161792516708374,False,164.51,0.62,0.6,2025-10-26T14:25:51.719254
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146500825881958,False,145.67,1.0,0.6,2025-10-26T14:26:00.096919
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153162479400635,False,147.37,1.0,0.6,2025-10-26T14:26:08.512346
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.117290735244751,False,164.59,1.0,0.6,2025-10-26T14:26:16.879008
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125739097595215,False,159.16,1.0,0.6,2025-10-26T14:26:25.260624
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110667943954468,False,150.61,1.0,0.6,2025-10-26T14:26:33.616114
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148586988449097,False,337.09,1.0,0.9,2025-10-26T14:26:42.010907
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133970737457275,False,114.93,1.0,0.6,2025-10-26T14:26:50.392106
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146886348724365,False,148.8,1.0,0.6,2025-10-26T14:26:58.771440
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15826678276062,False,143.65,0.78,0.6,2025-10-26T14:27:07.166413
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.163843393325806,False,111.84,0.72,0.6,2025-10-26T14:27:15.572187
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.109880447387695,False,126.84,0.35,0.6,2025-10-26T14:27:23.900510
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['AES_192', 'AES_256_GCM']",[],6.076378583908081,False,108.29,0.34,0.3,2025-10-26T14:27:32.200370
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.0972373485565186,False,88.33,0.58,0.6,2025-10-26T14:27:40.534002
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.098469972610474,False,138.07,0.49,0.3,2025-10-26T14:27:48.846587
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.08237886428833,False,203.88,0.8,0.9,2025-10-26T14:27:57.687373
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.13444972038269,False,291.02,1.0,0.9,2025-10-26T14:28:06.066082
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['HYBRID_RSA_PQC', 'PQC_KYBER', 'AES_256_GCM']",[],6.132580518722534,False,193.25,1.0,0.6,2025-10-26T14:28:14.441976
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.135493278503418,False,309.18,1.0,0.9,2025-10-26T14:28:22.839414
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.153428554534912,False,253.69,1.0,0.9,2025-10-26T14:28:31.220624
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131702661514282,False,132.52,0.64,0.6,2025-10-26T14:28:39.580082
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.111135482788086,False,189.45,1.0,0.6,2025-10-26T14:28:47.948356
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128910779953003,False,151.87,1.0,0.6,2025-10-26T14:28:56.327401
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140233039855957,False,146.74,1.0,0.6,2025-10-26T14:29:04.711649
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136891841888428,False,123.84,1.0,0.6,2025-10-26T14:29:13.090332
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147226572036743,False,169.07,1.0,0.6,2025-10-26T14:29:21.476962
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109445571899414,False,257.32,1.0,0.9,2025-10-26T14:29:29.804691
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.12066650390625,False,115.62,1.0,0.6,2025-10-26T14:29:38.182406
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.165593385696411,False,147.53,1.0,0.6,2025-10-26T14:29:46.609764
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.05635666847229,False,116.01,0.8,0.6,2025-10-26T14:29:54.899326
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.093009948730469,False,121.97,0.71,0.6,2025-10-26T14:30:03.244654
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.109563112258911,False,106.76,0.33,0.6,2025-10-26T14:30:11.604422
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145916938781738,False,90.46,0.52,0.6,2025-10-26T14:30:19.976838
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135932683944702,False,92.16,0.61,0.6,2025-10-26T14:30:28.343712
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.1214330196380615,False,97.83,0.49,0.3,2025-10-26T14:30:36.695859
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14555811882019,False,238.5,0.76,0.9,2025-10-26T14:30:45.587935
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.096650838851929,True,125.4,1.0,0.9,2025-10-26T14:30:53.925768
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.116191387176514,False,268.38,1.0,0.9,2025-10-26T14:31:02.277938
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152698755264282,False,294.78,1.0,0.9,2025-10-26T14:31:10.675892
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.07825493812561,False,264.85,1.0,0.9,2025-10-26T14:31:18.970223
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122200012207031,False,179.62,0.6,0.6,2025-10-26T14:31:27.335316
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.111704587936401,False,179.19,1.0,0.6,2025-10-26T14:31:35.683552
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116639614105225,False,136.62,1.0,0.6,2025-10-26T14:31:44.046790
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.09922194480896,False,156.89,1.0,0.6,2025-10-26T14:31:52.380231
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.166181564331055,False,142.83,1.0,0.6,2025-10-26T14:32:00.780932
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135889291763306,False,192.54,0.99,0.6,2025-10-26T14:32:09.174078
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.143252372741699,False,218.97,1.0,0.9,2025-10-26T14:32:17.574032
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124794244766235,False,130.59,1.0,0.6,2025-10-26T14:32:25.945806
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.118972539901733,False,104.2,1.0,0.6,2025-10-26T14:32:34.324861
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.118176221847534,False,129.98,0.75,0.6,2025-10-26T14:32:42.689719
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149730920791626,False,140.86,0.7,0.6,2025-10-26T14:32:51.069644
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,['AES_256_GCM'],[],6.077271938323975,False,84.22,0.32,0.3,2025-10-26T14:32:59.397458
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.094444751739502,False,101.02,0.55,0.6,2025-10-26T14:33:07.734862
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145015716552734,False,114.87,0.59,0.6,2025-10-26T14:33:16.115936
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['FALLBACK_AES', 'AES_256_GCM']",[],6.150850057601929,True,22.63,0.27,0.3,2025-10-26T14:33:24.513378
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.132790565490723,False,260.31,0.77,0.9,2025-10-26T14:33:33.393591
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.133998394012451,False,258.94,1.0,0.9,2025-10-26T14:33:41.785697
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.117871284484863,False,279.73,1.0,0.9,2025-10-26T14:33:50.149626
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130009889602661,False,314.95,1.0,0.9,2025-10-26T14:33:58.525166
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.146529912948608,False,300.71,1.0,0.9,2025-10-26T14:34:06.916878
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.104953289031982,False,169.62,0.64,0.6,2025-10-26T14:34:15.263439
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110561370849609,False,152.49,1.0,0.6,2025-10-26T14:34:23.630482
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140831232070923,False,151.05,1.0,0.6,2025-10-26T14:34:32.022536
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140594244003296,True,72.28,1.0,0.6,2025-10-26T14:34:40.409001
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1156511306762695,False,138.67,1.0,0.6,2025-10-26T14:34:48.780803
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.106421709060669,False,133.24,1.0,0.6,2025-10-26T14:34:57.146310
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149032831192017,False,300.85,1.0,0.9,2025-10-26T14:35:05.539855
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.117936372756958,False,133.28,1.0,0.6,2025-10-26T14:35:13.903976
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133634805679321,False,126.07,1.0,0.6,2025-10-26T14:35:22.283637
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135174512863159,False,133.42,0.78,0.6,2025-10-26T14:35:30.660588
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135136842727661,False,132.07,0.74,0.6,2025-10-26T14:35:39.038532
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.096364498138428,True,11.84,0.34,0.6,2025-10-26T14:35:47.391482
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.109646797180176,False,84.19,0.51,0.6,2025-10-26T14:35:55.744629
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['RSA_4096', 'AES_256_GCM']",[],6.133984565734863,False,98.55,0.58,0.3,2025-10-26T14:36:04.136458
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.127248525619507,False,117.02,0.48,0.3,2025-10-26T14:36:12.498877
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141476631164551,False,265.25,0.79,0.9,2025-10-26T14:36:21.393564
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1523425579071045,False,252.1,1.0,0.9,2025-10-26T14:36:29.804230
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1460020542144775,False,207.29,1.0,0.9,2025-10-26T14:36:38.182771
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137213945388794,False,305.9,1.0,0.9,2025-10-26T14:36:46.576067
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149808168411255,False,196.71,1.0,0.9,2025-10-26T14:36:54.973460
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.10319185256958,False,136.36,0.61,0.6,2025-10-26T14:37:03.318660
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1537182331085205,False,175.85,1.0,0.6,2025-10-26T14:37:11.717114
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15862774848938,False,135.92,1.0,0.6,2025-10-26T14:37:20.117645
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133561134338379,False,114.62,1.0,0.6,2025-10-26T14:37:28.503547
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128238201141357,False,128.23,1.0,0.6,2025-10-26T14:37:36.879122
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.166729927062988,False,200.11,0.99,0.6,2025-10-26T14:37:45.278113
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142879962921143,False,314.73,1.0,0.9,2025-10-26T14:37:53.664364
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120891094207764,False,102.48,0.99,0.6,2025-10-26T14:38:02.030060
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137642860412598,False,101.19,1.0,0.6,2025-10-26T14:38:10.414970
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.096580982208252,False,103.96,0.8,0.6,2025-10-26T14:38:18.768935
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.155844688415527,False,148.39,0.71,0.6,2025-10-26T14:38:27.170981
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135454177856445,False,84.64,0.34,0.6,2025-10-26T14:38:35.555394
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['RSA_4096', 'AES_256_GCM']",[],6.131881952285767,False,118.36,0.52,0.3,2025-10-26T14:38:43.932818
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.090659856796265,True,38.51,0.58,0.6,2025-10-26T14:38:52.279285
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.116054534912109,False,100.65,0.45,0.3,2025-10-26T14:39:00.654676
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.118642568588257,False,284.34,0.82,0.9,2025-10-26T14:39:14.084392
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.114398956298828,False,299.29,1.0,0.9,2025-10-26T14:39:22.445212
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149953126907349,False,242.29,1.0,0.9,2025-10-26T14:39:30.830495
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.09914493560791,False,243.55,1.0,0.9,2025-10-26T14:39:39.157844
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.088074207305908,False,233.57,1.0,0.9,2025-10-26T14:39:47.460145
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136411428451538,True,30.88,0.59,0.6,2025-10-26T14:39:55.850065
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1672093868255615,False,191.99,1.0,0.6,2025-10-26T14:40:04.262283
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115637540817261,False,138.57,1.0,0.6,2025-10-26T14:40:12.622217
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.121202230453491,False,126.01,1.0,0.6,2025-10-26T14:40:20.987125
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143924951553345,False,122.69,1.0,0.6,2025-10-26T14:40:29.370344
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143986463546753,False,143.72,1.0,0.6,2025-10-26T14:40:37.759319
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.151321887969971,False,226.15,1.0,0.9,2025-10-26T14:40:46.157626
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1168293952941895,True,67.36,1.0,0.6,2025-10-26T14:40:54.531526
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1339499950408936,False,140.69,1.0,0.6,2025-10-26T14:41:02.895013
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122215509414673,False,110.8,0.8,0.6,2025-10-26T14:41:11.252605
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.129169940948486,False,112.12,0.74,0.6,2025-10-26T14:41:19.644649
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145101070404053,False,83.58,0.33,0.6,2025-10-26T14:41:28.018869
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147109031677246,False,75.85,0.53,0.6,2025-10-26T14:41:36.424760
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.081071853637695,False,111.52,0.62,0.6,2025-10-26T14:41:44.760964
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.117294788360596,False,104.15,0.49,0.3,2025-10-26T14:41:53.132101
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14983606338501,False,219.77,0.78,0.9,2025-10-26T14:42:02.043722
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.118301868438721,False,257.0,1.0,0.9,2025-10-26T14:42:10.412697
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.07667350769043,False,280.18,1.0,0.9,2025-10-26T14:42:18.733194
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.075195550918579,False,253.8,1.0,0.9,2025-10-26T14:42:27.045083
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.099666357040405,False,215.14,1.0,0.9,2025-10-26T14:42:35.379842
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.076764106750488,False,160.29,0.63,0.6,2025-10-26T14:42:43.683738
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132647275924683,False,141.25,1.0,0.6,2025-10-26T14:42:52.049445
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.111188650131226,False,107.86,1.0,0.6,2025-10-26T14:43:00.406389
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.121335983276367,False,139.19,1.0,0.6,2025-10-26T14:43:08.783448
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142023086547852,False,137.25,1.0,0.6,2025-10-26T14:43:17.169757
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130159378051758,False,138.58,1.0,0.6,2025-10-26T14:43:25.542146
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.114913463592529,False,242.18,1.0,0.9,2025-10-26T14:43:33.912473
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.076617956161499,False,154.95,1.0,0.6,2025-10-26T14:43:42.197712
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1017444133758545,False,132.98,1.0,0.6,2025-10-26T14:43:50.529134
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.056996583938599,False,139.02,0.77,0.6,2025-10-26T14:43:58.808700
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.112285137176514,False,125.23,0.7,0.6,2025-10-26T14:44:07.145116
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.098971843719482,False,114.16,0.35,0.6,2025-10-26T14:44:15.483445
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135702610015869,False,110.21,0.53,0.6,2025-10-26T14:44:23.877861
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128255605697632,False,131.1,0.61,0.6,2025-10-26T14:44:32.250616
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.131743907928467,False,102.89,0.5,0.3,2025-10-26T14:44:40.590272
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109631538391113,False,213.1,0.82,0.9,2025-10-26T14:44:49.427227
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1223485469818115,False,284.11,1.0,0.9,2025-10-26T14:44:57.782999
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137019634246826,False,227.18,1.0,0.9,2025-10-26T14:45:06.164660
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.093199968338013,False,220.83,1.0,0.9,2025-10-26T14:45:14.510854
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.084686517715454,False,256.25,1.0,0.9,2025-10-26T14:45:22.838316
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.106762170791626,False,143.51,0.62,0.6,2025-10-26T14:45:31.170948
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.098655700683594,False,155.11,1.0,0.6,2025-10-26T14:45:39.529024
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133121490478516,False,146.28,1.0,0.6,2025-10-26T14:45:47.916273
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156408786773682,False,121.15,1.0,0.6,2025-10-26T14:45:56.319428
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128974914550781,False,128.31,1.0,0.6,2025-10-26T14:46:04.694808
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132357358932495,False,156.27,1.0,0.6,2025-10-26T14:46:13.072182
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.128944396972656,False,324.81,1.0,0.9,2025-10-26T14:46:21.450763
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137205362319946,False,107.39,1.0,0.6,2025-10-26T14:46:29.820833
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146347761154175,False,110.96,1.0,0.6,2025-10-26T14:46:38.218388
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.163723945617676,False,102.55,0.77,0.6,2025-10-26T14:46:46.629087
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.106875896453857,False,97.51,0.7,0.6,2025-10-26T14:46:54.992981
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['RSA_4096', 'AES_256_GCM']",[],6.135610580444336,True,22.54,0.36,0.3,2025-10-26T14:47:03.374711
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140744686126709,False,108.93,0.51,0.6,2025-10-26T14:47:11.759885
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136857032775879,False,127.45,0.59,0.6,2025-10-26T14:47:20.119345
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.149634599685669,False,88.89,0.47,0.3,2025-10-26T14:47:28.505180
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.074182748794556,False,240.83,0.77,0.9,2025-10-26T14:47:37.314184
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131241321563721,False,272.58,1.0,0.9,2025-10-26T14:47:45.707073
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['AES_192', 'PQC_KYBER', 'AES_256_GCM']",[],6.139373302459717,False,236.1,1.0,0.6,2025-10-26T14:47:54.082831
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155648946762085,False,252.6,1.0,0.9,2025-10-26T14:48:02.483288
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148954391479492,False,285.42,1.0,0.9,2025-10-26T14:48:10.881692
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146774530410767,False,130.98,0.6,0.6,2025-10-26T14:48:19.281890
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139398097991943,False,122.27,1.0,0.6,2025-10-26T14:48:27.655635
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143177032470703,False,124.04,1.0,0.6,2025-10-26T14:48:36.054217
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14769983291626,False,110.9,1.0,0.6,2025-10-26T14:48:44.446045
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139601469039917,False,129.15,1.0,0.6,2025-10-26T14:48:52.840564
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154313802719116,False,163.89,1.0,0.6,2025-10-26T14:49:01.235968
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1636130809783936,False,327.82,1.0,0.9,2025-10-26T14:49:09.655315
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128584384918213,False,129.63,1.0,0.6,2025-10-26T14:49:18.029188
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143582582473755,False,130.58,1.0,0.6,2025-10-26T14:49:26.429711
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.125080108642578,False,147.59,0.78,0.3,2025-10-26T14:49:34.805215
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140535593032837,False,102.71,0.71,0.6,2025-10-26T14:49:43.196193
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138615131378174,True,24.89,0.33,0.6,2025-10-26T14:49:51.589355
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1065673828125,False,92.2,0.55,0.6,2025-10-26T14:49:59.940919
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135657787322998,False,90.33,0.58,0.6,2025-10-26T14:50:08.331934
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.129306077957153,False,139.78,0.49,0.3,2025-10-26T14:50:16.721330
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_E91', 'PQC_KYBER', 'AES_256_GCM']",[],6.12861180305481,False,276.04,1.0,0.6,2025-10-26T14:50:25.610814
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126469612121582,False,304.41,1.0,0.9,2025-10-26T14:50:33.995284
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129648208618164,False,257.96,1.0,0.9,2025-10-26T14:50:42.381594
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140723705291748,False,249.25,1.0,0.9,2025-10-26T14:50:50.763427
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137655973434448,False,289.93,1.0,0.9,2025-10-26T14:50:59.126477
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130841970443726,False,161.01,0.61,0.6,2025-10-26T14:51:07.513135
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157941102981567,False,136.98,1.0,0.6,2025-10-26T14:51:15.915442
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139623165130615,False,154.7,1.0,0.6,2025-10-26T14:51:24.295848
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13536262512207,False,115.08,1.0,0.6,2025-10-26T14:51:32.684125
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132193088531494,False,176.05,0.99,0.6,2025-10-26T14:51:41.061092
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137666463851929,False,131.52,1.0,0.6,2025-10-26T14:51:49.443737
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1316657066345215,True,128.87,1.0,0.9,2025-10-26T14:51:57.810265
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144330024719238,False,107.1,1.0,0.6,2025-10-26T14:52:06.190262
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134608507156372,False,131.24,1.0,0.6,2025-10-26T14:52:14.580303
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.117014408111572,True,56.01,0.77,0.6,2025-10-26T14:52:22.948928
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148931503295898,False,120.97,0.74,0.6,2025-10-26T14:52:31.349405
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125529050827026,False,125.54,0.32,0.6,2025-10-26T14:52:39.700550
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1429054737091064,False,89.36,0.54,0.6,2025-10-26T14:52:48.075261
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110726594924927,False,129.83,0.61,0.6,2025-10-26T14:52:56.440747
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.07569146156311,False,109.67,0.46,0.3,2025-10-26T14:53:04.753988
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.121744394302368,False,291.75,0.82,0.9,2025-10-26T14:53:18.175526
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.102085590362549,False,204.0,1.0,0.9,2025-10-26T14:53:26.508245
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.116949081420898,False,195.01,1.0,0.9,2025-10-26T14:53:34.883568
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1198570728302,False,289.05,1.0,0.9,2025-10-26T14:53:43.257244
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142448663711548,False,254.25,1.0,0.9,2025-10-26T14:53:51.642248
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127896547317505,False,143.27,0.61,0.6,2025-10-26T14:54:00.002205
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110437393188477,False,173.44,1.0,0.6,2025-10-26T14:54:08.358085
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145306825637817,True,61.91,1.0,0.6,2025-10-26T14:54:16.753842
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.131180763244629,False,170.47,1.0,0.3,2025-10-26T14:54:25.142695
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136599779129028,False,121.7,1.0,0.6,2025-10-26T14:54:33.535383
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137790679931641,False,190.84,1.0,0.6,2025-10-26T14:54:41.913299
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.133914947509766,False,314.17,1.0,0.9,2025-10-26T14:54:50.296856
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.100042819976807,False,110.57,1.0,0.6,2025-10-26T14:54:58.626611
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142593145370483,False,113.69,1.0,0.6,2025-10-26T14:55:07.019185
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157593011856079,False,113.27,0.8,0.6,2025-10-26T14:55:15.419726
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144884824752808,False,102.96,0.73,0.6,2025-10-26T14:55:23.815100
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125505685806274,False,92.05,0.35,0.6,2025-10-26T14:55:32.191430
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136378288269043,False,100.83,0.54,0.6,2025-10-26T14:55:40.584180
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148651361465454,False,124.62,0.6,0.6,2025-10-26T14:55:48.987531
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.11413049697876,False,121.31,0.47,0.3,2025-10-26T14:55:57.354745
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149098634719849,False,259.82,0.81,0.9,2025-10-26T14:56:06.263587
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140153646469116,False,248.27,1.0,0.9,2025-10-26T14:56:14.623567
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.075767993927002,False,221.64,1.0,0.9,2025-10-26T14:56:22.947134
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.120444297790527,False,228.3,1.0,0.9,2025-10-26T14:56:31.306341
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.097234725952148,False,266.06,1.0,0.9,2025-10-26T14:56:39.634887
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1416404247283936,False,175.71,0.6,0.6,2025-10-26T14:56:48.023847
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139148473739624,False,129.63,1.0,0.6,2025-10-26T14:56:56.418755
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.161194562911987,False,105.59,1.0,0.6,2025-10-26T14:57:04.832489
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1588053703308105,False,127.37,1.0,0.6,2025-10-26T14:57:13.229628
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153963088989258,False,136.12,1.0,0.6,2025-10-26T14:57:21.633012
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156871557235718,False,177.42,1.0,0.6,2025-10-26T14:57:30.035918
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1440794467926025,False,255.0,1.0,0.9,2025-10-26T14:57:38.427962
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120757341384888,False,124.36,1.0,0.6,2025-10-26T14:57:46.786087
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.099809646606445,False,113.74,1.0,0.6,2025-10-26T14:57:55.138717
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128503799438477,False,157.3,0.76,0.6,2025-10-26T14:58:03.511190
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1188459396362305,False,143.81,0.74,0.6,2025-10-26T14:58:11.884479
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.114324331283569,False,107.27,0.37,0.6,2025-10-26T14:58:20.249616
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146892070770264,False,83.59,0.55,0.6,2025-10-26T14:58:28.629539
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120362758636475,False,124.57,0.6,0.6,2025-10-26T14:58:37.002345
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.095260381698608,False,101.49,0.45,0.3,2025-10-26T14:58:45.358347
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.091551065444946,False,235.64,0.81,0.9,2025-10-26T14:58:54.204414
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.150632619857788,False,245.58,1.0,0.9,2025-10-26T14:59:02.597983
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.154898166656494,False,251.6,1.0,0.9,2025-10-26T14:59:11.003108
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148176193237305,False,235.14,1.0,0.9,2025-10-26T14:59:19.408055
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.121194124221802,False,225.86,1.0,0.9,2025-10-26T14:59:27.786724
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11719536781311,False,164.02,0.61,0.6,2025-10-26T14:59:36.156801
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137821912765503,False,133.95,1.0,0.6,2025-10-26T14:59:44.550046
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130720138549805,False,132.6,1.0,0.6,2025-10-26T14:59:52.923362
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142163276672363,False,170.5,1.0,0.6,2025-10-26T15:00:01.318503
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143407344818115,False,174.0,1.0,0.6,2025-10-26T15:00:09.715719
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135345220565796,True,96.73,1.0,0.6,2025-10-26T15:00:18.110811
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139111280441284,False,214.69,1.0,0.9,2025-10-26T15:00:26.490713
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1213696002960205,False,112.04,1.0,0.6,2025-10-26T15:00:34.858229
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145470857620239,False,134.97,1.0,0.6,2025-10-26T15:00:43.251163
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149392366409302,False,114.61,0.78,0.6,2025-10-26T15:00:51.648273
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126453876495361,False,102.62,0.74,0.6,2025-10-26T15:01:00.030519
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144229888916016,True,12.63,0.36,0.6,2025-10-26T15:01:08.429066
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148097276687622,False,101.51,0.53,0.6,2025-10-26T15:01:16.823383
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124293088912964,False,86.71,0.62,0.6,2025-10-26T15:01:25.208650
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.122709274291992,False,122.83,0.5,0.3,2025-10-26T15:01:33.585719
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.122563600540161,False,212.52,0.77,0.9,2025-10-26T15:01:42.459107
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.147185802459717,False,273.64,1.0,0.9,2025-10-26T15:01:50.858420
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139968395233154,False,224.22,1.0,0.9,2025-10-26T15:01:59.257679
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123433589935303,False,225.74,1.0,0.9,2025-10-26T15:02:07.632026
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1357128620147705,False,300.83,1.0,0.9,2025-10-26T15:02:16.010274
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157784461975098,False,114.7,0.62,0.6,2025-10-26T15:02:24.409907
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.160702228546143,False,123.46,1.0,0.6,2025-10-26T15:02:32.822468
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145452260971069,False,150.59,1.0,0.6,2025-10-26T15:02:41.229582
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147303819656372,False,120.03,1.0,0.6,2025-10-26T15:02:49.634960
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13960075378418,False,121.66,1.0,0.6,2025-10-26T15:02:58.020865
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130443811416626,False,175.7,1.0,0.6,2025-10-26T15:03:06.391794
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137579441070557,False,294.09,1.0,0.9,2025-10-26T15:03:14.781131
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138651132583618,False,146.24,1.0,0.6,2025-10-26T15:03:23.176981
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156301736831665,False,125.28,1.0,0.6,2025-10-26T15:03:31.553903
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144835472106934,False,115.59,0.76,0.6,2025-10-26T15:03:39.955329
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152330636978149,False,131.53,0.73,0.6,2025-10-26T15:03:48.359933
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['RSA_4096', 'AES_256_GCM']",[],6.122884750366211,False,94.84,0.33,0.3,2025-10-26T15:03:56.736353
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1371400356292725,False,77.97,0.5,0.6,2025-10-26T15:04:05.124983
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147359132766724,False,111.4,0.62,0.6,2025-10-26T15:04:13.523463
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.149992227554321,False,126.41,0.46,0.3,2025-10-26T15:04:21.917176
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152278423309326,False,245.98,0.77,0.9,2025-10-26T15:04:30.827349
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.122220039367676,False,283.47,1.0,0.9,2025-10-26T15:04:39.197364
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155750036239624,False,276.06,1.0,0.9,2025-10-26T15:04:47.595340
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141071319580078,False,272.32,1.0,0.9,2025-10-26T15:04:55.981107
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145337104797363,False,195.29,1.0,0.9,2025-10-26T15:05:04.383811
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149540901184082,False,173.7,0.63,0.6,2025-10-26T15:05:12.787012
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1608428955078125,False,188.56,1.0,0.6,2025-10-26T15:05:21.198164
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1458704471588135,False,137.63,1.0,0.6,2025-10-26T15:05:29.598095
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.111410617828369,False,158.77,1.0,0.6,2025-10-26T15:05:37.947117
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134961128234863,False,141.13,1.0,0.6,2025-10-26T15:05:46.300915
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1401047706604,True,83.51,1.0,0.6,2025-10-26T15:05:54.697720
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1318254470825195,False,289.11,1.0,0.9,2025-10-26T15:06:03.075438
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['RSA_4096', 'AES_256_GCM']",[],6.141279458999634,False,141.34,1.0,0.3,2025-10-26T15:06:11.448552
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['HYBRID_RSA_PQC', 'AES_256_GCM']",[],6.150245428085327,False,112.9,1.0,0.3,2025-10-26T15:06:19.849665
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157590389251709,False,101.75,0.78,0.6,2025-10-26T15:06:28.260187
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124797821044922,False,144.52,0.7,0.6,2025-10-26T15:06:36.627471
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154280424118042,True,24.38,0.37,0.6,2025-10-26T15:06:45.022453
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156155824661255,False,87.63,0.54,0.6,2025-10-26T15:06:53.423164
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152678489685059,False,110.63,0.59,0.6,2025-10-26T15:07:01.813578
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.14638090133667,False,117.94,0.48,0.3,2025-10-26T15:07:10.189152
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126998662948608,False,280.86,0.82,0.9,2025-10-26T15:07:23.670741
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.144667148590088,False,207.76,1.0,0.9,2025-10-26T15:07:32.066434
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141825914382935,False,233.77,1.0,0.9,2025-10-26T15:07:40.439656
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.138072729110718,False,259.01,1.0,0.9,2025-10-26T15:07:48.821357
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.120988368988037,False,278.12,1.0,0.9,2025-10-26T15:07:57.203664
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133561372756958,False,143.02,0.58,0.6,2025-10-26T15:08:05.584854
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.119565963745117,False,151.42,1.0,0.6,2025-10-26T15:08:13.955103
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142853260040283,False,109.55,1.0,0.6,2025-10-26T15:08:22.350837
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151815414428711,False,127.97,1.0,0.6,2025-10-26T15:08:30.744186
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151950359344482,False,161.17,1.0,0.6,2025-10-26T15:08:39.154650
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1299803256988525,False,159.91,1.0,0.6,2025-10-26T15:08:47.544445
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142516613006592,False,323.25,1.0,0.9,2025-10-26T15:08:55.940340
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1491875648498535,False,141.76,1.0,0.6,2025-10-26T15:09:04.337811
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140164375305176,False,98.12,1.0,0.6,2025-10-26T15:09:12.733978
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139828205108643,False,116.0,0.76,0.6,2025-10-26T15:09:21.128417
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1216325759887695,False,119.66,0.69,0.6,2025-10-26T15:09:29.486841
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134516716003418,False,95.7,0.32,0.6,2025-10-26T15:09:37.863497
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125769376754761,False,118.3,0.51,0.6,2025-10-26T15:09:46.229321
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136777639389038,False,86.97,0.57,0.6,2025-10-26T15:09:54.617888
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.121906280517578,False,91.27,0.5,0.3,2025-10-26T15:10:02.990245
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1287455558776855,False,260.83,0.76,0.9,2025-10-26T15:10:11.871237
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14708137512207,False,299.18,1.0,0.9,2025-10-26T15:10:20.269852
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.160187244415283,False,211.82,1.0,0.9,2025-10-26T15:10:28.683071
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149295091629028,False,217.93,1.0,0.9,2025-10-26T15:10:37.073241
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.150172472000122,False,256.06,1.0,0.9,2025-10-26T15:10:45.464229
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1259379386901855,True,27.32,0.62,0.6,2025-10-26T15:10:53.842696
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151695013046265,False,155.74,1.0,0.6,2025-10-26T15:11:02.235891
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136477470397949,False,105.61,1.0,0.6,2025-10-26T15:11:10.630420
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150110483169556,False,161.34,1.0,0.6,2025-10-26T15:11:19.035943
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147022724151611,True,63.04,1.0,0.6,2025-10-26T15:11:27.425124
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148187637329102,False,163.16,1.0,0.6,2025-10-26T15:11:35.831844
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149705648422241,False,331.76,1.0,0.9,2025-10-26T15:11:44.219999
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153216361999512,False,143.69,0.99,0.6,2025-10-26T15:11:52.620805
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.158891439437866,False,109.91,1.0,0.6,2025-10-26T15:12:01.035549
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.158216714859009,False,126.74,0.77,0.6,2025-10-26T15:12:09.429755
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145914793014526,False,115.32,0.71,0.6,2025-10-26T15:12:17.825920
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139861106872559,False,127.6,0.33,0.6,2025-10-26T15:12:26.208728
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13187313079834,False,99.0,0.5,0.6,2025-10-26T15:12:34.596194
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131430387496948,False,83.15,0.59,0.6,2025-10-26T15:12:42.972045
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.144443988800049,False,113.22,0.49,0.3,2025-10-26T15:12:51.365805
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145645380020142,False,234.01,0.78,0.9,2025-10-26T15:13:00.251277
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.125832557678223,False,201.05,1.0,0.9,2025-10-26T15:13:08.619952
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129002332687378,False,184.02,1.0,0.9,2025-10-26T15:13:16.996418
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126819610595703,False,254.79,1.0,0.9,2025-10-26T15:13:25.369123
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152724742889404,False,258.83,1.0,0.9,2025-10-26T15:13:33.773811
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141681909561157,True,33.59,0.58,0.6,2025-10-26T15:13:42.172801
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131322383880615,False,164.66,1.0,0.6,2025-10-26T15:13:50.546271
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142326831817627,False,108.18,1.0,0.6,2025-10-26T15:13:58.946148
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1537628173828125,False,127.36,1.0,0.6,2025-10-26T15:14:07.341137
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140854358673096,False,143.97,1.0,0.6,2025-10-26T15:14:15.728913
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.159650087356567,False,132.05,1.0,0.6,2025-10-26T15:14:24.125642
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.15020227432251,False,221.5,1.0,0.9,2025-10-26T15:14:32.528786
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148912668228149,False,147.15,1.0,0.6,2025-10-26T15:14:40.917828
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143266916275024,False,130.05,1.0,0.6,2025-10-26T15:14:49.310209
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136497974395752,False,145.57,0.75,0.6,2025-10-26T15:14:57.702350
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127309799194336,False,136.01,0.69,0.6,2025-10-26T15:15:06.083663
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139465570449829,False,121.63,0.37,0.6,2025-10-26T15:15:14.471709
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139984607696533,False,79.55,0.51,0.6,2025-10-26T15:15:22.866338
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140562534332275,False,86.48,0.57,0.6,2025-10-26T15:15:31.258125
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.15032434463501,False,105.99,0.5,0.3,2025-10-26T15:15:39.666072
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139826774597168,False,259.94,0.76,0.9,2025-10-26T15:15:48.561275
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1440184116363525,False,235.1,1.0,0.9,2025-10-26T15:15:56.945428
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1395957469940186,False,234.07,1.0,0.9,2025-10-26T15:16:05.338419
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.122046947479248,False,239.94,1.0,0.9,2025-10-26T15:16:13.704822
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1473388671875,False,230.0,1.0,0.9,2025-10-26T15:16:22.111332
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127518177032471,False,166.39,0.59,0.6,2025-10-26T15:16:30.490047
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152116537094116,False,126.35,1.0,0.6,2025-10-26T15:16:38.894174
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147778749465942,False,166.7,1.0,0.6,2025-10-26T15:16:47.290609
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130208253860474,False,118.31,1.0,0.6,2025-10-26T15:16:55.677047
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122842073440552,False,175.92,1.0,0.6,2025-10-26T15:17:04.051456
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150878667831421,False,186.71,1.0,0.6,2025-10-26T15:17:12.441026
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.138995409011841,False,249.84,1.0,0.9,2025-10-26T15:17:20.828643
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132525444030762,False,139.64,1.0,0.6,2025-10-26T15:17:29.216605
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134601831436157,False,146.08,1.0,0.6,2025-10-26T15:17:37.606546
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147345066070557,False,159.1,0.78,0.6,2025-10-26T15:17:46.008262
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13967752456665,False,142.86,0.72,0.6,2025-10-26T15:17:54.400320
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135613203048706,True,15.92,0.35,0.6,2025-10-26T15:18:02.781214
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140351057052612,False,112.15,0.51,0.6,2025-10-26T15:18:11.180864
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14302396774292,False,101.84,0.61,0.6,2025-10-26T15:18:19.579330
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.151767253875732,False,111.27,0.49,0.3,2025-10-26T15:18:27.975932
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141738414764404,False,194.59,0.82,0.9,2025-10-26T15:18:36.857338
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.146918058395386,False,311.67,1.0,0.9,2025-10-26T15:18:45.256532
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140136480331421,False,223.25,1.0,0.9,2025-10-26T15:18:53.652674
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.147045135498047,False,304.46,1.0,0.9,2025-10-26T15:19:02.050827
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.151270151138306,False,277.01,1.0,0.9,2025-10-26T15:19:10.455933
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133285284042358,False,168.2,0.6,0.6,2025-10-26T15:19:18.854950
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141210556030273,True,66.89,1.0,0.6,2025-10-26T15:19:27.252653
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153768062591553,False,145.08,1.0,0.6,2025-10-26T15:19:35.649542
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.162770986557007,False,112.56,1.0,0.6,2025-10-26T15:19:44.054622
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154710531234741,False,131.46,1.0,0.6,2025-10-26T15:19:52.443372
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126117467880249,False,192.59,1.0,0.6,2025-10-26T15:20:00.826294
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.157275915145874,False,246.56,1.0,0.9,2025-10-26T15:20:09.235429
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136484384536743,False,121.48,1.0,0.6,2025-10-26T15:20:17.626271
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135613918304443,False,140.64,1.0,0.6,2025-10-26T15:20:26.014230
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131063938140869,True,57.96,0.77,0.6,2025-10-26T15:20:34.392075
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157304286956787,False,144.33,0.72,0.6,2025-10-26T15:20:42.794237
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['ECC_521', 'AES_256_GCM']",[],6.138081789016724,False,85.11,0.35,0.3,2025-10-26T15:20:51.177630
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136885166168213,False,111.09,0.52,0.6,2025-10-26T15:20:59.568812
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.119519472122192,False,130.08,0.6,0.6,2025-10-26T15:21:07.938163
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.114553928375244,False,100.54,0.49,0.3,2025-10-26T15:21:16.305757
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137752532958984,False,251.01,0.8,0.9,2025-10-26T15:21:29.805541
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137163877487183,False,196.76,1.0,0.9,2025-10-26T15:21:38.187210
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14329981803894,True,107.06,1.0,0.9,2025-10-26T15:21:46.572612
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.136609077453613,False,231.86,1.0,0.9,2025-10-26T15:21:54.966887
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131189584732056,True,128.02,1.0,0.9,2025-10-26T15:22:03.353810
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139600515365601,True,21.32,0.59,0.6,2025-10-26T15:22:11.752174
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11107063293457,False,171.69,1.0,0.6,2025-10-26T15:22:20.115747
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143493413925171,False,150.14,1.0,0.6,2025-10-26T15:22:28.501842
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133309602737427,False,160.16,1.0,0.6,2025-10-26T15:22:36.893900
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13595986366272,False,177.08,1.0,0.6,2025-10-26T15:22:45.282102
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145140171051025,False,180.38,1.0,0.6,2025-10-26T15:22:53.680894
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145791292190552,False,296.89,1.0,0.9,2025-10-26T15:23:02.081325
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152615070343018,False,116.83,1.0,0.6,2025-10-26T15:23:10.486517
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131077766418457,False,106.35,1.0,0.6,2025-10-26T15:23:18.863170
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131412982940674,False,153.64,0.78,0.6,2025-10-26T15:23:27.247360
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127678155899048,False,149.42,0.71,0.6,2025-10-26T15:23:35.626348
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151608228683472,False,93.44,0.33,0.6,2025-10-26T15:23:44.028880
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.133948564529419,True,36.89,0.51,0.3,2025-10-26T15:23:52.417509
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.155616998672485,False,105.25,0.63,0.6,2025-10-26T15:24:00.830553
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.1316978931427,False,92.37,0.49,0.3,2025-10-26T15:24:09.204216
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1207594871521,False,217.66,0.77,0.9,2025-10-26T15:24:18.082145
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140940427780151,False,293.9,1.0,0.9,2025-10-26T15:24:26.466247
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.122649669647217,False,217.5,1.0,0.9,2025-10-26T15:24:34.833070
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1449713706970215,False,248.95,1.0,0.9,2025-10-26T15:24:43.222100
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.135077953338623,False,232.51,1.0,0.9,2025-10-26T15:24:51.598195
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133256435394287,False,126.39,0.63,0.6,2025-10-26T15:24:59.987012
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1314098834991455,False,121.71,1.0,0.6,2025-10-26T15:25:08.371027
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149801731109619,False,144.89,1.0,0.6,2025-10-26T15:25:16.775782
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122849225997925,False,169.55,1.0,0.6,2025-10-26T15:25:25.149115
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133686304092407,True,93.74,1.0,0.6,2025-10-26T15:25:33.538258
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.155094146728516,True,97.75,1.0,0.6,2025-10-26T15:25:41.947173
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1499927043914795,False,251.73,1.0,0.9,2025-10-26T15:25:50.335083
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141347169876099,False,110.44,1.0,0.6,2025-10-26T15:25:58.718284
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140339136123657,False,140.04,1.0,0.6,2025-10-26T15:26:07.116819
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145579099655151,False,127.95,0.79,0.6,2025-10-26T15:26:15.509221
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138544797897339,False,95.51,0.72,0.6,2025-10-26T15:26:23.905679
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.158633708953857,True,19.37,0.36,0.6,2025-10-26T15:26:32.318232
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.125783205032349,True,38.23,0.55,0.3,2025-10-26T15:26:40.699358
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128368377685547,False,127.27,0.62,0.6,2025-10-26T15:26:49.073667
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.135413408279419,False,91.01,0.49,0.3,2025-10-26T15:26:57.463393
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.124150037765503,False,217.02,0.82,0.9,2025-10-26T15:27:06.343556
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.15095067024231,False,245.81,1.0,0.9,2025-10-26T15:27:14.733772
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137495040893555,False,249.33,1.0,0.9,2025-10-26T15:27:23.121392
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148493766784668,False,213.62,1.0,0.9,2025-10-26T15:27:31.499878
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139283180236816,False,240.25,1.0,0.9,2025-10-26T15:27:39.894997
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141464948654175,False,141.12,0.61,0.6,2025-10-26T15:27:48.291260
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.113290548324585,False,128.84,1.0,0.6,2025-10-26T15:27:56.653481
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138347148895264,False,163.07,1.0,0.6,2025-10-26T15:28:05.043535
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['HYBRID_ECC_PQC', 'AES_256_GCM']",[],6.144140720367432,False,149.54,1.0,0.3,2025-10-26T15:28:13.445034
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138990163803101,False,162.67,1.0,0.6,2025-10-26T15:28:21.827617
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132346153259277,False,168.43,1.0,0.6,2025-10-26T15:28:30.204014
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141885042190552,False,326.61,1.0,0.9,2025-10-26T15:28:38.596018
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.111979246139526,False,119.79,1.0,0.6,2025-10-26T15:28:46.964318
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1260597705841064,False,140.99,0.99,0.6,2025-10-26T15:28:55.336550
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152682781219482,False,126.99,0.81,0.6,2025-10-26T15:29:03.736295
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1414875984191895,False,130.03,0.73,0.6,2025-10-26T15:29:12.132593
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140660524368286,False,88.51,0.33,0.6,2025-10-26T15:29:20.527642
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132443428039551,False,116.37,0.51,0.6,2025-10-26T15:29:28.912469
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['FALLBACK_AES', 'AES_256_GCM']",[],6.142738103866577,False,115.11,0.62,0.3,2025-10-26T15:29:37.284553
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.121983528137207,False,131.16,0.45,0.3,2025-10-26T15:29:45.654440
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130916357040405,False,293.29,0.81,0.9,2025-10-26T15:29:54.531790
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.138542413711548,False,292.93,1.0,0.9,2025-10-26T15:30:02.927199
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152220964431763,False,184.22,1.0,0.9,2025-10-26T15:30:11.306456
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.113201141357422,False,270.53,1.0,0.9,2025-10-26T15:30:19.653753
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.153274774551392,False,299.42,1.0,0.9,2025-10-26T15:30:28.060678
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.098325967788696,True,29.0,0.62,0.6,2025-10-26T15:30:36.413208
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146702289581299,False,179.21,1.0,0.6,2025-10-26T15:30:44.807912
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151329278945923,False,126.99,1.0,0.6,2025-10-26T15:30:53.219525
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.0952467918396,False,110.71,1.0,0.6,2025-10-26T15:31:01.546556
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145940780639648,False,173.9,1.0,0.6,2025-10-26T15:31:09.947433
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120054006576538,False,203.97,1.0,0.6,2025-10-26T15:31:18.322071
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1479151248931885,False,255.79,1.0,0.9,2025-10-26T15:31:26.709823
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['HYBRID_ECC_PQC', 'AES_256_GCM']",[],6.14491081237793,True,51.45,1.0,0.3,2025-10-26T15:31:35.088671
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144563913345337,False,139.78,0.99,0.6,2025-10-26T15:31:43.483129
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.118288516998291,False,111.82,0.75,0.6,2025-10-26T15:31:51.841697
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13677191734314,False,106.77,0.74,0.6,2025-10-26T15:32:00.224331
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.158872604370117,False,95.28,0.36,0.6,2025-10-26T15:32:08.641212
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139871120452881,True,26.39,0.54,0.6,2025-10-26T15:32:17.020603
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126728773117065,False,128.21,0.62,0.6,2025-10-26T15:32:25.398630
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.141981601715088,False,138.38,0.51,0.3,2025-10-26T15:32:33.783272
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109836101531982,False,286.02,0.8,0.9,2025-10-26T15:32:42.643872
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123928785324097,False,207.28,1.0,0.9,2025-10-26T15:32:51.021181
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1391401290893555,False,192.22,1.0,0.9,2025-10-26T15:32:59.404444
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130851745605469,False,211.06,1.0,0.9,2025-10-26T15:33:07.780861
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.144355535507202,False,244.37,1.0,0.9,2025-10-26T15:33:16.177739
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141019821166992,False,164.93,0.6,0.6,2025-10-26T15:33:24.572005
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134334087371826,False,126.84,1.0,0.6,2025-10-26T15:33:32.952189
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.159974813461304,False,121.63,0.99,0.6,2025-10-26T15:33:41.366358
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143592357635498,False,115.83,1.0,0.6,2025-10-26T15:33:49.765223
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137122869491577,False,161.34,0.99,0.6,2025-10-26T15:33:58.144774
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146742343902588,False,185.36,1.0,0.6,2025-10-26T15:34:06.541188
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140063047409058,False,264.39,1.0,0.9,2025-10-26T15:34:14.934568
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137006759643555,False,132.09,1.0,0.6,2025-10-26T15:34:23.314550
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147209405899048,False,106.99,1.0,0.6,2025-10-26T15:34:31.710886
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143567800521851,False,109.66,0.76,0.6,2025-10-26T15:34:40.100576
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.155034065246582,False,125.45,0.73,0.6,2025-10-26T15:34:48.510379
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152698516845703,False,89.03,0.37,0.6,2025-10-26T15:34:56.905530
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145052671432495,False,117.76,0.53,0.6,2025-10-26T15:35:05.305402
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131407022476196,False,90.64,0.57,0.6,2025-10-26T15:35:13.691408
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.136988162994385,False,99.99,0.47,0.3,2025-10-26T15:35:22.069186
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131210803985596,False,216.49,0.77,0.9,2025-10-26T15:35:35.542445
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123471975326538,False,284.68,1.0,0.9,2025-10-26T15:35:43.895169
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130304574966431,False,237.95,1.0,0.9,2025-10-26T15:35:52.275675
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139197826385498,False,245.31,1.0,0.9,2025-10-26T15:36:00.652139
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.135543346405029,False,251.37,1.0,0.9,2025-10-26T15:36:09.044520
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124252080917358,False,173.3,0.61,0.6,2025-10-26T15:36:17.425012
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136708974838257,False,135.73,1.0,0.6,2025-10-26T15:36:25.811496
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1392247676849365,False,147.55,1.0,0.6,2025-10-26T15:36:34.201258
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.105870723724365,False,160.18,1.0,0.6,2025-10-26T15:36:42.553487
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.108628511428833,True,69.85,1.0,0.6,2025-10-26T15:36:50.919879
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147627115249634,False,172.88,1.0,0.6,2025-10-26T15:36:59.322781
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109792709350586,False,277.58,1.0,0.9,2025-10-26T15:37:07.684754
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157171249389648,False,139.26,1.0,0.6,2025-10-26T15:37:16.094163
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120560646057129,False,106.06,1.0,0.6,2025-10-26T15:37:24.455208
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14511775970459,False,148.29,0.78,0.6,2025-10-26T15:37:32.854315
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122670888900757,False,110.04,0.7,0.6,2025-10-26T15:37:41.220589
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140653610229492,True,23.47,0.34,0.6,2025-10-26T15:37:49.617962
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138565540313721,False,79.98,0.51,0.6,2025-10-26T15:37:58.015720
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154019355773926,False,128.78,0.63,0.6,2025-10-26T15:38:06.426727
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.142044305801392,False,126.16,0.49,0.3,2025-10-26T15:38:14.819618
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137955904006958,False,204.8,0.82,0.9,2025-10-26T15:38:23.713201
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['AES_192', 'PQC_KYBER', 'AES_256_GCM']",[],6.15272331237793,False,311.4,1.0,0.6,2025-10-26T15:38:32.098333
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.121942043304443,False,226.05,1.0,0.9,2025-10-26T15:38:40.473245
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155226707458496,False,307.42,1.0,0.9,2025-10-26T15:38:48.882500
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['PQC_NTRU', 'AES_256_GCM']",[],6.148460388183594,False,223.25,1.0,0.3,2025-10-26T15:38:57.278517
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130552530288696,False,162.23,0.59,0.6,2025-10-26T15:39:05.662880
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.129583120346069,False,153.77,1.0,0.6,2025-10-26T15:39:14.042922
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150331020355225,False,110.69,1.0,0.6,2025-10-26T15:39:22.449646
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140185594558716,False,170.57,1.0,0.6,2025-10-26T15:39:30.844202
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.121574401855469,False,184.04,1.0,0.6,2025-10-26T15:39:39.214160
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139369487762451,False,181.14,1.0,0.6,2025-10-26T15:39:47.613329
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137367486953735,False,329.36,1.0,0.9,2025-10-26T15:39:56.002229
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147117376327515,False,128.58,1.0,0.6,2025-10-26T15:40:04.396054
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15507698059082,False,147.45,1.0,0.6,2025-10-26T15:40:12.795284
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133338451385498,False,145.3,0.76,0.6,2025-10-26T15:40:21.178959
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149170875549316,False,146.87,0.69,0.6,2025-10-26T15:40:29.580281
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139969348907471,False,94.48,0.32,0.6,2025-10-26T15:40:37.975593
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148896932601929,False,78.61,0.55,0.6,2025-10-26T15:40:46.362077
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['RSA_4096', 'AES_256_GCM']",[],6.145723342895508,True,37.2,0.62,0.3,2025-10-26T15:40:54.763232
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.1574554443359375,False,95.51,0.46,0.3,2025-10-26T15:41:03.158998
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.13459324836731,False,250.1,0.76,0.9,2025-10-26T15:41:12.038999
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.159817457199097,False,286.95,1.0,0.9,2025-10-26T15:41:20.454550
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131852626800537,False,212.04,1.0,0.9,2025-10-26T15:41:28.831481
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1453046798706055,False,253.62,1.0,0.9,2025-10-26T15:41:37.228979
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.147489547729492,False,282.31,1.0,0.9,2025-10-26T15:41:45.636176
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126026153564453,False,132.91,0.63,0.6,2025-10-26T15:41:53.989227
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14054536819458,False,177.34,1.0,0.6,2025-10-26T15:42:02.386811
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152889013290405,False,124.39,0.99,0.6,2025-10-26T15:42:10.792879
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14713978767395,False,140.5,0.99,0.6,2025-10-26T15:42:19.185900
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154270172119141,False,147.19,1.0,0.6,2025-10-26T15:42:27.592777
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140661954879761,False,181.67,1.0,0.6,2025-10-26T15:42:35.987532
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.146010160446167,False,301.42,1.0,0.9,2025-10-26T15:42:44.393779
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134765148162842,False,149.26,1.0,0.6,2025-10-26T15:42:52.774363
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116337776184082,False,135.28,1.0,0.6,2025-10-26T15:43:01.137515
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148358583450317,True,78.91,0.78,0.6,2025-10-26T15:43:09.534944
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14527440071106,False,112.86,0.74,0.6,2025-10-26T15:43:17.931947
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131816387176514,False,96.75,0.35,0.6,2025-10-26T15:43:26.301454
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1447694301605225,False,119.41,0.5,0.6,2025-10-26T15:43:34.695209
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15432596206665,False,129.63,0.63,0.6,2025-10-26T15:43:43.092076
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.130126714706421,False,95.37,0.51,0.3,2025-10-26T15:43:51.471782
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137425184249878,False,278.2,0.81,0.9,2025-10-26T15:44:00.352197
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137404680252075,False,264.08,1.0,0.9,2025-10-26T15:44:08.747500
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1358866691589355,False,199.46,1.0,0.9,2025-10-26T15:44:17.144517
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155315160751343,False,237.32,1.0,0.9,2025-10-26T15:44:25.555389
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14011812210083,False,254.21,1.0,0.9,2025-10-26T15:44:33.939655
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151166677474976,True,35.34,0.62,0.6,2025-10-26T15:44:42.346494
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.119842767715454,True,92.45,1.0,0.6,2025-10-26T15:44:50.706006
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146535634994507,False,148.29,0.99,0.6,2025-10-26T15:44:59.099094
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153753280639648,False,175.35,1.0,0.6,2025-10-26T15:45:07.493427
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136639833450317,False,160.14,1.0,0.6,2025-10-26T15:45:15.881075
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1519694328308105,True,70.41,1.0,0.6,2025-10-26T15:45:24.279096
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.099342346191406,False,307.08,1.0,0.9,2025-10-26T15:45:32.633869
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148069858551025,True,67.98,1.0,0.6,2025-10-26T15:45:41.038729
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142023324966431,False,121.57,1.0,0.6,2025-10-26T15:45:49.438891
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144689559936523,False,121.25,0.78,0.6,2025-10-26T15:45:57.838371
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125686168670654,False,151.67,0.71,0.6,2025-10-26T15:46:06.205540
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136129856109619,False,118.95,0.36,0.6,2025-10-26T15:46:14.583634
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144507646560669,False,115.64,0.5,0.6,2025-10-26T15:46:22.960333
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124579906463623,False,94.02,0.6,0.6,2025-10-26T15:46:31.340473
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.161431074142456,False,93.04,0.49,0.3,2025-10-26T15:46:39.753198
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126107215881348,False,255.55,0.79,0.9,2025-10-26T15:46:48.636988
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1171324253082275,False,249.28,1.0,0.9,2025-10-26T15:46:57.002896
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_CV-QKD', 'PQC_KYBER', 'AES_256_GCM']",[],6.132916450500488,False,240.69,0.79,0.6,2025-10-26T15:47:05.387465
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.151011228561401,False,317.41,1.0,0.9,2025-10-26T15:47:13.793615
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1463282108306885,False,239.96,1.0,0.9,2025-10-26T15:47:22.198450
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1345062255859375,True,37.1,0.61,0.6,2025-10-26T15:47:30.585915
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13928747177124,False,160.06,1.0,0.6,2025-10-26T15:47:38.981520
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124993085861206,False,121.56,1.0,0.6,2025-10-26T15:47:47.354759
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_NTRU', 'AES_256_GCM']",[],6.130771636962891,False,114.49,1.0,0.3,2025-10-26T15:47:55.720232
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152178049087524,False,124.78,1.0,0.6,2025-10-26T15:48:04.129076
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133191347122192,True,98.98,1.0,0.6,2025-10-26T15:48:12.506715
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137833118438721,False,216.58,1.0,0.9,2025-10-26T15:48:20.873340
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136800527572632,False,143.88,1.0,0.6,2025-10-26T15:48:29.249720
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127464532852173,False,109.41,1.0,0.6,2025-10-26T15:48:37.622959
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.149246692657471,False,112.37,0.76,0.6,2025-10-26T15:48:46.011487
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139527082443237,False,120.54,0.69,0.6,2025-10-26T15:48:54.410604
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132252216339111,False,82.71,0.31,0.6,2025-10-26T15:49:02.799538
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137121200561523,False,94.62,0.52,0.6,2025-10-26T15:49:11.195513
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.152082681655884,False,105.06,0.63,0.6,2025-10-26T15:49:19.586067
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.145202398300171,False,88.55,0.49,0.3,2025-10-26T15:49:27.988495
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140933036804199,False,275.41,0.8,0.9,2025-10-26T15:49:41.492030
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126882076263428,False,250.35,1.0,0.9,2025-10-26T15:49:49.881633
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.136014699935913,False,189.76,1.0,0.9,2025-10-26T15:49:58.266107
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1332011222839355,False,200.36,1.0,0.9,2025-10-26T15:50:06.638083
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129980564117432,False,224.89,1.0,0.9,2025-10-26T15:50:15.010540
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134687662124634,False,138.06,0.6,0.6,2025-10-26T15:50:23.399918
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151114463806152,False,165.27,1.0,0.6,2025-10-26T15:50:31.799660
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135737657546997,False,136.54,1.0,0.6,2025-10-26T15:50:40.192529
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143366813659668,False,147.41,1.0,0.6,2025-10-26T15:50:48.586800
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137061357498169,False,145.18,1.0,0.6,2025-10-26T15:50:56.979163
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151776313781738,False,188.58,1.0,0.6,2025-10-26T15:51:05.359741
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142854928970337,False,226.7,1.0,0.9,2025-10-26T15:51:13.759794
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153433084487915,False,125.21,1.0,0.6,2025-10-26T15:51:22.159028
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1447834968566895,False,105.46,1.0,0.6,2025-10-26T15:51:30.562619
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143947124481201,False,156.83,0.79,0.6,2025-10-26T15:51:38.961738
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.123902320861816,False,124.04,0.73,0.6,2025-10-26T15:51:47.341865
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110144853591919,False,101.93,0.37,0.6,2025-10-26T15:51:55.694390
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130370616912842,False,77.55,0.51,0.6,2025-10-26T15:52:04.069392
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137242555618286,False,112.52,0.59,0.6,2025-10-26T15:52:12.462196
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.15242338180542,False,126.85,0.46,0.3,2025-10-26T15:52:20.874478
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.152752161026001,False,296.49,0.77,0.9,2025-10-26T15:52:29.784126
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.132043123245239,False,227.24,1.0,0.9,2025-10-26T15:52:38.162274
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1614391803741455,False,264.1,1.0,0.9,2025-10-26T15:52:46.581649
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145511627197266,False,319.85,1.0,0.9,2025-10-26T15:52:54.984450
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.150161266326904,False,228.25,1.0,0.9,2025-10-26T15:53:03.376766
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138472080230713,True,22.37,0.59,0.6,2025-10-26T15:53:11.738393
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139280080795288,False,163.47,1.0,0.6,2025-10-26T15:53:20.129073
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134446144104004,False,136.79,1.0,0.6,2025-10-26T15:53:28.516822
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147670269012451,False,122.93,1.0,0.6,2025-10-26T15:53:36.917452
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151422500610352,True,90.89,1.0,0.6,2025-10-26T15:53:45.321612
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.114941358566284,True,100.6,1.0,0.6,2025-10-26T15:53:53.694064
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.147542715072632,False,256.41,1.0,0.9,2025-10-26T15:54:02.082745
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142317056655884,False,108.56,1.0,0.6,2025-10-26T15:54:10.478031
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145691394805908,False,125.02,1.0,0.6,2025-10-26T15:54:18.875843
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1079957485198975,False,148.54,0.78,0.6,2025-10-26T15:54:27.236739
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_NTRU', 'AES_256_GCM']",[],6.1391074657440186,False,110.55,0.7,0.3,2025-10-26T15:54:35.626108
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124203205108643,True,21.17,0.37,0.6,2025-10-26T15:54:44.004178
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['RSA_4096', 'AES_256_GCM']",[],6.1218156814575195,False,83.24,0.51,0.3,2025-10-26T15:54:52.380575
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.099511623382568,False,96.64,0.6,0.6,2025-10-26T15:55:00.718096
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.148242235183716,False,102.63,0.5,0.3,2025-10-26T15:55:09.115763
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.123873233795166,False,294.07,0.77,0.9,2025-10-26T15:55:17.983170
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.116605520248413,False,299.09,1.0,0.9,2025-10-26T15:55:26.334568
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.143465280532837,True,85.53,1.0,0.9,2025-10-26T15:55:34.725385
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155287504196167,False,285.5,1.0,0.9,2025-10-26T15:55:43.136256
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145046234130859,False,203.11,1.0,0.9,2025-10-26T15:55:51.536730
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133026599884033,True,34.18,0.61,0.6,2025-10-26T15:55:59.913960
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128154754638672,False,133.36,1.0,0.6,2025-10-26T15:56:08.301325
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139172792434692,False,149.73,1.0,0.6,2025-10-26T15:56:16.684605
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148252487182617,False,171.05,1.0,0.6,2025-10-26T15:56:25.073560
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150319814682007,False,181.65,1.0,0.6,2025-10-26T15:56:33.481409
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137236595153809,False,133.78,1.0,0.6,2025-10-26T15:56:41.870071
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.126636505126953,False,326.52,1.0,0.9,2025-10-26T15:56:50.253466
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1529388427734375,False,133.3,0.99,0.6,2025-10-26T15:56:58.655582
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140416383743286,False,123.71,1.0,0.6,2025-10-26T15:57:07.030814
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132650852203369,False,108.09,0.79,0.6,2025-10-26T15:57:15.403464
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157610893249512,False,130.67,0.73,0.6,2025-10-26T15:57:23.802033
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150500774383545,False,83.99,0.33,0.6,2025-10-26T15:57:32.210291
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145946264266968,False,90.12,0.54,0.6,2025-10-26T15:57:40.612116
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.130930185317993,False,122.45,0.61,0.6,2025-10-26T15:57:48.997714
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.149179697036743,False,94.19,0.49,0.3,2025-10-26T15:57:57.389684
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.115071773529053,False,297.26,0.78,0.9,2025-10-26T15:58:06.256548
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142670154571533,False,282.13,1.0,0.9,2025-10-26T15:58:14.653595
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139040470123291,False,273.09,1.0,0.9,2025-10-26T15:58:23.047131
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155537366867065,False,258.23,1.0,0.9,2025-10-26T15:58:31.452967
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139188289642334,False,227.05,1.0,0.9,2025-10-26T15:58:39.834509
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135756492614746,False,150.77,0.62,0.6,2025-10-26T15:58:48.215699
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143933057785034,False,134.11,1.0,0.6,2025-10-26T15:58:56.612322
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1143786907196045,False,122.57,1.0,0.6,2025-10-26T15:59:04.980061
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148628234863281,False,131.51,1.0,0.6,2025-10-26T15:59:13.389428
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1391377449035645,False,117.8,1.0,0.6,2025-10-26T15:59:21.779530
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153717756271362,False,186.78,1.0,0.6,2025-10-26T15:59:30.185620
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142213821411133,False,279.59,1.0,0.9,2025-10-26T15:59:38.586246
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.138548851013184,False,122.8,1.0,0.6,2025-10-26T15:59:46.981656
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132468938827515,False,120.86,1.0,0.6,2025-10-26T15:59:55.360866
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11075234413147,False,119.44,0.78,0.6,2025-10-26T16:00:03.719496
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145543336868286,False,137.55,0.72,0.6,2025-10-26T16:00:12.103283
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13376784324646,False,90.66,0.37,0.6,2025-10-26T16:00:20.489412
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.12952184677124,False,119.11,0.51,0.6,2025-10-26T16:00:28.869184
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142868280410767,False,89.98,0.62,0.6,2025-10-26T16:00:37.271492
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.142375946044922,False,118.61,0.48,0.3,2025-10-26T16:00:45.669347
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.113135814666748,False,211.89,0.77,0.9,2025-10-26T16:00:54.519834
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.139993906021118,False,271.03,1.0,0.9,2025-10-26T16:01:02.908527
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131735563278198,False,193.31,1.0,0.9,2025-10-26T16:01:11.285788
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145251035690308,False,234.47,1.0,0.9,2025-10-26T16:01:19.683732
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.160430908203125,False,302.49,1.0,0.9,2025-10-26T16:01:28.098440
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154903173446655,False,175.97,0.6,0.6,2025-10-26T16:01:36.506364
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145883321762085,False,177.94,1.0,0.6,2025-10-26T16:01:44.903222
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.132503509521484,False,123.29,1.0,0.6,2025-10-26T16:01:53.295524
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1177661418914795,False,136.51,1.0,0.6,2025-10-26T16:02:01.667876
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1456921100616455,False,168.95,0.99,0.6,2025-10-26T16:02:10.059106
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125738620758057,False,150.51,1.0,0.6,2025-10-26T16:02:18.436767
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149214506149292,False,310.5,1.0,0.9,2025-10-26T16:02:26.826171
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1394476890563965,False,113.27,1.0,0.6,2025-10-26T16:02:35.217422
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14141321182251,False,120.76,1.0,0.6,2025-10-26T16:02:43.614115
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.155623912811279,False,106.28,0.79,0.6,2025-10-26T16:02:52.022692
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120248317718506,False,134.22,0.7,0.6,2025-10-26T16:03:00.384889
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145095586776733,True,24.3,0.34,0.6,2025-10-26T16:03:08.782994
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115922212600708,False,99.07,0.51,0.6,2025-10-26T16:03:17.145072
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136241674423218,False,118.13,0.6,0.6,2025-10-26T16:03:25.538174
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.147463321685791,False,89.67,0.47,0.3,2025-10-26T16:03:33.940875
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.138770341873169,False,225.88,0.78,0.9,2025-10-26T16:03:47.427515
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1377036571502686,False,251.65,1.0,0.9,2025-10-26T16:03:55.820140
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1574320793151855,False,281.12,1.0,0.9,2025-10-26T16:04:04.230022
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.132208347320557,False,213.13,1.0,0.9,2025-10-26T16:04:12.619004
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.143662929534912,False,261.78,1.0,0.9,2025-10-26T16:04:21.004833
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144532203674316,False,115.19,0.59,0.6,2025-10-26T16:04:29.394184
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1597230434417725,True,78.78,1.0,0.6,2025-10-26T16:04:37.806287
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128000497817993,False,108.98,1.0,0.6,2025-10-26T16:04:46.177237
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126732110977173,False,162.17,1.0,0.6,2025-10-26T16:04:54.535982
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141012191772461,False,142.53,1.0,0.6,2025-10-26T16:05:02.929446
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.153477907180786,False,158.11,1.0,0.6,2025-10-26T16:05:11.321997
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.113053321838379,False,262.18,1.0,0.9,2025-10-26T16:05:19.678141
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157793760299683,True,77.77,1.0,0.6,2025-10-26T16:05:28.086581
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1434876918792725,False,100.58,1.0,0.6,2025-10-26T16:05:36.486327
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['HYBRID_ECC_PQC', 'AES_256_GCM']",[],6.126655101776123,False,107.99,0.76,0.3,2025-10-26T16:05:44.838411
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147629022598267,False,147.24,0.71,0.6,2025-10-26T16:05:53.241305
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141509532928467,False,94.65,0.35,0.6,2025-10-26T16:06:01.640893
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156970977783203,False,89.42,0.55,0.6,2025-10-26T16:06:10.035859
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140729188919067,False,125.19,0.58,0.6,2025-10-26T16:06:18.429432
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.144691467285156,True,41.12,0.47,0.3,2025-10-26T16:06:26.824293
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130616903305054,True,62.85,0.79,0.9,2025-10-26T16:06:35.711628
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.135957479476929,False,273.79,1.0,0.9,2025-10-26T16:06:44.102830
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.106663703918457,False,263.7,1.0,0.9,2025-10-26T16:06:52.451519
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1207990646362305,False,290.95,1.0,0.9,2025-10-26T16:07:00.829010
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.088377952575684,False,232.82,1.0,0.9,2025-10-26T16:07:09.173686
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133027791976929,False,129.01,0.59,0.6,2025-10-26T16:07:17.563019
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.129403829574585,False,186.82,1.0,0.6,2025-10-26T16:07:25.944258
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1344921588897705,False,166.66,1.0,0.6,2025-10-26T16:07:34.328650
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147692441940308,False,155.22,1.0,0.6,2025-10-26T16:07:42.732799
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133238315582275,False,129.01,1.0,0.6,2025-10-26T16:07:51.122312
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139460802078247,False,197.8,1.0,0.6,2025-10-26T16:07:59.493277
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1513354778289795,False,266.88,1.0,0.9,2025-10-26T16:08:07.900232
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.142259120941162,False,122.5,1.0,0.6,2025-10-26T16:08:16.297304
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.154301166534424,False,112.4,1.0,0.6,2025-10-26T16:08:24.702864
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1324145793914795,False,134.63,0.78,0.6,2025-10-26T16:08:33.082514
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157218933105469,False,138.29,0.7,0.6,2025-10-26T16:08:41.486870
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150388479232788,True,13.31,0.36,0.6,2025-10-26T16:08:49.884929
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.139387607574463,False,94.39,0.51,0.6,2025-10-26T16:08:58.243649
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145352363586426,False,117.77,0.6,0.6,2025-10-26T16:09:06.642449
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.152047872543335,False,120.55,0.45,0.3,2025-10-26T16:09:15.035183
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.124092102050781,False,212.33,0.82,0.9,2025-10-26T16:09:23.906570
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.141156911849976,False,276.88,1.0,0.9,2025-10-26T16:09:32.298560
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148704290390015,False,264.45,1.0,0.9,2025-10-26T16:09:40.692237
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.165309906005859,False,300.98,1.0,0.9,2025-10-26T16:09:49.113812
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129620313644409,False,195.71,1.0,0.9,2025-10-26T16:09:57.496515
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1302525997161865,False,148.05,0.6,0.6,2025-10-26T16:10:05.878827
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115519762039185,False,191.45,1.0,0.6,2025-10-26T16:10:14.248037
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133318662643433,False,160.05,1.0,0.6,2025-10-26T16:10:22.626511
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148163795471191,False,137.98,1.0,0.6,2025-10-26T16:10:31.018133
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151935815811157,False,127.71,1.0,0.6,2025-10-26T16:10:39.422289
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.159107446670532,False,188.34,1.0,0.6,2025-10-26T16:10:47.819843
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.107776403427124,False,289.32,1.0,0.9,2025-10-26T16:10:56.173698
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.133332252502441,False,149.01,1.0,0.6,2025-10-26T16:11:04.565092
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151540279388428,False,110.08,1.0,0.6,2025-10-26T16:11:12.972310
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116563081741333,False,145.84,0.78,0.6,2025-10-26T16:11:21.340604
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1225292682647705,False,97.42,0.69,0.6,2025-10-26T16:11:29.705517
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1613852977752686,False,113.29,0.36,0.6,2025-10-26T16:11:38.124322
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115612506866455,False,106.3,0.5,0.6,2025-10-26T16:11:46.499267
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.105828762054443,False,100.75,0.61,0.6,2025-10-26T16:11:54.865984
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.128280401229858,False,88.1,0.49,0.3,2025-10-26T16:12:03.246835
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130978107452393,False,210.09,0.78,0.9,2025-10-26T16:12:12.124215
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1416802406311035,False,258.54,1.0,0.9,2025-10-26T16:12:20.520966
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.155549764633179,False,237.72,1.0,0.9,2025-10-26T16:12:28.907334
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.131147146224976,False,266.77,1.0,0.9,2025-10-26T16:12:37.290960
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['PQC_DILITHIUM', 'AES_256_GCM']",[],6.137341260910034,False,242.59,1.0,0.3,2025-10-26T16:12:45.671044
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141425848007202,False,162.74,0.63,0.6,2025-10-26T16:12:54.070018
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.135697841644287,True,56.93,1.0,0.6,2025-10-26T16:13:02.460136
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15002965927124,False,136.37,1.0,0.6,2025-10-26T16:13:10.867280
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15540337562561,False,139.52,1.0,0.6,2025-10-26T16:13:19.275848
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150487422943115,False,157.3,1.0,0.6,2025-10-26T16:13:27.666307
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144838809967041,False,145.66,1.0,0.6,2025-10-26T16:13:36.064163
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.130031585693359,False,229.65,1.0,0.9,2025-10-26T16:13:44.448581
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134357929229736,False,152.43,1.0,0.6,2025-10-26T16:13:52.832875
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1536993980407715,False,95.08,1.0,0.6,2025-10-26T16:14:01.239550
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1455018520355225,True,48.1,0.78,0.6,2025-10-26T16:14:09.617191
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1073737144470215,False,135.4,0.72,0.6,2025-10-26T16:14:17.976170
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.146315336227417,False,102.61,0.31,0.6,2025-10-26T16:14:26.374356
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1085524559021,False,117.94,0.54,0.6,2025-10-26T16:14:34.735513
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145723104476929,False,127.71,0.58,0.6,2025-10-26T16:14:43.132039
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.153706789016724,False,103.07,0.45,0.3,2025-10-26T16:14:51.539356
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.148679971694946,False,251.53,0.77,0.9,2025-10-26T16:15:00.429802
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.150188446044922,False,266.89,1.0,0.9,2025-10-26T16:15:08.830285
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137593746185303,False,221.29,1.0,0.9,2025-10-26T16:15:17.214744
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14226222038269,False,293.59,1.0,0.9,2025-10-26T16:15:25.597508
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.125353813171387,False,305.67,1.0,0.9,2025-10-26T16:15:33.961508
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.156217575073242,True,30.75,0.64,0.6,2025-10-26T16:15:42.348232
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.120861053466797,False,173.22,0.99,0.6,2025-10-26T16:15:50.719855
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14323616027832,False,149.46,1.0,0.6,2025-10-26T16:15:59.111999
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.157867908477783,False,127.76,1.0,0.6,2025-10-26T16:16:07.526863
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122251987457275,False,123.82,0.99,0.6,2025-10-26T16:16:15.894820
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.144461154937744,False,201.56,1.0,0.6,2025-10-26T16:16:24.288239
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14780592918396,False,313.6,1.0,0.9,2025-10-26T16:16:32.676864
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140925884246826,False,113.95,1.0,0.6,2025-10-26T16:16:41.073616
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.140105247497559,False,125.37,0.99,0.6,2025-10-26T16:16:49.469350
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.115086317062378,False,148.09,0.8,0.6,2025-10-26T16:16:57.827696
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.148454904556274,False,103.27,0.7,0.6,2025-10-26T16:17:06.235576
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134542226791382,False,87.1,0.32,0.6,2025-10-26T16:17:14.615797
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.161759376525879,True,46.56,0.53,0.6,2025-10-26T16:17:23.010332
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.14072847366333,False,92.86,0.63,0.6,2025-10-26T16:17:31.411116
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.145498991012573,False,135.14,0.45,0.3,2025-10-26T16:17:39.805247
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142872333526611,False,289.6,0.81,0.9,2025-10-26T16:17:53.299258
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129233121871948,False,254.23,1.0,0.9,2025-10-26T16:18:01.671282
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.129597425460815,True,138.81,1.0,0.9,2025-10-26T16:18:10.043648
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.137269496917725,False,206.43,1.0,0.9,2025-10-26T16:18:18.433537
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.127400875091553,True,103.76,1.0,0.9,2025-10-26T16:18:26.800686
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.127929925918579,False,168.43,0.59,0.6,2025-10-26T16:18:35.174813
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.113493919372559,False,127.91,1.0,0.6,2025-10-26T16:18:43.551877
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1304097175598145,False,122.7,1.0,0.6,2025-10-26T16:18:51.935016
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.128102779388428,False,125.08,0.99,0.6,2025-10-26T16:19:00.323579
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.113648891448975,False,177.74,1.0,0.6,2025-10-26T16:19:08.686044
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.122650146484375,False,158.56,1.0,0.6,2025-10-26T16:19:17.066791
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.140308380126953,False,293.81,1.0,0.9,2025-10-26T16:19:25.446802
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.103495121002197,False,129.38,1.0,0.6,2025-10-26T16:19:33.808741
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.123786687850952,False,148.67,1.0,0.6,2025-10-26T16:19:42.164980
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.159235000610352,False,129.46,0.81,0.6,2025-10-26T16:19:50.559926
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.095898151397705,False,138.86,0.74,0.6,2025-10-26T16:19:58.917789
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.078139781951904,False,85.4,0.34,0.6,2025-10-26T16:20:07.229761
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.067545175552368,False,79.47,0.51,0.6,2025-10-26T16:20:15.536458
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.12983775138855,False,94.14,0.61,0.6,2025-10-26T16:20:23.907533
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.149723768234253,False,88.24,0.46,0.3,2025-10-26T16:20:32.280613
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.0863001346588135,False,255.84,0.78,0.9,2025-10-26T16:20:41.109041
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.117010831832886,False,238.71,1.0,0.9,2025-10-26T16:20:49.459992
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.117511034011841,False,215.71,1.0,0.9,2025-10-26T16:20:57.824816
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.068265914916992,False,284.56,1.0,0.9,2025-10-26T16:21:06.140633
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.118841886520386,False,221.87,1.0,0.9,2025-10-26T16:21:14.507138
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.123227596282959,False,125.4,0.61,0.6,2025-10-26T16:21:22.874831
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.090723752975464,False,134.76,1.0,0.6,2025-10-26T16:21:31.222688
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.110502481460571,True,50.8,1.0,0.6,2025-10-26T16:21:39.556112
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147231817245483,False,139.44,1.0,0.6,2025-10-26T16:21:47.944734
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.113333463668823,False,153.6,1.0,0.6,2025-10-26T16:21:56.304522
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.104067325592041,False,138.88,1.0,0.6,2025-10-26T16:22:04.632615
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.138533353805542,False,254.71,1.0,0.9,2025-10-26T16:22:13.004618
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141998767852783,False,129.42,1.0,0.6,2025-10-26T16:22:21.383902
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1276631355285645,False,139.71,1.0,0.6,2025-10-26T16:22:29.759544
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151830196380615,False,150.17,0.78,0.6,2025-10-26T16:22:38.139391
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.121639728546143,False,135.7,0.74,0.6,2025-10-26T16:22:46.502228
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.125133514404297,False,80.62,0.36,0.6,2025-10-26T16:22:54.868548
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['RSA_4096', 'AES_256_GCM']",[],6.123398303985596,False,83.0,0.51,0.3,2025-10-26T16:23:03.241951
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.143696546554565,False,125.46,0.58,0.6,2025-10-26T16:23:11.629698
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.119448184967041,False,101.22,0.46,0.3,2025-10-26T16:23:20.003510
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.145801544189453,False,190.05,0.8,0.9,2025-10-26T16:23:28.898486
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.144308567047119,False,243.18,1.0,0.9,2025-10-26T16:23:37.288101
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.107972145080566,False,193.25,1.0,0.9,2025-10-26T16:23:45.631876
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.094600200653076,False,298.84,1.0,0.9,2025-10-26T16:23:53.984857
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.149573087692261,True,150.02,1.0,0.9,2025-10-26T16:24:02.382878
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147951126098633,True,32.07,0.59,0.6,2025-10-26T16:24:10.788863
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.095079660415649,False,163.69,1.0,0.6,2025-10-26T16:24:19.135892
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116889953613281,False,120.85,1.0,0.6,2025-10-26T16:24:27.497162
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116605520248413,False,138.23,1.0,0.6,2025-10-26T16:24:35.870819
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.13033127784729,False,127.79,1.0,0.6,2025-10-26T16:24:44.244603
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.121947526931763,False,145.15,1.0,0.6,2025-10-26T16:24:52.612286
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.1459386348724365,False,308.03,1.0,0.9,2025-10-26T16:25:01.020480
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1220316886901855,False,122.98,1.0,0.6,2025-10-26T16:25:09.386100
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1174352169036865,False,128.34,1.0,0.6,2025-10-26T16:25:17.760115
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.114326238632202,False,143.18,0.76,0.6,2025-10-26T16:25:26.132400
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.101917028427124,False,140.73,0.71,0.6,2025-10-26T16:25:34.495815
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.136682033538818,False,94.74,0.36,0.6,2025-10-26T16:25:42.884433
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137839317321777,False,95.34,0.54,0.6,2025-10-26T16:25:51.266369
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.126907825469971,False,125.25,0.62,0.6,2025-10-26T16:25:59.633151
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.154257774353027,False,99.05,0.47,0.3,2025-10-26T16:26:08.034266
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.116948366165161,False,195.46,0.8,0.9,2025-10-26T16:26:16.884262
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.13015341758728,False,223.45,1.0,0.9,2025-10-26T16:26:25.256757
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.109998941421509,False,228.63,1.0,0.9,2025-10-26T16:26:33.611008
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.14283561706543,False,234.02,1.0,0.9,2025-10-26T16:26:41.996055
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.142410755157471,False,257.67,1.0,0.9,2025-10-26T16:26:50.381035
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.099012136459351,True,21.25,0.62,0.6,2025-10-26T16:26:58.710052
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137731075286865,False,151.7,1.0,0.6,2025-10-26T16:27:07.108062
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.15224552154541,False,117.17,1.0,0.6,2025-10-26T16:27:15.505263
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.108154058456421,False,173.65,1.0,0.6,2025-10-26T16:27:23.871768
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.131847620010376,True,93.18,1.0,0.6,2025-10-26T16:27:32.234596
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141923427581787,False,172.48,1.0,0.6,2025-10-26T16:27:40.609381
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.127459287643433,True,137.07,1.0,0.9,2025-10-26T16:27:48.986306
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.124627351760864,False,142.79,1.0,0.6,2025-10-26T16:27:57.354643
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137437343597412,False,123.73,1.0,0.6,2025-10-26T16:28:05.738360
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.145259618759155,False,149.83,0.78,0.6,2025-10-26T16:28:14.129801
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.137543439865112,False,147.91,0.72,0.6,2025-10-26T16:28:22.511910
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1467883586883545,False,85.76,0.34,0.6,2025-10-26T16:28:30.917247
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.147110462188721,False,97.4,0.51,0.6,2025-10-26T16:28:39.301972
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1480982303619385,False,103.69,0.57,0.6,2025-10-26T16:28:47.704101
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.146435022354126,False,122.52,0.48,0.3,2025-10-26T16:28:56.080364
+QKD BB84 - Ultra Security,quantum_bb84,QKD_BB84,qkd-bb84-001,ultra,0.95,0.98,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.11162543296814,False,286.69,0.8,0.9,2025-10-26T16:29:04.936481
+QKD E91 - Entanglement Based,quantum_e91,QKD_E91,qkd-e91-002,very_high,0.9,0.93,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.16320276260376,False,238.92,1.0,0.9,2025-10-26T16:29:13.330710
+QKD CV-QKD - Continuous Variable,quantum_cv,QKD_CV-QKD,qkd-cv-003,high,0.85,0.88,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.125062704086304,False,222.75,1.0,0.9,2025-10-26T16:29:21.687883
+QKD MDI-QKD - Measurement Device Independent,quantum_mdi,QKD_MDI-QKD,qkd-mdi-004,high,0.83,0.86,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.13525915145874,False,267.17,1.0,0.9,2025-10-26T16:29:30.079003
+QKD DECOY - Decoy State Protocol,quantum_decoy,QKD_DECOY,qkd-decoy-005,very_high,0.91,0.94,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.086991786956787,False,294.47,1.0,0.9,2025-10-26T16:29:38.424953
+PQC KYBER - Post-Quantum KEM,pqc_kyber,PQC_KYBER,pqc-kyber-006,ultra,0.93,0.96,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.101569652557373,False,127.29,0.59,0.6,2025-10-26T16:29:46.789326
+PQC DILITHIUM - Digital Signature,pqc_dilithium,PQC_DILITHIUM,pqc-dilithium-007,very_high,0.88,0.91,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.10160231590271,False,146.86,1.0,0.6,2025-10-26T16:29:55.133238
+PQC NTRU - Lattice-Based Encryption,pqc_ntru,PQC_NTRU,pqc-ntru-008,very_high,0.86,0.89,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116651296615601,False,116.07,1.0,0.6,2025-10-26T16:30:03.496286
+PQC SABER - Module Learning,pqc_saber,PQC_SABER,pqc-saber-009,high,0.8,0.84,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.107917785644531,False,118.91,1.0,0.6,2025-10-26T16:30:11.862012
+PQC FALCON - Fast Fourier Lattice,pqc_falcon,PQC_FALCON,pqc-falcon-010,ultra,0.94,0.97,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1449294090271,False,168.47,0.99,0.6,2025-10-26T16:30:20.252785
+PQC SPHINCS+ - Stateless Hash-Based,pqc_sphincs,PQC_SPHINCS,pqc-sphincs-011,very_high,0.89,0.92,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.134893894195557,True,71.72,1.0,0.6,2025-10-26T16:30:28.638993
+HYBRID QKD+PQC - Maximum Security,hybrid_qkd_pqc,HYBRID_QKD_PQC,hybrid-qkd-pqc-012,ultra,0.97,0.99,True,"['QKD_BB84', 'PQC_KYBER', 'AES_256_GCM']",[],6.127603769302368,False,227.94,1.0,0.9,2025-10-26T16:30:37.012646
+HYBRID RSA+PQC - Transition Security,hybrid_rsa,HYBRID_RSA_PQC,hybrid-rsa-013,very_high,0.82,0.85,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.151144981384277,False,153.47,1.0,0.6,2025-10-26T16:30:45.407447
+HYBRID ECC+PQC - Elliptic Curve Hybrid,hybrid_ecc,HYBRID_ECC_PQC,hybrid-ecc-014,high,0.75,0.79,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.150831460952759,False,128.23,1.0,0.6,2025-10-26T16:30:53.788858
+RSA 4096 - Classical Strong,classical_rsa,RSA_4096,rsa-4096-015,high,0.7,0.74,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.1313652992248535,False,157.06,0.76,0.6,2025-10-26T16:31:02.154182
+ECC 521 - Elliptic Curve,classical_ecc,ECC_521,ecc-521-016,high,0.72,0.76,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.123754024505615,False,95.11,0.74,0.6,2025-10-26T16:31:10.535050
+AES 256 GCM - Symmetric Encryption,classical_aes256,AES_256_GCM,aes-256-017,moderate,0.55,0.6,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.141338109970093,False,120.54,0.33,0.6,2025-10-26T16:31:18.933152
+AES 192 - Medium Symmetric,classical_aes192,AES_192,aes-192-018,moderate,0.5,0.55,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.116445779800415,False,111.86,0.53,0.6,2025-10-26T16:31:27.308168
+ChaCha20-Poly1305 - Stream Cipher,classical_chacha,CHACHA20_POLY1305,chacha20-019,moderate,0.52,0.57,False,"['PQC_KYBER', 'AES_256_GCM']",[],6.11495566368103,False,107.76,0.6,0.6,2025-10-26T16:31:35.664550
+FALLBACK AES - Emergency Mode,fallback,FALLBACK_AES,fallback-aes-020,moderate,0.6,0.65,False,"['AES_192', 'AES_256_GCM']",[],6.137530565261841,False,136.47,0.47,0.3,2025-10-26T16:31:44.039062
