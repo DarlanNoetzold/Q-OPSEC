@@ -166,11 +166,9 @@ class RequestSpec(BaseModel):
 
 async def start_service(name: str) -> Dict[str, Any]:
     cfg = service_cfg(name)
-    # Já rodando com handle?
     if name in STATE and STATE[name].get("proc") and getattr(STATE[name]["proc"], "poll", lambda: None)() is None:
         return {"status": "running", "pid": STATE[name]["proc"].pid}
 
-    # Já rodando por PID file?
     exist_pid = read_pidfile(name)
     if exist_pid and is_pid_running(exist_pid):
         STATE[name] = {
@@ -228,7 +226,6 @@ async def start_service(name: str) -> Dict[str, Any]:
         }
         return {"status": "started", "pid": proc.pid, "log_file": log_file}
 
-    # Unix-like: prefer asyncio
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -288,52 +285,40 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
     pid = state.get("pid")
     port = cfg.get("port")
 
-    # 1) Graceful shutdown via Actuator (se houver)
     await graceful_shutdown_if_possible(cfg)
 
-    # 2) Descobrir PID: STATE -> pidfile -> porta
     if not pid:
         pid = read_pidfile(name)
 
-    # Se Windows e com mvn/mvnw que spawna java.exe, descubra por porta
     if not pid and port:
         if sys.platform.startswith("win"):
             pid = find_pid_by_port_windows(int(port))
         else:
             pid = find_pid_by_port_unix(int(port))
 
-    # Sem PID e sem porta => nada a fazer
     if not pid and not port:
         return {"status": "not_running"}
 
-    # 3) Se temos handle Popen/asyncio, tenta parar via handle
     if proc is not None:
-        # Tenta terminate/kill no handle
         if hasattr(proc, "terminate"):
             try:
                 proc.terminate()
             except Exception:
                 pass
-            # Espera sair
             start_t = time.time()
             while (time.time() - start_t) < timeout:
                 try:
                     if proc.poll() is not None:
                         break
                 except AttributeError:
-                    # asyncio subprocess
                     if proc.returncode is not None:
                         break
                 await asyncio.sleep(0.2)
-            # Se ainda vivo, kill
             try:
-                # Popen tem kill(); asyncio também
                 proc.kill()
             except Exception:
                 pass
-        # Continua para checar porta/PID e limpar pidfile
 
-    # 4) Kill por PID (se ainda estiver vivo)
     if pid and is_pid_running(pid):
         if sys.platform.startswith("win"):
             kill_pid_windows(pid)
@@ -348,7 +333,6 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 5) Se ainda há alguém na porta, mate o PID da porta (multi-processo, wrapper)
     if port:
         end_time = time.time() + timeout
         while time.time() < end_time:
@@ -373,7 +357,6 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
                         pass
             await asyncio.sleep(0.5)
 
-    # 6) Limpa pidfile se processo caiu
     try:
         pf = pidfile_path(name)
         if not pid or not is_pid_running(pid):
@@ -381,7 +364,6 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # 7) Status final: confirma que porta liberou e PID não existe
     still_running = bool(pid and is_pid_running(pid))
     still_on_port = False
     if port:
@@ -552,10 +534,7 @@ import re
 from datetime import datetime
 from collections import defaultdict
 
-# ============== TRACE & FLOW ENDPOINTS ==============
-
 def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> List[Dict[str, Any]]:
-    """Busca request_id no log e retorna linhas com contexto"""
     p = Path(log_path)
     if not p.exists():
         return []
@@ -578,12 +557,10 @@ def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> Lis
     return matches
 
 def extract_timestamp(line: str) -> Optional[str]:
-    """Tenta extrair timestamp de uma linha de log"""
-    # Padrões comuns: ISO8601, logs Spring, etc.
     patterns = [
-        r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?',  # ISO8601
-        r'\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}',                # DD/MM/YYYY HH:MM:SS
-        r'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]',            # [YYYY-MM-DD HH:MM:SS]
+        r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?', 
+        r'\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}',              
+        r'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]',          
     ]
     for pattern in patterns:
         match = re.search(pattern, line)
@@ -593,7 +570,6 @@ def extract_timestamp(line: str) -> Optional[str]:
 
 @APP.get("/trace/{request_id}")
 async def trace_request(request_id: str, context_lines: int = Query(2, ge=0, le=10)):
-    """Rastreia request_id em todos os logs dos serviços"""
     results = {}
     for name, cfg in CONFIG.get("services", {}).items():
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
@@ -618,8 +594,6 @@ async def trace_request(request_id: str, context_lines: int = Query(2, ge=0, le=
 
 @APP.get("/flow/{request_id}")
 async def flow_status(request_id: str):
-    """Mostra o estado atual da requisição no fluxo (pipeline)"""
-    # Pipeline esperado (ajuste conforme sua arquitetura)
     pipeline = [
         {"service": "interceptor_api", "endpoint": "/intercept", "port": 8080},
         {"service": "context_api", "endpoint": "/context/assemble", "port": 8081},
@@ -651,7 +625,6 @@ async def flow_status(request_id: str):
         if matches:
             status = "processed"
             last_seen = matches[-1].get("timestamp")
-            # Detecta erro
             for m in matches:
                 if any(kw in m["line"].lower() for kw in ["error", "exception", "failed", "400", "500"]):
                     status = "error"
@@ -668,7 +641,6 @@ async def flow_status(request_id: str):
             "matches_count": len(matches)
         })
     
-    # Determina etapa atual
     current_step = None
     for i, step in enumerate(flow_state):
         if step["status"] == "error":
@@ -689,7 +661,6 @@ async def flow_status(request_id: str):
 
 @APP.get("/timeline/{request_id}")
 async def timeline(request_id: str):
-    """Monta timeline cronológica da requisição"""
     events = []
     
     for name, cfg in CONFIG.get("services", {}).items():
@@ -718,7 +689,6 @@ async def timeline(request_id: str):
 
 @APP.get("/requests/active")
 async def active_requests():
-    """Lista request_ids ativos nos últimos N minutos (heurística)"""
     request_ids = set()
     pattern = re.compile(r'req[_-][\w\d]+')
     
