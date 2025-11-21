@@ -5,8 +5,8 @@ from datetime import datetime
 
 from models import EncryptRequest, EncryptResponse, DecryptRequest, DecryptResponse, ErrorResponse
 from crypto_engine import (
-    fetch_key_context,            # KMS via session_id
-    fetch_message_from_interceptor,  # Interceptor via request_id
+    fetch_key_context,
+    fetch_message_from_interceptor,
     aead_encrypt,
     aead_decrypt,
     b64d,
@@ -42,17 +42,13 @@ def _default_aad(session_id: str, request_id: str, algorithm: str) -> bytes:
 @app.post("/encrypt", response_model=EncryptResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}})
 async def encrypt(req: EncryptRequest):
     try:
-        # KMS exige session_id
         if not req.session_id:
             raise ValueError("session_id is required to fetch key from KMS")
 
-        # 1) Contexto da chave via KMS
         ctx = await fetch_key_context(session_id=req.session_id, request_id=None)
         session_id = ctx["session_id"]
         req_id = req.request_id or ctx.get("request_id") or ""
 
-        # 2) Obter plaintext
-        # Se não veio inline (plaintext_b64), busca no Interceptor com request_id
         if not req.plaintext_b64:
             fetch_flag = getattr(req, "fetch_from_interceptor", True)
             if not fetch_flag:
@@ -70,10 +66,8 @@ async def encrypt(req: EncryptRequest):
 
         plaintext = b64d(payload_b64) or b""
 
-        # 3) AAD
         aad = b64d(req.aad_b64) if req.aad_b64 else _default_aad(session_id, req_id, req.algorithm)
 
-        # 4) Encrypt
         nonce_b64, ciphertext_b64 = aead_encrypt(ctx, req.algorithm, plaintext, aad)
 
         return EncryptResponse(
@@ -100,19 +94,15 @@ class EncryptByRequestId(BaseModel):
 @app.post("/encrypt/by-request-id", response_model=EncryptResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}})
 async def encrypt_by_request_id(body: EncryptByRequestId):
     try:
-        # 1) Mensagem no Interceptor
         intercepted = await fetch_message_from_interceptor(body.request_id)
         msg = intercepted.get("message")
         if msg is None:
             raise ValueError("Interceptor response missing 'message' field")
 
-        # 2) Chave no KMS
         ctx = await fetch_key_context(session_id=body.session_id, request_id=None)
 
-        # 3) AAD
         aad = b64d(body.aad_b64) if body.aad_b64 else _default_aad(body.session_id, body.request_id, body.algorithm)
 
-        # 4) Encrypt
         nonce_b64, ciphertext_b64 = aead_encrypt(
             ctx,
             body.algorithm,
