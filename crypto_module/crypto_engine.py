@@ -18,8 +18,6 @@ from config import (
     HKDF_INFO_DECRYPT,
 )
 
-# ---- Helpers ----
-
 def b64e(data: bytes) -> str:
     return base64.b64encode(data).decode("utf-8")
 
@@ -39,7 +37,6 @@ def _hkdf_derive(key_material_b64: str, length: int, info: bytes) -> bytes:
 def _now_epoch() -> int:
     return int(datetime.utcnow().timestamp())
 
-# ---- KMS key/context fetch ----
 
 async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]) -> dict:
     if not session_id:
@@ -60,7 +57,6 @@ async def fetch_key_context(session_id: Optional[str], request_id: Optional[str]
 
     return ctx
 
-# ---- Interceptor fetch ----
 
 async def fetch_message_from_interceptor(request_id: str) -> dict:
     if not request_id:
@@ -75,7 +71,6 @@ async def fetch_message_from_interceptor(request_id: str) -> dict:
 
     return resp.json()
 
-# ---- AEAD operations ----
 
 def _derive_aead_key(ctx: dict, algorithm: str, for_encrypt: bool) -> Tuple[bytes, int]:
     alg = algorithm.upper()
