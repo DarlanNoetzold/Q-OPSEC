@@ -1,6 +1,6 @@
 """
-Q-OPSEC Orchestrator - Linux Version
-Manages microservices lifecycle, health checks, logs and metrics
+Q-OPSEC Orchestrator - Linux Version with Docker Support
+Manages microservices lifecycle (processes + containers), health checks, logs and metrics
 """
 import asyncio
 import json
@@ -10,6 +10,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
+import shutil
 
 import httpx
 import uvicorn
@@ -18,7 +19,7 @@ from fastapi import FastAPI, HTTPException, Body, Query
 from pydantic import BaseModel, Field
 import subprocess
 
-APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.5.0-linux")
+APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.6.0-linux-docker")
 
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = BASE_DIR / "services.yaml"
@@ -34,6 +35,265 @@ APP.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ===== DOCKER UTILITIES =====
+
+def docker_available() -> bool:
+    """Check if Docker is available"""
+    return shutil.which("docker") is not None
+
+def docker_running() -> bool:
+    """Check if Docker daemon is running"""
+    if not docker_available():
+        return False
+    try:
+        subprocess.check_output(
+            ["docker", "info"],
+            stderr=subprocess.DEVNULL,
+            timeout=3
+        )
+        return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+def docker_container_exists(name: str) -> bool:
+    """Check if container exists"""
+    try:
+        out = subprocess.check_output(
+            ["docker", "ps", "-a", "--filter", f"name=^{name}$", "--format", "{{.Names}}"],
+            stderr=subprocess.DEVNULL
+        )
+        return name in out.decode().strip()
+    except subprocess.CalledProcessError:
+        return False
+
+def docker_container_running(name: str) -> bool:
+    """Check if container is running"""
+    try:
+        out = subprocess.check_output(
+            ["docker", "ps", "--filter", f"name=^{name}$", "--format", "{{.Names}}"],
+            stderr=subprocess.DEVNULL
+        )
+        return name in out.decode().strip()
+    except subprocess.CalledProcessError:
+        return False
+
+def docker_get_container_id(name: str) -> Optional[str]:
+    """Get container ID by name"""
+    try:
+        out = subprocess.check_output(
+            ["docker", "ps", "-a", "--filter", f"name=^{name}$", "--format", "{{.ID}}"],
+            stderr=subprocess.DEVNULL
+        )
+        container_id = out.decode().strip()
+        return container_id if container_id else None
+    except subprocess.CalledProcessError:
+        return None
+
+def docker_image_exists(image: str) -> bool:
+    """Check if Docker image exists locally"""
+    try:
+        out = subprocess.check_output(
+            ["docker", "images", "-q", image],
+            stderr=subprocess.DEVNULL
+        )
+        return bool(out.decode().strip())
+    except subprocess.CalledProcessError:
+        return False
+
+async def docker_pull_image(image: str) -> Dict[str, Any]:
+    """Pull Docker image"""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "pull", image,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode == 0:
+            return {"status": "pulled", "image": image}
+        else:
+            return {"status": "error", "error": stderr.decode()}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Start Docker container"""
+    name = cfg.get("container_name", cfg.get("name"))
+    image = cfg.get("image")
+
+    if not image:
+        return {"status": "error", "error": "No image specified"}
+
+    # Check if container already exists
+    if docker_container_exists(name):
+        if docker_container_running(name):
+            container_id = docker_get_container_id(name)
+            return {"status": "running", "container_id": container_id, "container_name": name}
+        else:
+            # Start existing container
+            try:
+                subprocess.check_call(
+                    ["docker", "start", name],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                container_id = docker_get_container_id(name)
+                return {"status": "started", "container_id": container_id, "container_name": name}
+            except subprocess.CalledProcessError as e:
+                return {"status": "error", "error": str(e)}
+
+    # Check if image exists, pull if not
+    if not docker_image_exists(image):
+        pull_result = await docker_pull_image(image)
+        if pull_result["status"] != "pulled":
+            return pull_result
+
+    # Build docker run command
+    cmd = ["docker", "run"]
+
+    # Add name
+    cmd.extend(["--name", name])
+
+    # Add hostname
+    if cfg.get("hostname"):
+        cmd.extend(["--hostname", cfg["hostname"]])
+
+    # Add environment variables
+    for key, value in cfg.get("env", {}).items():
+        cmd.extend(["--env", f"{key}={value}"])
+
+    # Add volumes
+    for volume in cfg.get("volumes", []):
+        cmd.extend(["--volume", volume])
+
+    # Add ports
+    for port in cfg.get("ports", []):
+        cmd.extend(["-p", port])
+
+    # Add network
+    if cfg.get("network"):
+        cmd.extend(["--network", cfg["network"]])
+
+    # Add workdir
+    if cfg.get("workdir"):
+        cmd.extend(["--workdir", cfg["workdir"]])
+
+    # Add restart policy
+    restart = cfg.get("restart", "no")
+    cmd.extend(["--restart", restart])
+
+    # Add runtime
+    if cfg.get("runtime"):
+        cmd.extend(["--runtime", cfg["runtime"]])
+
+    # Add labels
+    for label in cfg.get("labels", []):
+        cmd.extend(["--label", label])
+
+    # Add extra args
+    for arg in cfg.get("extra_args", []):
+        cmd.append(arg)
+
+    # Detached mode
+    cmd.append("-d")
+
+    # Add image
+    cmd.append(image)
+
+    # Add command
+    if cfg.get("command"):
+        if isinstance(cfg["command"], list):
+            cmd.extend(cfg["command"])
+        else:
+            cmd.append(cfg["command"])
+
+    # Execute
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode == 0:
+            container_id = stdout.decode().strip()
+            return {
+                "status": "started",
+                "container_id": container_id,
+                "container_name": name,
+                "image": image
+            }
+        else:
+            return {"status": "error", "error": stderr.decode()}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+async def docker_stop_container(name: str, timeout: int = 10) -> Dict[str, Any]:
+    """Stop Docker container"""
+    if not docker_container_exists(name):
+        return {"status": "not_found"}
+
+    if not docker_container_running(name):
+        return {"status": "not_running"}
+
+    try:
+        subprocess.check_call(
+            ["docker", "stop", "-t", str(timeout), name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        return {"status": "stopped", "container_name": name}
+    except subprocess.CalledProcessError as e:
+        return {"status": "error", "error": str(e)}
+
+async def docker_remove_container(name: str, force: bool = False) -> Dict[str, Any]:
+    """Remove Docker container"""
+    if not docker_container_exists(name):
+        return {"status": "not_found"}
+
+    cmd = ["docker", "rm"]
+    if force:
+        cmd.append("-f")
+    cmd.append(name)
+
+    try:
+        subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return {"status": "removed", "container_name": name}
+    except subprocess.CalledProcessError as e:
+        return {"status": "error", "error": str(e)}
+
+def docker_get_logs(name: str, lines: int = 200) -> List[str]:
+    """Get container logs"""
+    if not docker_container_exists(name):
+        return []
+
+    try:
+        out = subprocess.check_output(
+            ["docker", "logs", "--tail", str(lines), name],
+            stderr=subprocess.STDOUT
+        )
+        return out.decode(errors="replace").splitlines()
+    except subprocess.CalledProcessError:
+        return []
+
+def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
+    """Get container stats"""
+    if not docker_container_running(name):
+        return None
+
+    try:
+        out = subprocess.check_output(
+            ["docker", "stats", "--no-stream", "--format", "{{json .}}", name],
+            stderr=subprocess.DEVNULL
+        )
+        return json.loads(out.decode())
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        return None
+
+# ===== ORIGINAL UTILITIES =====
 
 @APP.get("/", response_class=HTMLResponse)
 async def dashboard():
@@ -105,7 +365,7 @@ def find_pid_by_port(port: int) -> Optional[int]:
             return int(pids[0])
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
+
     # Try fuser as fallback
     try:
         out = subprocess.check_output(
@@ -118,7 +378,7 @@ def find_pid_by_port(port: int) -> Optional[int]:
                 return int(token)
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
+
     # Try ss as last resort
     try:
         out = subprocess.check_output(
@@ -135,7 +395,7 @@ def find_pid_by_port(port: int) -> Optional[int]:
                     return int(match.group(1))
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
+
     return None
 
 def tail_log(path: str, lines: int = 200) -> List[str]:
@@ -143,7 +403,7 @@ def tail_log(path: str, lines: int = 200) -> List[str]:
     p = Path(path)
     if not p.exists():
         return []
-    
+
     try:
         # Use tail command if available (faster)
         out = subprocess.check_output(
@@ -169,15 +429,23 @@ def tail_log(path: str, lines: int = 200) -> List[str]:
                 return p.read_text(errors="replace").splitlines()[-lines:]
 
 async def start_service(name: str) -> Dict[str, Any]:
-    """Start a service (Linux)"""
+    """Start a service (process or container)"""
     cfg = service_cfg(name)
-    
+    service_type = cfg.get("type", "process")
+
+    # Handle Docker containers
+    if service_type == "docker":
+        if not docker_running():
+            return {"status": "error", "error": "Docker daemon not running"}
+        return await docker_start_container(cfg)
+
+    # Handle regular processes
     # Check if already running
     if name in STATE and STATE[name].get("proc"):
         proc = STATE[name]["proc"]
         if hasattr(proc, "returncode") and proc.returncode is None:
             return {"status": "running", "pid": proc.pid}
-    
+
     # Check pidfile
     exist_pid = read_pidfile(name)
     if exist_pid and is_pid_running(exist_pid):
@@ -189,20 +457,20 @@ async def start_service(name: str) -> Dict[str, Any]:
             "health": cfg.get("health"),
         }
         return {"status": "running", "pid": exist_pid}
-    
+
     # Prepare environment
     cwd = (BASE_DIR / cfg["cwd"]).resolve() if cfg.get("cwd") else BASE_DIR
     cmd = cfg["start"]
     logs_dir = Path(CONFIG["paths"]["logs_dir"]).resolve()
     log_file = (BASE_DIR / (cfg.get("log_file") or (logs_dir / f"{name}.log"))).as_posix()
-    
+
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
-    
+
     # Open log file
     stdout = open(log_file, "ab", buffering=0)
     stderr = stdout
     env = env_for_service(cfg)
-    
+
     # Start process
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -213,7 +481,7 @@ async def start_service(name: str) -> Dict[str, Any]:
             stderr=stderr,
             start_new_session=True  # Detach from parent session
         )
-        
+
         write_pidfile(name, proc.pid)
         STATE[name] = {
             "proc": proc,
@@ -223,7 +491,7 @@ async def start_service(name: str) -> Dict[str, Any]:
             "health": cfg.get("health"),
         }
         return {"status": "started", "pid": proc.pid, "log_file": log_file}
-    
+
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
@@ -242,64 +510,72 @@ async def graceful_shutdown_if_possible(cfg: Dict[str, Any]) -> None:
         pass
 
 async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
-    """Stop a service (Linux)"""
+    """Stop a service (process or container)"""
     cfg = service_cfg(name)
+    service_type = cfg.get("type", "process")
+
+    # Handle Docker containers
+    if service_type == "docker":
+        container_name = cfg.get("container_name", name)
+        return await docker_stop_container(container_name, int(timeout))
+
+    # Handle regular processes
     state = STATE.get(name, {})
     proc = state.get("proc")
     pid = state.get("pid")
     port = cfg.get("port")
-    
+
     # Try graceful shutdown
     await graceful_shutdown_if_possible(cfg)
-    
+
     # Get PID from various sources
     if not pid:
         pid = read_pidfile(name)
-    
+
     if not pid and port:
         pid = find_pid_by_port(int(port))
-    
+
     if not pid:
         return {"status": "not_running"}
-    
+
     # Try to terminate process
     if proc is not None:
         try:
             proc.terminate()
         except Exception:
             pass
-        
+
         # Wait for termination
         start_t = time.time()
         while (time.time() - start_t) < timeout:
             if proc.returncode is not None:
                 break
             await asyncio.sleep(0.2)
-        
+
         # Force kill if still running
         if proc.returncode is None:
             try:
                 proc.kill()
             except Exception:
                 pass
-    
+
     # Kill by PID if still running
     if pid and is_pid_running(pid):
         try:
             os.kill(pid, signal.SIGTERM)
-            
+
             # Wait for termination
             start_t = time.time()
             while (time.time() - start_t) < timeout and is_pid_running(pid):
                 await asyncio.sleep(0.2)
-            
+
             # Force kill if still running
             if is_pid_running(pid):
                 os.kill(pid, signal.SIGKILL)
                 await asyncio.sleep(0.5)
         except Exception:
             pass
-    
+
     # Kill by port if still occupied
     if port:
         end_time = time.time() + timeout
@@ -307,7 +583,7 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
             port_pid = find_pid_by_port(int(port))
             if port_pid is None:
                 break
-            
+
             if port_pid != pid:
                 # Different process on port, kill it
                 try:
@@ -317,9 +593,9 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
                         os.kill(port_pid, signal.SIGKILL)
                 except Exception:
                     pass
-            
+
             await asyncio.sleep(0.5)
-    
+
     # Clean up pidfile
     try:
         pf = pidfile_path(name)
@@ -327,11 +603,11 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
             pf.unlink(missing_ok=True)
     except Exception:
         pass
-    
+
     # Check final status
     still_running = bool(pid and is_pid_running(pid))
     still_on_port = bool(port and find_pid_by_port(int(port)) is not None)
-    
+
     if not still_running and not still_on_port:
         STATE.pop(name, None)
         return {"status": "stopped", "pid": pid}
@@ -361,44 +637,82 @@ def _startup():
     """Load config and restore running services"""
     load_config()
     for name, cfg in CONFIG.get("services", {}).items():
-        pid = read_pidfile(name)
-        if pid and is_pid_running(pid):
-            STATE[name] = {
-                "proc": None,
-                "pid": pid,
-                "started_at": None,
-                "log_file": cfg.get("log_file"),
-                "health": cfg.get("health"),
-            }
+        service_type = cfg.get("type", "process")
 
-# ===== API ENDPOINTS =====
+        if service_type == "docker":
+            container_name = cfg.get("container_name", name)
+            if docker_container_running(container_name):
+                STATE[name] = {
+                    "type": "docker",
+                    "container_name": container_name,
+                    "container_id": docker_get_container_id(container_name),
+                    "running": True
+                }
+        else:
+            pid = read_pidfile(name)
+            if pid and is_pid_running(pid):
+                STATE[name] = {
+                    "proc": None,
+                    "pid": pid,
+                    "started_at": None,
+                    "log_file": cfg.get("log_file"),
+                    "health": cfg.get("health"),
+                }
+
+# ==== API ENDPOINTS ====
+
+@APP.get("/docker/status")
+def docker_status():
+    """Check Docker availability"""
+    return {
+        "available": docker_available(),
+        "running": docker_running()
+    }
 
 @APP.get("/services")
 def list_services():
     """List all services and their status"""
     out = []
     for name, cfg in CONFIG.get("services", {}).items():
+        service_type = cfg.get("type", "process")
         state = STATE.get(name, {})
-        pid = state.get("pid") or read_pidfile(name)
-        
-        running = False
-        if state.get("proc") and hasattr(state["proc"], "returncode"):
-            running = state["proc"].returncode is None
-        elif pid:
-            running = is_pid_running(pid)
-        
-        out.append({
-            "name": name,
-            "pid": pid,
-            "running": running,
-            "started_at": state.get("started_at"),
-            "health": cfg.get("health"),
-            "log_file": state.get("log_file") or cfg.get("log_file"),
-            "type": cfg.get("type"),
-            "port": cfg.get("port"),
-            "start": cfg.get("start"),
-            "cwd": cfg.get("cwd"),
-        })
+
+        if service_type == "docker":
+            container_name = cfg.get("container_name", name)
+            running = docker_container_running(container_name)
+            container_id = docker_get_container_id(container_name) if running else None
+
+            out.append({
+                "name": name,
+                "type": "docker",
+                "container_name": container_name,
+                "container_id": container_id,
+                "image": cfg.get("image"),
+                "running": running,
+                "health": cfg.get("health"),
+                "ports": cfg.get("ports", []),
+            })
+        else:
+            pid = state.get("pid") or read_pidfile(name)
+
+            running = False
+            if state.get("proc") and hasattr(state["proc"], "returncode"):
+                running = state["proc"].returncode is None
+            elif pid:
+                running = is_pid_running(pid)
+
+            out.append({
+                "name": name,
+                "type": "process",
+                "pid": pid,
+                "running": running,
+                "started_at": state.get("started_at"),
+                "health": cfg.get("health"),
+                "log_file": state.get("log_file") or cfg.get("log_file"),
+                "port": cfg.get("port"),
+                "start": cfg.get("start"),
+                "cwd": cfg.get("cwd"),
+            })
     return out
 
 @APP.post("/services/{name}/start")
@@ -419,36 +733,77 @@ async def api_restart(name: str):
 @APP.get("/services/{name}/status")
 async def api_status(name: str):
     """Get service status with health check"""
-    state = STATE.get(name, {})
     cfg = service_cfg(name)
-    pid = state.get("pid") or read_pidfile(name)
-    
-    running = False
-    if state.get("proc") and hasattr(state["proc"], "returncode"):
-        running = state["proc"].returncode is None
-    elif pid:
-        running = is_pid_running(pid)
-    
-    health_url = cfg.get("health")
-    ok, code, text = await check_health(health_url) if health_url else (False, None, None)
-    
-    return {
-        "name": name,
-        "running": running,
-        "pid": pid,
-        "health_ok": ok,
-        "health_code": code,
-        "health_sample": text,
-    }
+    service_type = cfg.get("type", "process")
+
+    if service_type == "docker":
+        container_name = cfg.get("container_name", name)
+        running = docker_container_running(container_name)
+        container_id = docker_get_container_id(container_name)
+        stats = docker_container_stats(container_name) if running else None
+
+        health_url = cfg.get("health")
+        ok, code, text = await check_health(health_url) if health_url else (False, None, None)
+
+        return {
+            "name": name,
+            "type": "docker",
+            "running": running,
+            "container_id": container_id,
+            "container_name": container_name,
+            "stats": stats,
+            "health_ok": ok,
+            "health_code": code,
+            "health_sample": text,
+        }
+    else:
+        state = STATE.get(name, {})
+        pid = state.get("pid") or read_pidfile(name)
+
+        running = False
+        if state.get("proc") and hasattr(state["proc"], "returncode"):
+            running = state["proc"].returncode is None
+        elif pid:
+            running = is_pid_running(pid)
+
+        health_url = cfg.get("health")
+        ok, code, text = await check_health(health_url) if health_url else (False, None, None)
+
+        return {
+            "name": name,
+            "type": "process",
+            "running": running,
+            "pid": pid,
+            "health_ok": ok,
+            "health_code": code,
+            "health_sample": text,
+        }
 
 @APP.get("/services/{name}/logs")
 def api_logs(name: str, lines: int = Query(200, ge=1, le=2000)):
     """Get service logs"""
     cfg = service_cfg(name)
-    log_file = (STATE.get(name, {}).get("log_file")
-                or cfg.get("log_file")
-                or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix())
-    return {"name": name, "log_file": log_file, "tail": tail_log(log_file, lines)}
+    service_type = cfg.get("type", "process")
+
+    if service_type == "docker":
+        container_name = cfg.get("container_name", name)
+        logs = docker_get_logs(container_name, lines)
+        return {"name": name, "type": "docker", "container_name": container_name, "tail": logs}
+    else:
+        log_file = (STATE.get(name, {}).get("log_file")
+                    or cfg.get("log_file")
+                    or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix())
+        return {"name": name, "type": "process", "log_file": log_file, "tail": tail_log(log_file, lines)}
+
+@APP.post("/services/{name}/remove")
+async def api_remove_container(name: str, force: bool = False):
+    """Remove Docker container"""
+    cfg = service_cfg(name)
+    if cfg.get("type") != "docker":
+        raise HTTPException(status_code=400, detail="Service is not a Docker container")
+
+    container_name = cfg.get("container_name", name)
+    return await docker_remove_container(container_name, force)
 
 class RequestSpec(BaseModel):
     method: str = Field(..., pattern="(?i)^(GET|POST|PUT|DELETE|PATCH)$")
@@ -534,7 +889,7 @@ async def demo_predict(api_key: Optional[str] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ===== TRACE & FLOW ENDPOINTS =====
+# ==== TRACE & FLOW ENDPOINTS ====
 
 import re
 from datetime import datetime
@@ -545,7 +900,7 @@ def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> Lis
     p = Path(log_path)
     if not p.exists():
         return []
-    
+
     matches = []
     try:
         lines = p.read_text(errors="replace").splitlines()
@@ -590,10 +945,10 @@ async def trace_request(request_id: str, context_lines: int = Query(2, ge=0, le=
                 "matches": matches,
                 "count": len(matches)
             }
-    
+
     if not results:
         return {"request_id": request_id, "status": "not_found", "services": {}}
-    
+
     return {
         "request_id": request_id,
         "status": "found",
@@ -617,21 +972,21 @@ async def flow_status(request_id: str):
         {"service": "crypto_module", "endpoint": "/encrypt", "port": 8004},
         {"service": "validation_send_api", "endpoint": "/validation/send", "port": 8005},
     ]
-    
+
     flow_state = []
     for step in pipeline:
         name = step["service"]
         cfg = CONFIG.get("services", {}).get(name)
         if not cfg:
             continue
-        
+
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
         matches = search_in_log(log_file, request_id, context_lines=0)
-        
+
         status = "pending"
         last_seen = None
         error = None
-        
+
         if matches:
             status = "processed"
             last_seen = matches[-1].get("timestamp")
@@ -641,7 +996,7 @@ async def flow_status(request_id: str):
                     status = "error"
                     error = m["line"][:200]
                     break
-        
+
         flow_state.append({
             "step": len(flow_state) + 1,
             "service": name,
@@ -651,7 +1006,7 @@ async def flow_status(request_id: str):
             "error": error,
             "matches_count": len(matches)
         })
-    
+
     # Determine current step
     current_step = None
     for i, step in enumerate(flow_state):
@@ -663,7 +1018,7 @@ async def flow_status(request_id: str):
             break
     if current_step is None and flow_state:
         current_step = len(flow_state)
-    
+
     return {
         "request_id": request_id,
         "current_step": current_step,
@@ -675,11 +1030,11 @@ async def flow_status(request_id: str):
 async def timeline(request_id: str):
     """Build chronological timeline of request"""
     events = []
-    
+
     for name, cfg in CONFIG.get("services", {}).items():
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
         matches = search_in_log(log_file, request_id, context_lines=0)
-        
+
         for m in matches:
             ts = m.get("timestamp")
             events.append({
@@ -688,12 +1043,12 @@ async def timeline(request_id: str):
                 "line": m["line"],
                 "line_number": m["line_number"]
             })
-    
+
     events_sorted = sorted(
         [e for e in events if e["timestamp"]],
         key=lambda x: x["timestamp"]
     )
-    
+
     return {
         "request_id": request_id,
         "total_events": len(events_sorted),
@@ -705,20 +1060,20 @@ async def active_requests():
     """Find active request IDs in recent logs"""
     request_ids = set()
     pattern = re.compile(r'req[_-][\w\d]+')
-    
+
     for name, cfg in CONFIG.get("services", {}).items():
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
         recent = tail_log(log_file, lines=500)
         for line in recent:
             matches = pattern.findall(line)
             request_ids.update(matches)
-    
+
     return {
         "active_request_ids": sorted(list(request_ids)),
         "count": len(request_ids)
     }
 
-# ===== CONFIG & METRICS ENDPOINTS =====
+# ==== CONFIG & METRICS ENDPOINTS ====
 
 class ServiceConfigUpdate(BaseModel):
     start: Optional[List[str]] = None
@@ -729,22 +1084,22 @@ async def update_service_config(name: str, config: ServiceConfigUpdate = Body(..
     """Update service configuration"""
     if name not in CONFIG.get("services", {}):
         raise HTTPException(status_code=404, detail="Service not found")
-    
+
     svc = CONFIG["services"][name]
     updated = False
-    
+
     if config.start is not None:
         svc["start"] = config.start
         updated = True
     if config.cwd is not None:
         svc["cwd"] = config.cwd
         updated = True
-    
+
     if updated:
         with open(CONFIG_PATH, "w", encoding="utf-8") as f:
             yaml.safe_dump(CONFIG, f)
         load_config()
-    
+
     return {"status": "updated", "service": name, "config": svc}
 
 def get_api_key_for_service(svc):
@@ -768,12 +1123,12 @@ async def get_metrics_sessions(service_name: str):
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/sessions"
     elif service_name == "confiability_service":
@@ -782,7 +1137,7 @@ async def get_metrics_sessions(service_name: str):
         url = f"{base_url}/risk/metrics/sessions"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
-    
+
     return await proxy_get(url, headers=headers)
 
 @APP.get("/metrics/{service_name}/sessions/{session_id}")
@@ -790,17 +1145,17 @@ async def get_metrics_session_detail(service_name: str, session_id: str):
     """Get session detail"""
     if not session_id or session_id == "undefined":
         raise HTTPException(status_code=400, detail="Invalid session_id")
-    
+
     svc = service_cfg(service_name)
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/{session_id}/summary"
     elif service_name == "confiability_service":
@@ -809,7 +1164,7 @@ async def get_metrics_session_detail(service_name: str, session_id: str):
         url = f"{base_url}/risk/metrics/{session_id}"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
-    
+
     return await proxy_get(url, headers=headers)
 
 @APP.get("/metrics/{service_name}/images")
@@ -819,12 +1174,12 @@ async def get_metrics_images(service_name: str):
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/images"
     elif service_name == "confiability_service":
@@ -833,7 +1188,7 @@ async def get_metrics_images(service_name: str):
         url = f"{base_url}/risk/metrics/images"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics images")
-    
+
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, headers=headers)
         if resp.status_code == 200:
@@ -848,17 +1203,17 @@ async def get_metrics_image(service_name: str, session_id: str, image_name: str)
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     # Check local cache first
     local_path = Path(CONFIG["paths"]["logs_dir"]) / "metrics" / service_name / session_id / image_name
     if local_path.exists():
         return FileResponse(local_path)
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/{session_id}/images/{image_name}"
     elif service_name == "confiability_service":
@@ -867,7 +1222,7 @@ async def get_metrics_image(service_name: str, session_id: str, image_name: str)
         url = f"{base_url}/risk/metrics/{session_id}/{image_name}"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics images")
-    
+
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, headers=headers)
         if resp.status_code == 200:
@@ -882,12 +1237,12 @@ async def get_datasets(service_name: str):
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/datasets"
     elif service_name == "confiability_service":
@@ -896,7 +1251,7 @@ async def get_datasets(service_name: str):
         url = f"{base_url}/datasets"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
-    
+
     return await proxy_get(url, headers=headers)
 
 @APP.get("/datasets/{service_name}/{dataset_name}/preview")
@@ -904,17 +1259,17 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
     """Preview dataset"""
     if not file:
         raise HTTPException(status_code=400, detail="File parameter required")
-    
+
     svc = service_cfg(service_name)
     base_url = svc.get("base_url")
     if not base_url:
         raise HTTPException(status_code=400, detail="Service base_url not configured")
-    
+
     headers = {}
     api_key = get_api_key_for_service(svc)
     if api_key:
         headers["X-API-Key"] = api_key
-    
+
     if service_name == "confiability_service":
         url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
     elif service_name == "risk_service":
@@ -923,7 +1278,7 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
         url = f"{base_url}/api/v1/datasets/{dataset_name}/preview?file={file}&n={n}"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
-    
+
     return await proxy_get(url, headers=headers)
 
 if __name__ == "__main__":
