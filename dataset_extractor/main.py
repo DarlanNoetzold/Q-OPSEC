@@ -415,7 +415,7 @@ def main():
         'port': 5432,
         'database': 'context_db',
         'username': 'postgres',
-        'password': 'postgres'  # MUDE PARA SUA SENHA
+        'password': 'postgres'
     }
 
     generator = ContextDatasetGenerator(db_config)
