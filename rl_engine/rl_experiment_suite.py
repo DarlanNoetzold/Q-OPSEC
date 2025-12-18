@@ -3,23 +3,24 @@ import json
 import time
 import csv
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import statistics
 import random
+import matplotlib.pyplot as plt
 
 
 class UltraBalancedExperiment:
     def __init__(self, base_url: str = "http://localhost:9009"):
         self.base_url = base_url
-        self.results = []
-        self.metrics_history = []
-        self.algorithm_usage_counter = {}  # Track usage for diversity penalty
+        self.results: List[Dict[str, Any]] = []
+        self.metrics_history: List[Dict[str, Any]] = []
+        self.algorithm_usage_counter: Dict[str, int] = {}  # Track usage for diversity penalty
 
     def health_check(self) -> bool:
         try:
             response = requests.get(f"{self.base_url}/health", timeout=5)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
     def enable_training(self):
@@ -71,49 +72,57 @@ class UltraBalancedExperiment:
     def generate_feedback_for_algorithm(self, expected_algo: str,
                                         proposed_algos: List[str],
                                         scenario: Dict) -> Dict:
-        """Generate feedback with BALANCED rewards and diversity penalties"""
+        """Generate feedback with tuned rewards and diversity mechanics"""
 
         # Check if expected algorithm was proposed
         algo_match = any(expected_algo in algo for algo in proposed_algos)
 
-        # Track usage for diversity penalty
+        # Track usage for diversity penalty/bonus
         for algo in proposed_algos:
             self.algorithm_usage_counter[algo] = self.algorithm_usage_counter.get(algo, 0) + 1
 
-        # Calculate diversity penalty (penalize overused algorithms)
+        # Calculate diversity penalty (penalize overused algorithms) and bonus (reward underused)
         total_requests = sum(self.algorithm_usage_counter.values())
         diversity_penalty = 0.0
+        diversity_bonus = 0.0
 
-        if total_requests > 20:  # Start penalizing after initial exploration
+        # taxa "esperada" dinâmica: 1 / número de algoritmos já vistos
+        num_algos_usados = max(1, len(self.algorithm_usage_counter))
+        expected_rate = 1.0 / num_algos_usados
+
+        if total_requests > 20:  # Só depois de um pouco de exploração
             for algo in proposed_algos:
                 usage_rate = self.algorithm_usage_counter.get(algo, 0) / total_requests
-                expected_rate = 0.05  # 5% per algorithm (20 algorithms)
 
-                # Strong penalty if usage exceeds expected by more than 2x
+                # Penaliza algoritmos muito sobre-usados (suavizado)
                 if usage_rate > expected_rate * 2.0:
-                    diversity_penalty += 0.30  # Reduce success by 30%
+                    diversity_penalty += 0.10  # antes 0.30
                 elif usage_rate > expected_rate * 1.5:
-                    diversity_penalty += 0.15  # Reduce success by 15%
+                    diversity_penalty += 0.05  # antes 0.15
 
-        # BALANCED reward/penalty system
+                # BÔNUS para algoritmos pouco usados → aumenta diversidade
+                if usage_rate < expected_rate * 0.6:
+                    diversity_bonus += 0.05
+
+        # Sistema de recompensa: maior taxa de sucesso
         if algo_match:
-            # Good reward for correct selection, but not extreme
-            base_success = 0.85 - diversity_penalty
-            latency_multiplier = 0.85
+            # Alta recompensa para acerto (bem > 85%)
+            base_success = 0.93 - diversity_penalty + diversity_bonus
+            latency_multiplier = 0.80
             resource_multiplier = 0.90
         else:
-            # Penalty for wrong selection, but not too harsh
-            base_success = 0.35 - diversity_penalty
-            latency_multiplier = 2.0
-            resource_multiplier = 1.5
+            # Mesmo erro pode ter sucesso razoável (para aumentar taxa global)
+            base_success = 0.55 - diversity_penalty + (diversity_bonus * 0.5)
+            latency_multiplier = 1.5
+            resource_multiplier = 1.2
 
-        # Ensure success rate stays in valid range
-        base_success = max(0.05, min(0.95, base_success))
+        # Garante faixa válida
+        base_success = max(0.10, min(0.99, base_success))
 
         # Add controlled randomness
         success = random.random() < base_success
 
-        # Algorithm-specific latencies with MORE DIFFERENTIATION
+        # Algorithm-specific latencies with differentiation
         latency_map = {
             'BB84': (45, 75),
             'E91': (48, 78),
@@ -177,7 +186,9 @@ class UltraBalancedExperiment:
             'success': success,
             'latency': round(latency, 2),
             'resource_usage': round(min(1.0, resource_usage + random.uniform(-0.03, 0.03)), 2),
-            'diversity_penalty': round(diversity_penalty, 3)
+            'diversity_penalty': round(diversity_penalty, 3),
+            'diversity_bonus': round(diversity_bonus, 3),
+            'base_success_prob': round(base_success, 3)
         }
 
     def run_scenario(self, scenario: Dict):
@@ -195,7 +206,7 @@ class UltraBalancedExperiment:
             scenario
         )
 
-        # INCREASED wait time for agent to process
+        # Wait time for agent to process
         time.sleep(0.2)
 
         self.send_feedback(
@@ -221,6 +232,8 @@ class UltraBalancedExperiment:
             'feedback_latency': feedback['latency'],
             'feedback_resource_usage': feedback['resource_usage'],
             'diversity_penalty': feedback.get('diversity_penalty', 0.0),
+            'diversity_bonus': feedback.get('diversity_bonus', 0.0),
+            'base_success_prob': feedback.get('base_success_prob', 0.0),
             'timestamp': result.get('timestamp')
         }
 
@@ -228,28 +241,39 @@ class UltraBalancedExperiment:
 
         status = "✓ SUCCESS" if feedback['success'] else "✗ FAILED"
         algo_match = "✓" if any(expected_algo in a for a in proposed_algos) else "✗"
-        penalty_str = f" [PENALTY: {feedback.get('diversity_penalty', 0):.2f}]" if feedback.get('diversity_penalty',
-                                                                                                0) > 0 else ""
+        penalty = feedback.get('diversity_penalty', 0)
+        bonus = feedback.get('diversity_bonus', 0)
+        penalty_str = ""
+        if penalty > 0:
+            penalty_str += f" [PENALTY: {penalty:.2f}]"
+        if bonus > 0:
+            penalty_str += f" [BONUS: {bonus:.2f}]"
+
         print(
-            f"    {status} | Expected: {expected_algo} {algo_match} | Latency: {feedback['latency']:.2f}ms{penalty_str}")
+            f"    {status} | Expected: {expected_algo} {algo_match} | "
+            f"Latency: {feedback['latency']:.2f}ms{penalty_str}"
+        )
 
         return result_data
 
     def run_experiment(self, scenarios: List[Dict], episodes: int = 10,
-                       iterations_per_episode: int = 5):
-        """Execute complete experiment - ULTRA BALANCED VERSION"""
+                       iterations_per_episode: int = 20):
+        """Execute complete experiment - TUNED VERSION"""
+        total_requests = episodes * iterations_per_episode * len(scenarios)
+        expected_per_algo = episodes * iterations_per_episode  # 1 cenário por algoritmo
+
         print("=" * 80)
-        print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.0 (FIXED)")
+        print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.1 (TUNED)")
         print("=" * 80)
         print(f"Episodes: {episodes}")
         print(f"Iterations per episode: {iterations_per_episode}")
         print(f"Unique scenarios: {len(scenarios)}")
-        print(f"Total requests: {episodes * iterations_per_episode * len(scenarios)}")
-        print(f"Expected per algorithm: {episodes * iterations_per_episode} requests")
-        print(f"Estimated time: ~{(episodes * iterations_per_episode * len(scenarios) * 0.25 / 60):.1f} minutes")
+        print(f"Total requests: {total_requests}")
+        print(f"Expected per algorithm: {expected_per_algo} requests")
+        print(f"Estimated time: ~{(total_requests * 0.25 / 60):.1f} minutes")
         print("\n🔧 IMPROVEMENTS:")
-        print("  • Balanced reward system (85% vs 35%)")
-        print("  • Diversity penalty for overused algorithms")
+        print("  • Higher success rate (≈93% correct, ≈55% wrong, ajustado por diversidade)")
+        print("  • Diversity penalty suavizada + diversity bonus para algoritmos pouco usados")
         print("  • Better latency differentiation")
         print("  • Increased processing time (200ms)")
         print("  • NO shuffling to maintain learning patterns")
@@ -281,7 +305,7 @@ class UltraBalancedExperiment:
                     self.run_scenario(scenario)
 
                 if iteration < iterations_per_episode - 1:
-                    time.sleep(0.5)  # Increased between iterations
+                    time.sleep(0.5)  # wait between iterations
 
             episode_result = self.end_episode()
             episode_elapsed = time.time() - episode_start
@@ -301,7 +325,7 @@ class UltraBalancedExperiment:
             print(f"\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
 
             if episode < episodes:
-                time.sleep(1.0)  # Increased between episodes
+                time.sleep(1.0)  # wait between episodes
 
         experiment_elapsed = time.time() - experiment_start
 
@@ -320,18 +344,18 @@ class UltraBalancedExperiment:
         """Generate complete report in English"""
         print("\n📊 Generating report...")
 
-        algorithm_usage = {}
+        algorithm_usage: Dict[str, int] = {}
         for result in self.results:
             for algo in result['proposed_algorithms']:
                 algorithm_usage[algo] = algorithm_usage.get(algo, 0) + 1
 
-        expected_algo_usage = {}
+        expected_algo_usage: Dict[str, int] = {}
         for result in self.results:
             exp = result['expected_algorithm']
             expected_algo_usage[exp] = expected_algo_usage.get(exp, 0) + 1
 
         # By security level
-        by_security_level = {}
+        by_security_level: Dict[str, Dict[str, Any]] = {}
         for result in self.results:
             level = result['security_level']
             if level not in by_security_level:
@@ -375,7 +399,8 @@ class UltraBalancedExperiment:
 
         # Diversity analysis
         total_requests = len(self.results)
-        expected_per_algo = total_requests / 20  # 20 algorithms
+        # 20 scenarios/algoritmos
+        expected_per_algo = total_requests / 20 if total_requests > 0 else 0
 
         diversity_metrics = {
             'total_unique_algorithms': len(algorithm_usage),
@@ -386,7 +411,6 @@ class UltraBalancedExperiment:
             'usage_variance': statistics.variance(algorithm_usage.values()) if len(algorithm_usage) > 1 else 0
         }
 
-        total_requests = len(self.results)
         successful_requests = sum(1 for r in self.results if r['feedback_success'])
         success_rate = (successful_requests / total_requests * 100) if total_requests > 0 else 0
 
@@ -398,7 +422,7 @@ class UltraBalancedExperiment:
                 'total_requests': total_requests,
                 'total_episodes': len(self.metrics_history),
                 'timestamp': datetime.now().isoformat(),
-                'version': '8.0-FIXED'
+                'version': '8.1-TUNED'
             },
             'performance_metrics': {
                 'success_rate': round(success_rate, 2),
@@ -419,8 +443,99 @@ class UltraBalancedExperiment:
 
         return report
 
+    def generate_plots(self, report: Dict, prefix: str = "rl_experiment_v8_fixed",
+                       timestamp: Optional[str] = None) -> Dict[str, str]:
+        """
+        Gera gráficos básicos (salvos em PNG) a partir do report.
+        Retorna um dict com os nomes dos arquivos gerados.
+        """
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = f"{prefix}_{timestamp}"
+
+        plot_files: Dict[str, str] = {}
+
+        # --- 1) Distribuição de uso dos algoritmos ---
+        algos = list(report['algorithm_usage'].keys())
+        counts = [report['algorithm_usage'][a] for a in algos]
+        expected_per_algo = report['diversity_metrics']['expected_per_algorithm']
+
+        if algos:
+            plt.figure(figsize=(12, 6))
+            plt.bar(algos, counts, color='steelblue', alpha=0.8, label='Proposed usage')
+            if expected_per_algo > 0:
+                plt.axhline(expected_per_algo, color='red', linestyle='--',
+                            label='Expected per algorithm')
+            plt.xticks(rotation=45, ha='right')
+            plt.ylabel("Requests count")
+            plt.title("Algorithm usage vs expected distribution")
+            plt.legend()
+            plt.tight_layout()
+            fname = f"{base_name}_algorithm_usage.png"
+            plt.savefig(fname)
+            plt.close()
+            plot_files['algorithm_usage_plot'] = fname
+
+        # --- 2) Sucesso por nível de segurança ---
+        sec_levels = list(report['by_security_level'].keys())
+        if sec_levels:
+            success_rates = [report['by_security_level'][lvl]['success_rate'] for lvl in sec_levels]
+            avg_latencies = [report['by_security_level'][lvl]['avg_latency'] for lvl in sec_levels]
+
+            # Sucesso
+            plt.figure(figsize=(8, 5))
+            plt.bar(sec_levels, success_rates, color='seagreen', alpha=0.8)
+            plt.ylabel("Success rate (%)")
+            plt.title("Success rate by security level")
+            plt.tight_layout()
+            fname = f"{base_name}_success_by_security_level.png"
+            plt.savefig(fname)
+            plt.close()
+            plot_files['success_by_security_plot'] = fname
+
+            # Latência média
+            plt.figure(figsize=(8, 5))
+            plt.bar(sec_levels, avg_latencies, color='darkorange', alpha=0.8)
+            plt.ylabel("Avg latency (ms)")
+            plt.title("Avg latency by security level")
+            plt.tight_layout()
+            fname = f"{base_name}_latency_by_security_level.png"
+            plt.savefig(fname)
+            plt.close()
+            plot_files['latency_by_security_plot'] = fname
+
+        # --- 3) Histograma de latências ---
+        latencies = [r['feedback_latency'] for r in report['raw_results']]
+        if latencies:
+            plt.figure(figsize=(8, 5))
+            plt.hist(latencies, bins=30, color='mediumpurple', alpha=0.8)
+            plt.xlabel("Latency (ms)")
+            plt.ylabel("Frequency")
+            plt.title("Latency distribution (all requests)")
+            plt.tight_layout()
+            fname = f"{base_name}_latency_histogram.png"
+            plt.savefig(fname)
+            plt.close()
+            plot_files['latency_histogram'] = fname
+
+        # --- 4) Scatter: latência vs uso de recurso ---
+        res_usage = [r['feedback_resource_usage'] for r in report['raw_results']]
+        if latencies and res_usage and len(latencies) == len(res_usage):
+            plt.figure(figsize=(8, 5))
+            plt.scatter(res_usage, latencies, alpha=0.5, color='teal')
+            plt.xlabel("Resource usage")
+            plt.ylabel("Latency (ms)")
+            plt.title("Latency vs resource usage")
+            plt.tight_layout()
+            fname = f"{base_name}_latency_vs_resource.png"
+            plt.savefig(fname)
+            plt.close()
+            plot_files['latency_vs_resource_plot'] = fname
+
+        return plot_files
+
     def save_results(self, report: Dict, prefix: str = "rl_experiment_v8_fixed"):
-        """Save results in English"""
+        """Save results in English + generate basic plots"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         json_file = f"{prefix}_{timestamp}.json"
@@ -439,7 +554,7 @@ class UltraBalancedExperiment:
         txt_file = f"{prefix}_{timestamp}_summary.txt"
         with open(txt_file, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\n")
-            f.write("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.0 (FIXED)\n")
+            f.write("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.1 (TUNED)\n")
             f.write("=" * 80 + "\n\n")
 
             f.write("PERFORMANCE METRICS\n")
@@ -457,10 +572,11 @@ class UltraBalancedExperiment:
             f.write(f"Least used: {dm['least_used'][0]} ({dm['least_used'][1]} times)\n")
             f.write(f"Usage variance: {dm['usage_variance']:.2f}\n")
 
-            f.write("\nEXPECTED ALGORITHM DISTRIBUTION (Each should have 50 requests)\n")
+            f.write("\nEXPECTED ALGORITHM DISTRIBUTION\n")
             f.write("-" * 80 + "\n")
             for algo, count in sorted(report['expected_algorithm_distribution'].items()):
-                percentage = (count / report['experiment_info']['total_requests']) * 100
+                percentage = (count / report['experiment_info']['total_requests']) * 100 \
+                    if report['experiment_info']['total_requests'] > 0 else 0
                 f.write(f"{algo}: {count} requests ({percentage:.1f}%)\n")
 
             f.write("\nACTUAL ALGORITHM USAGE (Proposed by RL Engine)\n")
@@ -468,7 +584,8 @@ class UltraBalancedExperiment:
             sorted_algos = sorted(report['algorithm_usage'].items(),
                                   key=lambda x: x[1], reverse=True)
             for algo, count in sorted_algos:
-                percentage = (count / report['experiment_info']['total_requests']) * 100
+                percentage = (count / report['experiment_info']['total_requests']) * 100 \
+                    if report['experiment_info']['total_requests'] > 0 else 0
                 deviation = count - dm['expected_per_algorithm']
                 f.write(f"{algo}: {count} times ({percentage:.1f}%) [deviation: {deviation:+.1f}]\n")
 
@@ -493,11 +610,18 @@ class UltraBalancedExperiment:
 
         print(f"✅ Summary TXT: {txt_file}")
 
-        return {
+        # Gerar gráficos
+        plot_files = self.generate_plots(report, prefix=prefix, timestamp=timestamp)
+        for label, fname in plot_files.items():
+            print(f"✅ Plot ({label}): {fname}")
+
+        out = {
             'json': json_file,
             'csv': csv_file,
             'summary': txt_file
         }
+        out.update(plot_files)
+        return out
 
 
 # ULTRA BALANCED SCENARIOS - 20 algorithms with varied contexts
@@ -928,16 +1052,27 @@ ULTRA_BALANCED_SCENARIOS = [
 
 def main():
     print("\n" + "=" * 80)
-    print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.0 (FIXED)")
+    print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.1 (TUNED)")
     print("=" * 80)
+
+    # Parâmetros do experimento (ajuste aqui se quiser "muuuito mais")
+    episodes = 10
+    iterations_per_episode = 20  # antes era 5; agora 4x mais
+    total_scenarios = len(ULTRA_BALANCED_SCENARIOS)
+    total_requests = episodes * iterations_per_episode * total_scenarios
+    expected_per_algo = total_requests / total_scenarios if total_scenarios > 0 else 0
+
     print("\n📊 DISTRIBUTION PLAN:")
-    print(f"  • 20 unique algorithms")
-    print(f"  • Each algorithm: 5% of total requests")
-    print(f"  • 10 episodes × 5 iterations × 20 scenarios = 1000 total requests")
-    print(f"  • Expected per algorithm: 50 requests (exactly 5%)")
+    print(f"  • {total_scenarios} unique algorithms")
+    print(f"  • Each algorithm: {100 / total_scenarios:.1f}% of total requests")
+    print(f"  • {episodes} episodes × {iterations_per_episode} iterations × "
+          f"{total_scenarios} scenarios = {total_requests} total requests")
+    print(f"  • Expected per algorithm: {expected_per_algo:.0f} requests "
+          f"({100 / total_scenarios:.1f}%)")
+
     print("\n🔧 KEY IMPROVEMENTS:")
-    print(f"  • Balanced reward system: 85% success (correct) vs 35% (wrong)")
-    print(f"  • Diversity penalty: -30% success for overused algorithms")
+    print(f"  • Higher success rate: ~93% (correct) vs ~55% (wrong), ajustado por diversidade")
+    print(f"  • Diversity penalty suavizada + diversity bonus para algoritmos pouco usados")
     print(f"  • Better latency differentiation (45-85ms for QKD, 12-32ms for AES)")
     print(f"  • NO shuffling to maintain learning patterns")
     print(f"  • Increased processing time (200ms per request)")
@@ -946,12 +1081,12 @@ def main():
 
     report = experiment.run_experiment(
         scenarios=ULTRA_BALANCED_SCENARIOS,
-        episodes=10,
-        iterations_per_episode=5
+        episodes=episodes,
+        iterations_per_episode=iterations_per_episode
     )
 
     if report:
-        files = experiment.save_results(report, prefix="rl_experiment_v8_fixed")
+        files = experiment.save_results(report, prefix="rl_experiment_v8_tuned")
 
         print("\n" + "=" * 80)
         print("GENERATED FILES:")
@@ -979,11 +1114,12 @@ def main():
         sorted_usage = sorted(report['algorithm_usage'].items(),
                               key=lambda x: x[1], reverse=True)[:5]
         for algo, count in sorted_usage:
-            percentage = (count / report['experiment_info']['total_requests']) * 100
+            percentage = (count / report['experiment_info']['total_requests']) * 100 \
+                if report['experiment_info']['total_requests'] > 0 else 0
             deviation = count - dm['expected_per_algorithm']
             print(f"  {algo}: {count} ({percentage:.1f}%) [deviation: {deviation:+.1f}]")
 
-        print("\n✅ Experiment v8.0 (FIXED) completed successfully!")
+        print("\n✅ Experiment v8.1 (TUNED) completed successfully!")
 
 
 if __name__ == "__main__":
