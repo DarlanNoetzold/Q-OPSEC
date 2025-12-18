@@ -1,0 +1,17 @@
+================================================================================
+Synthetic RL-Engine Experiment v1.0
+================================================================================
+
+total_requests: 20000
+success_rate_%: 95.35
+avg_latency_ms: 45.95
+std_latency_ms: 33.82
+min_latency_ms: 10.0
+max_latency_ms: 299.85
+
+Top-5 algorithms:
+  CHACHA20_POLY1305: 1029
+  FALLBACK_AES: 1029
+  AES_256_GCM: 1017
+  PQC_FALCON: 1014
+  QKD_BB84: 1013

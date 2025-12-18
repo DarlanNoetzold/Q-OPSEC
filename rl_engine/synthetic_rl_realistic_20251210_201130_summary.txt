@@ -1,0 +1,101 @@
+================================================================================
+SYNTHETIC RL ENGINE EXPERIMENT - REALISTIC
+================================================================================
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+success_rate: 82.0
+avg_latency_ms: 70.16
+std_latency_ms: 57.31
+min_latency_ms: 9.45
+max_latency_ms: 302.97
+avg_response_time_s: 0.033
+
+DIVERSITY METRICS
+--------------------------------------------------------------------------------
+Total unique algorithms used: 20/20
+Expected per algorithm: 1500.0
+Most used: PQC_KYBER (2387 times)
+Least used: FALLBACK_AES (996 times)
+Usage variance: 133462.63
+
+EXPECTED ALGORITHM DISTRIBUTION
+--------------------------------------------------------------------------------
+AES_192: 1500 requests (5.0%)
+AES_256_GCM: 1500 requests (5.0%)
+CHACHA20_POLY1305: 1500 requests (5.0%)
+ECC_521: 1500 requests (5.0%)
+FALLBACK_AES: 1500 requests (5.0%)
+HYBRID_ECC_PQC: 1500 requests (5.0%)
+HYBRID_QKD_PQC: 1500 requests (5.0%)
+HYBRID_RSA_PQC: 1500 requests (5.0%)
+PQC_DILITHIUM: 1500 requests (5.0%)
+PQC_FALCON: 1500 requests (5.0%)
+PQC_KYBER: 1500 requests (5.0%)
+PQC_NTRU: 1500 requests (5.0%)
+PQC_SABER: 1500 requests (5.0%)
+PQC_SPHINCS: 1500 requests (5.0%)
+QKD_BB84: 1500 requests (5.0%)
+QKD_CV-QKD: 1500 requests (5.0%)
+QKD_DECOY: 1500 requests (5.0%)
+QKD_E91: 1500 requests (5.0%)
+QKD_MDI-QKD: 1500 requests (5.0%)
+RSA_4096: 1500 requests (5.0%)
+
+ACTUAL ALGORITHM USAGE (Proposed by synthetic engine)
+--------------------------------------------------------------------------------
+PQC_KYBER: 2387 times (8.0%) [deviation: +887.0]
+QKD_BB84: 2083 times (6.9%) [deviation: +583.0]
+ECC_521: 2030 times (6.8%) [deviation: +530.0]
+PQC_DILITHIUM: 2006 times (6.7%) [deviation: +506.0]
+HYBRID_QKD_PQC: 1847 times (6.2%) [deviation: +347.0]
+AES_256_GCM: 1843 times (6.1%) [deviation: +343.0]
+PQC_FALCON: 1786 times (6.0%) [deviation: +286.0]
+PQC_SPHINCS: 1666 times (5.6%) [deviation: +166.0]
+HYBRID_RSA_PQC: 1646 times (5.5%) [deviation: +146.0]
+RSA_4096: 1638 times (5.5%) [deviation: +138.0]
+PQC_NTRU: 1602 times (5.3%) [deviation: +102.0]
+QKD_E91: 1538 times (5.1%) [deviation: +38.0]
+QKD_CV-QKD: 1524 times (5.1%) [deviation: +24.0]
+QKD_DECOY: 1414 times (4.7%) [deviation: -86.0]
+AES_192: 1358 times (4.5%) [deviation: -142.0]
+PQC_SABER: 1267 times (4.2%) [deviation: -233.0]
+HYBRID_ECC_PQC: 1183 times (3.9%) [deviation: -317.0]
+CHACHA20_POLY1305: 1168 times (3.9%) [deviation: -332.0]
+QKD_MDI-QKD: 1118 times (3.7%) [deviation: -382.0]
+FALLBACK_AES: 996 times (3.3%) [deviation: -504.0]
+
+BY SECURITY LEVEL
+--------------------------------------------------------------------------------
+
+HIGH:
+  Requests: 9000
+  Success Rate: 80.00%
+  Avg Latency: 65.92ms
+
+MODERATE:
+  Requests: 6000
+  Success Rate: 85.00%
+  Avg Latency: 28.14ms
+
+ULTRA:
+  Requests: 6000
+  Success Rate: 80.00%
+  Avg Latency: 99.30ms
+
+VERY_HIGH:
+  Requests: 9000
+  Success Rate: 83.33%
+  Avg Latency: 82.99ms
+
+QKD HARDWARE ANALYSIS
+--------------------------------------------------------------------------------
+With QKD Hardware:
+  Requests: 9000
+  Success Rate: 80.00%
+  Avg Latency: 114.63ms
+
+Without QKD Hardware:
+  Requests: 21000
+  Success Rate: 82.86%
+  Avg Latency: 51.11ms
