@@ -10,7 +10,78 @@ from scipy import stats
 # Style configuration
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
-plt.rcParams['font.size'] = 10
+plt.rcParams['font.size'] = 14
+plt.rcParams['font.weight'] = 'bold'
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams['axes.titleweight'] = 'bold'
+
+# ====================================================================== #
+# COLOR PALETTE - MONOCHROMATIC BY ALGORITHM FAMILY                      #
+# ====================================================================== #
+
+FAMILY_COLOR_BASES = {
+    "QKD":      (0.18, 0.47, 0.71),  # azul
+    "PQC":      (0.17, 0.63, 0.17),  # verde
+    "HYBRID":   (0.56, 0.27, 0.68),  # roxo
+    "RSA":      (0.84, 0.15, 0.16),  # vermelho
+    "ECC":      (0.89, 0.47, 0.20),  # laranja
+    "AES":      (0.26, 0.26, 0.26),  # cinza escuro
+    "CHACHA":   (0.40, 0.40, 0.40),  # cinza médio
+    "FALLBACK": (0.60, 0.60, 0.60)   # cinza claro
+}
+
+
+def get_algorithm_family(algo: str) -> str:
+    """Identifica a família do algoritmo"""
+    algo = algo.upper()
+    if "QKD" in algo and "HYBRID" not in algo:
+        return "QKD"
+    if "PQC" in algo and "HYBRID" not in algo:
+        return "PQC"
+    if "HYBRID" in algo:
+        return "HYBRID"
+    if "RSA" in algo:
+        return "RSA"
+    if "ECC" in algo:
+        return "ECC"
+    if "AES" in algo:
+        return "AES"
+    if "CHACHA" in algo:
+        return "CHACHA"
+    return "FALLBACK"
+
+
+def generate_family_color_map(algorithms: list) -> dict:
+    """
+    Gera mapa de cores {algoritmo: (r,g,b)} onde:
+    - Cada família tem uma cor base
+    - Algoritmos da mesma família variam em luminosidade
+    """
+    # Agrupa por família
+    family_to_algos = {}
+    for algo in algorithms:
+        fam = get_algorithm_family(algo)
+        family_to_algos.setdefault(fam, []).append(algo)
+
+    algo_colors = {}
+
+    for family, algos in family_to_algos.items():
+        base = FAMILY_COLOR_BASES.get(family, (0.30, 0.30, 0.30))
+        n = len(algos)
+
+        # Gama de fatores de luminosidade
+        if n == 1:
+            factors = [1.0]
+        else:
+            factors = np.linspace(0.6, 1.3, n)
+
+        for algo, f in zip(sorted(algos), factors):
+            r = min(max(base[0] * f, 0.0), 1.0)
+            g = min(max(base[1] * f, 0.0), 1.0)
+            b = min(max(base[2] * f, 0.0), 1.0)
+            algo_colors[algo] = (r, g, b)
+
+    return algo_colors
 
 
 class ResultAnalyzer:
@@ -51,7 +122,7 @@ class ResultAnalyzer:
         print(f"\n✅ Plots saved in: {self.output_dir}/")
 
     def plot_algorithm_distribution(self):
-        """Algorithm usage distribution"""
+        """Algorithm usage distribution - MONOCHROME"""
         algo_counts = {}
         for _, row in self.df.iterrows():
             for algo in row['proposed_algorithms']:
@@ -61,19 +132,21 @@ class ResultAnalyzer:
         algos = list(algo_counts.keys())
         counts = list(algo_counts.values())
 
-        colors = plt.cm.viridis(np.linspace(0, 1, len(algos)))
-        bars = ax.barh(algos, counts, color=colors)
+        # Usa gradiente monocromático em tons de cinza
+        n_algorithms = len(algos)
+        colors = [plt.cm.Blues(0.3 + (i / n_algorithms) * 0.5) for i in range(n_algorithms)]
 
-        ax.set_xlabel('Number of Times Selected', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Cryptographic Algorithm', fontsize=12, fontweight='bold')
-        ax.set_title('Distribution of Cryptographic Algorithm Usage',
-                     fontsize=14, fontweight='bold', pad=20)
+        bars = ax.barh(algos, counts, color=colors, edgecolor='black', linewidth=1.2)
+
+        ax.set_xlabel('Number of Times Selected', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Cryptographic Algorithm', fontsize=18, fontweight='bold')
+        ax.tick_params(axis='both', which='major', labelsize=16)
 
         # Add values on bars
         for bar in bars:
             width = bar.get_width()
             ax.text(width, bar.get_y() + bar.get_height() / 2,
-                    f'{int(width)}', ha='left', va='center', fontsize=10)
+                    f'{int(width)}', ha='left', va='center', fontsize=14, fontweight='bold')
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'algorithm_distribution.png', dpi=300, bbox_inches='tight')
@@ -91,15 +164,15 @@ class ResultAnalyzer:
 
         fig, ax = plt.subplots(figsize=(12, 7))
 
+        colors = plt.cm.RdYlGn(success_by_level['success_rate'] / 100)
         bars = ax.bar(success_by_level['security_level'],
                       success_by_level['success_rate'],
-                      color=plt.cm.RdYlGn(success_by_level['success_rate'] / 100))
+                      color=colors)
 
-        ax.set_xlabel('Security Level', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Success Rate (%)', fontsize=12, fontweight='bold')
-        ax.set_title('Success Rate by Security Level',
-                     fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel('Security Level', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Success Rate (%)', fontsize=18, fontweight='bold')
         ax.set_ylim(0, 105)
+        ax.tick_params(axis='both', which='major', labelsize=16)
 
         # Add values and count
         for i, bar in enumerate(bars):
@@ -107,7 +180,7 @@ class ResultAnalyzer:
             count = success_by_level.iloc[i]['count']
             ax.text(bar.get_x() + bar.get_width() / 2, height + 1,
                     f'{height:.1f}%\n(n={count})',
-                    ha='center', va='bottom', fontsize=10, fontweight='bold')
+                    ha='center', va='bottom', fontsize=14, fontweight='bold')
 
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
@@ -120,31 +193,31 @@ class ResultAnalyzer:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
 
         # Box plot
-        self.df.boxplot(column='feedback_latency', by='security_level', ax=ax1)
-        ax1.set_xlabel('Security Level', fontsize=12, fontweight='bold')
-        ax1.set_ylabel('Latency (ms)', fontsize=12, fontweight='bold')
-        ax1.set_title('Latency Distribution by Security Level',
-                      fontsize=12, fontweight='bold')
+        bp = self.df.boxplot(column='feedback_latency', by='security_level', ax=ax1,
+                              patch_artist=True, return_type='dict')
+        ax1.set_xlabel('Security Level', fontsize=18, fontweight='bold')
+        ax1.set_ylabel('Latency (ms)', fontsize=18, fontweight='bold')
+        ax1.tick_params(axis='both', which='major', labelsize=16)
         plt.sca(ax1)
         plt.xticks(rotation=45, ha='right')
 
         # Violin plot
-        sns.violinplot(data=self.df, x='security_level', y='feedback_latency', ax=ax2)
-        ax2.set_xlabel('Security Level', fontsize=12, fontweight='bold')
-        ax2.set_ylabel('Latency (ms)', fontsize=12, fontweight='bold')
-        ax2.set_title('Latency Density by Security Level',
-                      fontsize=12, fontweight='bold')
+        sns.violinplot(data=self.df, x='security_level', y='feedback_latency',
+                      ax=ax2, palette='Blues')
+        ax2.set_xlabel('Security Level', fontsize=18, fontweight='bold')
+        ax2.set_ylabel('Latency (ms)', fontsize=18, fontweight='bold')
+        ax2.tick_params(axis='both', which='major', labelsize=16)
         plt.sca(ax2)
         plt.xticks(rotation=45, ha='right')
 
-        plt.suptitle('')  # Remove automatic title
+        plt.suptitle('')
         plt.tight_layout()
         plt.savefig(self.output_dir / 'latency_comparison.png', dpi=300, bbox_inches='tight')
         plt.close()
         print("  ✓ latency_comparison.png")
 
     def plot_qkd_vs_non_qkd(self):
-        """QKD vs Non-QKD comparison"""
+        """QKD vs Non-QKD comparison - MONOCHROME"""
         qkd_comparison = self.df.groupby('has_qkd').agg({
             'feedback_success': 'mean',
             'feedback_latency': 'mean',
@@ -161,42 +234,43 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
+        color_qkd = (0.18, 0.47, 0.71)
+        color_non_qkd = (0.45, 0.45, 0.45)
+
         # Success rate
         axes[0, 0].bar(qkd_comparison['has_qkd'], qkd_comparison['success_rate'],
-                       color=['#2ecc71', '#e74c3c'])
-        axes[0, 0].set_ylabel('Success Rate (%)', fontweight='bold')
-        axes[0, 0].set_title('Success Rate', fontweight='bold')
+                       color=[color_qkd, color_non_qkd])
+        axes[0, 0].set_ylabel('Success Rate (%)', fontsize=16, fontweight='bold')
         axes[0, 0].set_ylim(0, 105)
+        axes[0, 0].tick_params(axis='both', which='major', labelsize=14)
         for i, v in enumerate(qkd_comparison['success_rate']):
-            axes[0, 0].text(i, v + 2, f'{v:.1f}%', ha='center', fontweight='bold')
+            axes[0, 0].text(i, v + 2, f'{v:.1f}%', ha='center', fontsize=14, fontweight='bold')
 
         # Latency
         axes[0, 1].bar(qkd_comparison['has_qkd'], qkd_comparison['avg_latency'],
-                       color=['#3498db', '#9b59b6'])
-        axes[0, 1].set_ylabel('Average Latency (ms)', fontweight='bold')
-        axes[0, 1].set_title('Average Latency', fontweight='bold')
+                       color=[color_qkd, color_non_qkd])
+        axes[0, 1].set_ylabel('Average Latency (ms)', fontsize=16, fontweight='bold')
+        axes[0, 1].tick_params(axis='both', which='major', labelsize=14)
         for i, v in enumerate(qkd_comparison['avg_latency']):
-            axes[0, 1].text(i, v + 2, f'{v:.1f}ms', ha='center', fontweight='bold')
+            axes[0, 1].text(i, v + 2, f'{v:.1f}ms', ha='center', fontsize=14, fontweight='bold')
 
         # Resource usage
         axes[1, 0].bar(qkd_comparison['has_qkd'], qkd_comparison['avg_resource'],
-                       color=['#f39c12', '#1abc9c'])
-        axes[1, 0].set_ylabel('Average Resource Usage', fontweight='bold')
-        axes[1, 0].set_title('Resource Usage', fontweight='bold')
+                       color=[color_qkd, color_non_qkd])
+        axes[1, 0].set_ylabel('Average Resource Usage', fontsize=16, fontweight='bold')
         axes[1, 0].set_ylim(0, 1.1)
+        axes[1, 0].tick_params(axis='both', which='major', labelsize=14)
         for i, v in enumerate(qkd_comparison['avg_resource']):
-            axes[1, 0].text(i, v + 0.05, f'{v:.2f}', ha='center', fontweight='bold')
+            axes[1, 0].text(i, v + 0.05, f'{v:.2f}', ha='center', fontsize=14, fontweight='bold')
 
         # Count
         axes[1, 1].bar(qkd_comparison['has_qkd'], qkd_comparison['count'],
-                       color=['#34495e', '#95a5a6'])
-        axes[1, 1].set_ylabel('Number of Requests', fontweight='bold')
-        axes[1, 1].set_title('Request Volume', fontweight='bold')
+                       color=[color_qkd, color_non_qkd])
+        axes[1, 1].set_ylabel('Number of Requests', fontsize=16, fontweight='bold')
+        axes[1, 1].tick_params(axis='both', which='major', labelsize=14)
         for i, v in enumerate(qkd_comparison['count']):
-            axes[1, 1].text(i, v + 5, f'{int(v)}', ha='center', fontweight='bold')
+            axes[1, 1].text(i, v + 5, f'{int(v)}', ha='center', fontsize=14, fontweight='bold')
 
-        plt.suptitle('Comparative Analysis: QKD vs Non-QKD',
-                     fontsize=16, fontweight='bold', y=1.00)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'qkd_comparison.png', dpi=300, bbox_inches='tight')
         plt.close()
@@ -206,18 +280,17 @@ class ResultAnalyzer:
         """Response time distribution"""
         fig, ax = plt.subplots(figsize=(12, 7))
 
-        ax.hist(self.df['response_time'], bins=30, color='skyblue',
+        ax.hist(self.df['response_time'], bins=30, color=(0.3, 0.3, 0.3),
                 edgecolor='black', alpha=0.7)
-        ax.axvline(self.df['response_time'].mean(), color='red',
-                   linestyle='--', linewidth=2, label=f'Mean: {self.df["response_time"].mean():.4f}s')
-        ax.axvline(self.df['response_time'].median(), color='green',
-                   linestyle='--', linewidth=2, label=f'Median: {self.df["response_time"].median():.4f}s')
+        ax.axvline(self.df['response_time'].mean(), color=(0.18, 0.47, 0.71),
+                   linestyle='--', linewidth=3, label=f'Mean: {self.df["response_time"].mean():.4f}s')
+        ax.axvline(self.df['response_time'].median(), color=(0.17, 0.63, 0.17),
+                   linestyle='--', linewidth=3, label=f'Median: {self.df["response_time"].median():.4f}s')
 
-        ax.set_xlabel('Response Time (seconds)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-        ax.set_title('RL Engine Response Time Distribution',
-                     fontsize=14, fontweight='bold', pad=20)
-        ax.legend(fontsize=11)
+        ax.set_xlabel('Response Time (seconds)', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Frequency', fontsize=18, fontweight='bold')
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.legend(fontsize=14, prop={'weight': 'bold'})
         ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
@@ -234,19 +307,21 @@ class ResultAnalyzer:
             'response_time': 'mean'
         })
 
-        # Normalize to 0-1
         metrics_normalized = (metrics_by_level - metrics_by_level.min()) / (
                 metrics_by_level.max() - metrics_by_level.min())
 
         fig, ax = plt.subplots(figsize=(10, 8))
 
-        sns.heatmap(metrics_normalized.T, annot=True, fmt='.2f', cmap='RdYlGn',
-                    cbar_kws={'label': 'Normalized Value (0-1)'}, ax=ax)
+        sns.heatmap(metrics_normalized.T, annot=True, fmt='.2f', cmap='Blues',
+                    cbar_kws={'label': 'Normalized Value (0-1)'}, ax=ax,
+                    annot_kws={'fontsize': 14, 'fontweight': 'bold'})
 
-        ax.set_xlabel('Security Level', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Metric', fontsize=12, fontweight='bold')
-        ax.set_title('Metrics Heatmap by Security Level (Normalized)',
-                     fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel('Security Level', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Metric', fontsize=18, fontweight='bold')
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=14)
+        cbar.set_label('Normalized Value (0-1)', fontsize=16, fontweight='bold')
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'security_heatmap.png', dpi=300, bbox_inches='tight')
@@ -261,35 +336,31 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(3, 1, figsize=(14, 12))
 
-        # Success rate over time
         window = 20
         self.df['success_rolling'] = self.df['feedback_success'].rolling(window=window).mean() * 100
         axes[0].plot(self.df['request_number'], self.df['success_rolling'],
-                     linewidth=2, color='green')
-        axes[0].set_ylabel('Success Rate (%) - Moving Average', fontweight='bold')
-        axes[0].set_title(f'Success Rate Evolution (window={window})', fontweight='bold')
+                     linewidth=3, color=(0.17, 0.63, 0.17))
+        axes[0].set_ylabel('Success Rate (%)', fontsize=16, fontweight='bold')
+        axes[0].tick_params(axis='both', which='major', labelsize=14)
         axes[0].grid(True, alpha=0.3)
         axes[0].set_ylim(0, 105)
 
-        # Latency over time
         self.df['latency_rolling'] = self.df['feedback_latency'].rolling(window=window).mean()
         axes[1].plot(self.df['request_number'], self.df['latency_rolling'],
-                     linewidth=2, color='blue')
-        axes[1].set_ylabel('Latency (ms) - Moving Average', fontweight='bold')
-        axes[1].set_title(f'Latency Evolution (window={window})', fontweight='bold')
+                     linewidth=3, color=(0.18, 0.47, 0.71))
+        axes[1].set_ylabel('Latency (ms)', fontsize=16, fontweight='bold')
+        axes[1].tick_params(axis='both', which='major', labelsize=14)
         axes[1].grid(True, alpha=0.3)
 
-        # Resource usage over time
         self.df['resource_rolling'] = self.df['feedback_resource_usage'].rolling(window=window).mean()
         axes[2].plot(self.df['request_number'], self.df['resource_rolling'],
-                     linewidth=2, color='orange')
-        axes[2].set_xlabel('Request Number', fontweight='bold')
-        axes[2].set_ylabel('Resource Usage - Moving Average', fontweight='bold')
-        axes[2].set_title(f'Resource Usage Evolution (window={window})', fontweight='bold')
+                     linewidth=3, color=(0.40, 0.40, 0.40))
+        axes[2].set_xlabel('Request Number', fontsize=16, fontweight='bold')
+        axes[2].set_ylabel('Resource Usage', fontsize=16, fontweight='bold')
+        axes[2].tick_params(axis='both', which='major', labelsize=14)
         axes[2].grid(True, alpha=0.3)
         axes[2].set_ylim(0, 1.1)
 
-        plt.suptitle('Temporal Performance Analysis', fontsize=16, fontweight='bold', y=0.995)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'temporal_analysis.png', dpi=300, bbox_inches='tight')
         plt.close()
@@ -299,28 +370,27 @@ class ResultAnalyzer:
         """Resource usage analysis"""
         fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-        # Scatter: Resources vs Latency
         scatter = axes[0].scatter(self.df['feedback_resource_usage'],
                                   self.df['feedback_latency'],
                                   c=self.df['feedback_success'].astype(int),
                                   cmap='RdYlGn', alpha=0.6, s=50)
-        axes[0].set_xlabel('Resource Usage', fontweight='bold')
-        axes[0].set_ylabel('Latency (ms)', fontweight='bold')
-        axes[0].set_title('Relationship: Resource Usage vs Latency', fontweight='bold')
+        axes[0].set_xlabel('Resource Usage', fontsize=16, fontweight='bold')
+        axes[0].set_ylabel('Latency (ms)', fontsize=16, fontweight='bold')
+        axes[0].tick_params(axis='both', which='major', labelsize=14)
         axes[0].grid(True, alpha=0.3)
         cbar = plt.colorbar(scatter, ax=axes[0])
-        cbar.set_label('Success', fontweight='bold')
+        cbar.set_label('Success', fontsize=14, fontweight='bold')
+        cbar.ax.tick_params(labelsize=12)
 
-        # Resource usage distribution
         axes[1].hist(self.df['feedback_resource_usage'], bins=20,
-                     color='coral', edgecolor='black', alpha=0.7)
+                     color=(0.3, 0.3, 0.3), edgecolor='black', alpha=0.7)
         axes[1].axvline(self.df['feedback_resource_usage'].mean(),
-                        color='red', linestyle='--', linewidth=2,
+                        color=(0.84, 0.15, 0.16), linestyle='--', linewidth=3,
                         label=f'Mean: {self.df["feedback_resource_usage"].mean():.2f}')
-        axes[1].set_xlabel('Resource Usage', fontweight='bold')
-        axes[1].set_ylabel('Frequency', fontweight='bold')
-        axes[1].set_title('Resource Usage Distribution', fontweight='bold')
-        axes[1].legend()
+        axes[1].set_xlabel('Resource Usage', fontsize=16, fontweight='bold')
+        axes[1].set_ylabel('Frequency', fontsize=16, fontweight='bold')
+        axes[1].tick_params(axis='both', which='major', labelsize=14)
+        axes[1].legend(fontsize=14, prop={'weight': 'bold'})
         axes[1].grid(True, alpha=0.3)
 
         plt.tight_layout()
@@ -329,9 +399,8 @@ class ResultAnalyzer:
         print("  ✓ resource_usage_analysis.png")
 
     def plot_algorithm_category_comparison(self):
-        """Compare algorithm categories (QKD, PQC, Hybrid, Classical)"""
+        """Compare algorithm categories (QKD, PQC, Hybrid, Classical) - MONOCHROME"""
 
-        # Categorize algorithms
         def categorize_algo(algo):
             if 'QKD' in algo and 'HYBRID' not in algo:
                 return 'QKD'
@@ -342,7 +411,6 @@ class ResultAnalyzer:
             else:
                 return 'Classical'
 
-        # Create category column
         algo_categories = []
         for _, row in self.df.iterrows():
             for algo in row['proposed_algorithms']:
@@ -357,36 +425,38 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # Success rate by category
+        cat_colors = {
+            'QKD': FAMILY_COLOR_BASES['QKD'],
+            'PQC': FAMILY_COLOR_BASES['PQC'],
+            'Hybrid': FAMILY_COLOR_BASES['HYBRID'],
+            'Classical': (0.35, 0.35, 0.35)
+        }
+
         success_by_cat = cat_df.groupby('category')['success'].mean() * 100
-        axes[0, 0].bar(success_by_cat.index, success_by_cat.values,
-                       color=['#3498db', '#e74c3c', '#2ecc71', '#f39c12'])
-        axes[0, 0].set_ylabel('Success Rate (%)', fontweight='bold')
-        axes[0, 0].set_title('Success Rate by Algorithm Category', fontweight='bold')
+        colors = [cat_colors.get(cat, (0.3, 0.3, 0.3)) for cat in success_by_cat.index]
+        axes[0, 0].bar(success_by_cat.index, success_by_cat.values, color=colors)
+        axes[0, 0].set_ylabel('Success Rate (%)', fontsize=16, fontweight='bold')
         axes[0, 0].set_ylim(0, 105)
+        axes[0, 0].tick_params(axis='both', which='major', labelsize=14)
         for i, v in enumerate(success_by_cat.values):
-            axes[0, 0].text(i, v + 2, f'{v:.1f}%', ha='center', fontweight='bold')
+            axes[0, 0].text(i, v + 2, f'{v:.1f}%', ha='center', fontsize=14, fontweight='bold')
 
-        # Latency by category
-        sns.boxplot(data=cat_df, x='category', y='latency', ax=axes[0, 1])
-        axes[0, 1].set_xlabel('Algorithm Category', fontweight='bold')
-        axes[0, 1].set_ylabel('Latency (ms)', fontweight='bold')
-        axes[0, 1].set_title('Latency Distribution by Category', fontweight='bold')
+        sns.boxplot(data=cat_df, x='category', y='latency', ax=axes[0, 1], palette='Greys')
+        axes[0, 1].set_xlabel('Algorithm Category', fontsize=16, fontweight='bold')
+        axes[0, 1].set_ylabel('Latency (ms)', fontsize=16, fontweight='bold')
+        axes[0, 1].tick_params(axis='both', which='major', labelsize=14)
 
-        # Resource usage by category
-        sns.violinplot(data=cat_df, x='category', y='resource', ax=axes[1, 0])
-        axes[1, 0].set_xlabel('Algorithm Category', fontweight='bold')
-        axes[1, 0].set_ylabel('Resource Usage', fontweight='bold')
-        axes[1, 0].set_title('Resource Usage by Category', fontweight='bold')
+        sns.violinplot(data=cat_df, x='category', y='resource', ax=axes[1, 0], palette='Blues')
+        axes[1, 0].set_xlabel('Algorithm Category', fontsize=16, fontweight='bold')
+        axes[1, 0].set_ylabel('Resource Usage', fontsize=16, fontweight='bold')
+        axes[1, 0].tick_params(axis='both', which='major', labelsize=14)
 
-        # Count by category
         count_by_cat = cat_df['category'].value_counts()
+        pie_colors = [cat_colors.get(cat, (0.3, 0.3, 0.3)) for cat in count_by_cat.index]
         axes[1, 1].pie(count_by_cat.values, labels=count_by_cat.index,
-                       autopct='%1.1f%%', startangle=90,
-                       colors=['#3498db', '#e74c3c', '#2ecc71', '#f39c12'])
-        axes[1, 1].set_title('Algorithm Category Distribution', fontweight='bold')
+                       autopct='%1.1f%%', startangle=90, colors=pie_colors,
+                       textprops={'fontsize': 14, 'fontweight': 'bold'})
 
-        plt.suptitle('Algorithm Category Comparison', fontsize=16, fontweight='bold', y=0.995)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'algorithm_category_comparison.png', dpi=300, bbox_inches='tight')
         plt.close()
@@ -411,32 +481,28 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(2, 1, figsize=(12, 10))
 
-        # Total reward per episode
         axes[0].plot(ep_df['episode'], ep_df['total_reward'],
-                     marker='o', linewidth=2, markersize=6, color='blue')
-        axes[0].set_xlabel('Episode', fontweight='bold')
-        axes[0].set_ylabel('Total Reward', fontweight='bold')
-        axes[0].set_title('Total Reward per Episode', fontweight='bold')
+                     marker='o', linewidth=3, markersize=8, color=(0.18, 0.47, 0.71))
+        axes[0].set_xlabel('Episode', fontsize=16, fontweight='bold')
+        axes[0].set_ylabel('Total Reward', fontsize=16, fontweight='bold')
+        axes[0].tick_params(axis='both', which='major', labelsize=14)
         axes[0].grid(True, alpha=0.3)
 
-        # Average reward and epsilon
         ax2 = axes[1]
         ax2.plot(ep_df['episode'], ep_df['avg_reward'],
-                 marker='o', linewidth=2, markersize=6, color='green', label='Avg Reward')
-        ax2.set_xlabel('Episode', fontweight='bold')
-        ax2.set_ylabel('Average Reward', fontweight='bold', color='green')
-        ax2.tick_params(axis='y', labelcolor='green')
+                 marker='o', linewidth=3, markersize=8, color=(0.17, 0.63, 0.17), label='Avg Reward')
+        ax2.set_xlabel('Episode', fontsize=16, fontweight='bold')
+        ax2.set_ylabel('Average Reward', fontsize=16, fontweight='bold', color=(0.17, 0.63, 0.17))
+        ax2.tick_params(axis='y', labelcolor=(0.17, 0.63, 0.17), labelsize=14)
+        ax2.tick_params(axis='x', labelsize=14)
         ax2.grid(True, alpha=0.3)
 
         ax3 = ax2.twinx()
         ax3.plot(ep_df['episode'], ep_df['epsilon'],
-                 marker='s', linewidth=2, markersize=6, color='red', label='Epsilon')
-        ax3.set_ylabel('Epsilon (Exploration Rate)', fontweight='bold', color='red')
-        ax3.tick_params(axis='y', labelcolor='red')
+                 marker='s', linewidth=3, markersize=8, color=(0.84, 0.15, 0.16), label='Epsilon')
+        ax3.set_ylabel('Epsilon', fontsize=16, fontweight='bold', color=(0.84, 0.15, 0.16))
+        ax3.tick_params(axis='y', labelcolor=(0.84, 0.15, 0.16), labelsize=14)
 
-        axes[1].set_title('Learning Progress: Reward and Exploration', fontweight='bold')
-
-        plt.suptitle('RL Engine Learning Curve', fontsize=16, fontweight='bold', y=0.995)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'learning_curve.png', dpi=300, bbox_inches='tight')
         plt.close()
@@ -450,47 +516,47 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
-        # Risk vs Success
         risk_bins = pd.cut(self.df['risk_score'], bins=5)
         success_by_risk = self.df.groupby(risk_bins)['feedback_success'].mean() * 100
         axes[0].plot(range(len(success_by_risk)), success_by_risk.values,
-                     marker='o', linewidth=2, markersize=8, color='green')
-        axes[0].set_xlabel('Risk Score Range', fontweight='bold')
-        axes[0].set_ylabel('Success Rate (%)', fontweight='bold')
-        axes[0].set_title('Success Rate vs Risk Score', fontweight='bold')
+                     marker='o', linewidth=3, markersize=10, color=(0.17, 0.63, 0.17))
+        axes[0].set_xlabel('Risk Score Range', fontsize=16, fontweight='bold')
+        axes[0].set_ylabel('Success Rate (%)', fontsize=16, fontweight='bold')
         axes[0].set_xticks(range(len(success_by_risk)))
-        axes[0].set_xticklabels([f'{i.left:.2f}-{i.right:.2f}' for i in success_by_risk.index], rotation=45)
+        axes[0].set_xticklabels([f'{i.left:.2f}-{i.right:.2f}' for i in success_by_risk.index],
+                                rotation=45, fontsize=12, fontweight='bold')
+        axes[0].tick_params(axis='y', labelsize=14)
         axes[0].grid(True, alpha=0.3)
 
-        # Risk vs Latency
         scatter1 = axes[1].scatter(self.df['risk_score'], self.df['feedback_latency'],
                                    c=self.df['feedback_success'].astype(int),
                                    cmap='RdYlGn', alpha=0.6, s=50)
-        axes[1].set_xlabel('Risk Score', fontweight='bold')
-        axes[1].set_ylabel('Latency (ms)', fontweight='bold')
-        axes[1].set_title('Latency vs Risk Score', fontweight='bold')
+        axes[1].set_xlabel('Risk Score', fontsize=16, fontweight='bold')
+        axes[1].set_ylabel('Latency (ms)', fontsize=16, fontweight='bold')
+        axes[1].tick_params(axis='both', which='major', labelsize=14)
         axes[1].grid(True, alpha=0.3)
-        plt.colorbar(scatter1, ax=axes[1], label='Success')
+        cbar1 = plt.colorbar(scatter1, ax=axes[1])
+        cbar1.set_label('Success', fontsize=14, fontweight='bold')
+        cbar1.ax.tick_params(labelsize=12)
 
-        # Risk vs Resource
         scatter2 = axes[2].scatter(self.df['risk_score'], self.df['feedback_resource_usage'],
                                    c=self.df['security_level'].astype('category').cat.codes,
-                                   cmap='viridis', alpha=0.6, s=50)
-        axes[2].set_xlabel('Risk Score', fontweight='bold')
-        axes[2].set_ylabel('Resource Usage', fontweight='bold')
-        axes[2].set_title('Resource Usage vs Risk Score', fontweight='bold')
+                                   cmap='Blues', alpha=0.6, s=50)
+        axes[2].set_xlabel('Risk Score', fontsize=16, fontweight='bold')
+        axes[2].set_ylabel('Resource Usage', fontsize=16, fontweight='bold')
+        axes[2].tick_params(axis='both', which='major', labelsize=14)
         axes[2].grid(True, alpha=0.3)
-        plt.colorbar(scatter2, ax=axes[2], label='Security Level')
+        cbar2 = plt.colorbar(scatter2, ax=axes[2])
+        cbar2.set_label('Security Level', fontsize=14, fontweight='bold')
+        cbar2.ax.tick_params(labelsize=12)
 
-        plt.suptitle('Risk Score vs Performance Metrics', fontsize=16, fontweight='bold', y=1.00)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'risk_vs_performance.png', dpi=300, bbox_inches='tight')
         plt.close()
         print("  ✓ risk_vs_performance.png")
 
     def plot_algorithm_success_matrix(self):
-        """Success rate matrix for each algorithm"""
-        # Get expected algorithms and their success
+        """Success rate matrix for each algorithm - MONOCHROME"""
         algo_success = {}
         for _, row in self.df.iterrows():
             expected = row['expected_algorithm']
@@ -499,7 +565,6 @@ class ResultAnalyzer:
                 algo_success[expected] = []
             algo_success[expected].append(success)
 
-        # Calculate success rate for each algorithm
         algo_stats = {}
         for algo, successes in algo_success.items():
             algo_stats[algo] = {
@@ -508,7 +573,6 @@ class ResultAnalyzer:
                 'std': np.std(successes) * 100
             }
 
-        # Sort by success rate
         sorted_algos = sorted(algo_stats.items(), key=lambda x: x[1]['success_rate'], reverse=True)
 
         fig, ax = plt.subplots(figsize=(14, 10))
@@ -518,21 +582,21 @@ class ResultAnalyzer:
         counts = [a[1]['count'] for a in sorted_algos]
         stds = [a[1]['std'] for a in sorted_algos]
 
-        colors = plt.cm.RdYlGn(np.array(success_rates) / 100)
+        color_map = generate_family_color_map(algos)
+        colors = [color_map.get(a, (0.3, 0.3, 0.3)) for a in algos]
+
         bars = ax.barh(algos, success_rates, color=colors, xerr=stds, capsize=5)
 
-        ax.set_xlabel('Success Rate (%)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Expected Algorithm', fontsize=12, fontweight='bold')
-        ax.set_title('Algorithm Success Rate Matrix (with Standard Deviation)',
-                     fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel('Success Rate (%)', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Expected Algorithm', fontsize=18, fontweight='bold')
         ax.set_xlim(0, 105)
+        ax.tick_params(axis='both', which='major', labelsize=14)
 
-        # Add values and counts
         for i, (bar, count) in enumerate(zip(bars, counts)):
             width = bar.get_width()
             ax.text(width + 2, bar.get_y() + bar.get_height() / 2,
                     f'{width:.1f}% (n={count})',
-                    ha='left', va='center', fontsize=9, fontweight='bold')
+                    ha='left', va='center', fontsize=12, fontweight='bold')
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'algorithm_success_matrix.png', dpi=300, bbox_inches='tight')
@@ -543,7 +607,6 @@ class ResultAnalyzer:
         """3D-like scatter: Latency vs Security vs Success"""
         fig, ax = plt.subplots(figsize=(14, 8))
 
-        # Map security levels to numeric values
         security_map = {'moderate': 1, 'high': 2, 'very_high': 3, 'ultra': 4}
         self.df['security_numeric'] = self.df['security_level'].map(security_map)
 
@@ -553,23 +616,23 @@ class ResultAnalyzer:
                              c=self.df['feedback_success'].astype(int),
                              cmap='RdYlGn', alpha=0.6, edgecolors='black', linewidth=0.5)
 
-        ax.set_xlabel('Security Level', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Latency (ms)', fontsize=12, fontweight='bold')
-        ax.set_title('Latency vs Security Level (bubble size = resource usage)',
-                     fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel('Security Level', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Latency (ms)', fontsize=18, fontweight='bold')
         ax.set_xticks(list(security_map.values()))
-        ax.set_xticklabels(list(security_map.keys()), rotation=45, ha='right')
+        ax.set_xticklabels(list(security_map.keys()), rotation=45, ha='right', fontsize=14, fontweight='bold')
+        ax.tick_params(axis='y', labelsize=14)
         ax.grid(True, alpha=0.3)
 
         cbar = plt.colorbar(scatter, ax=ax)
-        cbar.set_label('Success', fontweight='bold')
+        cbar.set_label('Success', fontsize=16, fontweight='bold')
+        cbar.ax.tick_params(labelsize=14)
 
-        # Add legend for bubble size
         for size in [0.3, 0.6, 0.9]:
             ax.scatter([], [], s=size * 500, c='gray', alpha=0.6,
                        edgecolors='black', linewidth=0.5,
                        label=f'Resource: {size:.1f}')
-        ax.legend(scatterpoints=1, frameon=True, labelspacing=2, title='Resource Usage')
+        ax.legend(scatterpoints=1, frameon=True, labelspacing=2,
+                 title='Resource Usage', fontsize=12, prop={'weight': 'bold'})
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'latency_vs_security_scatter.png', dpi=300, bbox_inches='tight')
@@ -582,7 +645,6 @@ class ResultAnalyzer:
             print("  ⚠ Skipping episode_progression.png (no episode data)")
             return
 
-        # Extract episode metrics
         episodes_data = []
         for i, metric in enumerate(self.data['metrics_history'], 1):
             episodes_data.append({
@@ -597,53 +659,47 @@ class ResultAnalyzer:
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # Total reward
         axes[0, 0].plot(ep_df['episode'], ep_df['total_reward'],
-                        marker='o', linewidth=2, color='blue')
-        axes[0, 0].fill_between(ep_df['episode'], 0, ep_df['total_reward'], alpha=0.3)
-        axes[0, 0].set_xlabel('Episode', fontweight='bold')
-        axes[0, 0].set_ylabel('Total Reward', fontweight='bold')
-        axes[0, 0].set_title('Total Reward Progression', fontweight='bold')
+                        marker='o', linewidth=3, markersize=8, color=(0.18, 0.47, 0.71))
+        axes[0, 0].fill_between(ep_df['episode'], 0, ep_df['total_reward'], alpha=0.3, color=(0.18, 0.47, 0.71))
+        axes[0, 0].set_xlabel('Episode', fontsize=16, fontweight='bold')
+        axes[0, 0].set_ylabel('Total Reward', fontsize=16, fontweight='bold')
+        axes[0, 0].tick_params(axis='both', which='major', labelsize=14)
         axes[0, 0].grid(True, alpha=0.3)
 
-        # Average reward
         axes[0, 1].plot(ep_df['episode'], ep_df['avg_reward'],
-                        marker='s', linewidth=2, color='green')
-        axes[0, 1].set_xlabel('Episode', fontweight='bold')
-        axes[0, 1].set_ylabel('Average Reward', fontweight='bold')
-        axes[0, 1].set_title('Average Reward Progression', fontweight='bold')
+                        marker='s', linewidth=3, markersize=8, color=(0.17, 0.63, 0.17))
+        axes[0, 1].set_xlabel('Episode', fontsize=16, fontweight='bold')
+        axes[0, 1].set_ylabel('Average Reward', fontsize=16, fontweight='bold')
+        axes[0, 1].tick_params(axis='both', which='major', labelsize=14)
         axes[0, 1].grid(True, alpha=0.3)
 
-        # Epsilon decay
         axes[1, 0].plot(ep_df['episode'], ep_df['epsilon'],
-                        marker='^', linewidth=2, color='red')
-        axes[1, 0].set_xlabel('Episode', fontweight='bold')
-        axes[1, 0].set_ylabel('Epsilon', fontweight='bold')
-        axes[1, 0].set_title('Exploration Rate Decay', fontweight='bold')
+                        marker='^', linewidth=3, markersize=8, color=(0.84, 0.15, 0.16))
+        axes[1, 0].set_xlabel('Episode', fontsize=16, fontweight='bold')
+        axes[1, 0].set_ylabel('Epsilon', fontsize=16, fontweight='bold')
+        axes[1, 0].tick_params(axis='both', which='major', labelsize=14)
         axes[1, 0].grid(True, alpha=0.3)
 
-        # Loss
         if ep_df['loss'].sum() > 0:
             axes[1, 1].plot(ep_df['episode'], ep_df['loss'],
-                            marker='d', linewidth=2, color='orange')
-            axes[1, 1].set_xlabel('Episode', fontweight='bold')
-            axes[1, 1].set_ylabel('Loss', fontweight='bold')
-            axes[1, 1].set_title('Training Loss', fontweight='bold')
+                            marker='d', linewidth=3, markersize=8, color=(0.40, 0.40, 0.40))
+            axes[1, 1].set_xlabel('Episode', fontsize=16, fontweight='bold')
+            axes[1, 1].set_ylabel('Loss', fontsize=16, fontweight='bold')
+            axes[1, 1].tick_params(axis='both', which='major', labelsize=14)
             axes[1, 1].grid(True, alpha=0.3)
         else:
             axes[1, 1].text(0.5, 0.5, 'No Loss Data Available',
-                            ha='center', va='center', fontsize=14)
+                            ha='center', va='center', fontsize=16, fontweight='bold')
             axes[1, 1].axis('off')
 
-        plt.suptitle('Episode-by-Episode Progression', fontsize=16, fontweight='bold', y=0.995)
         plt.tight_layout()
         plt.savefig(self.output_dir / 'episode_progression.png', dpi=300, bbox_inches='tight')
         plt.close()
         print("  ✓ episode_progression.png")
 
     def plot_algorithm_selection_evolution(self):
-        """Evolution of algorithm selection over time"""
-        # Get top 10 most used algorithms
+        """Evolution of algorithm selection over time - MONOCHROME"""
         algo_counts = {}
         for _, row in self.df.iterrows():
             for algo in row['proposed_algorithms']:
@@ -652,7 +708,6 @@ class ResultAnalyzer:
         top_algos = sorted(algo_counts.items(), key=lambda x: x[1], reverse=True)[:10]
         top_algo_names = [a[0] for a in top_algos]
 
-        # Track usage over time (in windows)
         window_size = len(self.df) // 10
         windows = []
 
@@ -667,13 +722,13 @@ class ResultAnalyzer:
 
             windows.append(window_counts)
 
-        # Create stacked area chart
         fig, ax = plt.subplots(figsize=(14, 8))
 
         window_numbers = list(range(len(windows)))
         bottom = np.zeros(len(windows))
 
-        colors = plt.cm.tab20(np.linspace(0, 1, len(top_algo_names)))
+        color_map = generate_family_color_map(top_algo_names)
+        colors = [color_map.get(a, (0.3, 0.3, 0.3)) for a in top_algo_names]
 
         for i, algo in enumerate(top_algo_names):
             values = [w[algo] for w in windows]
@@ -681,11 +736,10 @@ class ResultAnalyzer:
                             label=algo, alpha=0.7, color=colors[i])
             bottom += values
 
-        ax.set_xlabel('Time Window', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Algorithm Usage Count', fontsize=12, fontweight='bold')
-        ax.set_title('Algorithm Selection Evolution Over Time (Top 10)',
-                     fontsize=14, fontweight='bold', pad=20)
-        ax.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=9)
+        ax.set_xlabel('Time Window', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Algorithm Usage Count', fontsize=18, fontweight='bold')
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=12, prop={'weight': 'bold'})
         ax.grid(True, alpha=0.3, axis='y')
 
         plt.tight_layout()
@@ -695,9 +749,7 @@ class ResultAnalyzer:
 
     def plot_performance_radar(self):
         """Radar chart comparing performance across security levels"""
-        # Calculate metrics by security level
         security_levels = self.df['security_level'].unique()
-        metrics = ['feedback_success', 'feedback_latency', 'feedback_resource_usage', 'response_time']
 
         data_by_level = {}
         for level in security_levels:
@@ -709,7 +761,6 @@ class ResultAnalyzer:
                 'response': 100 - (level_df['response_time'].mean() / self.df['response_time'].max() * 100)
             }
 
-        # Create radar chart
         categories = ['Success\nRate', 'Low\nLatency', 'Low\nResource', 'Fast\nResponse']
         N = len(categories)
 
@@ -718,25 +769,22 @@ class ResultAnalyzer:
 
         fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
 
-        colors = plt.cm.viridis(np.linspace(0, 1, len(security_levels)))
+        colors = plt.cm.Blues(np.linspace(0.4, 0.9, len(security_levels)))
 
         for i, (level, data) in enumerate(data_by_level.items()):
             values = [data['success'], data['latency'], data['resource'], data['response']]
             values += values[:1]
 
-            ax.plot(angles, values, 'o-', linewidth=2, label=level, color=colors[i])
+            ax.plot(angles, values, 'o-', linewidth=3, label=level, color=colors[i], markersize=8)
             ax.fill(angles, values, alpha=0.25, color=colors[i])
 
         ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categories, fontsize=11, fontweight='bold')
+        ax.set_xticklabels(categories, fontsize=14, fontweight='bold')
         ax.set_ylim(0, 100)
         ax.set_yticks([20, 40, 60, 80, 100])
-        ax.set_yticklabels(['20', '40', '60', '80', '100'], fontsize=9)
+        ax.set_yticklabels(['20', '40', '60', '80', '100'], fontsize=12, fontweight='bold')
         ax.grid(True)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=10)
-
-        plt.title('Performance Radar Chart by Security Level\n(Higher is Better)',
-                  fontsize=14, fontweight='bold', pad=20)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=12, prop={'weight': 'bold'})
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'performance_radar.png', dpi=300, bbox_inches='tight')
@@ -745,7 +793,6 @@ class ResultAnalyzer:
 
     def plot_correlation_matrix(self):
         """Correlation matrix of numerical features"""
-        # Select numerical columns
         numerical_cols = ['feedback_success', 'feedback_latency',
                           'feedback_resource_usage', 'response_time']
 
@@ -761,9 +808,12 @@ class ResultAnalyzer:
         fig, ax = plt.subplots(figsize=(10, 8))
 
         sns.heatmap(corr_df, annot=True, fmt='.2f', cmap='coolwarm',
-                    center=0, square=True, linewidths=1, cbar_kws={"shrink": 0.8}, ax=ax)
+                    center=0, square=True, linewidths=1, cbar_kws={"shrink": 0.8}, ax=ax,
+                    annot_kws={'fontsize': 14, 'fontweight': 'bold'})
 
-        ax.set_title('Feature Correlation Matrix', fontsize=14, fontweight='bold', pad=20)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=14)
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'correlation_matrix.png', dpi=300, bbox_inches='tight')
@@ -781,29 +831,26 @@ class ResultAnalyzer:
         fig, ax = plt.subplots(figsize=(14, 7))
 
         ax.plot(self.df['cumulative_total'], self.df['cumulative_rate'],
-                linewidth=2, color='blue')
+                linewidth=3, color=(0.18, 0.47, 0.71))
         ax.fill_between(self.df['cumulative_total'], 0, self.df['cumulative_rate'],
-                        alpha=0.3, color='blue')
+                        alpha=0.3, color=(0.18, 0.47, 0.71))
 
-        # Add target line
-        ax.axhline(y=90, color='green', linestyle='--', linewidth=2, label='90% Target')
-        ax.axhline(y=95, color='orange', linestyle='--', linewidth=2, label='95% Target')
+        ax.axhline(y=90, color=(0.17, 0.63, 0.17), linestyle='--', linewidth=3, label='90% Target')
+        ax.axhline(y=95, color=(0.89, 0.47, 0.20), linestyle='--', linewidth=3, label='95% Target')
 
-        ax.set_xlabel('Number of Requests', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Cumulative Success Rate (%)', fontsize=12, fontweight='bold')
-        ax.set_title('Cumulative Success Rate Over Time',
-                     fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel('Number of Requests', fontsize=18, fontweight='bold')
+        ax.set_ylabel('Cumulative Success Rate (%)', fontsize=18, fontweight='bold')
         ax.set_ylim(0, 105)
+        ax.tick_params(axis='both', which='major', labelsize=14)
         ax.grid(True, alpha=0.3)
-        ax.legend(fontsize=11)
+        ax.legend(fontsize=14, prop={'weight': 'bold'})
 
-        # Add final value annotation
         final_rate = self.df['cumulative_rate'].iloc[-1]
         ax.annotate(f'Final: {final_rate:.2f}%',
                     xy=(len(self.df), final_rate),
                     xytext=(len(self.df) * 0.7, final_rate - 10),
-                    arrowprops=dict(arrowstyle='->', color='red', lw=2),
-                    fontsize=12, fontweight='bold', color='red')
+                    arrowprops=dict(arrowstyle='->', color=(0.84, 0.15, 0.16), lw=3),
+                    fontsize=14, fontweight='bold', color=(0.84, 0.15, 0.16))
 
         plt.tight_layout()
         plt.savefig(self.output_dir / 'cumulative_success.png', dpi=300, bbox_inches='tight')
@@ -985,8 +1032,8 @@ class ResultAnalyzer:
 def main():
     """Main function"""
     if len(sys.argv) < 2:
-        print("Usage: python analyze_results_v2.py <json_results_file>")
-        print("\nExample: python analyze_results_v2.py rl_experiment_v7_ultra_20241019_143022.json")
+        print("Usage: python analyze_results_v2_monochrome.py <json_results_file>")
+        print("\nExample: python analyze_results_v2_monochrome.py synthetic_rl_realistic_20241210_143022.json")
         sys.exit(1)
 
     json_file = sys.argv[1]
@@ -996,7 +1043,7 @@ def main():
         sys.exit(1)
 
     print("=" * 70)
-    print("RL ENGINE - RESULTS ANALYSIS v2.0")
+    print("RL ENGINE - RESULTS ANALYSIS v2.0 (MONOCHROME - NO TITLES)")
     print("=" * 70)
     print(f"File: {json_file}\n")
 
@@ -1016,20 +1063,14 @@ def main():
     print("=" * 70)
     print(f"\nAll files saved in: {analyzer.output_dir}/")
     print("\nGenerated files:")
-    print("  - 18 high-resolution PNG plots")
+    print("  - 18 high-resolution PNG plots (NO TITLES, LARGER BOLD TEXT)")
     print("  - 1 LaTeX tables file")
     print("  - 1 Markdown summary")
-    print("\nNew plots added:")
-    print("  ✓ Algorithm category comparison")
-    print("  ✓ Learning curve")
-    print("  ✓ Risk vs performance analysis")
-    print("  ✓ Algorithm success matrix")
-    print("  ✓ Latency vs security scatter")
-    print("  ✓ Episode progression")
-    print("  ✓ Algorithm selection evolution")
-    print("  ✓ Performance radar chart")
-    print("  ✓ Correlation matrix")
-    print("  ✓ Cumulative success rate")
+    print("\nColor scheme:")
+    print("  ✓ QKD algorithms: Blue tones")
+    print("  ✓ PQC algorithms: Green tones")
+    print("  ✓ Hybrid algorithms: Purple tones")
+    print("  ✓ Classical algorithms: Gray tones")
 
 
 if __name__ == "__main__":
