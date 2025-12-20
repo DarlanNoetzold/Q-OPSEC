@@ -1,0 +1,83 @@
+% Table 1: General Performance Metrics
+\begin{table}[h]
+\centering
+\caption{General Performance Metrics of RL Engine}
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+Success Rate & 40.50\% \\
+Average Latency & 122.65 ms \\
+Latency Std Dev & 79.39 ms \\
+Minimum Latency & 9.63 ms \\
+Maximum Latency & 339.55 ms \\
+Average Response Time & 6.1299 s \\
+\hline
+\end{tabular}
+\label{tab:general_metrics}
+\end{table}
+
+% Table 2: Metrics by Security Level
+\begin{table}[h]
+\centering
+\caption{Metrics by Security Level}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Level} & \textbf{Requests} & \textbf{Success Rate (\%)} & \textbf{Latency (ms)} \\
+\hline
+ultra & 800 & 49.25 & 130.32 \\
+very_high & 1200 & 33.33 & 145.75 \\
+high & 1200 & 34.75 & 132.70 \\
+moderate & 800 & 51.12 & 65.27 \\
+\hline
+\end{tabular}
+\label{tab:security_level_metrics}
+\end{table}
+
+% Table 3: QKD vs Non-QKD Comparison
+\begin{table}[h]
+\centering
+\caption{Comparison: QKD vs Non-QKD}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Type} & \textbf{Requests} & \textbf{Success Rate (\%)} & \textbf{Latency (ms)} \\
+\hline
+With QKD & 1200 & 36.67 & 191.06 \\
+Without QKD & 2800 & 42.14 & 93.33 \\
+\hline
+\end{tabular}
+\label{tab:qkd_comparison}
+\end{table}
+
+% Table 4: Algorithm Distribution
+\begin{table}[h]
+\centering
+\caption{Expected Algorithm Distribution}
+\begin{tabular}{|l|r|r|}
+\hline
+\textbf{Algorithm} & \textbf{Count} & \textbf{Percentage (\%)} \\
+\hline
+AES_192 & 200 & 5.0 \\
+AES_256_GCM & 200 & 5.0 \\
+CHACHA20_POLY1305 & 200 & 5.0 \\
+ECC_521 & 200 & 5.0 \\
+FALLBACK_AES & 200 & 5.0 \\
+HYBRID_ECC_PQC & 200 & 5.0 \\
+HYBRID_QKD_PQC & 200 & 5.0 \\
+HYBRID_RSA_PQC & 200 & 5.0 \\
+PQC_DILITHIUM & 200 & 5.0 \\
+PQC_FALCON & 200 & 5.0 \\
+PQC_KYBER & 200 & 5.0 \\
+PQC_NTRU & 200 & 5.0 \\
+PQC_SABER & 200 & 5.0 \\
+PQC_SPHINCS & 200 & 5.0 \\
+QKD_BB84 & 200 & 5.0 \\
+QKD_CV-QKD & 200 & 5.0 \\
+QKD_DECOY & 200 & 5.0 \\
+QKD_E91 & 200 & 5.0 \\
+QKD_MDI-QKD & 200 & 5.0 \\
+RSA_4096 & 200 & 5.0 \\
+\hline
+\end{tabular}
+\label{tab:algorithm_distribution}
+\end{table}
