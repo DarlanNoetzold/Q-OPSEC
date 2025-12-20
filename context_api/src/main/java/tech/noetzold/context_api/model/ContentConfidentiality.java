@@ -9,7 +9,7 @@ public record ContentConfidentiality(
         List<String> tags,
         List<String> detected_patterns,
         List<Map<String,Object>> dlp_findings,
-        String source_app_context,
+        String source_app_context,c
         String user_label,
         String model_version
 ) {}
