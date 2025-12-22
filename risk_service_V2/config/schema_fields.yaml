@@ -1,0 +1,883 @@
+# Complete field schema for digital security dataset
+# Organized by sections 1.1 through 1.11
+
+# 1.1 Event Identification
+event_identification:
+  event_id:
+    type: string
+    description: "Unique identifier for each event"
+    applies_to: [all]
+
+  event_type:
+    type: categorical
+    description: "Type of event"
+    values: [transaction, login, password_change, email_change, phone_change, address_change, mfa_setup, device_registration]
+    applies_to: [all]
+
+  event_source:
+    type: categorical
+    description: "Source system that generated the event"
+    values: [web_app, mobile_app_android, mobile_app_ios, api_partner, batch_job, call_center, atm]
+    applies_to: [all]
+
+  timestamp_utc:
+    type: datetime
+    description: "Event timestamp in UTC"
+    applies_to: [all]
+
+  timestamp_local:
+    type: datetime
+    description: "Event timestamp in user's local timezone"
+    applies_to: [all]
+
+  timezone:
+    type: string
+    description: "User's timezone (e.g., America/Sao_Paulo)"
+    applies_to: [all]
+
+# 1.2 User / Account
+user_account:
+  user_id:
+    type: string
+    description: "Anonymized user identifier"
+    applies_to: [all]
+
+  account_id:
+    type: string
+    description: "Account identifier (can be same as user_id)"
+    applies_to: [all]
+
+  user_type:
+    type: categorical
+    description: "Type of user"
+    values: [individual, business, admin, system_user]
+    applies_to: [all]
+
+  user_segment:
+    type: categorical
+    description: "User segment"
+    values: [retail, corporate, vip, standard]
+    applies_to: [all]
+
+  user_risk_class:
+    type: categorical
+    description: "Pre-existing risk classification"
+    values: [low, medium, high, critical]
+    applies_to: [all]
+
+  account_age_days:
+    type: integer
+    description: "Days since account creation"
+    applies_to: [all]
+
+  account_creation_date:
+    type: date
+    description: "Date when account was created"
+    applies_to: [all]
+
+  sensitive_data_change_last_7d:
+    type: binary
+    description: "Whether email/phone/address changed in last 7 days"
+    applies_to: [all]
+
+  registered_devices_count:
+    type: integer
+    description: "Total number of devices ever registered"
+    applies_to: [all]
+
+  active_devices_last_30d:
+    type: integer
+    description: "Number of distinct devices used in last 30 days"
+    applies_to: [all]
+
+# 1.3 Temporal / Behavioral Features
+temporal_behavioral:
+  hour_of_day:
+    type: integer
+    description: "Hour of day (0-23)"
+    applies_to: [all]
+
+  day_of_week:
+    type: integer
+    description: "Day of week (0=Monday, 6=Sunday)"
+    applies_to: [all]
+
+  is_weekend:
+    type: binary
+    description: "Whether event occurred on weekend"
+    applies_to: [all]
+
+  is_local_holiday:
+    type: binary
+    description: "Whether event occurred on a local holiday"
+    applies_to: [all]
+
+  seconds_since_last_login:
+    type: float
+    description: "Seconds since user's last login event"
+    applies_to: [all]
+
+  seconds_since_last_transaction:
+    type: float
+    description: "Seconds since user's last transaction"
+    applies_to: [transaction]
+
+  transactions_last_1h:
+    type: integer
+    description: "Number of transactions in last 1 hour"
+    applies_to: [transaction]
+
+  transactions_last_24h:
+    type: integer
+    description: "Number of transactions in last 24 hours"
+    applies_to: [transaction]
+
+  transactions_last_7d:
+    type: integer
+    description: "Number of transactions in last 7 days"
+    applies_to: [transaction]
+
+  transactions_last_30d:
+    type: integer
+    description: "Number of transactions in last 30 days"
+    applies_to: [transaction]
+
+  amount_sum_last_24h:
+    type: float
+    description: "Sum of transaction amounts in last 24 hours"
+    applies_to: [transaction]
+
+  amount_sum_last_7d:
+    type: float
+    description: "Sum of transaction amounts in last 7 days"
+    applies_to: [transaction]
+
+  amount_sum_last_30d:
+    type: float
+    description: "Sum of transaction amounts in last 30 days"
+    applies_to: [transaction]
+
+  amount_mean_last_30d:
+    type: float
+    description: "Mean transaction amount in last 30 days"
+    applies_to: [transaction]
+
+  amount_std_last_30d:
+    type: float
+    description: "Standard deviation of transaction amounts in last 30 days"
+    applies_to: [transaction]
+
+  logins_last_24h:
+    type: integer
+    description: "Number of login attempts in last 24 hours"
+    applies_to: [all]
+
+  login_failures_last_24h:
+    type: integer
+    description: "Number of failed login attempts in last 24 hours"
+    applies_to: [all]
+
+  password_resets_last_30d:
+    type: integer
+    description: "Number of password resets in last 30 days"
+    applies_to: [all]
+
+# 1.4 Transaction / Business Content
+transaction_content:
+  amount:
+    type: float
+    description: "Transaction amount"
+    applies_to: [transaction]
+
+  currency:
+    type: string
+    description: "Currency code (ISO 4217)"
+    applies_to: [transaction]
+
+  transaction_type:
+    type: categorical
+    description: "Type of transaction"
+    values: [pix, wire, card, internal_transfer, bill_payment, cash_withdrawal]
+    applies_to: [transaction]
+
+  transaction_subtype:
+    type: categorical
+    description: "Subtype of transaction"
+    values: [online_purchase, cash_withdrawal, bill_payment, p2p_transfer, merchant_payment]
+    applies_to: [transaction]
+
+  channel:
+    type: categorical
+    description: "Channel used for transaction"
+    values: [web, mobile_android, mobile_ios, atm, call_center, api_partner]
+    applies_to: [transaction]
+
+  destination_type:
+    type: categorical
+    description: "Type of destination account"
+    values: [same_bank_account, other_bank_account, wallet, merchant, international]
+    applies_to: [transaction]
+
+  destination_id:
+    type: string
+    description: "Anonymized destination identifier"
+    applies_to: [transaction]
+
+  destination_bank:
+    type: string
+    description: "Destination bank code"
+    applies_to: [transaction]
+
+  destination_country:
+    type: string
+    description: "Destination country code (ISO 3166)"
+    applies_to: [transaction]
+
+  destination_segment:
+    type: categorical
+    description: "Destination account segment"
+    values: [retail, corporate, merchant, unknown]
+    applies_to: [transaction]
+
+  is_new_recipient:
+    type: binary
+    description: "Whether this is a new recipient for the user"
+    applies_to: [transaction]
+
+  is_first_transaction_to_recipient:
+    type: binary
+    description: "Whether this is the first transaction to this recipient"
+    applies_to: [transaction]
+
+  transactions_to_recipient_last_7d:
+    type: integer
+    description: "Number of transactions to this recipient in last 7 days"
+    applies_to: [transaction]
+
+  amount_sum_to_recipient_last_7d:
+    type: float
+    description: "Sum of amounts to this recipient in last 7 days"
+    applies_to: [transaction]
+
+  amount_increase_vs_30d_mean:
+    type: float
+    description: "Ratio of current amount vs 30-day mean"
+    applies_to: [transaction]
+
+  amount_percentile_for_user_30d:
+    type: float
+    description: "Percentile of current amount in user's last 30 days (0-100)"
+    applies_to: [transaction]
+
+# 1.5 Location / Network
+location_network:
+  ip_address:
+    type: string
+    description: "Hashed/anonymized IP address"
+    applies_to: [all]
+
+  ip_version:
+    type: integer
+    description: "IP version (4 or 6)"
+    applies_to: [all]
+
+  origin_country:
+    type: string
+    description: "Country of origin (ISO 3166)"
+    applies_to: [all]
+
+  origin_region:
+    type: string
+    description: "Region/state of origin"
+    applies_to: [all]
+
+  origin_city:
+    type: string
+    description: "City of origin"
+    applies_to: [all]
+
+  origin_asn:
+    type: string
+    description: "Autonomous System Number"
+    applies_to: [all]
+
+  origin_isp:
+    type: string
+    description: "Internet Service Provider"
+    applies_to: [all]
+
+  geo_latitude:
+    type: float
+    description: "Latitude (rounded for privacy)"
+    applies_to: [all]
+
+  geo_longitude:
+    type: float
+    description: "Longitude (rounded for privacy)"
+    applies_to: [all]
+
+  registered_country:
+    type: string
+    description: "Country registered in user profile"
+    applies_to: [all]
+
+  registered_region:
+    type: string
+    description: "Region registered in user profile"
+    applies_to: [all]
+
+  distance_km_from_last_location:
+    type: float
+    description: "Distance in km from last event location"
+    applies_to: [all]
+
+  distance_km_from_registered_address:
+    type: float
+    description: "Distance in km from registered address"
+    applies_to: [all]
+
+  country_change_since_last_session:
+    type: binary
+    description: "Whether country changed since last session"
+    applies_to: [all]
+
+  city_change_since_last_session:
+    type: binary
+    description: "Whether city changed since last session"
+    applies_to: [all]
+
+  ip_on_blacklist:
+    type: binary
+    description: "Whether IP is on known blacklist"
+    applies_to: [all]
+
+  ip_reputation_score:
+    type: integer
+    description: "IP reputation score (0-100, higher is better)"
+    applies_to: [all]
+
+  distinct_ips_last_24h:
+    type: integer
+    description: "Number of distinct IPs used in last 24 hours"
+    applies_to: [all]
+
+  distinct_countries_last_7d:
+    type: integer
+    description: "Number of distinct countries in last 7 days"
+    applies_to: [all]
+
+# 1.6 Device / Environment
+device_environment:
+  device_id:
+    type: string
+    description: "Device fingerprint/identifier"
+    applies_to: [all]
+
+  device_type:
+    type: categorical
+    description: "Type of device"
+    values: [mobile, desktop, tablet, iot, unknown]
+    applies_to: [all]
+
+  device_os:
+    type: categorical
+    description: "Operating system"
+    values: [Android, iOS, Windows, Linux, macOS, other]
+    applies_to: [all]
+
+  device_os_version:
+    type: string
+    description: "OS version (e.g., 14.2, 11.0)"
+    applies_to: [all]
+
+  device_model:
+    type: string
+    description: "Device model (e.g., iPhone 13, Samsung Galaxy S21)"
+    applies_to: [all]
+
+  browser_name:
+    type: categorical
+    description: "Browser name"
+    values: [Chrome, Firefox, Safari, Edge, Opera, other]
+    applies_to: [web_app, mobile_app_android, mobile_app_ios]
+
+  browser_version:
+    type: string
+    description: "Browser version"
+    applies_to: [web_app, mobile_app_android, mobile_app_ios]
+
+  user_agent:
+    type: string
+    description: "User agent string (or hashed)"
+    applies_to: [all]
+
+  is_new_device:
+    type: binary
+    description: "Whether this is a new device for the user"
+    applies_to: [all]
+
+  distinct_devices_last_7d:
+    type: integer
+    description: "Number of distinct devices in last 7 days"
+    applies_to: [all]
+
+  new_devices_last_30d:
+    type: integer
+    description: "Number of new devices registered in last 30 days"
+    applies_to: [all]
+
+  is_jailbroken_or_rooted:
+    type: binary
+    description: "Whether device is jailbroken/rooted"
+    applies_to: [mobile_app_android, mobile_app_ios]
+
+  is_emulator_detected:
+    type: binary
+    description: "Whether device is detected as emulator"
+    applies_to: [all]
+
+  is_vpn_detected:
+    type: binary
+    description: "Whether VPN usage is detected"
+    applies_to: [all]
+
+  is_proxy_detected:
+    type: binary
+    description: "Whether proxy usage is detected"
+    applies_to: [all]
+
+  is_tor_detected:
+    type: binary
+    description: "Whether Tor usage is detected"
+    applies_to: [all]
+
+# 1.7 Authentication / Authorization / Security Tech & Versions
+auth_security:
+  auth_method:
+    type: categorical
+    description: "Authentication method used"
+    values: [password, oauth, certificate, hardware_token, biometrics, sms_code, email_code]
+    applies_to: [all]
+
+  auth_context_level:
+    type: categorical
+    description: "Authentication context level"
+    values: [low, medium, high]
+    applies_to: [all]
+
+  mfa_used:
+    type: binary
+    description: "Whether MFA was used"
+    applies_to: [all]
+
+  mfa_type:
+    type: categorical
+    description: "Type of MFA"
+    values: [sms, app_token, push, biometrics, email, fido2, hardware_token, none]
+    applies_to: [all]
+
+  mfa_success:
+    type: binary
+    description: "Whether MFA succeeded"
+    applies_to: [all]
+
+  mfa_failures_last_24h:
+    type: integer
+    description: "Number of MFA failures in last 24 hours"
+    applies_to: [all]
+
+  session_id:
+    type: string
+    description: "Session identifier"
+    applies_to: [all]
+
+  session_age_seconds:
+    type: integer
+    description: "Age of current session in seconds"
+    applies_to: [all]
+
+  session_risk_score:
+    type: float
+    description: "Risk score for current session (0-1)"
+    applies_to: [all]
+
+  user_role:
+    type: categorical
+    description: "User role in the system"
+    values: [admin, operator, end_user, auditor, system]
+    applies_to: [all]
+
+  # Security technologies
+  tls_version:
+    type: categorical
+    description: "TLS version used"
+    values: [TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3, none]
+    applies_to: [all]
+
+  tls_cipher_suite:
+    type: string
+    description: "TLS cipher suite"
+    applies_to: [all]
+
+  tls_weak_cipher:
+    type: binary
+    description: "Whether weak cipher is used"
+    applies_to: [all]
+
+  token_type:
+    type: categorical
+    description: "Token type"
+    values: [JWT, opaque, SAML, OAuth2, none]
+    applies_to: [all]
+
+  token_sign_algorithm:
+    type: categorical
+    description: "Token signing algorithm"
+    values: [HS256, HS512, RS256, RS512, ES256, ES512, none]
+    applies_to: [all]
+
+  token_issuer:
+    type: string
+    description: "Token issuer"
+    applies_to: [all]
+
+  token_audience:
+    type: string
+    description: "Token audience"
+    applies_to: [all]
+
+  token_expiry_seconds:
+    type: integer
+    description: "Token expiry time in seconds"
+    applies_to: [all]
+
+  waf_vendor:
+    type: categorical
+    description: "WAF vendor"
+    values: [Cloudflare, AWS_WAF, Akamai, Imperva, F5, none]
+    applies_to: [all]
+
+  waf_version:
+    type: string
+    description: "WAF version"
+    applies_to: [all]
+
+  waf_rule_matched:
+    type: string
+    description: "WAF rule that matched (if any)"
+    applies_to: [all]
+
+  ids_ips_vendor:
+    type: categorical
+    description: "IDS/IPS vendor"
+    values: [Snort, Suricata, Cisco, Palo_Alto, none]
+    applies_to: [all]
+
+  ids_ips_version:
+    type: string
+    description: "IDS/IPS version"
+    applies_to: [all]
+
+  ids_alert_severity:
+    type: categorical
+    description: "IDS alert severity"
+    values: [low, medium, high, critical, none]
+    applies_to: [all]
+
+  ids_alert_type:
+    type: categorical
+    description: "IDS alert type"
+    values: [sql_injection, xss, brute_force, port_scan, malware, none]
+    applies_to: [all]
+
+  client_av_vendor:
+    type: categorical
+    description: "Client antivirus vendor"
+    values: [Windows_Defender, Norton, McAfee, Kaspersky, Avast, none, unknown]
+    applies_to: [all]
+
+  client_av_version:
+    type: string
+    description: "Client antivirus version"
+    applies_to: [all]
+
+  device_security_patch_level:
+    type: string
+    description: "Device security patch level (e.g., 2024-01)"
+    applies_to: [all]
+
+  os_security_features_enabled:
+    type: string
+    description: "Enabled OS security features (comma-separated)"
+    applies_to: [all]
+
+  app_version:
+    type: string
+    description: "Application version"
+    applies_to: [all]
+
+  app_build_number:
+    type: string
+    description: "Application build number"
+    applies_to: [all]
+
+  api_version:
+    type: string
+    description: "API version used"
+    applies_to: [all]
+
+  crypto_library_name:
+    type: categorical
+    description: "Cryptographic library name"
+    values: [OpenSSL, BoringSSL, LibreSSL, mbedTLS, other]
+    applies_to: [all]
+
+  crypto_library_version:
+    type: string
+    description: "Cryptographic library version"
+    applies_to: [all]
+
+  password_hash_algorithm:
+    type: categorical
+    description: "Password hashing algorithm"
+    values: [bcrypt, scrypt, argon2, pbkdf2, legacy_md5, legacy_sha1]
+    applies_to: [password_change, login]
+
+  password_policy_version:
+    type: string
+    description: "Password policy version"
+    applies_to: [password_change, login]
+
+# 1.8 Fraud / Abuse / Historical Risk
+fraud_history:
+  user_has_fraud_history:
+    type: binary
+    description: "Whether user has fraud history"
+    applies_to: [all]
+
+  user_fraud_incidents_count:
+    type: integer
+    description: "Number of fraud incidents for this user"
+    applies_to: [all]
+
+  user_chargebacks_last_12m:
+    type: integer
+    description: "Number of chargebacks in last 12 months"
+    applies_to: [all]
+
+  user_on_blacklist:
+    type: binary
+    description: "Whether user is on blacklist"
+    applies_to: [all]
+
+  device_on_blacklist:
+    type: binary
+    description: "Whether device is on blacklist"
+    applies_to: [all]
+
+  card_on_blacklist:
+    type: binary
+    description: "Whether card is on blacklist"
+    applies_to: [transaction]
+
+  risk_alerts_last_30d:
+    type: integer
+    description: "Number of risk alerts in last 30 days"
+    applies_to: [all]
+
+  user_global_risk_score:
+    type: float
+    description: "Global risk score for user (0-1)"
+    applies_to: [all]
+
+  destination_on_blacklist:
+    type: binary
+    description: "Whether destination is on blacklist"
+    applies_to: [transaction]
+
+# 1.9 Text / Message Content
+text_content:
+  message_text:
+    type: string
+    description: "Message text (or hash if sensitive)"
+    applies_to: [transaction, login]
+
+  message_length_chars:
+    type: integer
+    description: "Length of message in characters"
+    applies_to: [transaction, login]
+
+  message_links_count:
+    type: integer
+    description: "Number of links in message"
+    applies_to: [transaction, login]
+
+  message_attachments_count:
+    type: integer
+    description: "Number of attachments"
+    applies_to: [transaction, login]
+
+  message_attachment_types:
+    type: string
+    description: "Attachment types (semicolon-separated)"
+    applies_to: [transaction, login]
+
+  message_contains_sensitive_keywords:
+    type: binary
+    description: "Whether message contains sensitive keywords"
+    applies_to: [transaction, login]
+
+  message_language:
+    type: string
+    description: "Detected language (ISO 639-1)"
+    applies_to: [transaction, login]
+
+  # Optional pre-LLM features
+  message_toxicity_score:
+    type: float
+    description: "Toxicity score (0-1)"
+    applies_to: [transaction, login]
+
+  message_phishing_keyword_score:
+    type: float
+    description: "Phishing keyword score (0-1)"
+    applies_to: [transaction, login]
+
+# 1.10 LLM-Derived Features
+llm_features:
+  # Numeric scores
+  llm_risk_score:
+    type: float
+    description: "LLM-assessed risk score (0-1)"
+    applies_to: [all]
+
+  llm_risk_level:
+    type: categorical
+    description: "LLM-assessed risk level"
+    values: [low, medium, high, critical]
+    applies_to: [all]
+
+  llm_phishing_score:
+    type: float
+    description: "LLM-assessed phishing score (0-1)"
+    applies_to: [transaction, login]
+
+  llm_social_engineering_score:
+    type: float
+    description: "LLM-assessed social engineering score (0-1)"
+    applies_to: [transaction, login]
+
+  llm_urgency_score:
+    type: float
+    description: "LLM-assessed urgency score (0-1)"
+    applies_to: [transaction, login]
+
+  llm_sensitivity_request_score:
+    type: float
+    description: "LLM-assessed sensitivity request score (0-1)"
+    applies_to: [transaction, login]
+
+  # Categorical classifications
+  llm_risk_category:
+    type: categorical
+    description: "LLM-assessed risk category"
+    values: [financial_fraud, phishing, social_engineering, unauthorized_access, benign, other]
+    applies_to: [all]
+
+  llm_fraud_pattern:
+    type: categorical
+    description: "LLM-detected fraud pattern"
+    values: [account_takeover, card_not_present, money_mule, synthetic_identity, none]
+    applies_to: [all]
+
+  llm_intent:
+    type: categorical
+    description: "LLM-inferred user intent"
+    values: [pay_bill, transfer_to_self, transfer_to_third_party, test_transaction, other]
+    applies_to: [transaction]
+
+  # Boolean signals
+  llm_detected_social_engineering_language:
+    type: binary
+    description: "LLM detected social engineering language"
+    applies_to: [transaction, login]
+
+  llm_detected_request_for_personal_data:
+    type: binary
+    description: "LLM detected request for personal data"
+    applies_to: [transaction, login]
+
+  llm_detected_threat_or_coercion:
+    type: binary
+    description: "LLM detected threat or coercion"
+    applies_to: [transaction, login]
+
+  llm_detected_suspicious_link:
+    type: binary
+    description: "LLM detected suspicious link"
+    applies_to: [transaction, login]
+
+  # Explainability / metadata
+  llm_short_explanation:
+    type: string
+    description: "Short explanation from LLM"
+    applies_to: [all]
+
+  llm_risk_tags:
+    type: string
+    description: "Risk tags from LLM (comma-separated)"
+    applies_to: [all]
+
+  llm_model_name:
+    type: string
+    description: "LLM model name"
+    applies_to: [all]
+
+  llm_model_version:
+    type: string
+    description: "LLM model version"
+    applies_to: [all]
+
+  llm_prompt_version:
+    type: string
+    description: "LLM prompt version"
+    applies_to: [all]
+
+  llm_inference_timestamp:
+    type: datetime
+    description: "Timestamp of LLM inference"
+    applies_to: [all]
+
+# 1.11 Labels / Ground Truth
+labels:
+  label_fraud:
+    type: binary
+    description: "Ground truth fraud label (0=benign, 1=fraud)"
+    applies_to: [all]
+
+  label_risk_level:
+    type: integer
+    description: "Ground truth risk level (0=low, 1=medium, 2=high, 3=critical)"
+    applies_to: [all]
+
+  label_fraud_type:
+    type: categorical
+    description: "Type of fraud (if applicable)"
+    values: [account_takeover, card_testing, money_mule, phishing_induced, synthetic_identity, none]
+    applies_to: [all]
+
+  label_source:
+    type: categorical
+    description: "Source of the label"
+    values: [confirmed_incident, rule_engine, anomaly_model, customer_dispute, synthetic_scenario]
+    applies_to: [all]
+
+  label_confidence:
+    type: float
+    description: "Confidence in the label (0-1)"
+    applies_to: [all]
+
+  label_version:
+    type: string
+    description: "Version of labeling strategy"
+    applies_to: [all]
