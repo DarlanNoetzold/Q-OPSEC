@@ -1,0 +1,59 @@
+# Synthetic catalog of IP ranges, ASNs, ISPs, and geolocations (1.5)
+
+countries:
+  BR:
+    regions:
+      - name: "SP"
+        cities:
+          - name: "Sao Paulo"
+            asn: "AS28573"
+            isp: "Claro Brasil"
+            latitude: -23.55
+            longitude: -46.63
+          - name: "Campinas"
+            asn: "AS27699"
+            isp: "Telef�f4nica Vivo"
+            latitude: -22.90
+            longitude: -47.06
+      - name: "RJ"
+        cities:
+          - name: "Rio de Janeiro"
+            asn: "AS22356"
+            isp: "TIM Brasil"
+            latitude: -22.90
+            longitude: -43.20
+  US:
+    regions:
+      - name: "CA"
+        cities:
+          - name: "San Francisco"
+            asn: "AS15169"
+            isp: "Google LLC"
+            latitude: 37.77
+            longitude: -122.42
+      - name: "NY"
+        cities:
+          - name: "New York"
+            asn: "AS7018"
+            isp: "AT&T Services, Inc."
+            latitude: 40.71
+            longitude: -74.00
+  PT:
+    regions:
+      - name: "Lisboa"
+        cities:
+          - name: "Lisbon"
+            asn: "AS3243"
+            isp: "MEO Servi�e7os de Comunica�e7�f5es"
+            latitude: 38.72
+            longitude: -9.14
+
+ip_blacklist_samples:
+  - "200.160.2.3"
+  - "45.133.1.55"
+  - "185.220.101.1"    # TOR exit node example
+
+reputation_buckets:
+  high: [80, 100]
+  medium: [40, 79]
+  low: [0, 39]
