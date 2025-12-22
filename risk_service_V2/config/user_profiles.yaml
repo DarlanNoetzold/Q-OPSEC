@@ -1,0 +1,174 @@
+# User profile configurations
+
+profiles:
+  normal_low_activity:
+    weight: 0.35
+    user_type: individual
+    user_segment: retail
+    base_user_risk_class: low
+    country_pool: [BR, BR, BR, BR, US, PT, AR]
+    timezone_pool: ["America/Sao_Paulo", "America/Recife", "America/Buenos_Aires"]
+
+    events_per_month_mean: 15
+    events_per_month_std: 5
+
+    transaction_behavior:
+      amount_mean: 200.0
+      amount_std: 120.0
+      currency: BRL
+      transaction_type_distribution:
+        pix: 0.5
+        internal_transfer: 0.2
+        bill_payment: 0.25
+        card: 0.05
+      channel_distribution:
+        web: 0.30
+        mobile_android: 0.50
+        mobile_ios: 0.15
+        api_partner: 0.05
+      is_new_recipient_prob: 0.10
+
+    device_profile:
+      devices_per_user_mean: 1.5
+      mobile_share: 0.7
+      desktop_share: 0.3
+      os_distribution:
+        Android: 0.55
+        iOS: 0.20
+        Windows: 0.20
+        macOS: 0.05
+      outdated_os_prob: 0.25
+      emulator_prob: 0.01
+      vpn_prob: 0.10
+      proxy_prob: 0.05
+      tor_prob: 0.01
+
+  normal_high_activity:
+    weight: 0.30
+    user_type: individual
+    user_segment: retail
+    base_user_risk_class: medium
+    country_pool: [BR, BR, BR, BR, BR, US, PT]
+    timezone_pool: ["America/Sao_Paulo", "America/Brasilia", "America/Fortaleza"]
+
+    events_per_month_mean: 80
+    events_per_month_std: 30
+
+    transaction_behavior:
+      amount_mean: 350.0
+      amount_std: 250.0
+      currency: BRL
+      transaction_type_distribution:
+        pix: 0.55
+        internal_transfer: 0.2
+        bill_payment: 0.15
+        card: 0.10
+      channel_distribution:
+        web: 0.35
+        mobile_android: 0.45
+        mobile_ios: 0.15
+        api_partner: 0.05
+      is_new_recipient_prob: 0.15
+
+    device_profile:
+      devices_per_user_mean: 2.5
+      mobile_share: 0.8
+      desktop_share: 0.2
+      os_distribution:
+        Android: 0.60
+        iOS: 0.25
+        Windows: 0.10
+        macOS: 0.05
+      outdated_os_prob: 0.20
+      emulator_prob: 0.02
+      vpn_prob: 0.12
+      proxy_prob: 0.07
+      tor_prob: 0.02
+
+  corporate:
+    weight: 0.20
+    user_type: business
+    user_segment: corporate
+    base_user_risk_class: medium
+    country_pool: [BR, BR, BR, BR, US, DE, GB]
+    timezone_pool: ["America/Sao_Paulo", "America/New_York", "Europe/Berlin"]
+
+    events_per_month_mean: 200
+    events_per_month_std: 80
+
+    transaction_behavior:
+      amount_mean: 5000.0
+      amount_std: 3500.0
+      currency: BRL
+      transaction_type_distribution:
+        pix: 0.30
+        internal_transfer: 0.40
+        wire: 0.15
+        bill_payment: 0.10
+        card: 0.05
+      channel_distribution:
+        web: 0.50
+        mobile_android: 0.25
+        mobile_ios: 0.10
+        api_partner: 0.15
+      is_new_recipient_prob: 0.20
+
+    device_profile:
+      devices_per_user_mean: 3.0
+      mobile_share: 0.5
+      desktop_share: 0.5
+      os_distribution:
+        Windows: 0.55
+        macOS: 0.20
+        Android: 0.15
+        iOS: 0.10
+      outdated_os_prob: 0.15
+      emulator_prob: 0.01
+      vpn_prob: 0.30
+      proxy_prob: 0.20
+      tor_prob: 0.01
+
+  fraudster:
+    weight: 0.15
+    user_type: individual
+    user_segment: retail
+    base_user_risk_class: high
+    country_pool: [BR, BR, BR, RU, NG, UA]
+    timezone_pool: ["America/Sao_Paulo", "Europe/Moscow", "Africa/Lagos"]
+
+    events_per_month_mean: 150
+    events_per_month_std: 60
+
+    transaction_behavior:
+      amount_mean: 800.0
+      amount_std: 1200.0
+      currency: BRL
+      transaction_type_distribution:
+        pix: 0.65
+        internal_transfer: 0.10
+        card: 0.20
+        wire: 0.05
+      channel_distribution:
+        web: 0.30
+        mobile_android: 0.30
+        mobile_ios: 0.05
+        api_partner: 0.15
+        call_center: 0.10
+        atm: 0.10
+      is_new_recipient_prob: 0.60
+
+    device_profile:
+      devices_per_user_mean: 4.0
+      mobile_share: 0.6
+      desktop_share: 0.4
+      os_distribution:
+        Windows: 0.40
+        Android: 0.35
+        Linux: 0.15
+        iOS: 0.05
+        macOS: 0.05
+      outdated_os_prob: 0.40
+      emulator_prob: 0.20
+      vpn_prob: 0.60
+      proxy_prob: 0.40
+      tor_prob: 0.25
