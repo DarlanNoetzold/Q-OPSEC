@@ -1,0 +1,139 @@
+# Fraud scenario configurations
+
+scenarios:
+  account_takeover:
+    weight: 0.30
+    label_fraud_type: account_takeover
+    default_label_risk_level: 3
+    default_label_source: synthetic_scenario
+
+    description: "Attacker gains control of a legitimate account and performs high-risk actions."
+
+    typical_patterns:
+      - "sudden login from new country followed by high-value transaction"
+      - "MFA not used or bypassed, new device, IP with low reputation"
+
+    indicators:
+      user_has_fraud_history: 0.2
+      ip_on_blacklist: 0.3
+      device_on_blacklist: 0.15
+      destination_on_blacklist: 0.1
+      mfa_used: 0.3
+      is_new_device: 0.7
+      country_change_since_last_session: 0.6
+
+    amount_multiplier_range: [1.5, 4.0]
+
+    message_templates:
+      phishing_like:
+        - "Seu acesso foi bloqueado. Para evitar o cancelamento da sua conta, confirme este código imediatamente."
+        - "Detectamos atividades suspeitas. Envie o código recebido por SMS para liberar sua conta."
+      benign:
+        - "Pagamento de conta de luz"
+        - "Transferência para conta própria"
+
+  card_testing:
+    weight: 0.20
+    label_fraud_type: card_testing
+    default_label_risk_level: 2
+    default_label_source: synthetic_scenario
+
+    description: "Pequenas transações para testar validade de cartão/conta."
+
+    typical_patterns:
+      - "várias transações de baixo valor em curto espaço de tempo"
+      - "múltiplos comerciantes internacionais com valores muito baixos"
+
+    indicators:
+      user_has_fraud_history: 0.1
+      ip_on_blacklist: 0.25
+      device_on_blacklist: 0.1
+      destination_on_blacklist: 0.05
+      is_new_recipient: 0.8
+
+    amount_range: [1.0, 15.0]
+
+    message_templates:
+      phishing_like: []
+      benign:
+        - "Compra teste online"
+        - "Pagamento de serviço digital"
+
+  money_mule:
+    weight: 0.20
+    label_fraud_type: money_mule
+    default_label_risk_level: 3
+    default_label_source: synthetic_scenario
+
+    description: "Conta usada como intermediária para movimentar valores ilícitos."
+
+    typical_patterns:
+      - "muitos créditos seguido de débitos rápidos para outras contas"
+      - "destinos variados, muitas contas novas, volume crescente"
+
+    indicators:
+      user_has_fraud_history: 0.4
+      user_on_blacklist: 0.2
+      destination_on_blacklist: 0.3
+
+    amount_multiplier_range: [2.0, 6.0]
+
+    message_templates:
+      phishing_like: []
+      benign:
+        - "Repasse de valores conforme combinado"
+        - "Transferência para parceiro comercial"
+
+  phishing_induced:
+    weight: 0.20
+    label_fraud_type: phishing_induced
+    default_label_risk_level: 3
+    default_label_source: synthetic_scenario
+
+    description: "Usuário legítimo é enganado por mensagem phishing/social engineering e realiza a transação."
+
+    typical_patterns:
+      - "mensagens urgentes pedindo transferência imediata"
+      - "solicitação de dados sensíveis ou códigos de autenticação"
+
+    indicators:
+      user_has_fraud_history: 0.1
+      destination_on_blacklist: 0.25
+      is_new_recipient: 0.7
+
+    amount_multiplier_range: [1.2, 3.0]
+
+    message_templates:
+      phishing_like:
+        - "URGENTE: Seu filho sofreu um acidente, faça o PIX agora para cobrir os custos do hospital."
+        - "Sua conta será encerrada hoje. Envie imediatamente um PIX para regularizar sua situação."
+        - "Você foi selecionado para um prêmio exclusivo, pague a taxa agora para não perder."
+      benign:
+        - "Pagamento de mensalidade escolar"
+        - "Transferência para família"
+
+  synthetic_identity:
+    weight: 0.10
+    label_fraud_type: synthetic_identity
+    default_label_risk_level: 2
+    default_label_source: synthetic_scenario
+
+    description: "Contas criadas com identidades sintéticas usadas para fraudes diversas."
+
+    typical_patterns:
+      - "conta nova com transações atípicas logo após abertura"
+      - "muitos dispositivos, IPs e países diferentes em pouco tempo"
+
+    indicators:
+      user_has_fraud_history: 0.6
+      user_on_blacklist: 0.3
+      device_on_blacklist: 0.25
+      ip_on_blacklist: 0.35
+
+    amount_multiplier_range: [1.0, 4.0]
+
+    message_templates:
+      phishing_like:
+        - "Oferta exclusiva por tempo limitado, faça o pagamento agora para garantir."
+      benign:
+        - "Pagamento de serviço de assinatura"
