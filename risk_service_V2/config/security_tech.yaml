@@ -1,0 +1,101 @@
+# Catalogs for security technologies and versions (1.7)
+
+tls:
+  versions: [TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3]
+  cipher_suites:
+    strong:
+      - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+      - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+      - "TLS_CHACHA20_POLY1305_SHA256"
+    weak:
+      - "TLS_RSA_WITH_RC4_128_SHA"
+      - "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+      - "TLS_RSA_WITH_AES_128_CBC_SHA"
+
+auth_tokens:
+  token_types: [JWT, opaque, SAML, OAuth2, none]
+  sign_algorithms: [HS256, HS512, RS256, RS512, ES256, ES512, none]
+
+waf:
+  vendors:
+    - Cloudflare
+    - AWS_WAF
+    - Akamai
+    - Imperva
+    - F5
+    - none
+  versions:
+    Cloudflare: ["2023.1", "2024.1"]
+    AWS_WAF: ["v2", "v3"]
+    Akamai: ["2023.2", "2024.1"]
+    Imperva: ["14.0", "15.0"]
+    F5: ["13.1", "14.1"]
+    none: ["-"]
+  sample_rules:
+    - "SQLi_RULE_001"
+    - "XSS_RULE_010"
+    - "BRUTE_FORCE_LOGIN_005"
+    - "LFI_RULE_020"
+    - "NONE"
+
+ids_ips:
+  vendors:
+    - Snort
+    - Suricata
+    - Cisco
+    - Palo_Alto
+    - none
+  versions:
+    Snort: ["2.9", "3.0"]
+    Suricata: ["6.0", "7.0"]
+    Cisco: ["FTD_7.2"]
+    Palo_Alto: ["PANOS_11"]
+    none: ["-"]
+  alert_types:
+    - sql_injection
+    - xss
+    - brute_force
+    - port_scan
+    - malware
+    - none
+  severities:
+    - low
+    - medium
+    - high
+    - critical
+    - none
+
+client_av:
+  vendors:
+    - Windows_Defender
+    - Norton
+    - McAfee
+    - Kaspersky
+    - Avast
+    - none
+    - unknown
+
+crypto_libraries:
+  names:
+    - OpenSSL
+    - BoringSSL
+    - LibreSSL
+    - mbedTLS
+    - other
+
+password_hash_algorithms:
+  - bcrypt
+  - scrypt
+  - argon2
+  - pbkdf2
+  - legacy_md5
+  - legacy_sha1
+
+os_security_features:
+  possible_flags:
+    - secure_boot
+    - disk_encryption
+    - tpm_enabled
+    - firewall_enabled
+    - aslr_enabled
+    - sandboxing
