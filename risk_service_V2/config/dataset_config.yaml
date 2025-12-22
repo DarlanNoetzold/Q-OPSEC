@@ -1,0 +1,99 @@
+# General dataset generation configuration
+
+output:
+  base_path: "data"
+  raw_events_dir: "raw"
+  processed_dir: "processed"
+  splits_dir: "splits"
+  file_prefix: "digital_security_dataset"
+  format: "parquet"   # or csv
+
+random_seed: 42
+
+# Volume and time span
+generation:
+  num_users: 5000
+  min_events_per_user: 50
+  max_events_per_user: 500
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+
+  # approximate mix of event types
+  event_mix:
+    transaction: 0.55
+    login: 0.30
+    password_change: 0.02
+    email_change: 0.02
+    phone_change: 0.01
+    address_change: 0.01
+    mfa_setup: 0.02
+    device_registration: 0.07
+
+  # share of events that contain message_text (e.g., instructions, phishing, chats)
+  message_text_probability:
+    transaction: 0.25
+    login: 0.10
+
+# Fraud prevalence and scenarios
+fraud:
+  global_fraud_rate: 0.01          # 1% of events fraudulent
+  user_fraudster_rate: 0.02        # 2% of users primarily fraudulent
+  max_labels_per_user: 50
+
+  # Mapping fraud_scenario -> base fraud probability multiplier
+  scenario_weights:
+    account_takeover: 3.0
+    card_testing: 2.5
+    money_mule: 2.0
+    phishing_induced: 3.5
+    synthetic_identity: 2.5
+
+# Feature modules to apply (1.1–1.11)
+features:
+  event_identification: true
+  user_account: true
+  temporal_behavioral: true
+  transaction_content: true
+  location_network: true
+  device_environment: true
+  auth_security: true
+  fraud_history: true
+  text_content: true
+  llm_features: true
+
+# Labeling configuration (1.11)
+labeling:
+  enabled: true
+  default_label_version: "v1.0"
+  # risk tiers based on fraud scenario and synthetic rules
+  risk_level_mapping:
+    benign: 0
+    low: 0
+    medium: 1
+    high: 2
+    critical: 3
+
+  # confidence by source
+  confidence_by_source:
+    synthetic_scenario: 0.95
+    rule_engine: 0.80
+    anomaly_model: 0.75
+    customer_dispute: 0.60
+    confirmed_incident: 0.99
+
+# LLM / Ollama usage (1.10)
+llm:
+  enabled: true
+  # sample of events that will be enriched with LLM features to save cost
+  sample_rate:
+    transaction: 0.30
+    login: 0.15
+    other: 0.10
+  batch_size: 16
+
+# Train/val/test split
+splits:
+  strategy: "time_based"   # time_based or random
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
