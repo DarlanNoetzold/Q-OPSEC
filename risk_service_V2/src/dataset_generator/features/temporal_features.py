@@ -1,159 +1,223 @@
-import pandas as pd
+from __future__ import annotations
+
+from datetime import datetime
+
 import numpy as np
-from datetime import timedelta
-from typing import Dict, Any
-from src.common.logger import log
+import pandas as pd
+
+from src.common.logger import get_logger
 
 
-class TemporalFeatureExtractor:
-    """Extracts temporal and time-based behavioral features."""
+logger = get_logger("temporal_features")
 
-    def __init__(self, config: Dict[str, Any]):
-        """Initialize temporal feature extractor.
 
-        Args:
-            config: Configuration dictionary
-        """
-        self.config = config
+def add_temporal_behavioral_features(events: pd.DataFrame) -> pd.DataFrame:
+    """Add 1.3 Temporal / behavioral features.
 
-    def extract(self, events_df: pd.DataFrame) -> pd.DataFrame:
-        """Extract temporal features for all events.
+    Fields:
+      - hour_of_day (0-23)
+      - day_of_week (0-6, Monday=0)
+      - is_weekend (0/1)
+      - is_local_holiday (0/1, synthetic placeholder)
+      - seconds_since_last_login
+      - seconds_since_last_transaction
+      - transactions_last_1h
+      - transactions_last_24h
+      - transactions_last_7d
+      - transactions_last_30d
+      - amount_sum_last_24h
+      - amount_sum_last_7d
+      - amount_sum_last_30d
+      - amount_mean_last_30d
+      - amount_std_last_30d
+      - logins_last_24h
+      - login_failures_last_24h (placeholder, requires auth outcome events)
+      - password_resets_last_30d (placeholder based on password_change)
+    """
 
-        Args:
-            events_df: DataFrame with events
+    df = events.copy()
 
-        Returns:
-            DataFrame with added temporal features
-        """
-        log.info("Extracting temporal features...")
+    # Ensure timestamps
+    if not pd.api.types.is_datetime64_any_dtype(df["timestamp_utc"]):
+        df["timestamp_utc"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
-        df = events_df.copy()
+    # Sort by user and time
+    df = df.sort_values(["user_id", "timestamp_utc"]).reset_index(drop=True)
 
-        # Ensure timestamp is datetime
-        df['timestamp_utc'] = pd.to_datetime(df['timestamp_utc'])
+    # Basic calendar features
+    df["hour_of_day"] = df["timestamp_utc"].dt.hour
+    df["day_of_week"] = df["timestamp_utc"].dt.dayofweek
+    df["is_weekend"] = df["day_of_week"].isin([5, 6]).astype(int)
 
-        # Basic time features
-        df['hour_of_day'] = df['timestamp_utc'].dt.hour
-        df['day_of_week'] = df['timestamp_utc'].dt.dayofweek
-        df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+    # Local holiday placeholder: very simple heuristic (e.g., Jan 1, Dec 25)
+    df["date_local"] = df["timestamp_utc"].dt.date
+    df["is_local_holiday"] = df["date_local"].isin(
+        [
+            # Example fixed-date holidays
+            datetime(2024, 1, 1).date(),   # New Year
+            datetime(2024, 12, 25).date(), # Christmas
+        ]
+    ).astype(int)
 
-        # TODO: Add holiday detection (would need holiday calendar)
-        df['is_local_holiday'] = 0
+    # Initialize numeric fields with NaN or 0
+    df["seconds_since_last_login"] = np.nan
+    df["seconds_since_last_transaction"] = np.nan
 
-        # Sort by user and time for sequential features
-        df = df.sort_values(['user_id', 'timestamp_utc']).reset_index(drop=True)
+    df["transactions_last_1h"] = 0
+    df["transactions_last_24h"] = 0
+    df["transactions_last_7d"] = 0
+    df["transactions_last_30d"] = 0
 
-        # Time since last event (per user)
-        df['seconds_since_last_event'] = df.groupby('user_id')['timestamp_utc'].diff().dt.total_seconds()
-        df['seconds_since_last_event'] = df['seconds_since_last_event'].fillna(0)
+    df["amount_sum_last_24h"] = 0.0
+    df["amount_sum_last_7d"] = 0.0
+    df["amount_sum_last_30d"] = 0.0
+    df["amount_mean_last_30d"] = 0.0
+    df["amount_std_last_30d"] = 0.0
 
-        # For transactions only
-        transaction_mask = df['event_type'] == 'transaction'
+    df["logins_last_24h"] = 0
+    df["login_failures_last_24h"] = 0  # placeholder, depends on auth outcome
+    df["password_resets_last_30d"] = 0
 
-        if transaction_mask.any():
-            # Time since last transaction
-            df.loc[transaction_mask, 'seconds_since_last_transaction'] = (
-                df[transaction_mask].groupby('user_id')['timestamp_utc']
-                .diff().dt.total_seconds()
-            )
-            df['seconds_since_last_transaction'] = df['seconds_since_last_transaction'].fillna(0)
+    # Group by user for rolling calculations
+    grouped = df.groupby("user_id", group_keys=False)
+
+    df = grouped.apply(_compute_user_temporal_features)
+
+    # Drop helper column
+    df = df.drop(columns=["date_local"], errors="ignore")
+
+    logger.info("Temporal/behavioral features (1.3) added")
+    return df
+
+
+def _compute_user_temporal_features(user_df: pd.DataFrame) -> pd.DataFrame:
+    """Compute temporal/behavioral features for a single user's events."""
+
+    user_df = user_df.sort_values("timestamp_utc").reset_index(drop=True)
+
+    timestamps = user_df["timestamp_utc"].values.astype("datetime64[s]")
+    timestamps_sec = timestamps.astype("int64")
+
+    # seconds_since_last_login
+    last_login_time: float | None = None
+    last_tx_time: float | None = None
+
+    seconds_since_last_login = []
+    seconds_since_last_tx = []
+
+    # rolling windows
+    tx_last_1h = []
+    tx_last_24h = []
+    tx_last_7d = []
+    tx_last_30d = []
+
+    amt_sum_24h = []
+    amt_sum_7d = []
+    amt_sum_30d = []
+    amt_mean_30d = []
+    amt_std_30d = []
+
+    logins_24h = []
+    login_fail_24h = []
+    pwd_reset_30d = []
+
+    # Pre-extract
+    amounts = user_df.get("amount", pd.Series([np.nan] * len(user_df))).fillna(0.0).values
+    event_types = user_df["event_type"].values
+
+    for i in range(len(user_df)):
+        t = timestamps_sec[i]
+        etype = event_types[i]
+        amt = float(amounts[i]) if not np.isnan(amounts[i]) else 0.0
+
+        # seconds_since_last_login
+        if last_login_time is None:
+            seconds_since_last_login.append(np.nan)
         else:
-            df['seconds_since_last_transaction'] = 0
+            seconds_since_last_login.append(float(t - last_login_time))
 
-        # Rolling window features
-        df = self._add_rolling_features(df)
+        # seconds_since_last_transaction
+        if last_tx_time is None:
+            seconds_since_last_tx.append(np.nan)
+        else:
+            seconds_since_last_tx.append(float(t - last_tx_time))
 
-        # Account age at time of event
-        df['account_age_days'] = (
-                df['timestamp_utc'] - pd.to_datetime(df['account_creation_date'])
-        ).dt.days
+        # rolling windows indices
+        # 1h, 24h, 7d, 30d in seconds
+        win_1h = t - 3600
+        win_24h = t - 86400
+        win_7d = t - 7 * 86400
+        win_30d = t - 30 * 86400
 
-        log.info(f"✓ Added temporal features")
+        # Build masks for previous events
+        idx_prev = slice(0, i)  # events before i
+        t_prev = timestamps_sec[idx_prev]
+        et_prev = event_types[idx_prev]
+        amt_prev = amounts[idx_prev]
 
-        return df
+        # Helper function
+        def _window_mask(start_sec: float):
+            return (t_prev >= start_sec) & (t_prev < t)
 
-    def _add_rolling_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add rolling window aggregation features.
+        # Transactions windows
+        is_tx_prev = et_prev == "transaction"
 
-        Args:
-            df: DataFrame with events
+        mask_1h = _window_mask(win_1h) & is_tx_prev
+        mask_24h = _window_mask(win_24h) & is_tx_prev
+        mask_7d = _window_mask(win_7d) & is_tx_prev
+        mask_30d = _window_mask(win_30d) & is_tx_prev
 
-        Returns:
-            DataFrame with rolling features
-        """
-        # We'll compute these for each event by looking back in time
-        # This is computationally expensive for large datasets
-        # In production, you'd use a more efficient approach (e.g., streaming)
+        tx_last_1h.append(int(mask_1h.sum()))
+        tx_last_24h.append(int(mask_24h.sum()))
+        tx_last_7d.append(int(mask_7d.sum()))
+        tx_last_30d.append(int(mask_30d.sum()))
 
-        windows = {
-            '1h': timedelta(hours=1),
-            '24h': timedelta(hours=24),
-            '7d': timedelta(days=7),
-            '30d': timedelta(days=30)
-        }
+        # Amount aggregates
+        amt_sum_24h.append(float(amt_prev[mask_24h].sum()) if mask_24h.any() else 0.0)
+        amt_sum_7d.append(float(amt_prev[mask_7d].sum()) if mask_7d.any() else 0.0)
+        amt_sum_30d.append(float(amt_prev[mask_30d].sum()) if mask_30d.any() else 0.0)
 
-        # Initialize columns
-        for window_name in windows.keys():
-            df[f'transactions_last_{window_name}'] = 0
-            df[f'amount_sum_last_{window_name}'] = 0.0
-            df[f'logins_last_{window_name}'] = 0
-            df[f'login_failures_last_{window_name}'] = 0
+        if mask_30d.any():
+            vals_30d = amt_prev[mask_30d]
+            amt_mean_30d.append(float(vals_30d.mean()))
+            amt_std_30d.append(float(vals_30d.std(ddof=0)))
+        else:
+            amt_mean_30d.append(0.0)
+            amt_std_30d.append(0.0)
 
-        # Group by user for efficiency
-        for user_id, user_events in df.groupby('user_id'):
-            user_indices = user_events.index
+        # Login-related windows (24h, 30d)
+        is_login_prev = et_prev == "login"
+        mask_login_24h = _window_mask(win_24h) & is_login_prev
+        mask_pwd_30d = (t_prev >= win_30d) & (t_prev < t) & (et_prev == "password_change")
 
-            for idx in user_indices:
-                current_time = df.loc[idx, 'timestamp_utc']
+        logins_24h.append(int(mask_login_24h.sum()))
 
-                # Get all events before current event for this user
-                prior_events = user_events[user_events['timestamp_utc'] < current_time]
+        # For now, treat no explicit failures; placeholder = 0
+        login_fail_24h.append(0)
+        pwd_reset_30d.append(int(mask_pwd_30d.sum()))
 
-                if len(prior_events) == 0:
-                    continue
+        # Update last login/tx times
+        if etype == "login":
+            last_login_time = t
+        if etype == "transaction":
+            last_tx_time = t
 
-                for window_name, window_delta in windows.items():
-                    window_start = current_time - window_delta
-                    window_events = prior_events[prior_events['timestamp_utc'] >= window_start]
+    user_df["seconds_since_last_login"] = seconds_since_last_login
+    user_df["seconds_since_last_transaction"] = seconds_since_last_tx
 
-                    # Count transactions
-                    transactions = window_events[window_events['event_type'] == 'transaction']
-                    df.loc[idx, f'transactions_last_{window_name}'] = len(transactions)
+    user_df["transactions_last_1h"] = tx_last_1h
+    user_df["transactions_last_24h"] = tx_last_24h
+    user_df["transactions_last_7d"] = tx_last_7d
+    user_df["transactions_last_30d"] = tx_last_30d
 
-                    # Sum amounts
-                    if len(transactions) > 0 and 'amount' in transactions.columns:
-                        df.loc[idx, f'amount_sum_last_{window_name}'] = transactions['amount'].sum()
+    user_df["amount_sum_last_24h"] = amt_sum_24h
+    user_df["amount_sum_last_7d"] = amt_sum_7d
+    user_df["amount_sum_last_30d"] = amt_sum_30d
+    user_df["amount_mean_last_30d"] = amt_mean_30d
+    user_df["amount_std_last_30d"] = amt_std_30d
 
-                    # Count logins
-                    logins = window_events[window_events['event_type'] == 'login']
-                    df.loc[idx, f'logins_last_{window_name}'] = len(logins)
+    user_df["logins_last_24h"] = logins_24h
+    user_df["login_failures_last_24h"] = login_fail_24h
+    user_df["password_resets_last_30d"] = pwd_reset_30d
 
-                    # Count login failures
-                    if len(logins) > 0 and 'login_success' in logins.columns:
-                        failures = logins[logins['login_success'] == False]
-                        df.loc[idx, f'login_failures_last_{window_name}'] = len(failures)
-
-        # Compute mean and std for 30d window (for anomaly detection)
-        df['amount_mean_last_30d'] = 0.0
-        df['amount_std_last_30d'] = 0.0
-
-        for user_id, user_events in df.groupby('user_id'):
-            user_indices = user_events.index
-
-            for idx in user_indices:
-                current_time = df.loc[idx, 'timestamp_utc']
-                window_start = current_time - timedelta(days=30)
-
-                prior_transactions = user_events[
-                    (user_events['timestamp_utc'] >= window_start) &
-                    (user_events['timestamp_utc'] < current_time) &
-                    (user_events['event_type'] == 'transaction')
-                    ]
-
-                if len(prior_transactions) > 0 and 'amount' in prior_transactions.columns:
-                    amounts = prior_transactions['amount']
-                    df.loc[idx, 'amount_mean_last_30d'] = amounts.mean()
-                    if len(amounts) > 1:
-                        df.loc[idx, 'amount_std_last_30d'] = amounts.std()
-
-        return df
+    return user_df
