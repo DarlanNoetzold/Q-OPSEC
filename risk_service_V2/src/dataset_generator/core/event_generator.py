@@ -1,272 +1,201 @@
+from __future__ import annotations
+
+import random
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Any
-from faker import Faker
-from src.common.logger import log
+
+from src.common.config_loader import default_config_loader
+from src.common.logger import get_logger
+
+
+logger = get_logger("event_generator")
+
+
+@dataclass
+class EventMixConfig:
+    transaction: float
+    login: float
+    password_change: float
+    email_change: float
+    phone_change: float
+    address_change: float
+    mfa_setup: float
+    device_registration: float
 
 
 class EventGenerator:
-    def __init__(self, users_df: pd.DataFrame, config: Dict[str, Any], random_seed: int = 42):
-        """Initialize event generator.
+    """Generate raw events for users aligned with 1.1, and basic 1.3/1.4 structure.
 
-        Args:
-            users_df: DataFrame with user data
-            config: Dataset configuration
-            random_seed: Random seed
-        """
-        self.users_df = users_df
-        self.config = config
-        self.rng = np.random.default_rng(random_seed)
-        self.fake = Faker()
-        Faker.seed(random_seed)
+    At this stage we generate:
+      - event_id
+      - user_id, account_id
+      - event_type
+      - event_source (approximate)
+      - timestamp_utc
+      - timezone (copied from user)
+      - basic transaction fields: amount, currency, channel, transaction_type
 
-        self.start_date = datetime.strptime(config['generation']['start_date'], '%Y-%m-%d')
-        self.time_period_days = config['generation']['time_period_days']
-        self.end_date = self.start_date + timedelta(days=self.time_period_days)
+    Detailed features will be filled by feature modules later.
+    """
 
-    def generate_events(self) -> pd.DataFrame:
-        """Generate all events for all users.
+    def __init__(self, random_seed: int | None = None) -> None:
+        if random_seed is not None:
+            random.seed(random_seed)
+            np.random.seed(random_seed)
 
-        Returns:
-            DataFrame with events
-        """
-        log.info(f"Generating events for {len(self.users_df)} users...")
-        log.info(f"  Time period: {self.start_date.date()} to {self.end_date.date()}")
+        self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
+        self.user_profiles_cfg = default_config_loader.load("user_profiles.yaml")
 
-        all_events = []
+        self.event_mix = self._load_event_mix()
 
-        for idx, user in self.users_df.iterrows():
-            user_events = self._generate_user_events(user)
-            all_events.extend(user_events)
+    def _load_event_mix(self) -> Dict[str, float]:
+        mix_cfg = self.dataset_cfg.get("generation", {}).get("event_mix", {})
+        # Normalize just in case
+        total = sum(mix_cfg.values()) or 1.0
+        return {k: v / total for k, v in mix_cfg.items()}
 
-            if (idx + 1) % 1000 == 0:
-                log.info(f"  Processed {idx + 1}/{len(self.users_df)} users...")
+    def _sample_num_events_for_user(self, profile_name: str, months: float) -> int:
+        profile_cfg = self.user_profiles_cfg["profiles"][profile_name]
+        mean = float(profile_cfg.get("events_per_month_mean", 30)) * months
+        std = float(profile_cfg.get("events_per_month_std", 10)) * (months ** 0.5)
+        n = max(1, int(np.random.normal(mean, std)))
+        return n
 
-        df = pd.DataFrame(all_events)
-        df = df.sort_values('timestamp_utc').reset_index(drop=True)
+    def _sample_event_type(self) -> str:
+        event_types = list(self.event_mix.keys())
+        weights = list(self.event_mix.values())
+        return random.choices(event_types, weights=weights, k=1)[0]
 
-        # Add event IDs
-        df['event_id'] = [f"evt_{i:012d}" for i in range(len(df))]
+    def _sample_timestamp_for_user(self, start_date: datetime, end_date: datetime) -> datetime:
+        total_seconds = int((end_date - start_date).total_seconds())
+        offset = random.randint(0, total_seconds)
+        return start_date + timedelta(seconds=offset)
 
-        log.info(f"✓ Generated {len(df)} events")
-        log.info(f"  Event types:\n{df['event_type'].value_counts()}")
+    def _sample_transaction_details(self, user_row: pd.Series) -> Dict:
+        profile_cfg = self.user_profiles_cfg["profiles"][user_row["profile_name"]]
+        tx_cfg = profile_cfg["transaction_behavior"]
 
-        return df
-
-    def _generate_user_events(self, user: pd.Series) -> List[Dict[str, Any]]:
-        """Generate events for a single user.
-
-        Args:
-            user: User data series
-
-        Returns:
-            List of event dictionaries
-        """
-        events = []
-
-        # Calculate number of events
-        days_active = (self.end_date - max(user['account_creation_date'], self.start_date)).days
-        if days_active <= 0:
-            return events
-
-        num_events = max(1, int(self.rng.normal(
-            user['transactions_per_day_mean'] * days_active,
-            user['transactions_per_day_std'] * np.sqrt(days_active)
-        )))
-
-        # Generate event timestamps
-        timestamps = self._generate_timestamps(
-            max(user['account_creation_date'], self.start_date),
-            self.end_date,
-            num_events,
-            user['user_profile']
+        amount = max(
+            1.0,
+            np.random.normal(tx_cfg.get("amount_mean", 200.0), tx_cfg.get("amount_std", 100.0)),
         )
+        currency = tx_cfg.get("currency", "BRL")
 
-        # Select devices for events
-        devices = user['devices']
+        tx_type_dist = tx_cfg.get("transaction_type_distribution", {"pix": 1.0})
+        tx_types = list(tx_type_dist.keys())
+        tx_weights = list(tx_type_dist.values())
+        transaction_type = random.choices(tx_types, weights=tx_weights, k=1)[0]
 
-        for timestamp in timestamps:
-            # Mostly transactions, some logins
-            event_type = self.rng.choice(['transaction', 'login'], p=[0.9, 0.1])
+        channel_dist = tx_cfg.get("channel_distribution", {"mobile_android": 1.0})
+        channels = list(channel_dist.keys())
+        ch_weights = list(channel_dist.values())
+        channel = random.choices(channels, weights=ch_weights, k=1)[0]
 
-            if event_type == 'transaction':
-                event = self._generate_transaction(user, timestamp, devices)
-            else:
-                event = self._generate_login(user, timestamp, devices)
+        return {
+            "amount": float(amount),
+            "currency": currency,
+            "transaction_type": transaction_type,
+            "channel": channel,
+        }
 
-            events.append(event)
+    def generate_events(self, users_df: pd.DataFrame) -> pd.DataFrame:
+        """Generate events for each user.
 
-        return events
-
-    def _generate_timestamps(
-            self,
-            start: datetime,
-            end: datetime,
-            num_events: int,
-            profile: str
-    ) -> List[datetime]:
-        """Generate realistic timestamps for events.
-
-        Args:
-            start: Start datetime
-            end: End datetime
-            num_events: Number of events
-            profile: User profile name
-
-        Returns:
-            List of timestamps
+        Returns a DataFrame of raw events with basic columns:
+          - event_id, user_id, account_id, event_type, event_source,
+            timestamp_utc, timezone,
+            amount, currency, transaction_type, channel (for transactions only).
         """
-        # Generate random days
-        total_seconds = (end - start).total_seconds()
-        random_seconds = self.rng.uniform(0, total_seconds, num_events)
-        timestamps = [start + timedelta(seconds=s) for s in sorted(random_seconds)]
+        gen_cfg = self.dataset_cfg["generation"]
+        start_date = datetime.fromisoformat(gen_cfg["start_date"])
+        end_date = datetime.fromisoformat(gen_cfg["end_date"])
 
-        # Adjust hours to be more realistic (peak hours)
-        adjusted = []
-        for ts in timestamps:
-            # Business hours more likely (8-22h)
-            if profile == 'corporate':
-                hour = int(self.rng.normal(13, 3))  # Peak around 1 PM
-                hour = np.clip(hour, 8, 18)
-            else:
-                # Bimodal: morning (8-10) and evening (18-22)
-                if self.rng.random() < 0.5:
-                    hour = int(self.rng.normal(9, 1))
+        total_months = max(1.0, (end_date - start_date).days / 30.0)
+
+        records: List[Dict] = []
+        event_counter = 0
+
+        for _, user in users_df.iterrows():
+            n_events = self._sample_num_events_for_user(user["profile_name"], total_months)
+
+            for _ in range(n_events):
+                event_type = self._sample_event_type()
+                ts_utc = self._sample_timestamp_for_user(start_date, end_date)
+
+                event_source = self._infer_event_source(event_type, user)
+
+                base_record = {
+                    "event_id": f"E{event_counter:010d}",
+                    "user_id": user["user_id"],
+                    "account_id": user["account_id"],
+                    "event_type": event_type,
+                    "event_source": event_source,
+                    "timestamp_utc": ts_utc,
+                    "timezone": user["timezone"],
+                }
+
+                if event_type == "transaction":
+                    base_record.update(self._sample_transaction_details(user))
                 else:
-                    hour = int(self.rng.normal(20, 1.5))
-                hour = np.clip(hour, 0, 23)
+                    # For non-transaction, set NaNs for transaction fields
+                    base_record.update(
+                        {
+                            "amount": np.nan,
+                            "currency": None,
+                            "transaction_type": None,
+                            "channel": self._infer_channel_from_source(event_source),
+                        }
+                    )
 
-            minute = self.rng.integers(0, 60)
-            second = self.rng.integers(0, 60)
+                records.append(base_record)
+                event_counter += 1
 
-            adjusted_ts = ts.replace(hour=hour, minute=minute, second=second)
-            adjusted.append(adjusted_ts)
+        events_df = pd.DataFrame.from_records(records)
+        logger.info("Generated {n} events", n=len(events_df))
+        return events_df
 
-        return adjusted
+    def _infer_event_source(self, event_type: str, user_row: pd.Series) -> str:
+        # Simple heuristic for now
+        if event_type in {"login", "transaction"}:
+            profile_cfg = self.user_profiles_cfg["profiles"][user_row["profile_name"]]
+            channel_dist = profile_cfg["transaction_behavior"].get(
+                "channel_distribution", {"mobile_android": 1.0}
+            )
+            channels = list(channel_dist.keys())
+            weights = list(channel_dist.values())
+            channel = random.choices(channels, weights=weights, k=1)[0]
 
-    def _generate_transaction(
-            self,
-            user: pd.Series,
-            timestamp: datetime,
-            devices: List[Dict]
-    ) -> Dict[str, Any]:
-        """Generate a transaction event.
+            if channel in {"mobile_android", "mobile_ios"}:
+                return "mobile_app"
+            elif channel == "web":
+                return "web_app"
+            elif channel == "atm":
+                return "atm"
+            elif channel == "call_center":
+                return "call_center"
+            else:
+                return "api_partner"
+        elif event_type in {"password_change", "email_change", "phone_change", "address_change", "mfa_setup"}:
+            return "web_app"
+        elif event_type == "device_registration":
+            return "mobile_app"
+        else:
+            return "web_app"
 
-        Args:
-            user: User data
-            timestamp: Event timestamp
-            devices: User's devices
-
-        Returns:
-            Transaction dictionary
-        """
-        # Select device
-        device = self.rng.choice(devices)
-
-        # Select channel
-        channels = list(user['channel_probs'].keys())
-        probs = list(user['channel_probs'].values())
-        channel = self.rng.choice(channels, p=probs)
-
-        # Generate amount
-        if user['amount_distribution'] == 'lognormal':
-            # Convert mean/std to lognormal parameters
-            mean = user['amount_mean']
-            std = user['amount_std']
-            mu = np.log(mean ** 2 / np.sqrt(mean ** 2 + std ** 2))
-            sigma = np.sqrt(np.log(1 + std ** 2 / mean ** 2))
-            amount = self.rng.lognormal(mu, sigma)
-        else:  # gamma
-            shape = (user['amount_mean'] / user['amount_std']) ** 2
-            scale = user['amount_std'] ** 2 / user['amount_mean']
-            amount = self.rng.gamma(shape, scale)
-
-        amount = round(max(1, amount), 2)
-
-        # Transaction type
-        transaction_types = ['wire', 'card', 'internal_transfer', 'bill_payment']
-        transaction_type = self.rng.choice(transaction_types)
-
-        # New recipient?
-        is_new_recipient = self.rng.random() < user['new_recipient_rate']
-
-        # Generate IP (simplified - will be enhanced by location features module)
-        ip_address = self.fake.ipv4()
-
-        # MFA
-        mfa_used = self.rng.random() < user['mfa_usage_rate']
-
-        return {
-            'event_type': 'transaction',
-            'timestamp_utc': timestamp,
-            'user_id': user['user_id'],
-            'user_profile': user['user_profile'],
-            'amount': amount,
-            'currency': 'USD',
-            'transaction_type': transaction_type,
-            'channel': channel,
-            'device_id': device['device_id'],
-            'device_type': device['device_type'],
-            'device_os': device['device_os'],
-            'device_os_version': device['device_os_version'],
-            'browser_name': device['browser_name'],
-            'ip_address': ip_address,
-            'is_new_recipient': is_new_recipient,
-            'mfa_used': mfa_used,
-            'mfa_success': mfa_used,  # Assume success for now
-            'is_jailbroken_or_rooted': device['is_jailbroken_or_rooted'],
-            'is_emulator_detected': device['is_emulator_detected'],
-            # Will be enriched by feature modules
-            'registered_country': user['registered_country'],
-            'account_creation_date': user['account_creation_date']
-        }
-
-    def _generate_login(
-            self,
-            user: pd.Series,
-            timestamp: datetime,
-            devices: List[Dict]
-    ) -> Dict[str, Any]:
-        """Generate a login event.
-
-        Args:
-            user: User data
-            timestamp: Event timestamp
-            devices: User's devices
-
-        Returns:
-            Login dictionary
-        """
-        
-        device = self.rng.choice(devices)
-
-        channels = list(user['channel_probs'].keys())
-        probs = list(user['channel_probs'].values())
-        channel = self.rng.choice(channels, p=probs)
-
-        # Login success rate
-        login_success = self.rng.random() < 0.95
-
-        mfa_used = self.rng.random() < user['mfa_usage_rate']
-
-        return {
-            'event_type': 'login',
-            'timestamp_utc': timestamp,
-            'user_id': user['user_id'],
-            'user_profile': user['user_profile'],
-            'channel': channel,
-            'device_id': device['device_id'],
-            'device_type': device['device_type'],
-            'device_os': device['device_os'],
-            'device_os_version': device['device_os_version'],
-            'browser_name': device['browser_name'],
-            'ip_address': self.fake.ipv4(),
-            'login_success': login_success,
-            'mfa_used': mfa_used,
-            'mfa_success': mfa_used and login_success,
-            'is_jailbroken_or_rooted': device['is_jailbroken_or_rooted'],
-            'is_emulator_detected': device['is_emulator_detected'],
-            'registered_country': user['registered_country'],
-            'account_creation_date': user['account_creation_date']
-        }
+    def _infer_channel_from_source(self, event_source: str) -> str:
+        if event_source == "mobile_app":
+            # randomly android/ios
+            return random.choice(["mobile_android", "mobile_ios"])
+        if event_source == "web_app":
+            return "web"
+        if event_source == "atm":
+            return "atm"
+        if event_source == "call_center":
+            return "call_center"
+        if event_source == "api_partner":
+            return "api_partner"
+        return "web"
