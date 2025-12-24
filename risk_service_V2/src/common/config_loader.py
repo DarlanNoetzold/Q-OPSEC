@@ -1,76 +1,70 @@
-"""Configuration loader utility."""
+import os
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 import yaml
-from pathlib import Path
-from typing import Dict, Any
 
 
 class ConfigLoader:
-    def __init__(self, config_dir: str = "config"):
-        self.config_dir = Path(config_dir)
-        self._configs = {}
+    """Simple YAML configuration loader with dot-path access.
 
+    Example:
+        loader = ConfigLoader("config")
+        dataset_cfg = loader.load("dataset_config.yaml")
+        num_users = loader.get("dataset_config.generation.num_users")
+    """
 
-    def load(self, config_name: str) -> Dict[str, Any]:
-        """Load a configuration file by name.
+    def __init__(self, base_dir: str | Path = "config") -> None:
+        self.base_dir = Path(base_dir)
+        self._cache: Dict[str, Dict[str, Any]] = {}
 
-        Args:
-            config_name: Name of config file (without .yaml extension)
+    def load(self, filename: str) -> Dict[str, Any]:
+        """Load a YAML config file and cache it by stem name.
 
-        Returns:
-            Dictionary with configuration
+        Access key will be the filename without extension, e.g.
+        "dataset_config.yaml" -> "dataset_config".
         """
-        if config_name in self._configs:
-            return self._configs[config_name]
+        path = self.base_dir / filename
+        if not path.exists():
+            raise FileNotFoundError(f"Config file not found: {path}")
 
-        config_path = self.config_dir / f"{config_name}.yaml"
+        stem = path.stem
+        if stem in self._cache:
+            return self._cache[stem]
 
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config file not found: {config_path}")
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
 
-        with open(config_path, 'r') as f:
-            config = yaml.safe_load(f)
+        self._cache[stem] = data
+        return data
 
-        self._configs[config_name] = config
-        return config
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
+        """Get a value using dot-separated path.
 
-
-    def load_all(self) -> Dict[str, Dict[str, Any]]:
-        """Load all configuration files.
-
-        Returns:
-            Dictionary mapping config names to their contents
+        Example:
+            get("dataset_config.generation.num_users")
         """
-        config_files = [
-            "dataset_config",
-            "user_profiles",
-            "fraud_scenarios",
-            "llm_config"
-        ]
+        parts = key.split(".")
+        if not parts:
+            return default
 
-        return {name: self.load(name) for name in config_files}
+        root_name = parts[0]
+        # try to ensure config is loaded
+        filename_guess = f"{root_name}.yaml"
+        path = self.base_dir / filename_guess
+        if path.exists() and root_name not in self._cache:
+            self.load(filename_guess)
 
+        current: Any = self._cache.get(root_name)
+        if current is None:
+            return default
 
-    def get(self, config_name: str, key_path: str, default: Any = None) -> Any:
-        """Get a specific configuration value using dot notation.
-
-        Args:
-            config_name: Name of config file
-            key_path: Dot-separated path to value (e.g., "dataset.num_users")
-            default: Default value if key not found
-
-        Returns:
-            Configuration value
-        """
-        config = self.load(config_name)
-
-        keys = key_path.split('.')
-        value = config
-
-        for key in keys:
-            if isinstance(value, dict) and key in value:
-                value = value[key]
+        for part in parts[1:]:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
             else:
                 return default
+        return current
 
-        return value
+
+default_config_loader = ConfigLoader()
