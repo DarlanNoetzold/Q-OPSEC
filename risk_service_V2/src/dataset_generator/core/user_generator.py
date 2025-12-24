@@ -1,191 +1,155 @@
+from __future__ import annotations
+
+import random
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from dateutil import tz
 from faker import Faker
-from src.common.logger import log
+
+from src.common.config_loader import default_config_loader
+from src.common.logger import get_logger
+
+
+logger = get_logger("user_generator")
+
+
+@dataclass
+class UserProfileConfig:
+    name: str
+    weight: float
+    user_type: str
+    user_segment: str
+    base_user_risk_class: str
+    country_pool: List[str]
+    timezone_pool: List[str]
+    events_per_month_mean: float
+    events_per_month_std: float
+    transaction_behavior: Dict
+    device_profile: Dict
 
 
 class UserGenerator:
-    def __init__(self, config: Dict[str, Any], random_seed: int = 42):
-        """Initialize user generator.
+    """Generate synthetic users aligned with section 1.2 (User / Account).
 
-        Args:
-            config: User profiles configuration
-            random_seed: Random seed for reproducibility
-        """
-        self.config = config
-        self.profiles = config['profiles']
-        self.device_chars = config['device_characteristics']
+    Fields produced per user:
+      - user_id
+      - account_id
+      - user_type
+      - user_segment
+      - user_risk_class
+      - account_creation_date
+      - account_age_days (computed later given event timestamp)
+      - registered_country
+      - registered_region (synthetic)
+      - timezone
+      - base profile info used later for behavior
+    """
 
-        self.rng = np.random.default_rng(random_seed)
-        self.fake = Faker()
-        Faker.seed(random_seed)
+    def __init__(self, random_seed: int | None = None) -> None:
+        if random_seed is not None:
+            random.seed(random_seed)
+            np.random.seed(random_seed)
 
+        self.config = default_config_loader.load("user_profiles.yaml")
+        self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
 
-    def generate_users(self, num_users: int, start_date: datetime) -> pd.DataFrame:
-        """Generate user dataset.
+        self.faker = Faker()
+        self.faker.seed_instance(random_seed or 0)
 
-        Args:
-            num_users: Number of users to generate
-            start_date: Start date for account creation
+        self.profiles: List[UserProfileConfig] = self._load_profiles()
+        self.profile_weights = [p.weight for p in self.profiles]
 
-        Returns:
-            DataFrame with user data
-        """
-        log.info(f"Generating {num_users} users...")
+        logger.info(
+            "Loaded {n} user profiles: {names}",
+            n=len(self.profiles),
+            names=[p.name for p in self.profiles],
+        )
 
-        users = []
-
-        # Determine profile distribution
-        profile_names = list(self.profiles.keys())
-        profile_weights = [self.profiles[p]['weight'] for p in profile_names]
-
-        for user_idx in range(num_users):
-            # Select profile
-            profile_name = self.rng.choice(profile_names, p=profile_weights)
-            profile = self.profiles[profile_name]
-
-            # Generate user data
-            user = self._generate_single_user(
-                user_idx,
-                profile_name,
-                profile,
-                start_date
+    def _load_profiles(self) -> List[UserProfileConfig]:
+        profiles_cfg = self.config.get("profiles", {})
+        profiles: List[UserProfileConfig] = []
+        for name, cfg in profiles_cfg.items():
+            profiles.append(
+                UserProfileConfig(
+                    name=name,
+                    weight=float(cfg.get("weight", 1.0)),
+                    user_type=cfg["user_type"],
+                    user_segment=cfg["user_segment"],
+                    base_user_risk_class=cfg.get("base_user_risk_class", "medium"),
+                    country_pool=cfg.get("country_pool", ["BR"]),
+                    timezone_pool=cfg.get("timezone_pool", ["America/Sao_Paulo"]),
+                    events_per_month_mean=float(cfg.get("events_per_month_mean", 30)),
+                    events_per_month_std=float(cfg.get("events_per_month_std", 10)),
+                    transaction_behavior=cfg.get("transaction_behavior", {}),
+                    device_profile=cfg.get("device_profile", {}),
+                )
             )
-            users.append(user)
+        return profiles
 
-        df = pd.DataFrame(users)
-        log.info(f"✓ Generated {len(df)} users")
-        log.info(f"  Profile distribution:\n{df['user_profile'].value_counts()}")
+    def _sample_profile(self) -> UserProfileConfig:
+        return random.choices(self.profiles, weights=self.profile_weights, k=1)[0]
 
-        return df
+    def _sample_account_creation_date(self, start_date: datetime, end_date: datetime) -> datetime:
+        """Sample an account creation date before end_date, up to 3 years back."""
+        max_age_days = 365 * 3
+        end_minus = end_date - timedelta(days=random.randint(0, max_age_days))
+        # Ensure not before global start_date
+        if end_minus < start_date:
+            end_minus = start_date
+        return end_minus
 
+    def generate_users(self) -> pd.DataFrame:
+        """Generate users according to dataset_config.generation.num_users.
 
-    def _generate_single_user(
-            self,
-            user_idx: int,
-            profile_name: str,
-            profile: Dict[str, Any],
-            start_date: datetime
-    ) -> Dict[str, Any]:
-        """Generate a single user.
-
-        Args:
-            user_idx: User index
-            profile_name: Name of user profile
-            profile: Profile configuration
-            start_date: Dataset start date
-
-        Returns:
-            Dictionary with user data
+        Returns a DataFrame with one row per user.
         """
-        # Account creation date (random within 1-3 years before start_date)
-        days_before = self.rng.integers(30, 1095)  # 1 month to 3 years
-        account_creation = start_date - timedelta(days=days_before)
+        num_users = int(
+            self.dataset_cfg.get("generation", {}).get("num_users", 1000)
+        )
+        start_date_str = self.dataset_cfg["generation"]["start_date"]
+        end_date_str = self.dataset_cfg["generation"]["end_date"]
+        start_date = datetime.fromisoformat(start_date_str)
+        end_date = datetime.fromisoformat(end_date_str)
 
-        # Select primary country
-        country = self.rng.choice(profile['countries'])
+        records: List[Dict] = []
+        for user_idx in range(num_users):
+            profile = self._sample_profile()
 
-        # Generate devices
-        device_chars = self.device_chars[profile_name]
-        num_devices = max(1, int(self.rng.normal(
-            device_chars['devices_per_user_mean'],
-            device_chars['devices_per_user_std']
-        )))
+            user_id = f"U{user_idx:07d}"
+            account_id = f"A{user_idx:07d}"
 
-        devices = self._generate_devices(num_devices, device_chars)
+            registered_country = random.choice(profile.country_pool)
+            # synthetic region name using Faker
+            registered_region = self.faker.state_abbr() if registered_country == "US" else self.faker.state()
 
-        return {
-            'user_id': f"user_{user_idx:08d}",
-            'user_profile': profile_name,
-            'user_type': 'business' if profile_name == 'corporate' else 'individual',
-            'user_segment': profile_name,
-            'account_creation_date': account_creation,
-            'registered_country': country,
-            'registered_region': self.fake.state(),
-            'transactions_per_day_mean': profile['transactions_per_day_mean'],
-            'transactions_per_day_std': profile['transactions_per_day_std'],
-            'amount_mean': profile['amount_mean'],
-            'amount_std': profile['amount_std'],
-            'amount_distribution': profile['amount_distribution'],
-            'channel_probs': profile['channels'],
-            'mfa_usage_rate': profile['mfa_usage_rate'],
-            'new_recipient_rate': profile['new_recipient_rate'],
-            'devices': devices,
-            'num_devices': len(devices),
-            'is_fraudster': profile_name == 'fraudster'
-        }
+            timezone_name = random.choice(profile.timezone_pool)
 
+            account_creation_date = self._sample_account_creation_date(
+                start_date=start_date,
+                end_date=end_date,
+            )
 
-    def _generate_devices(
-            self,
-            num_devices: int,
-            device_chars: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        """Generate devices for a user.
-
-        Args:
-            num_devices: Number of devices
-            device_chars: Device characteristics config
-
-        Returns:
-            List of device dictionaries
-        """
-        devices = []
-
-        os_names = list(device_chars['os_distribution'].keys())
-        os_probs = list(device_chars['os_distribution'].values())
-
-        for dev_idx in range(num_devices):
-            os_name = self.rng.choice(os_names, p=os_probs)
-
-            # Determine if outdated
-            is_outdated = self.rng.random() < device_chars['outdated_os_rate']
-
-            device = {
-                'device_id': self.fake.uuid4(),
-                'device_type': self._get_device_type(os_name),
-                'device_os': os_name,
-                'device_os_version': self._get_os_version(os_name, is_outdated),
-                'browser_name': self._get_browser(os_name),
-                'is_primary': dev_idx == 0,
-                'is_jailbroken_or_rooted': self.rng.random() < 0.05,
-                'is_emulator_detected': self.rng.random() < device_chars.get('emulator_rate', 0.02)
+            record = {
+                "user_id": user_id,
+                "account_id": account_id,
+                "user_type": profile.user_type,
+                "user_segment": profile.user_segment,
+                "user_risk_class": profile.base_user_risk_class,
+                "registered_country": registered_country,
+                "registered_region": registered_region,
+                "timezone": timezone_name,
+                "account_creation_date": account_creation_date.date(),
+                # we'll compute account_age_days later per event based on event timestamp
+                "profile_name": profile.name,
+                "events_per_month_mean": profile.events_per_month_mean,
+                "events_per_month_std": profile.events_per_month_std,
             }
+            records.append(record)
 
-            devices.append(device)
-
-        return devices
-
-
-    def _get_device_type(self, os_name: str) -> str:
-        """Get device type from OS."""
-        if os_name in ['Android', 'iOS']:
-            return 'mobile'
-        elif os_name in ['Windows', 'macOS', 'Linux']:
-            return 'desktop'
-        return 'other'
-
-
-    def _get_os_version(self, os_name: str, is_outdated: bool) -> str:
-        """Get OS version."""
-        versions = {
-            'Android': ['14', '13', '12', '11', '10', '9'] if not is_outdated else ['8', '7', '6'],
-            'iOS': ['17', '16', '15', '14'] if not is_outdated else ['13', '12', '11'],
-            'Windows': ['11', '10'] if not is_outdated else ['8.1', '7'],
-            'macOS': ['14', '13', '12'] if not is_outdated else ['11', '10.15'],
-            'Linux': ['6.x', '5.x']
-        }
-
-        return self.rng.choice(versions.get(os_name, ['unknown']))
-
-
-    def _get_browser(self, os_name: str) -> str:
-        """Get browser based on OS."""
-        if os_name == 'iOS':
-            return self.rng.choice(['Safari', 'Chrome'], p=[0.7, 0.3])
-        elif os_name == 'Android':
-            return self.rng.choice(['Chrome', 'Firefox', 'Samsung Internet'], p=[0.7, 0.2, 0.1])
-        else:
-            return self.rng.choice(['Chrome', 'Firefox', 'Edge', 'Safari'], p=[0.5, 0.2, 0.2, 0.1])
+        users_df = pd.DataFrame.from_records(records)
+        logger.info("Generated {n} users", n=len(users_df))
+        return users_df
