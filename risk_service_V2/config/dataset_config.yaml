@@ -1,4 +1,10 @@
 # General dataset generation configuration
+dataset:
+  num_users: 500  # ← Era 5000, agora 500 (10x menos)
+  start_date: "2025-01-01"
+  end_date: "2025-03-31"  # ← 3 meses em vez de 1 ano
+  fraud_rate: 0.01
+  random_seed: 42
 
 output:
   base_path: "data"
