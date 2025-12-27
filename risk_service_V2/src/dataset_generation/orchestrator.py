@@ -13,12 +13,12 @@ from src.dataset_generation.core.event_generator import EventGenerator
 from src.dataset_generation.features.event_identification import add_event_identification_features
 from src.dataset_generation.features.user_account_features import add_user_account_features
 from src.dataset_generation.features.temporal_features import add_temporal_behavioral_features  # CORRIGIDO
-from src.dataset_generation.features.device_environment_features import add_device_environment_features
-from src.dataset_generation.features.security_tech_features import add_security_tech_features
+from src.dataset_generation.features.device_features import add_device_environment_features
+from src.dataset_generation.features.security_features import add_security_tech_features
 from src.dataset_generation.features.fraud_history_features import add_fraud_history_features
-from src.dataset_generation.features.text_features import add_text_features  # CORRIGIDO (assumindo que você renomeou)
+from src.dataset_generation.features.text_features import add_text_message_features
 from src.dataset_generation.features.llm_features import add_llm_features
-from src.dataset_generation.labels.labeling import apply_labels
+from src.dataset_generation.labeling.label_generator import apply_labels
 
 
 logger = get_logger("dataset_orchestrator")
@@ -38,13 +38,18 @@ class DatasetOrchestrator:
     def run(self) -> None:
         logger.info("Starting dataset generation pipeline")
 
+        # Extract random seed from config
+        random_seed = self.config.get("random_seed", 42)
+        if not isinstance(random_seed, int):
+            random_seed = int(random_seed) if random_seed else 42
+
         # 1) Generate users
-        user_gen = UserGenerator(self.config)
+        user_gen = UserGenerator(random_seed=random_seed)
         users = user_gen.generate_users()
         logger.info("Generated {n} users", n=len(users))
 
         # 2) Generate events
-        event_gen = EventGenerator(self.config)
+        event_gen = EventGenerator(random_seed=random_seed)
         events = event_gen.generate_events(users)
         logger.info("Generated {n} raw events", n=len(events))
 
@@ -58,7 +63,7 @@ class DatasetOrchestrator:
         df = add_user_account_features(df, users)
 
         # 3.3 Temporal / behavioral features
-        df = add_temporal_behavioral_features(df)  # CORRIGIDO
+        df = add_temporal_behavioral_features(df)
 
         # 3.4 Device / environment
         df = add_device_environment_features(df)
@@ -70,7 +75,7 @@ class DatasetOrchestrator:
         df = add_fraud_history_features(df)
 
         # 3.7 Text / content features
-        df = add_text_features(df)  # CORRIGIDO (se você renomeou a função)
+        df = add_text_message_features(df)
 
         # 3.8 LLM-derived features
         df = add_llm_features(df)
