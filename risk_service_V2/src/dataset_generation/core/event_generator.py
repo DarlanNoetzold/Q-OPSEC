@@ -11,7 +11,6 @@ import pandas as pd
 from src.common.config_loader import default_config_loader
 from src.common.logger import get_logger
 
-
 logger = get_logger("event_generator")
 
 
@@ -71,9 +70,38 @@ class EventGenerator:
         return random.choices(event_types, weights=weights, k=1)[0]
 
     def _sample_timestamp_for_user(self, start_date: datetime, end_date: datetime) -> datetime:
-        total_seconds = int((end_date - start_date).total_seconds())
-        offset = random.randint(0, total_seconds)
-        return start_date + timedelta(seconds=offset)
+        """
+        Gera um timestamp com padrão temporal realista (não-uniforme).
+        """
+        temporal = self.dataset_cfg.get("temporal_patterns", {})
+        hour_weights = temporal.get("events_by_hour_weights", None)
+
+        # Se não houver padrão temporal configurado, usar distribuição uniforme
+        if hour_weights is None:
+            total_seconds = int((end_date - start_date).total_seconds())
+            offset = random.randint(0, total_seconds)
+            return start_date + timedelta(seconds=offset)
+
+        # Normalizar pesos
+        hour_weights = np.array(hour_weights, dtype=float)
+        hour_weights = hour_weights / hour_weights.sum()
+
+        # Gerar data uniforme
+        total_days = (end_date - start_date).days
+        day_offset = random.randint(0, total_days)
+        base_date = start_date + timedelta(days=day_offset)
+
+        # Gerar hora com distribuição ponderada
+        hour = np.random.choice(np.arange(24), p=hour_weights)
+        minute = random.randint(0, 59)
+        second = random.randint(0, 59)
+
+        # Combinar
+        timestamp = base_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
+            hours=int(hour), minutes=minute, seconds=second
+        )
+
+        return timestamp
 
     def _sample_transaction_details(self, user_row: pd.Series) -> Dict:
         profile_cfg = self.user_profiles_cfg["profiles"][user_row["profile_name"]]
