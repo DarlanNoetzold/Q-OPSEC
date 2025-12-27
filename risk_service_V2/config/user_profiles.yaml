@@ -129,7 +129,7 @@ profiles:
       tor_prob: 0.01
 
   fraudster:
-    weight: 0.15
+    weight: 0.24
     user_type: individual
     user_segment: retail
     base_user_risk_class: high
