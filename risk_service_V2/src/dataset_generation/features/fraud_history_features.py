@@ -8,6 +8,55 @@ from src.common.logger import get_logger
 logger = get_logger("fraud_history_features")
 
 
+def compute_fraud_probability(row, config):
+    """
+    Calcula probabilidade de fraude baseada em múltiplos fatores.
+    """
+    # Taxa base
+    base_rate = config.get("fraud", {}).get("global_fraud_rate", 0.01)
+
+    # Multiplicadores
+    multipliers = config.get("fraud_multipliers", {})
+
+    # 1. Por classe de risco do usuário
+    user_risk = row.get("user_risk_class", "medium")
+    user_mult = multipliers.get("by_user_risk_class", {}).get(user_risk, 1.0)
+
+    # 2. Por canal
+    channel = row.get("channel", "web")
+    channel_mult = multipliers.get("by_channel", {}).get(channel, 1.0)
+
+    # 3. Por tipo de transação
+    tx_type = row.get("transaction_type", "pix")
+    tx_mult = multipliers.get("by_transaction_type", {}).get(tx_type, 1.0)
+
+    # 4. Por hora do dia
+    hour = pd.to_datetime(row["timestamp_utc"]).hour
+    temporal = config.get("temporal_patterns", {})
+
+    if hour < 6:
+        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("night", 1.8)
+    elif hour < 19:
+        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("business", 1.0)
+    else:
+        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("evening", 1.3)
+
+    # 5. Por dia da semana
+    dow = pd.to_datetime(row["timestamp_utc"]).dayofweek
+    if dow >= 5:  # sábado/domingo
+        dow_mult = temporal.get("fraud_day_multiplier", {}).get("weekend", 1.4)
+    else:
+        dow_mult = temporal.get("fraud_day_multiplier", {}).get("weekday", 1.0)
+
+    # Calcular probabilidade final
+    prob = base_rate * user_mult * channel_mult * tx_mult * hour_mult * dow_mult
+
+    # Aplicar limite máximo
+    max_prob = multipliers.get("max_fraud_probability", 0.40)
+    prob = min(prob, max_prob)
+
+    return prob
+
 def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
     """Add 1.8 Fraud / Abuse / Historical Risk features.
 
@@ -35,6 +84,8 @@ def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
     df["money_mule_score"] = 0.0
     df["device_fingerprint_match_count"] = 0
     df["ip_reputation_score"] = np.random.uniform(0.3, 0.9, size=len(df))
+    df["fraud_probability"] = df.apply(lambda row: compute_fraud_probability(row, config), axis=1)
+    df["is_fraud"] = df["fraud_probability"].apply(lambda p: np.random.rand() < p)
 
     # Money mule detection - only if we have recipients
     if "recipient_id" in df.columns:
