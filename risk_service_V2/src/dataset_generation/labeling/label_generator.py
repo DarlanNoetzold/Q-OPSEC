@@ -1,114 +1,116 @@
 from __future__ import annotations
 
-import random
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 
 from src.common.config_loader import default_config_loader
 from src.common.logger import get_logger
 
-
-logger = get_logger("labeling")
+logger = get_logger("label_generator")
 
 
 def apply_labels(events: pd.DataFrame) -> pd.DataFrame:
-    """Add 1.11 Labels / Ground Truth.
+    """Apply fraud labels based on synthetic rules and fraud scenarios.
 
-    Fields:
+    Creates:
       - is_fraud (0/1)
-      - fraud_type (e.g., account_takeover, card_testing, money_mule, phishing_induced, none)
-      - label_source (synthetic_rule, scenario_definition, manual_override)
-
-    Strategy (synthetic dataset):
-      - Use fraud_scenarios.yaml to set target overall fraud_rate.
-      - Sample a subset of events as fraud, with different patterns per scenario.
-      - For now, we use simple heuristics + random sampling by event_type/amount.
+      - fraud_type (str or None)
+      - label_source (str: 'rule_based', 'scenario', etc.)
+      - fraud_confidence (float 0-1)
     """
 
     df = events.copy()
 
-    scenarios_cfg = default_config_loader.load("fraud_scenarios.yaml")
+    # Load config
     dataset_cfg = default_config_loader.load("dataset_config.yaml")
+    fraud_rate = float(dataset_cfg.get("generation", {}).get("fraud_rate", 0.01))
 
-    fraud_rate = float(dataset_cfg.get("generation", {}).get("fraud_rate_overall", 0.01))
-
-    # Initialize labels
+    # Initialize label columns
     df["is_fraud"] = 0
-    df["fraud_type"] = "none"
-    df["label_source"] = "synthetic_rule"
+    df["fraud_type"] = None
+    df["label_source"] = "normal"
+    df["fraud_confidence"] = 0.0
 
-    n = len(df)
-    target_frauds = int(n * fraud_rate)
-    if target_frauds == 0:
-        logger.info("Target fraud count is 0; skipping fraud labeling.")
-        return df
+    # Calculate target number of fraudulent events
+    target_fraud_count = int(len(df) * fraud_rate)
+    logger.info(f"Targeting approximately {target_fraud_count} fraudulent events (rate={fraud_rate:.4f})")
 
-    logger.info("Targeting approximately {n} fraudulent events (rate={rate:.4f})", n=target_frauds, rate=fraud_rate)
+    # Build a risk score based on available features
+    score = np.zeros(len(df))
 
-    # Simple scoring / prioritization for sampling
-    # We prefer to mark as fraud:
-    #  - high amounts
-    #  - new recipients
-    #  - international transactions
-    #  - high historical risk
-    score = np.zeros(n)
+    # High-risk user class
+    if "user_risk_class" in df.columns:
+        score += (df["user_risk_class"] == "high").astype(float) * 5.0
 
-    # Only consider transactions for now
+    # Velocity alerts
+    if "velocity_alert_flag" in df.columns:
+        score += df["velocity_alert_flag"].fillna(0) * 3.0
+
+    # Blacklist hits
+    if "blacklist_hit" in df.columns:
+        score += df["blacklist_hit"].fillna(0) * 4.0
+
+    # Money mule score
+    if "money_mule_score" in df.columns:
+        score += df["money_mule_score"].fillna(0) * 3.0
+
+    # New recipient (only for transactions)
     tx_mask = df["event_type"] == "transaction"
-    idx_tx = np.where(tx_mask)[0]
+    if "is_new_recipient" in df.columns:
+        score[tx_mask] += df.loc[tx_mask, "is_new_recipient"].fillna(0) * 2.0
 
-    if len(idx_tx) == 0:
-        logger.warning("No transactions found; fraud labels will be all 0.")
-        return df
+    # High transaction amounts
+    if "amount" in df.columns:
+        # Normalize amount (z-score)
+        amounts = df["amount"].fillna(0)
+        if amounts.std() > 0:
+            amount_zscore = (amounts - amounts.mean()) / amounts.std()
+            score += np.clip(amount_zscore, 0, 3)  # Cap at 3 std devs
 
-    # Build score for transactions
-    score[tx_mask] += (df.loc[tx_mask, "amount"].fillna(0.0) / (df.loc[tx_mask, "amount"].fillna(0.0).median() + 1e-6)).clip(0, 10)
-    score[tx_mask] += df.loc[tx_mask, "is_new_recipient"].fillna(0) * 2.0
-    if "is_international" in df.columns:
-        score[tx_mask] += df.loc[tx_mask, "is_international"].fillna(0) * 2.0
-    if "risk_score_historical" in df.columns:
-        score[tx_mask] += df.loc[tx_mask, "risk_score_historical"].fillna(0) * 3.0
-    if "llm_risk_score_transaction" in df.columns:
-        score[tx_mask] += df.loc[tx_mask, "llm_risk_score_transaction"].fillna(0) * 2.0
+    # Unusual hours (late night/early morning)
+    if "hour_of_day" in df.columns:
+        unusual_hours = df["hour_of_day"].isin([0, 1, 2, 3, 4, 5])
+        score += unusual_hours.astype(float) * 1.5
 
-    # Normalize scores and sample top K as fraud
-    score_tx = score[idx_tx]
-    if score_tx.sum() <= 0:
-        # fallback: uniform random among transactions
-        fraud_indices_tx = np.random.choice(idx_tx, size=min(target_frauds, len(idx_tx)), replace=False)
-    else:
-        probs = score_tx / score_tx.sum()
-        fraud_indices_tx = np.random.choice(idx_tx, size=min(target_frauds, len(idx_tx)), replace=False, p=probs)
+    # VPN usage
+    if "is_vpn" in df.columns:
+        score += df["is_vpn"].fillna(0) * 2.0
 
-    df.loc[fraud_indices_tx, "is_fraud"] = 1
+    # Emulator
+    if "is_emulator" in df.columns:
+        score += df["is_emulator"].fillna(0) * 2.5
 
-    # Assign fraud_type roughly based on scenarios and simple heuristics
-    scenario_weights = scenarios_cfg.get("scenario_weights", {
-        "account_takeover": 0.3,
-        "card_testing": 0.2,
-        "money_mule": 0.2,
-        "phishing_induced": 0.3,
-    })
-    types, weights = zip(*scenario_weights.items())
+    # Select top-scoring events as fraud
+    if target_fraud_count > 0:
+        # Get indices of top N scores
+        fraud_indices = np.argsort(score)[-target_fraud_count:]
 
-    # Assign type per fraudulent event
-    for idx in fraud_indices_tx:
-        row = df.loc[idx]
-        ftype = random.choices(types, weights=weights, k=1)[0]
+        df.loc[fraud_indices, "is_fraud"] = 1
+        df.loc[fraud_indices, "label_source"] = "rule_based"
+        df.loc[fraud_indices, "fraud_confidence"] = np.random.uniform(0.7, 0.95, size=len(fraud_indices))
 
-        # Optionally refine type by characteristics
-        if row.get("is_new_recipient", 0) == 1 and row.get("amount", 0) > df["amount"].median():
-            # likely mule or phishing induced
-            ftype = random.choice(["money_mule", "phishing_induced"])
-        elif row.get("llm_phishing_score", 0) > 0.7:
-            ftype = "phishing_induced"
-        elif row.get("transactions_last_1h", 0) > 3 and row.get("amount", 0) < df["amount"].median():
-            ftype = "card_testing"
+        # Assign fraud types based on characteristics
+        fraud_df_indices = df.index[fraud_indices]
 
-        df.at[idx, "fraud_type"] = ftype
-        df.at[idx, "label_source"] = "scenario_definition"
+        for idx in fraud_df_indices:
+            if "money_mule_score" in df.columns and df.loc[idx, "money_mule_score"] > 0.5:
+                df.loc[idx, "fraud_type"] = "money_mule"
+            elif "velocity_alert_flag" in df.columns and df.loc[idx, "velocity_alert_flag"] == 1:
+                df.loc[idx, "fraud_type"] = "account_takeover"
+            elif "blacklist_hit" in df.columns and df.loc[idx, "blacklist_hit"] == 1:
+                df.loc[idx, "fraud_type"] = "blacklist"
+            else:
+                df.loc[idx, "fraud_type"] = np.random.choice([
+                    "card_testing",
+                    "synthetic_identity",
+                    "phishing_induced",
+                    "unauthorized_transaction"
+                ])
 
-    logger.info("Applied fraud labels to {n} events", n=int(df["is_fraud"].sum()))
+    fraud_count = df["is_fraud"].sum()
+    fraud_pct = (fraud_count / len(df)) * 100 if len(df) > 0 else 0
+
+    logger.info(f"Labels applied: {fraud_count} fraudulent events ({fraud_pct:.2f}%)")
+    logger.info(f"Fraud types distribution:\n{df[df['is_fraud'] == 1]['fraud_type'].value_counts()}")
+
     return df
