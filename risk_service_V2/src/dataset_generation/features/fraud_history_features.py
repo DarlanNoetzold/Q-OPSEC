@@ -12,76 +12,70 @@ def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
     """Add 1.8 Fraud / Abuse / Historical Risk features.
 
     Fields:
-      - user_fraud_history_count (total frauds for this user in the past)
-      - ip_fraud_history_count (total frauds for this IP in the past)
-      - device_fraud_history_count (total frauds for this device in the past)
-      - recipient_fraud_history_count (total frauds for this recipient in the past)
-      - is_blacklisted_user (placeholder)
-      - is_blacklisted_recipient (placeholder)
-      - risk_score_historical (0-1, synthetic based on counts)
-
-    Note: This module assumes 'is_fraud' label might be assigned later or
-    simulated based on scenarios. For the generation phase, we simulate
-    historical counts based on the user profile and scenario.
+      - previous_fraud_count
+      - previous_chargeback_count
+      - account_takeover_flag
+      - velocity_alert_flag
+      - blacklist_hit
+      - whitelist_hit
+      - money_mule_score
+      - device_fingerprint_match_count
+      - ip_reputation_score
     """
 
     df = events.copy()
 
-    # Ensure required columns for grouping
-    for col in ["user_id", "ip_address", "device_id", "recipient_id"]:
-        if col not in df.columns:
-            df[col] = None
+    # Initialize all fraud history columns with safe defaults
+    df["previous_fraud_count"] = 0
+    df["previous_chargeback_count"] = 0
+    df["account_takeover_flag"] = 0
+    df["velocity_alert_flag"] = 0
+    df["blacklist_hit"] = 0
+    df["whitelist_hit"] = 0
+    df["money_mule_score"] = 0.0
+    df["device_fingerprint_match_count"] = 0
+    df["ip_reputation_score"] = np.random.uniform(0.3, 0.9, size=len(df))
 
-    # Initialize columns
-    df["user_fraud_history_count"] = 0
-    df["ip_fraud_history_count"] = 0
-    df["device_fraud_history_count"] = 0
-    df["recipient_fraud_history_count"] = 0
-    df["is_blacklisted_user"] = 0
-    df["is_blacklisted_recipient"] = 0
-    df["risk_score_historical"] = 0.0
+    # Money mule detection - only if we have recipients
+    if "recipient_id" in df.columns:
+        unique_recipients = df["recipient_id"].dropna().unique()
 
-    # In a real dataset generation, we would look at 'is_fraud' labels of PREVIOUS events.
-    # Since we are generating the dataset now, we simulate these counts based on
-    # the user's risk class or profile.
+        if len(unique_recipients) > 0:
+            # Sample 1% as potential money mules
+            num_mules = max(1, int(len(unique_recipients) * 0.01))
+            mule_recipients = np.random.choice(
+                unique_recipients,
+                size=num_mules,
+                replace=False
+            )
 
-    # Heuristic simulation:
-    # High risk users/profiles get higher historical counts
+            # Mark transactions to these recipients
+            mask = df["recipient_id"].isin(mule_recipients)
+            df.loc[mask, "money_mule_score"] = np.random.uniform(0.6, 0.95, size=mask.sum())
+        else:
+            logger.warning("No recipients found in dataset, skipping money mule detection")
+
+    # Velocity alerts - based on temporal features if available
+    if "transactions_last_1h" in df.columns:
+        df.loc[df["transactions_last_1h"] > 10, "velocity_alert_flag"] = 1
+
+    # Blacklist/whitelist - random for now (2% blacklist, 15% whitelist)
+    df["blacklist_hit"] = np.random.choice([0, 1], size=len(df), p=[0.98, 0.02])
+    df["whitelist_hit"] = np.random.choice([0, 1], size=len(df), p=[0.85, 0.15])
+
+    # Device fingerprint matches - count how many times each device appears
+    if "device_id" in df.columns:
+        device_counts = df.groupby("device_id").size()
+        df["device_fingerprint_match_count"] = df["device_id"].map(device_counts).fillna(1).astype(int)
+
+    # Previous fraud/chargeback counts - synthetic based on user risk class
     if "user_risk_class" in df.columns:
         high_risk_mask = df["user_risk_class"] == "high"
-        # Randomly assign 1-3 historical frauds to some high risk users
-        df.loc[high_risk_mask, "user_fraud_history_count"] = np.random.choice([0, 1, 2, 3], size=high_risk_mask.sum(),
-                                                                              p=[0.7, 0.2, 0.07, 0.03])
+        df.loc[high_risk_mask, "previous_fraud_count"] = np.random.poisson(2, size=high_risk_mask.sum())
+        df.loc[high_risk_mask, "previous_chargeback_count"] = np.random.poisson(1, size=high_risk_mask.sum())
 
-    # IP/Device/Recipient counts:
-    # If IP is blacklisted (from geo_utils/network_catalog), set a high count
-    if "is_blacklisted_ip" in df.columns:
-        df.loc[df["is_blacklisted_ip"] == 1, "ip_fraud_history_count"] = np.random.randint(5, 50, size=(
-                    df["is_blacklisted_ip"] == 1).sum())
+    # Account takeover flag - rare event (0.5%)
+    df["account_takeover_flag"] = np.random.choice([0, 1], size=len(df), p=[0.995, 0.005])
 
-    # Recipient history:
-    # Some recipients are "mules" or known fraudsters
-    if "recipient_id" in df.columns:
-        # Simulate: 1% of recipients have a history
-        unique_recipients = df["recipient_id"].dropna().unique()
-        mule_recipients = np.random.choice(unique_recipients, size=max(1, int(len(unique_recipients) * 0.01)),
-                                           replace=False)
-        df.loc[df["recipient_id"].isin(mule_recipients), "recipient_fraud_history_count"] = np.random.randint(1, 10,
-                                                                                                              size=df[
-                                                                                                                  "recipient_id"].isin(
-                                                                                                                  mule_recipients).sum())
-        df.loc[df["recipient_id"].isin(mule_recipients), "is_blacklisted_recipient"] = 1
-
-    # Compute risk_score_historical (0-1)
-    # Simple weighted sum normalized
-    total_counts = (
-            df["user_fraud_history_count"] * 2.0 +
-            df["ip_fraud_history_count"] * 1.0 +
-            df["device_fraud_history_count"] * 1.5 +
-            df["recipient_fraud_history_count"] * 2.0
-    )
-    # Normalize to 0-1 range (clipping at a reasonable max like 20)
-    df["risk_score_historical"] = (total_counts / 20.0).clip(0, 1)
-
-    logger.info("Fraud history and historical risk features (1.8) added")
+    logger.info("Fraud/historical risk features (1.8) added")
     return df
