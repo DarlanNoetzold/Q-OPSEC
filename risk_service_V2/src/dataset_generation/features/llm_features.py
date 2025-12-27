@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
 from src.common.config_loader import default_config_loader
 from src.common.logger import get_logger
@@ -12,109 +11,121 @@ logger = get_logger("llm_features")
 
 
 def add_llm_features(events: pd.DataFrame) -> pd.DataFrame:
-    """Add 1.10 LLM-derived features.
+    """Add 1.10 LLM-derived features using Ollama.
 
     Fields:
-      - llm_risk_score_transaction (0-1)
-      - llm_risk_label_transaction (low, medium, high)
-      - llm_phishing_score (0-1)
-      - llm_phishing_label (legitimate, suspicious, phishing)
-      - llm_explanation_short (string)
-
-    This module uses OllamaClient to process a sample of events based on
-    dataset_config.yaml settings.
+      - llm_risk_score
+      - llm_risk_reasoning
+      - llm_phishing_detected
+      - llm_sentiment_score
+      - llm_urgency_score
     """
 
     df = events.copy()
+
+    # Load config
     dataset_cfg = default_config_loader.load("dataset_config.yaml")
-    llm_cfg = dataset_cfg.get("llm_processing", {})
+    llm_cfg = dataset_cfg.get("llm", {})
 
-    if not llm_cfg.get("enabled", False):
+    # ✅ CORREÇÃO: verificar a chave correta
+    llm_enabled = llm_cfg.get("enabled", False)
+
+    if not llm_enabled:
         logger.info("LLM processing disabled in config. Skipping.")
-        return _add_empty_llm_columns(df)
-
-    client = OllamaClient()
-    if not client.check_connection():
-        logger.error("Could not connect to Ollama. Skipping LLM features.")
-        return _add_empty_llm_columns(df)
-
-    sample_rate = float(llm_cfg.get("sample_rate", 0.1))
-
-    # Initialize columns
-    df = _add_empty_llm_columns(df)
-
-    # Identify events to process
-    # We prioritize transactions and events with text
-    tx_mask = df["event_type"] == "transaction"
-    text_mask = df["message_text"].notna()
-
-    eligible_indices = df[tx_mask | text_mask].index.tolist()
-    num_to_sample = int(len(eligible_indices) * sample_rate)
-
-    if num_to_sample == 0:
-        logger.info("No events sampled for LLM processing.")
+        # Initialize columns with default values
+        df["llm_risk_score"] = 0.0
+        df["llm_risk_reasoning"] = None
+        df["llm_phishing_detected"] = 0
+        df["llm_sentiment_score"] = 0.0
+        df["llm_urgency_score"] = 0.0
         return df
 
-    sampled_indices = np.random.choice(eligible_indices, size=num_to_sample, replace=False)
+    # Initialize Ollama client
+    try:
+        client = OllamaClient()
+        if not client.test_connection():
+            logger.warning("Ollama not available. Skipping LLM features.")
+            df["llm_risk_score"] = 0.0
+            df["llm_risk_reasoning"] = None
+            df["llm_phishing_detected"] = 0
+            df["llm_sentiment_score"] = 0.0
+            df["llm_urgency_score"] = 0.0
+            return df
+    except Exception as e:
+        logger.error(f"Failed to initialize Ollama client: {e}")
+        df["llm_risk_score"] = 0.0
+        df["llm_risk_reasoning"] = None
+        df["llm_phishing_detected"] = 0
+        df["llm_sentiment_score"] = 0.0
+        df["llm_urgency_score"] = 0.0
+        return df
 
-    logger.info("Processing {n} events with LLM (Ollama)...", n=num_to_sample)
+    # Get sample rates
+    sample_rates = llm_cfg.get("sample_rate", {})
+    batch_size = llm_cfg.get("batch_size", 16)
 
-    # Process in loop (could be batched if Ollama supported it better)
-    for idx in tqdm(sampled_indices, desc="LLM Processing"):
-        row = df.loc[idx]
+    # Initialize columns
+    df["llm_risk_score"] = 0.0
+    df["llm_risk_reasoning"] = None
+    df["llm_phishing_detected"] = 0
+    df["llm_sentiment_score"] = 0.0
+    df["llm_urgency_score"] = 0.0
 
-        # 1. Transaction Risk
-        if row["event_type"] == "transaction":
-            # Prepare context for LLM
-            tx_data = {
+    # Sample events for LLM processing
+    events_to_process = []
+
+    for event_type, rate in sample_rates.items():
+        if event_type == "other":
+            # Process other event types
+            mask = ~df["event_type"].isin(["transaction", "login"])
+        else:
+            mask = df["event_type"] == event_type
+
+        type_events = df[mask]
+        if len(type_events) > 0:
+            sample_size = int(len(type_events) * rate)
+            if sample_size > 0:
+                sampled = type_events.sample(n=min(sample_size, len(type_events)), random_state=42)
+                events_to_process.extend(sampled.index.tolist())
+
+    logger.info(f"Processing {len(events_to_process)} events with LLM (out of {len(df)} total)")
+
+    # Process in batches
+    for i in range(0, len(events_to_process), batch_size):
+        batch_indices = events_to_process[i:i + batch_size]
+
+        for idx in batch_indices:
+            row = df.loc[idx]
+
+            # Build context for LLM
+            context = {
+                "event_type": row.get("event_type"),
                 "amount": row.get("amount"),
-                "currency": row.get("currency"),
-                "type": row.get("transaction_type"),
                 "channel": row.get("channel"),
-                "recipient_type": row.get("recipient_type"),
-                "is_new_recipient": row.get("is_new_recipient"),
-                "distance_km": row.get("distance_from_registered_location_km"),
-                "speed_kmh": row.get("speed_from_last_event_kmh"),
-                "is_proxy": row.get("is_proxy"),
-                "historical_risk": row.get("risk_score_historical")
+                "message_text": row.get("message_text"),
+                "user_risk_class": row.get("user_risk_class"),
             }
-            res = client.assess_transaction_risk(tx_data)
-            df.at[idx, "llm_risk_score_transaction"] = res.get("risk_score", 0.0)
-            df.at[idx, "llm_risk_label_transaction"] = res.get("risk_label", "unknown")
-            df.at[idx, "llm_explanation_short"] = res.get("explanation", "")
 
-        # 2. Phishing Detection (if text exists)
-        if pd.notna(row["message_text"]):
-            res = client.detect_phishing(row["message_text"])
-            df.at[idx, "llm_phishing_score"] = res.get("phishing_score", 0.0)
-            df.at[idx, "llm_phishing_label"] = res.get("phishing_label", "unknown")
-            # Append explanation if already exists from transaction
-            existing_exp = df.at[idx, "llm_explanation_short"]
-            new_exp = res.get("explanation", "")
-            if existing_exp:
-                df.at[idx, "llm_explanation_short"] = f"{existing_exp} | {new_exp}"
-            else:
-                df.at[idx, "llm_explanation_short"] = new_exp
+            # Risk assessment
+            try:
+                risk_result = client.assess_transaction_risk(context)
+                df.loc[idx, "llm_risk_score"] = risk_result.get("risk_score", 0.0)
+                df.loc[idx, "llm_risk_reasoning"] = risk_result.get("reasoning", "")
+            except Exception as e:
+                logger.warning(f"LLM risk assessment failed for event {idx}: {e}")
 
-    logger.info("LLM features (1.10) added to sampled events")
-    return df
+            # Phishing detection (if message exists)
+            if pd.notna(row.get("message_text")):
+                try:
+                    phishing_result = client.detect_phishing(row["message_text"])
+                    df.loc[idx, "llm_phishing_detected"] = 1 if phishing_result.get("is_phishing", False) else 0
+                    df.loc[idx, "llm_sentiment_score"] = phishing_result.get("sentiment_score", 0.0)
+                    df.loc[idx, "llm_urgency_score"] = phishing_result.get("urgency_score", 0.0)
+                except Exception as e:
+                    logger.warning(f"LLM phishing detection failed for event {idx}: {e}")
 
+        if (i // batch_size + 1) % 10 == 0:
+            logger.info(f"Processed {i + len(batch_indices)}/{len(events_to_process)} events")
 
-def _add_empty_llm_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Initialize LLM columns with default/fallback values."""
-    llm_config = default_config_loader.load("llm_config.yaml")
-    fallbacks = llm_config.get("fallbacks", {})
-
-    cols = {
-        "llm_risk_score_transaction": fallbacks.get("risk_score", 0.0),
-        "llm_risk_label_transaction": "not_evaluated",
-        "llm_phishing_score": fallbacks.get("phishing_score", 0.0),
-        "llm_phishing_label": "not_evaluated",
-        "llm_explanation_short": None
-    }
-
-    for col, val in cols.items():
-        if col not in df.columns:
-            df[col] = val
-
+    logger.info("LLM features added")
     return df
