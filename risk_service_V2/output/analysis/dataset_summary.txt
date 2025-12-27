@@ -1,0 +1,110 @@
+================================================================================
+FRAUD DETECTION DATASET - SUMMARY REPORT
+================================================================================
+
+Total Events: 5,483,343
+Total Columns: 91
+Memory Usage: 10113.2 MB
+
+Dataset Splits:
+  full  :  5,483,343 rows
+  train :  3,838,340 rows
+  val   :    822,501 rows
+  test  :    822,502 rows
+
+Fraud Distribution:
+  Fraudulent:     54,833 ( 1.00%)
+  Legitimate:  5,428,510 (99.00%)
+
+Column List:
+    1. event_id
+    2. user_id
+    3. account_id
+    4. event_type
+    5. event_source
+    6. timestamp_utc
+    7. timezone
+    8. amount
+    9. currency
+   10. transaction_type
+   11. channel
+   12. timestamp_local
+   13. user_type
+   14. user_segment
+   15. user_risk_class
+   16. registered_country
+   17. registered_region
+   18. account_creation_date
+   19. account_age_days
+   20. sensitive_data_change_last_7d
+   21. registered_devices_count
+   22. active_devices_last_30d
+   23. hour_of_day
+   24. day_of_week
+   25. is_weekend
+   26. is_local_holiday
+   27. seconds_since_last_login
+   28. seconds_since_last_transaction
+   29. transactions_last_1h
+   30. transactions_last_24h
+   31. transactions_last_7d
+   32. transactions_last_30d
+   33. amount_sum_last_24h
+   34. amount_sum_last_7d
+   35. amount_sum_last_30d
+   36. amount_mean_last_30d
+   37. amount_std_last_30d
+   38. logins_last_24h
+   39. login_failures_last_24h
+   40. password_resets_last_30d
+   41. device_id
+   42. device_type
+   43. os_family
+   44. os_version
+   45. browser_family
+   46. browser_version
+   47. app_version
+   48. is_emulator
+   49. is_rooted_or_jailbroken
+   50. is_new_device_for_user
+   51. devices_last_30d
+   52. is_device_compromised
+   53. tls_version
+   54. cipher_strength_bits
+   55. waf_present
+   56. waf_vendor
+   57. ids_present
+   58. ips_present
+   59. antimalware_present
+   60. antimalware_vendor
+   61. mfa_enabled
+   62. mfa_method
+   63. device_binding_enabled
+   64. risk_engine_version
+   65. security_score_tech
+   66. previous_fraud_count
+   67. previous_chargeback_count
+   68. account_takeover_flag
+   69. velocity_alert_flag
+   70. blacklist_hit
+   71. whitelist_hit
+   72. money_mule_score
+   73. device_fingerprint_match_count
+   74. ip_reputation_score
+   75. message_text
+   76. message_length
+   77. message_language
+   78. contains_url
+   79. contains_phone
+   80. num_special_chars
+   81. llm_risk_score
+   82. llm_risk_reasoning
+   83. llm_phishing_detected
+   84. llm_sentiment_score
+   85. llm_urgency_score
+   86. is_fraud
+   87. fraud_type
+   88. label_source
+   89. fraud_confidence
+   90. hour
+   91. day
