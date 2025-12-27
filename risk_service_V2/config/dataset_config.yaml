@@ -6,7 +6,7 @@ output:
   processed_dir: "processed"
   splits_dir: "splits"
   file_prefix: "digital_security_dataset"
-  format: "parquet"   # or csv
+  format: "csv"   # or csv
 
 random_seed: 42
 
