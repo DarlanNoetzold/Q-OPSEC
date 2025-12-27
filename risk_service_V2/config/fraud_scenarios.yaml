@@ -6,7 +6,14 @@ scenarios:
     label_fraud_type: account_takeover
     default_label_risk_level: 3
     default_label_source: synthetic_scenario
+    amount_distribution:
+      type: lognormal
+      mean: 8.5      # valores altos (exp(8.5) ≈ R$ 4900)
+      sigma: 0.8     # alta variação
 
+      temporal_preference:
+        night_multiplier: 2.0    # 2x mais comum à noite
+        weekend_multiplier: 1.5
     description: "Attacker gains control of a legitimate account and performs high-risk actions."
 
     typical_patterns:
@@ -37,6 +44,15 @@ scenarios:
     label_fraud_type: card_testing
     default_label_risk_level: 2
     default_label_source: synthetic_scenario
+    amount_distribution:
+      type: uniform
+      min: 1.0       # valores muito baixos
+      max: 15.0
+
+    burst_pattern:
+      enabled: true
+      transactions_per_burst: [ 3, 8 ]  # 3 a 8 transações seguidas
+      interval_seconds: [ 10, 120 ]     # em 10s a 2min
 
     description: "Pequenas transações para testar validade de cartão/conta."
 
@@ -89,7 +105,14 @@ scenarios:
     label_fraud_type: phishing_induced
     default_label_risk_level: 3
     default_label_source: synthetic_scenario
+    amount_distribution:
+      type: lognormal
+      mean: 7.8
+      sigma: 0.6
 
+    temporal_preference:
+      night_multiplier: 1.8
+      weekend_multiplier: 2.0
     description: "Usuário legítimo é enganado por mensagem phishing/social engineering e realiza a transação."
 
     typical_patterns:
