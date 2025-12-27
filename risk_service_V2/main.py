@@ -33,7 +33,7 @@ def main() -> None:
     config_path = args.config
     # Allow passing either full path or just name under config/
     if not Path(config_path).exists():
-        config_path = str(Path("config") / config_path)
+        config_path = str(config_path)
 
     output_dir = Path(args.output_dir)
     logger.info("Using config: {cfg}", cfg=config_path)
