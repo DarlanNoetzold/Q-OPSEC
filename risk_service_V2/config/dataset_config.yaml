@@ -3,7 +3,7 @@ dataset:
   num_users: 500  # ← Era 5000, agora 500 (10x menos)
   start_date: "2025-01-01"
   end_date: "2025-03-31"  # ← 3 meses em vez de 1 ano
-  fraud_rate: 0.01
+  fraud_rate: 0.139
   random_seed: 42
 
 output:
@@ -42,7 +42,7 @@ generation:
 
 # Fraud prevalence and scenarios
 fraud:
-  global_fraud_rate: 0.01          # 1% of events fraudulent
+  global_fraud_rate: 0.138          # 1% of events fraudulent
   user_fraudster_rate: 0.02        # 2% of users primarily fraudulent
   max_labels_per_user: 50
 
@@ -103,3 +103,73 @@ splits:
   train_ratio: 0.70
   val_ratio: 0.15
   test_ratio: 0.15
+
+temporal_patterns:
+  # Peso de eventos por hora do dia (0-23)
+  # Valores maiores = mais eventos naquele horário
+  events_by_hour_weights:
+    - 0.2   # 00h - madrugada
+    - 0.1   # 01h
+    - 0.1   # 02h
+    - 0.1   # 03h
+    - 0.1   # 04h
+    - 0.2   # 05h
+    - 0.6   # 06h - início da manhã
+    - 1.0   # 07h
+    - 1.4   # 08h - horário comercial começa
+    - 1.6   # 09h
+    - 1.8   # 10h
+    - 2.0   # 11h - pico manhã
+    - 2.0   # 12h - almoço
+    - 2.1   # 13h - pico tarde
+    - 2.0   # 14h
+    - 2.0   # 15h
+    - 1.8   # 16h
+    - 1.6   # 17h
+    - 1.4   # 18h - fim do expediente
+    - 1.2   # 19h
+    - 0.8   # 20h - noite
+    - 0.6   # 21h
+    - 0.4   # 22h
+    - 0.3   # 23h
+
+  # Multiplicador de fraude por período
+  fraud_hour_multiplier:
+    night: 1.8      # 00h-05h (madrugada = mais fraude)
+    business: 1.0   # 06h-18h (horário comercial = normal)
+    evening: 1.3    # 19h-23h (noite = mais fraude)
+
+  # Multiplicador de fraude por dia da semana
+  fraud_day_multiplier:
+    weekday: 1.0    # Segunda a Sexta
+    weekend: 1.4    # Sábado e Domingo (mais fraude)
+
+
+# Fraud rate multipliers by context
+fraud_multipliers:
+  # Por classe de risco do usuário
+  by_user_risk_class:
+    low: 0.3        # usuários low risk têm 30% da taxa base
+    medium: 1.0     # taxa normal
+    high: 3.0       # 3x mais fraude
+    very_high: 5.0  # 5x mais fraude
+
+  # Por canal de transação
+  by_channel:
+    web: 1.0
+    mobile_android: 0.8
+    mobile_ios: 0.7
+    atm: 0.5
+    call_center: 1.5
+    api_partner: 2.0  # APIs de parceiros = mais risco
+
+  # Por tipo de transação
+  by_transaction_type:
+    pix: 1.2              # PIX = mais usado em fraude
+    internal_transfer: 0.8
+    bill_payment: 0.5     # pagamento de conta = menos fraude
+    card: 1.0
+    wire: 1.3
+
+  # Limites
+  max_fraud_probability: 0.40  # nunca passar de 40% para um único evento
