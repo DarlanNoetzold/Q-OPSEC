@@ -3,7 +3,7 @@
 connection:
   base_url: "http://localhost:11434"
   model: "llama3:8b"
-  timeout_seconds: 60
+  timeout_seconds: 180
 
 inference_params:
   temperature: 0.2
