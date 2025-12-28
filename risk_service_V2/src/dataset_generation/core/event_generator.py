@@ -41,13 +41,24 @@ class EventGenerator:
     Detailed features will be filled by feature modules later.
     """
 
-    def __init__(self, random_seed: int | None = None) -> None:
+    def __init__(self, users_df: pd.DataFrame) -> None:
+        """
+        Initialize EventGenerator with users DataFrame.
+
+        Args:
+            users_df: DataFrame containing user information
+        """
+        self.users_df = users_df
+
+        # Load configs
+        self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
+        self.user_profiles_cfg = default_config_loader.load("user_profiles.yaml")
+
+        # Set random seed if configured
+        random_seed = self.dataset_cfg.get("random_seed", None)
         if random_seed is not None:
             random.seed(random_seed)
             np.random.seed(random_seed)
-
-        self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
-        self.user_profiles_cfg = default_config_loader.load("user_profiles.yaml")
 
         self.event_mix = self._load_event_mix()
 
@@ -130,7 +141,7 @@ class EventGenerator:
             "channel": channel,
         }
 
-    def generate_events(self, users_df: pd.DataFrame) -> pd.DataFrame:
+    def generate_events(self) -> pd.DataFrame:
         """Generate events for each user.
 
         Returns a DataFrame of raw events with basic columns:
@@ -147,7 +158,7 @@ class EventGenerator:
         records: List[Dict] = []
         event_counter = 0
 
-        for _, user in users_df.iterrows():
+        for _, user in self.users_df.iterrows():
             n_events = self._sample_num_events_for_user(user["profile_name"], total_months)
 
             for _ in range(n_events):
@@ -183,7 +194,7 @@ class EventGenerator:
                 event_counter += 1
 
         events_df = pd.DataFrame.from_records(records)
-        logger.info("Generated {n} events", n=len(events_df))
+        logger.info("Generated {} events", len(events_df))
         return events_df
 
     def _infer_event_source(self, event_type: str, user_row: pd.Series) -> str:
