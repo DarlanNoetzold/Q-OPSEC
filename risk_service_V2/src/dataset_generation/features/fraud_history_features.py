@@ -3,59 +3,95 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from src.common.config_loader import default_config_loader
 from src.common.logger import get_logger
 
 logger = get_logger("fraud_history_features")
 
 
-def compute_fraud_probability(row, config):
+def compute_fraud_probability_vectorized(df: pd.DataFrame, config: dict) -> pd.Series:
     """
-    Calcula probabilidade de fraude baseada em múltiplos fatores.
+    Calcula probabilidade de fraude de forma vetorizada (muito mais rápido).
     """
     # Taxa base
     base_rate = config.get("fraud", {}).get("global_fraud_rate", 0.01)
+    logger.info(f"Base fraud rate: {base_rate:.4f} ({base_rate * 100:.2f}%)")
 
     # Multiplicadores
     multipliers = config.get("fraud_multipliers", {})
-
-    # 1. Por classe de risco do usuário
-    user_risk = row.get("user_risk_class", "medium")
-    user_mult = multipliers.get("by_user_risk_class", {}).get(user_risk, 1.0)
-
-    # 2. Por canal
-    channel = row.get("channel", "web")
-    channel_mult = multipliers.get("by_channel", {}).get(channel, 1.0)
-
-    # 3. Por tipo de transação
-    tx_type = row.get("transaction_type", "pix")
-    tx_mult = multipliers.get("by_transaction_type", {}).get(tx_type, 1.0)
-
-    # 4. Por hora do dia
-    hour = pd.to_datetime(row["timestamp_utc"]).hour
     temporal = config.get("temporal_patterns", {})
 
-    if hour < 6:
-        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("night", 1.8)
-    elif hour < 19:
-        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("business", 1.0)
-    else:
-        hour_mult = temporal.get("fraud_hour_multiplier", {}).get("evening", 1.3)
+    # 1. Por classe de risco do usuário
+    user_risk_map = multipliers.get("by_user_risk_class", {
+        "low": 0.3,
+        "medium": 1.0,
+        "high": 3.0,
+        "very_high": 5.0
+    })
+    user_mult = df["user_risk_class"].map(user_risk_map).fillna(1.0)
+
+    # 2. Por canal
+    channel_map = multipliers.get("by_channel", {
+        "web": 1.0,
+        "mobile_android": 0.8,
+        "mobile_ios": 0.7,
+        "atm": 0.5,
+        "call_center": 1.5,
+        "api_partner": 2.0
+    })
+    channel_mult = df["channel"].map(channel_map).fillna(1.0)
+
+    # 3. Por tipo de transação (só para transactions)
+    tx_type_map = multipliers.get("by_transaction_type", {
+        "pix": 1.2,
+        "internal_transfer": 0.8,
+        "bill_payment": 0.5,
+        "card": 1.0,
+        "wire": 1.3
+    })
+    tx_mult = df["transaction_type"].map(tx_type_map).fillna(1.0)
+
+    # 4. Por hora do dia
+    hour = pd.to_datetime(df["timestamp_utc"]).dt.hour
+
+    hour_mult_map = temporal.get("fraud_hour_multiplier", {
+        "night": 1.8,
+        "business": 1.0,
+        "evening": 1.3
+    })
+
+    hour_mult = pd.Series(1.0, index=df.index)
+    hour_mult[hour < 6] = hour_mult_map.get("night", 1.8)
+    hour_mult[(hour >= 6) & (hour < 19)] = hour_mult_map.get("business", 1.0)
+    hour_mult[hour >= 19] = hour_mult_map.get("evening", 1.3)
 
     # 5. Por dia da semana
-    dow = pd.to_datetime(row["timestamp_utc"]).dayofweek
-    if dow >= 5:  # sábado/domingo
-        dow_mult = temporal.get("fraud_day_multiplier", {}).get("weekend", 1.4)
-    else:
-        dow_mult = temporal.get("fraud_day_multiplier", {}).get("weekday", 1.0)
+    dow = pd.to_datetime(df["timestamp_utc"]).dt.dayofweek
+
+    dow_mult_map = temporal.get("fraud_day_multiplier", {
+        "weekday": 1.0,
+        "weekend": 1.4
+    })
+
+    dow_mult = pd.Series(dow_mult_map.get("weekday", 1.0), index=df.index)
+    dow_mult[dow >= 5] = dow_mult_map.get("weekend", 1.4)
 
     # Calcular probabilidade final
     prob = base_rate * user_mult * channel_mult * tx_mult * hour_mult * dow_mult
 
     # Aplicar limite máximo
     max_prob = multipliers.get("max_fraud_probability", 0.40)
-    prob = min(prob, max_prob)
+    prob = prob.clip(upper=max_prob)
+
+    # Log de estatísticas
+    logger.info(f"Fraud probability stats:")
+    logger.info(f"  Mean: {prob.mean():.4f} ({prob.mean() * 100:.2f}%)")
+    logger.info(f"  Median: {prob.median():.4f}")
+    logger.info(f"  Min: {prob.min():.4f}, Max: {prob.max():.4f}")
+    logger.info(f"  Std: {prob.std():.4f}")
 
     return prob
+
 
 def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
     """Add 1.8 Fraud / Abuse / Historical Risk features.
@@ -70,9 +106,14 @@ def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
       - money_mule_score
       - device_fingerprint_match_count
       - ip_reputation_score
+      - fraud_probability
+      - is_fraud
     """
 
     df = events.copy()
+
+    # Carregar configuração
+    config = default_config_loader.load("dataset_config.yaml")
 
     # Initialize all fraud history columns with safe defaults
     df["previous_fraud_count"] = 0
@@ -84,8 +125,18 @@ def add_fraud_history_features(events: pd.DataFrame) -> pd.DataFrame:
     df["money_mule_score"] = 0.0
     df["device_fingerprint_match_count"] = 0
     df["ip_reputation_score"] = np.random.uniform(0.3, 0.9, size=len(df))
-    df["fraud_probability"] = df.apply(lambda row: compute_fraud_probability(row, config), axis=1)
-    df["is_fraud"] = df["fraud_probability"].apply(lambda p: np.random.rand() < p)
+
+    # Calcular probabilidade de fraude (VETORIZADO - muito mais rápido!)
+    logger.info("Computing fraud probability for {} events (vectorized)...", len(df))
+    df["fraud_probability"] = compute_fraud_probability_vectorized(df, config)
+
+    # Gerar flag is_fraud baseado na probabilidade
+    random_values = np.random.rand(len(df))
+    df["is_fraud"] = (random_values < df["fraud_probability"]).astype(int)
+
+    fraud_count = df["is_fraud"].sum()
+    fraud_rate = fraud_count / len(df) * 100
+    logger.info("✅ Fraud rate: {:.2f}% ({} fraudulent events)", fraud_rate, fraud_count)
 
     # Money mule detection - only if we have recipients
     if "recipient_id" in df.columns:
