@@ -2,19 +2,19 @@
 FRAUD DETECTION DATASET - SUMMARY REPORT
 ================================================================================
 
-Total Events: 5,483,343
-Total Columns: 91
-Memory Usage: 10113.2 MB
+Total Events: 5,815,785
+Total Columns: 92
+Memory Usage: 10767.9 MB
 
 Dataset Splits:
-  full  :  5,483,343 rows
-  train :  3,838,340 rows
-  val   :    822,501 rows
-  test  :    822,502 rows
+  full  :  5,815,785 rows
+  train :  4,071,049 rows
+  val   :    872,367 rows
+  test  :    872,369 rows
 
 Fraud Distribution:
-  Fraudulent:     54,833 ( 1.00%)
-  Legitimate:  5,428,510 (99.00%)
+  Fraudulent:     58,157 ( 1.00%)
+  Legitimate:  5,757,628 (99.00%)
 
 Column List:
     1. event_id
@@ -91,20 +91,21 @@ Column List:
    72. money_mule_score
    73. device_fingerprint_match_count
    74. ip_reputation_score
-   75. message_text
-   76. message_length
-   77. message_language
-   78. contains_url
-   79. contains_phone
-   80. num_special_chars
-   81. llm_risk_score
-   82. llm_risk_reasoning
-   83. llm_phishing_detected
-   84. llm_sentiment_score
-   85. llm_urgency_score
-   86. is_fraud
-   87. fraud_type
-   88. label_source
-   89. fraud_confidence
-   90. hour
-   91. day
+   75. fraud_probability
+   76. is_fraud
+   77. message_text
+   78. message_length
+   79. message_language
+   80. contains_url
+   81. contains_phone
+   82. num_special_chars
+   83. llm_risk_score
+   84. llm_risk_reasoning
+   85. llm_phishing_detected
+   86. llm_sentiment_score
+   87. llm_urgency_score
+   88. fraud_type
+   89. label_source
+   90. fraud_confidence
+   91. hour
+   92. day
