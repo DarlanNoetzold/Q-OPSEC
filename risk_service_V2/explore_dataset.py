@@ -1,5 +1,6 @@
 """
 Dataset Explorer - Comprehensive analysis of generated fraud detection dataset
+Includes: data loading, analysis, validation, visualization, and format conversion
 """
 import pandas as pd
 import numpy as np
@@ -7,41 +8,199 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import warnings
+import sys
 
 warnings.filterwarnings('ignore')
 sns.set_style("whitegrid")
 
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from src.common.config_loader import default_config_loader
+
 # Configuration
 OUTPUT_DIR = Path("output")
 REPORT_DIR = Path("output/analysis")
-REPORT_DIR.mkdir(exist_ok=True)
+REPORT_DIR.mkdir(exist_ok=True, parents=True)
 
 
-def load_datasets():
-    """Load all parquet files."""
+def convert_csv_to_parquet():
+    """Convert CSV files to Parquet format for better performance."""
+    print("\n" + "=" * 80)
+    print("📦 CONVERTING CSV TO PARQUET")
     print("=" * 80)
+
+    files = ["dataset_full.csv", "dataset_train.csv", "dataset_val.csv", "dataset_test.csv"]
+    converted = []
+
+    for filename in files:
+        csv_path = OUTPUT_DIR / filename
+        parquet_path = OUTPUT_DIR / filename.replace(".csv", ".parquet")
+
+        if not csv_path.exists():
+            print(f"⚠️  {filename}: Not found, skipping")
+            continue
+
+        # Skip if parquet already exists and is newer
+        if parquet_path.exists() and parquet_path.stat().st_mtime > csv_path.stat().st_mtime:
+            print(f"✅ {filename}: Parquet already up-to-date")
+            converted.append(filename.replace(".csv", ".parquet"))
+            continue
+
+        print(f"\n📂 Converting {filename}...")
+
+        try:
+            # Read CSV in chunks
+            chunk_size = 500_000
+            chunks = []
+
+            for i, chunk in enumerate(pd.read_csv(csv_path, chunksize=chunk_size)):
+                chunks.append(chunk)
+                if (i + 1) % 5 == 0:
+                    print(f"   Read chunk {i + 1} ({len(chunk):,} rows)")
+
+            # Concatenate and save
+            df = pd.concat(chunks, ignore_index=True)
+            df.to_parquet(parquet_path, index=False, compression="snappy")
+
+            # Compare sizes
+            csv_size = csv_path.stat().st_size / 1024 / 1024
+            parquet_size = parquet_path.stat().st_size / 1024 / 1024
+            reduction = (1 - parquet_size / csv_size) * 100
+
+            print(f"   ✅ Saved to {parquet_path.name}")
+            print(f"   📊 CSV: {csv_size:.1f} MB → Parquet: {parquet_size:.1f} MB ({reduction:.1f}% reduction)")
+
+            converted.append(filename.replace(".csv", ".parquet"))
+
+        except Exception as e:
+            print(f"   ❌ Error converting {filename}: {e}")
+
+    return converted
+
+
+def load_datasets(prefer_parquet=True):
+    """Load all dataset files (parquet or csv)."""
+    print("\n" + "=" * 80)
     print("📂 LOADING DATASETS")
     print("=" * 80)
 
     datasets = {}
     files = {
-        "full": "dataset_full.parquet",
-        "train": "dataset_train.parquet",
-        "val": "dataset_val.parquet",
-        "test": "dataset_test.parquet"
+        "full": "dataset_full",
+        "train": "dataset_train",
+        "val": "dataset_val",
+        "test": "dataset_test"
     }
 
-    for name, filename in files.items():
-        filepath = OUTPUT_DIR / filename
-        if filepath.exists():
-            df = pd.read_parquet(filepath)
-            datasets[name] = df
-            print(
-                f"✅ {name:6s}: {len(df):>10,} rows | {len(df.columns):>3} columns | {df.memory_usage(deep=True).sum() / 1024 ** 2:>6.1f} MB")
-        else:
-            print(f"⚠️  {name:6s}: File not found")
+    for name, base_filename in files.items():
+        # Try parquet first, then csv
+        loaded = False
+
+        if prefer_parquet:
+            parquet_path = OUTPUT_DIR / f"{base_filename}.parquet"
+            if parquet_path.exists():
+                try:
+                    df = pd.read_parquet(parquet_path)
+                    datasets[name] = df
+                    print(
+                        f"✅ {name:6s}: {len(df):>10,} rows | {len(df.columns):>3} columns | "
+                        f"{df.memory_usage(deep=True).sum() / 1024 ** 2:>6.1f} MB (parquet)"
+                    )
+                    loaded = True
+                except Exception as e:
+                    print(f"⚠️  {name:6s}: Error loading parquet: {e}")
+
+        if not loaded:
+            csv_path = OUTPUT_DIR / f"{base_filename}.csv"
+            if csv_path.exists():
+                try:
+                    df = pd.read_csv(csv_path)
+                    datasets[name] = df
+                    print(
+                        f"✅ {name:6s}: {len(df):>10,} rows | {len(df.columns):>3} columns | "
+                        f"{df.memory_usage(deep=True).sum() / 1024 ** 2:>6.1f} MB (csv)"
+                    )
+                    loaded = True
+                except Exception as e:
+                    print(f"⚠️  {name:6s}: Error loading csv: {e}")
+
+        if not loaded:
+            print(f"❌ {name:6s}: File not found")
 
     return datasets
+
+
+def validate_schema(datasets):
+    """Validate dataset against expected schema."""
+    print("\n" + "=" * 80)
+    print("🔍 SCHEMA VALIDATION")
+    print("=" * 80)
+
+    df_full = datasets.get("full")
+    if df_full is None:
+        print("⚠️  Full dataset not available for validation")
+        return
+
+    try:
+        # Load schema
+        schema = default_config_loader.load("schema_fields.yaml")
+        actual_cols = set(df_full.columns)
+
+        print(f"\n📋 Dataset columns: {len(actual_cols)}")
+
+        # Check each section
+        all_expected = set()
+        missing_by_section = {}
+        present_by_section = {}
+
+        for section_name, section_data in schema.items():
+            if not isinstance(section_data, dict):
+                continue
+
+            fields = section_data.get("fields", {})
+            expected_cols = set(fields.keys())
+            all_expected.update(expected_cols)
+
+            missing = expected_cols - actual_cols
+            present = expected_cols & actual_cols
+
+            present_by_section[section_name] = len(present)
+
+            if missing:
+                missing_by_section[section_name] = missing
+                print(f"\n⚠️  {section_name}:")
+                print(f"   Expected: {len(expected_cols)}, Found: {len(present)}, Missing: {len(missing)}")
+                for col in sorted(list(missing)[:5]):  # Show first 5
+                    print(f"     • {col}")
+                if len(missing) > 5:
+                    print(f"     ... and {len(missing) - 5} more")
+            else:
+                print(f"\n✅ {section_name}: All {len(expected_cols)} fields present")
+
+        # Summary
+        print("\n" + "=" * 80)
+        print("📊 VALIDATION SUMMARY")
+        print("=" * 80)
+        print(f"Expected columns: {len(all_expected)}")
+        print(f"Actual columns:   {len(actual_cols)}")
+        print(f"Missing columns:  {len(all_expected - actual_cols)}")
+        print(f"Extra columns:    {len(actual_cols - all_expected)}")
+
+        if actual_cols - all_expected:
+            extra = actual_cols - all_expected
+            print(f"\n➕ Extra columns not in schema ({len(extra)}):")
+            for col in sorted(list(extra)[:10]):
+                print(f"   • {col}")
+            if len(extra) > 10:
+                print(f"   ... and {len(extra) - 10} more")
+
+        # Coverage percentage
+        coverage = len(actual_cols & all_expected) / len(all_expected) * 100
+        print(f"\n📈 Schema coverage: {coverage:.1f}%")
+
+    except Exception as e:
+        print(f"❌ Error during schema validation: {e}")
 
 
 def analyze_basic_info(datasets):
@@ -58,7 +217,13 @@ def analyze_basic_info(datasets):
     print(f"\nTotal events: {len(df_full):,}")
     print(f"Total columns: {len(df_full.columns)}")
     print(f"Memory usage: {df_full.memory_usage(deep=True).sum() / 1024 ** 2:.1f} MB")
-    print(f"Date range: {df_full['timestamp_utc'].min()} to {df_full['timestamp_utc'].max()}")
+
+    if "timestamp_utc" in df_full.columns:
+        try:
+            df_full["timestamp_utc"] = pd.to_datetime(df_full["timestamp_utc"])
+            print(f"Date range: {df_full['timestamp_utc'].min()} to {df_full['timestamp_utc'].max()}")
+        except:
+            pass
 
     # Data types
     print("\n📋 Column Types:")
@@ -127,10 +292,12 @@ def analyze_fraud_distribution(datasets):
         # Fraud types
         if "fraud_type" in df.columns:
             print(f"\n  Fraud Types:")
-            fraud_types = df[df["is_fraud"] == True]["fraud_type"].value_counts()
-            for fraud_type, count in fraud_types.items():
-                pct = (count / fraud_count) * 100
-                print(f"    • {fraud_type:30s}: {count:>8,} ({pct:>5.1f}%)")
+            fraud_df = df[df["is_fraud"] == 1]
+            if len(fraud_df) > 0:
+                fraud_types = fraud_df["fraud_type"].value_counts()
+                for fraud_type, count in fraud_types.items():
+                    pct = (count / fraud_count) * 100 if fraud_count > 0 else 0
+                    print(f"    • {fraud_type:30s}: {count:>8,} ({pct:>5.1f}%)")
 
 
 def analyze_temporal_patterns(datasets):
@@ -143,22 +310,27 @@ def analyze_temporal_patterns(datasets):
     if df_full is None or "timestamp_utc" not in df_full.columns:
         return
 
-    df_full["hour"] = pd.to_datetime(df_full["timestamp_utc"]).dt.hour
-    df_full["day"] = pd.to_datetime(df_full["timestamp_utc"]).dt.day_name()
+    try:
+        df_full["timestamp_utc"] = pd.to_datetime(df_full["timestamp_utc"])
+        df_full["hour"] = df_full["timestamp_utc"].dt.hour
+        df_full["day"] = df_full["timestamp_utc"].dt.day_name()
 
-    # Events by hour
-    print("\nEvents by Hour of Day:")
-    hourly = df_full.groupby("hour").size()
-    for hour, count in hourly.items():
-        bar = "█" * int(count / hourly.max() * 50)
-        print(f"  {hour:02d}:00 | {bar} {count:,}")
+        # Events by hour
+        print("\nEvents by Hour of Day:")
+        hourly = df_full.groupby("hour").size()
+        for hour, count in hourly.items():
+            bar = "█" * int(count / hourly.max() * 50)
+            print(f"  {hour:02d}:00 | {bar} {count:,}")
 
-    # Events by day
-    print("\nEvents by Day of Week:")
-    daily = df_full["day"].value_counts()
-    for day, count in daily.items():
-        bar = "█" * int(count / daily.max() * 50)
-        print(f"  {day:10s} | {bar} {count:,}")
+        # Events by day
+        print("\nEvents by Day of Week:")
+        daily = df_full["day"].value_counts()
+        for day, count in daily.items():
+            bar = "█" * int(count / daily.max() * 50)
+            print(f"  {day:10s} | {bar} {count:,}")
+
+    except Exception as e:
+        print(f"⚠️  Error analyzing temporal patterns: {e}")
 
 
 def analyze_user_behavior(datasets):
@@ -262,7 +434,7 @@ def analyze_llm_features(datasets):
         print(f"    Non-null: {non_null:>10,} ({non_null_pct:>5.1f}%)")
 
         if non_null > 0:
-            if df_full[col].dtype in [np.float64, np.int64]:
+            if df_full[col].dtype in [np.float64, np.float32, np.int64, np.int32]:
                 print(f"    Mean:     {df_full[col].mean():>10.4f}")
                 print(f"    Median:   {df_full[col].median():>10.4f}")
                 print(f"    Min:      {df_full[col].min():>10.4f}")
@@ -312,82 +484,100 @@ def generate_visualizations(datasets):
 
     # 1. Fraud distribution
     if "is_fraud" in df_full.columns:
-        fig, ax = plt.subplots(figsize=(8, 6))
-        fraud_counts = df_full["is_fraud"].value_counts()
-        ax.bar(["Legitimate", "Fraudulent"], fraud_counts.values, color=["green", "red"], alpha=0.7)
-        ax.set_ylabel("Count")
-        ax.set_title("Fraud vs Legitimate Events")
-        for i, v in enumerate(fraud_counts.values):
-            ax.text(i, v + len(df_full) * 0.01, f"{v:,}\n({v / len(df_full):.1%})", ha="center")
-        plt.tight_layout()
-        plt.savefig(REPORT_DIR / "fraud_distribution.png", dpi=150)
-        plt.close()
-        print("  ✅ fraud_distribution.png")
+        try:
+            fig, ax = plt.subplots(figsize=(8, 6))
+            fraud_counts = df_full["is_fraud"].value_counts()
+            ax.bar(["Legitimate", "Fraudulent"], fraud_counts.values, color=["green", "red"], alpha=0.7)
+            ax.set_ylabel("Count")
+            ax.set_title("Fraud vs Legitimate Events")
+            for i, v in enumerate(fraud_counts.values):
+                ax.text(i, v + len(df_full) * 0.01, f"{v:,}\n({v / len(df_full):.1%})", ha="center")
+            plt.tight_layout()
+            plt.savefig(REPORT_DIR / "fraud_distribution.png", dpi=150)
+            plt.close()
+            print("  ✅ fraud_distribution.png")
+        except Exception as e:
+            print(f"  ❌ Error generating fraud_distribution.png: {e}")
 
     # 2. Fraud types
     if "fraud_type" in df_full.columns:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        fraud_types = df_full[df_full["is_fraud"] == True]["fraud_type"].value_counts()
-        fraud_types.plot(kind="barh", ax=ax, color="coral")
-        ax.set_xlabel("Count")
-        ax.set_title("Fraud Types Distribution")
-        plt.tight_layout()
-        plt.savefig(REPORT_DIR / "fraud_types.png", dpi=150)
-        plt.close()
-        print("  ✅ fraud_types.png")
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fraud_df = df_full[df_full["is_fraud"] == 1]
+            if len(fraud_df) > 0:
+                fraud_types = fraud_df["fraud_type"].value_counts()
+                fraud_types.plot(kind="barh", ax=ax, color="coral")
+                ax.set_xlabel("Count")
+                ax.set_title("Fraud Types Distribution")
+                plt.tight_layout()
+                plt.savefig(REPORT_DIR / "fraud_types.png", dpi=150)
+                plt.close()
+                print("  ✅ fraud_types.png")
+        except Exception as e:
+            print(f"  ❌ Error generating fraud_types.png: {e}")
 
     # 3. Transaction amounts
     if "amount" in df_full.columns:
-        transactions = df_full[df_full["event_type"] == "transaction"]
-        if len(transactions) > 0:
-            fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        try:
+            transactions = df_full[df_full["event_type"] == "transaction"]
+            if len(transactions) > 0:
+                fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-            # Histogram
-            axes[0].hist(transactions["amount"], bins=50, color="skyblue", edgecolor="black", alpha=0.7)
-            axes[0].set_xlabel("Amount")
-            axes[0].set_ylabel("Frequency")
-            axes[0].set_title("Transaction Amount Distribution")
+                # Histogram
+                axes[0].hist(transactions["amount"], bins=50, color="skyblue", edgecolor="black", alpha=0.7)
+                axes[0].set_xlabel("Amount")
+                axes[0].set_ylabel("Frequency")
+                axes[0].set_title("Transaction Amount Distribution")
 
-            # Box plot by fraud status
-            if "is_fraud" in transactions.columns:
-                transactions.boxplot(column="amount", by="is_fraud", ax=axes[1])
-                axes[1].set_xlabel("Is Fraud")
-                axes[1].set_ylabel("Amount")
-                axes[1].set_title("Amount by Fraud Status")
-                plt.suptitle("")
+                # Box plot by fraud status
+                if "is_fraud" in transactions.columns:
+                    transactions.boxplot(column="amount", by="is_fraud", ax=axes[1])
+                    axes[1].set_xlabel("Is Fraud")
+                    axes[1].set_ylabel("Amount")
+                    axes[1].set_title("Amount by Fraud Status")
+                    plt.suptitle("")
 
-            plt.tight_layout()
-            plt.savefig(REPORT_DIR / "transaction_amounts.png", dpi=150)
-            plt.close()
-            print("  ✅ transaction_amounts.png")
+                plt.tight_layout()
+                plt.savefig(REPORT_DIR / "transaction_amounts.png", dpi=150)
+                plt.close()
+                print("  ✅ transaction_amounts.png")
+        except Exception as e:
+            print(f"  ❌ Error generating transaction_amounts.png: {e}")
 
     # 4. Temporal patterns
     if "timestamp_utc" in df_full.columns:
-        df_full["hour"] = pd.to_datetime(df_full["timestamp_utc"]).dt.hour
+        try:
+            df_full["timestamp_utc"] = pd.to_datetime(df_full["timestamp_utc"])
+            df_full["hour"] = df_full["timestamp_utc"].dt.hour
 
-        fig, ax = plt.subplots(figsize=(12, 6))
-        hourly = df_full.groupby("hour").size()
-        ax.plot(hourly.index, hourly.values, marker="o", linewidth=2, markersize=6)
-        ax.set_xlabel("Hour of Day")
-        ax.set_ylabel("Number of Events")
-        ax.set_title("Events by Hour of Day")
-        ax.grid(alpha=0.3)
-        plt.tight_layout()
-        plt.savefig(REPORT_DIR / "temporal_patterns.png", dpi=150)
-        plt.close()
-        print("  ✅ temporal_patterns.png")
+            fig, ax = plt.subplots(figsize=(12, 6))
+            hourly = df_full.groupby("hour").size()
+            ax.plot(hourly.index, hourly.values, marker="o", linewidth=2, markersize=6)
+            ax.set_xlabel("Hour of Day")
+            ax.set_ylabel("Number of Events")
+            ax.set_title("Events by Hour of Day")
+            ax.grid(alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(REPORT_DIR / "temporal_patterns.png", dpi=150)
+            plt.close()
+            print("  ✅ temporal_patterns.png")
+        except Exception as e:
+            print(f"  ❌ Error generating temporal_patterns.png: {e}")
 
     # 5. Correlation heatmap (numeric features only)
-    numeric_cols = df_full.select_dtypes(include=[np.number]).columns[:20]  # First 20 numeric
-    if len(numeric_cols) > 1:
-        fig, ax = plt.subplots(figsize=(12, 10))
-        corr = df_full[numeric_cols].corr()
-        sns.heatmap(corr, annot=False, cmap="coolwarm", center=0, ax=ax, square=True)
-        ax.set_title("Feature Correlation Heatmap (Top 20 Numeric Features)")
-        plt.tight_layout()
-        plt.savefig(REPORT_DIR / "correlation_heatmap.png", dpi=150)
-        plt.close()
-        print("  ✅ correlation_heatmap.png")
+    try:
+        numeric_cols = df_full.select_dtypes(include=[np.number]).columns[:20]  # First 20 numeric
+        if len(numeric_cols) > 1:
+            fig, ax = plt.subplots(figsize=(12, 10))
+            corr = df_full[numeric_cols].corr()
+            sns.heatmap(corr, annot=False, cmap="coolwarm", center=0, ax=ax, square=True)
+            ax.set_title("Feature Correlation Heatmap (Top 20 Numeric Features)")
+            plt.tight_layout()
+            plt.savefig(REPORT_DIR / "correlation_heatmap.png", dpi=150)
+            plt.close()
+            print("  ✅ correlation_heatmap.png")
+    except Exception as e:
+        print(f"  ❌ Error generating correlation_heatmap.png: {e}")
 
     print(f"\n📁 Visualizations saved to: {REPORT_DIR}/")
 
@@ -437,14 +627,20 @@ def main():
     print("FRAUD DETECTION DATASET EXPLORER")
     print("🔍" * 40 + "\n")
 
-    # Load datasets
-    datasets = load_datasets()
+    # Step 1: Convert CSV to Parquet (if needed)
+    convert_csv_to_parquet()
+
+    # Step 2: Load datasets (prefer parquet)
+    datasets = load_datasets(prefer_parquet=True)
 
     if not datasets:
         print("\n❌ No datasets found in output/ directory")
         return
 
-    # Run analyses
+    # Step 3: Validate schema
+    validate_schema(datasets)
+
+    # Step 4: Run analyses
     analyze_basic_info(datasets)
     analyze_columns(datasets)
     analyze_fraud_distribution(datasets)
@@ -454,10 +650,10 @@ def main():
     analyze_llm_features(datasets)
     analyze_missing_data(datasets)
 
-    # Generate visualizations
+    # Step 5: Generate visualizations
     generate_visualizations(datasets)
 
-    # Export report
+    # Step 6: Export report
     export_summary_report(datasets)
 
     print("\n" + "=" * 80)
