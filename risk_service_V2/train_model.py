@@ -1,6 +1,3 @@
-"""
-Train Model - Entry point for model training
-"""
 import argparse
 from pathlib import Path
 
@@ -56,13 +53,14 @@ def main():
     logger.info(f"Log level: {args.log_level}")
 
     # Load configuration
-    config_loader = ConfigLoader(args.config)
-    config = config_loader.get_all()
+    config_path = Path(args.config)
+    config_loader = ConfigLoader(config_path.parent)
+
+    config = config_loader.load(config_path.name)
 
     # Initialize trainer
     trainer = ModelTrainer(config)
 
-    # Run training pipeline
     try:
         trainer.run()
         logger.info("\n✅ Training completed successfully!")
