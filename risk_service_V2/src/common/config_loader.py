@@ -38,6 +38,18 @@ class ConfigLoader:
         self._cache[stem] = data
         return data
 
+    def get_all(self) -> dict:
+        """Return the full configuration dictionary from cache.
+
+        If cache is empty, returns empty dict. Use load() first to populate.
+        """
+        # Se o cache tiver apenas 1 arquivo carregado, retorna ele
+        if len(self._cache) == 1:
+            return list(self._cache.values())[0]
+
+        # Se tiver múltiplos ou nenhum, retorna o cache inteiro
+        return self._cache if self._cache else {}
+
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get a value using dot-separated path.
 
