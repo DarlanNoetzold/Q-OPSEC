@@ -116,12 +116,22 @@ class ModelTrainer:
         logger.info("TRAINING MODELS")
         logger.info("=" * 80)
 
+        failed_models = []
+
         for model_name, model in self.models.items():
             try:
                 model.train(X_train, y_train, X_val, y_val)
             except Exception as e:
                 logger.error(f"❌ Failed to train {model_name}: {e}")
-                del self.models[model_name]
+                import traceback
+                logger.error(traceback.format_exc())
+                failed_models.append(model_name)
+
+        for model_name in failed_models:
+            del self.models[model_name]
+
+        if failed_models:
+            logger.warning(f"⚠️  {len(failed_models)} model(s) failed to train: {', '.join(failed_models)}")
 
     def _optimize_thresholds(self, X_val, y_val):
         """Optimize classification thresholds."""
