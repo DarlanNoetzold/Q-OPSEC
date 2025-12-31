@@ -25,6 +25,7 @@ class BaseModel(ABC):
         """
         self.config = config
         self.model_name = model_name
+        self.name = model_name
         self.model = None
         self.best_threshold = 0.5
         self.feature_names = None
