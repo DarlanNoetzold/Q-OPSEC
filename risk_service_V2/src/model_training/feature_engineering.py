@@ -3,7 +3,7 @@ Feature Engineering - Transform and prepare features for modeling
 """
 import pandas as pd
 import numpy as np
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Dict
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 import pickle
@@ -15,7 +15,7 @@ from src.common.logger import logger
 class FeatureEngineer:
     """Transform and engineer features for model training."""
 
-    def __init__(self, config: dict, feature_info: dict):
+    def __init__(self, config: dict, feature_info: Optional[Dict] = None):
         """
         Initialize FeatureEngineer.
 
@@ -25,6 +25,10 @@ class FeatureEngineer:
         """
         self.config = config
         self.fe_config = config.get("feature_engineering", {})
+
+        # Handle feature_info
+        if feature_info is None:
+            feature_info = {}
         self.feature_info = feature_info
 
         self.numeric_features = feature_info.get("numeric_features", [])
@@ -41,18 +45,18 @@ class FeatureEngineer:
     def fit_transform(
             self,
             X_train: pd.DataFrame,
-            y_train: pd.Series,
             X_val: pd.DataFrame,
-            X_test: pd.DataFrame
+            X_test: pd.DataFrame,
+            y_train: Optional[pd.Series] = None
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
         Fit transformers on training data and transform all splits.
 
         Args:
             X_train: Training features
-            y_train: Training target
             X_val: Validation features
             X_test: Test features
+            y_train: Training target (optional, needed for feature selection)
 
         Returns:
             Tuple of (X_train_transformed, X_val_transformed, X_test_transformed)
@@ -60,6 +64,10 @@ class FeatureEngineer:
         logger.info("\n" + "=" * 80)
         logger.info("FEATURE ENGINEERING")
         logger.info("=" * 80)
+
+        # Auto-detect feature types if not provided
+        if not self.numeric_features and not self.categorical_features:
+            self._identify_feature_types(X_train)
 
         # 1. Encode categorical features
         X_train, X_val, X_test = self._encode_categorical(X_train, X_val, X_test)
@@ -69,12 +77,38 @@ class FeatureEngineer:
 
         # 3. Feature selection (optional)
         if self.fe_config.get("feature_selection", {}).get("enabled", False):
-            X_train, X_val, X_test = self._select_features(X_train, y_train, X_val, X_test)
+            if y_train is not None:
+                X_train, X_val, X_test = self._select_features(X_train, y_train, X_val, X_test)
+            else:
+                logger.warning("   ⚠️  Feature selection enabled but y_train not provided, skipping")
 
         logger.info(f"\n✅ Feature engineering completed")
         logger.info(f"   Final feature count: {X_train.shape[1]}")
 
         return X_train, X_val, X_test
+
+    def _identify_feature_types(self, X: pd.DataFrame) -> None:
+        """Identify numeric and categorical features."""
+        logger.info(f"\n🔍 Auto-detecting feature types:")
+
+        self.numeric_features = []
+        self.categorical_features = []
+
+        for col in X.columns:
+            dtype = X[col].dtype
+
+            if dtype in ['int64', 'float64', 'int32', 'float32']:
+                # Check if it's actually categorical (low cardinality)
+                unique_count = X[col].nunique()
+                if unique_count <= 20 and dtype in ['int64', 'int32']:
+                    self.categorical_features.append(col)
+                else:
+                    self.numeric_features.append(col)
+            else:
+                self.categorical_features.append(col)
+
+        logger.info(f"   Numeric features:     {len(self.numeric_features)}")
+        logger.info(f"   Categorical features: {len(self.categorical_features)}")
 
     def _encode_categorical(
             self,
@@ -96,26 +130,31 @@ class FeatureEngineer:
         # Filter to existing columns
         cat_features = [f for f in self.categorical_features if f in X_train.columns]
 
+        # Create copies to avoid SettingWithCopyWarning
+        X_train = X_train.copy()
+        X_val = X_val.copy()
+        X_test = X_test.copy()
+
         if encoding_method == "label":
             # Label encoding
             for col in cat_features:
                 le = LabelEncoder()
 
                 # Fit on train
-                X_train[col] = X_train[col].astype(str)
+                X_train.loc[:, col] = X_train[col].astype(str)
                 le.fit(X_train[col])
 
                 # Transform all splits
-                X_train[col] = le.transform(X_train[col])
+                X_train.loc[:, col] = le.transform(X_train[col])
 
                 # Handle unseen categories in val/test
-                X_val[col] = X_val[col].astype(str)
-                X_val[col] = X_val[col].apply(
+                X_val.loc[:, col] = X_val[col].astype(str)
+                X_val.loc[:, col] = X_val[col].apply(
                     lambda x: le.transform([x])[0] if x in le.classes_ else -1
                 )
 
-                X_test[col] = X_test[col].astype(str)
-                X_test[col] = X_test[col].apply(
+                X_test.loc[:, col] = X_test[col].astype(str)
+                X_test.loc[:, col] = X_test[col].apply(
                     lambda x: le.transform([x])[0] if x in le.classes_ else -1
                 )
 
@@ -150,17 +189,17 @@ class FeatureEngineer:
             if remaining_cat:
                 for col in remaining_cat:
                     le = LabelEncoder()
-                    X_train[col] = X_train[col].astype(str)
+                    X_train.loc[:, col] = X_train[col].astype(str)
                     le.fit(X_train[col])
-                    X_train[col] = le.transform(X_train[col])
+                    X_train.loc[:, col] = le.transform(X_train[col])
 
-                    X_val[col] = X_val[col].astype(str)
-                    X_val[col] = X_val[col].apply(
+                    X_val.loc[:, col] = X_val[col].astype(str)
+                    X_val.loc[:, col] = X_val[col].apply(
                         lambda x: le.transform([x])[0] if x in le.classes_ else -1
                     )
 
-                    X_test[col] = X_test[col].astype(str)
-                    X_test[col] = X_test[col].apply(
+                    X_test.loc[:, col] = X_test[col].astype(str)
+                    X_test.loc[:, col] = X_test[col].apply(
                         lambda x: le.transform([x])[0] if x in le.classes_ else -1
                     )
 
@@ -170,24 +209,21 @@ class FeatureEngineer:
 
         elif encoding_method == "target":
             # Target encoding (mean encoding)
+            logger.warning(f"   ⚠️  Target encoding not fully implemented, using label encoding")
+
             for col in cat_features:
-                # Calculate mean target per category
-                target_means = X_train.groupby(col)[col].count()  # Placeholder
-                # Note: Proper target encoding requires y_train, which we'll skip for simplicity
-                logger.warning(f"   ⚠️  Target encoding not fully implemented, using label encoding")
-
                 le = LabelEncoder()
-                X_train[col] = X_train[col].astype(str)
+                X_train.loc[:, col] = X_train[col].astype(str)
                 le.fit(X_train[col])
-                X_train[col] = le.transform(X_train[col])
+                X_train.loc[:, col] = le.transform(X_train[col])
 
-                X_val[col] = X_val[col].astype(str)
-                X_val[col] = X_val[col].apply(
+                X_val.loc[:, col] = X_val[col].astype(str)
+                X_val.loc[:, col] = X_val[col].apply(
                     lambda x: le.transform([x])[0] if x in le.classes_ else -1
                 )
 
-                X_test[col] = X_test[col].astype(str)
-                X_test[col] = X_test[col].apply(
+                X_test.loc[:, col] = X_test[col].astype(str)
+                X_test.loc[:, col] = X_test[col].apply(
                     lambda x: le.transform([x])[0] if x in le.classes_ else -1
                 )
 
@@ -222,6 +258,11 @@ class FeatureEngineer:
         if not num_features:
             return X_train, X_val, X_test
 
+        # Create copies
+        X_train = X_train.copy()
+        X_val = X_val.copy()
+        X_test = X_test.copy()
+
         # Select scaler
         if scaling_method == "standard":
             self.scaler = StandardScaler()
@@ -234,9 +275,9 @@ class FeatureEngineer:
             self.scaler = StandardScaler()
 
         # Fit and transform
-        X_train[num_features] = self.scaler.fit_transform(X_train[num_features])
-        X_val[num_features] = self.scaler.transform(X_val[num_features])
-        X_test[num_features] = self.scaler.transform(X_test[num_features])
+        X_train.loc[:, num_features] = self.scaler.fit_transform(X_train[num_features])
+        X_val.loc[:, num_features] = self.scaler.transform(X_val[num_features])
+        X_test.loc[:, num_features] = self.scaler.transform(X_test[num_features])
 
         logger.info(f"   ✅ Scaling applied to {len(num_features)} features")
 
@@ -253,7 +294,7 @@ class FeatureEngineer:
         logger.info(f"\n🎯 Feature Selection:")
 
         fs_config = self.fe_config.get("feature_selection", {})
-        method = fs_config.get("method", "importance")
+        method = fs_config.get("method", "mutual_info")
         top_k = fs_config.get("top_k", 50)
 
         logger.info(f"   Method: {method}")
@@ -303,6 +344,38 @@ class FeatureEngineer:
             logger.warning(f"   ⚠️  Unknown feature selection method: {method}")
 
         return X_train, X_val, X_test
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform new data using fitted encoders and scalers.
+
+        Args:
+            X: Features to transform
+
+        Returns:
+            Transformed features
+        """
+        X = X.copy()
+
+        # Encode categorical
+        for col, le in self.label_encoders.items():
+            if col in X.columns:
+                X.loc[:, col] = X[col].astype(str)
+                X.loc[:, col] = X[col].apply(
+                    lambda x: le.transform([x])[0] if x in le.classes_ else -1
+                )
+
+        # Scale numeric
+        if self.scaler is not None:
+            num_features = [f for f in self.numeric_features if f in X.columns]
+            if num_features:
+                X.loc[:, num_features] = self.scaler.transform(X[num_features])
+
+        # Select features
+        if self.selected_features is not None:
+            X = X[self.selected_features]
+
+        return X
 
     def save_preprocessor(self, output_dir: Path, version: str) -> None:
         """Save fitted preprocessors."""
