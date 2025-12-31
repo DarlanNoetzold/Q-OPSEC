@@ -59,3 +59,7 @@ class RandomForestModel(BaseModel):
         ).sort_values("importance", ascending=False)
 
         return df
+    def score(self, X: pd.DataFrame, y: pd.Series) -> float:
+        if not self.is_trained or self.model is None:
+            raise ValueError(f"Model {self.name} is not trained yet")
+        return self.model.score(X, y)
