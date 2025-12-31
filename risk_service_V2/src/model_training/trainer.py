@@ -11,7 +11,7 @@ from datetime import datetime
 
 from src.common.logger import logger
 from src.model_training.data_loader import DataLoader
-from src.model_training.feature_engineer import FeatureEngineer
+from src.model_training.feature_engineering import FeatureEngineer
 from src.model_training.models.model_factory import ModelFactory
 from src.model_training.utils.evaluator import ModelEvaluator
 
@@ -141,26 +141,42 @@ class ModelTrainer:
         return y
 
     def _initialize_models(self) -> None:
-        """Initialize all models."""
+        """Initialize models based on configuration."""
         logger.info("\n" + "=" * 80)
         logger.info("INITIALIZING MODELS")
         logger.info("=" * 80)
 
         model_configs = self.config.get("models", {})
 
-        for model_name, model_config in model_configs.items():
-            if model_config.get("enabled", True):
+        # Get list of enabled models
+        enabled_models = model_configs.get("enabled", [])
+
+        if not enabled_models:
+            raise ValueError("No models enabled in configuration (models.enabled is empty)")
+
+        logger.info(f"   Enabled models: {enabled_models}")
+
+        # Initialize each enabled model
+        for model_name in enabled_models:
+            if model_name in model_configs:
                 try:
+                    # 👇 CORREÇÃO: create_model() só precisa do nome
                     model = self.model_factory.create_model(model_name)
                     self.trained_models[model_name] = {
                         "model": model,
-                        "config": model_config
+                        "config": model_configs[model_name],
+                        "trained": False
                     }
                     logger.info(f"   ✅ {model_name} initialized")
                 except Exception as e:
                     logger.error(f"   ❌ Failed to initialize {model_name}: {e}")
+            else:
+                logger.warning(f"   ⚠️  {model_name} enabled but no config found, skipping")
 
-        logger.info(f"\n✅ {len(self.trained_models)} models ready for training")
+        if not self.trained_models:
+            raise ValueError("No models successfully initialized")
+
+        logger.info(f"\n📊 Total models to train: {len(self.trained_models)}")
 
     def _train_models(
             self,
