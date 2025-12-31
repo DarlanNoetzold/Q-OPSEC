@@ -13,8 +13,10 @@ class LogisticRegressionModel(BaseModel):
     """Logistic Regression classifier."""
 
     def __init__(self, config: dict):
-        super().__init__("logistic_regression", config)
-        self.params = config.get("logistic_regression", {}).get("params", {})
+        super().__init__(config, model_name='logistic_regression')
+
+        self.model_config = config.get('models', {}).get('logistic_regression', {})
+        self.params = self.model_config.get('params', {})
 
     def train(
         self,
