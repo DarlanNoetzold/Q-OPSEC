@@ -1,50 +1,53 @@
+"""
+Train fraud detection models
+"""
 import argparse
 from pathlib import Path
+import yaml
 
-from src.common.config_loader import ConfigLoader
-from src.common.logger import logger
 from src.model_training.trainer import ModelTrainer
+from src.common.logger import logger
 
 
 def parse_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Train fraud detection models")
+
     parser.add_argument(
         "--config",
         type=str,
         default="config/training_config.yaml",
-        help="Path to training configuration file",
+        help="Path to training configuration file"
     )
+
     parser.add_argument(
         "--log-level",
         type=str,
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Logging level",
+        help="Logging level"
     )
+
     return parser.parse_args()
 
 
+def load_config(path: str) -> dict:
+    """Load YAML config file as dict."""
+    config_path = Path(path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
 def main():
+    """Main training function."""
+    # Parse arguments
     args = parse_args()
 
-    # Configure logger
-    logger.remove()
-    logger.add(
-        lambda msg: print(msg, end=""),
-        level=args.log_level,
-        colorize=True,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level:8}</level> | <level>{message}</level>",
-    )
-
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
-    logger.add(
-        log_dir / "training.log",
-        level=args.log_level,
-        rotation="10 MB",
-        retention="30 days",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level:8} | {message}",
-    )
+    # Load configuration (direto, sem ConfigLoader)
+    config = load_config(args.config)
 
     logger.info("=" * 80)
     logger.info("FRAUD DETECTION MODEL TRAINING")
@@ -52,20 +55,21 @@ def main():
     logger.info(f"Config file: {args.config}")
     logger.info(f"Log level: {args.log_level}")
 
-    # Load configuration
-    config_path = Path(args.config)
-    config_loader = ConfigLoader(config_path.parent)
-
-    config = config_loader.load(config_path.name)
-
-    # Initialize trainer
-    trainer = ModelTrainer(config)
-
     try:
-        trainer.run()
-        logger.info("\n✅ Training completed successfully!")
+        # Initialize trainer
+        trainer = ModelTrainer(config)
+
+        # Run training pipeline
+        trainer.train_pipeline()
+
+        logger.info("\n" + "=" * 80)
+        logger.info("✅ TRAINING COMPLETED SUCCESSFULLY")
+        logger.info("=" * 80)
+
     except Exception as e:
         logger.error(f"\n❌ Training failed: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
