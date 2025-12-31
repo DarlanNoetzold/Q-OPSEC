@@ -13,8 +13,10 @@ class XGBoostModel(BaseModel):
     """XGBoost classifier."""
 
     def __init__(self, config: dict):
-        super().__init__("xgboost", config)
-        self.params = config.get("xgboost", {}).get("params", {})
+        super().__init__(config, model_name='xgboost')
+
+        self.model_config = config.get('models', {}).get('xgboost', {})
+        self.params = self.model_config.get('params', {})
 
     def train(
         self,
