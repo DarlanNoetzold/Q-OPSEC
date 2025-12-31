@@ -46,15 +46,15 @@ class ModelFactory:
         key = model_type.lower()
 
         if key in ("logistic_regression", "logreg", "lr"):
-            return LogisticRegressionModel(model_cfg).build()
+            return LogisticRegressionModel(model_cfg)
 
         if key in ("random_forest", "rf"):
-            return RandomForestModel(model_cfg).build()
+            return RandomForestModel(model_cfg)
 
         if key in ("lightgbm", "lgbm", "lgb"):
-            return LightGBMModel(model_cfg).build()
+            return LightGBMModel(model_cfg)
 
         if key in ("xgboost", "xgb"):
-            return XGBoostModel(model_cfg).build()
+            return XGBoostModel(model_cfg)
 
         raise ValueError(f"Unknown model type: '{model_type}' for model '{model_name}'")
