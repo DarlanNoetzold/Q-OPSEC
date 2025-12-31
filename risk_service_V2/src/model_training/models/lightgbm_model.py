@@ -13,8 +13,10 @@ class LightGBMModel(BaseModel):
     """LightGBM classifier."""
 
     def __init__(self, config: dict):
-        super().__init__("lightgbm", config)
-        self.params = config.get("lightgbm", {}).get("params", {})
+        super().__init__(config, model_name='lightgbm')
+
+        self.model_config = config.get('models', {}).get('lightgbm', {})
+        self.params = self.model_config.get('params', {})
 
     def train(
         self,
