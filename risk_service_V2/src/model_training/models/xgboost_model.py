@@ -35,6 +35,8 @@ class XGBoostModel(BaseModel):
         eval_set = [(X_train, y_train), (X_val, y_val)]
 
         self.model = xgb.XGBClassifier(**self.params)
+        self.model = xgb.XGBClassifier(**self.params, enable_categorical=True)
+
 
         if early_stopping_enabled:
             self.model.fit(
@@ -71,5 +73,10 @@ class XGBoostModel(BaseModel):
                 "importance": importance,
             }
         ).sort_values("importance", ascending=False)
+
+    def score(self, X: pd.DataFrame, y: pd.Series) -> float:
+        if not self.is_trained or self.model is None:
+            raise ValueError(f"Model {self.name} is not trained yet")
+        return self.model.score(X, y)
 
         return df
