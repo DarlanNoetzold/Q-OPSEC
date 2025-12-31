@@ -131,7 +131,39 @@ class DataLoader:
         X_test = test_df[self.feature_columns].copy()
         y_test = test_df[self.target_column].copy()
 
-        # Handle missing values
+        # 👇 NOVO: Limpar NaN do target ANTES de processar features
+        logger.info("\n🎯 Cleaning target variable:")
+        logger.info(f"   Train y NaN: {y_train.isnull().sum()}")
+        logger.info(f"   Val y NaN:   {y_val.isnull().sum()}")
+        logger.info(f"   Test y NaN:  {y_test.isnull().sum()}")
+
+        # Remove rows where target is NaN
+        if y_train.isnull().any():
+            mask = ~y_train.isnull()
+            X_train = X_train[mask]
+            y_train = y_train[mask]
+            logger.warning(f"   ⚠️  Removed {(~mask).sum()} rows with NaN target from train")
+
+        if y_val.isnull().any():
+            mask = ~y_val.isnull()
+            X_val = X_val[mask]
+            y_val = y_val[mask]
+            logger.warning(f"   ⚠️  Removed {(~mask).sum()} rows with NaN target from val")
+
+        if y_test.isnull().any():
+            mask = ~y_test.isnull()
+            X_test = X_test[mask]
+            y_test = y_test[mask]
+            logger.warning(f"   ⚠️  Removed {(~mask).sum()} rows with NaN target from test")
+
+        # Ensure target is integer (0 or 1)
+        y_train = y_train.astype(int)
+        y_val = y_val.astype(int)
+        y_test = y_test.astype(int)
+
+        logger.info("   ✅ Target variable cleaned")
+
+        # Handle missing values in features
         X_train, X_val, X_test = self._handle_missing_values(X_train, X_val, X_test)
 
         # Balance classes if enabled
@@ -209,6 +241,11 @@ class DataLoader:
         numeric_strategy = strategy_config.get("numeric", "median")
         categorical_strategy = strategy_config.get("categorical", "mode")
 
+        # 👇 CORREÇÃO: Usar .loc[] e criar cópias explícitas
+        X_train = X_train.copy()
+        X_val = X_val.copy()
+        X_test = X_test.copy()
+
         # Handle numeric features
         for col in self.numeric_features:
             if col not in X_train.columns:
@@ -222,11 +259,15 @@ class DataLoader:
                 elif numeric_strategy == "zero":
                     fill_value = 0
                 else:
-                    continue
+                    fill_value = 0
 
-                X_train[col].fillna(fill_value, inplace=True)
-                X_val[col].fillna(fill_value, inplace=True)
-                X_test[col].fillna(fill_value, inplace=True)
+                # Se fill_value for NaN (coluna toda vazia), usar 0
+                if pd.isna(fill_value):
+                    fill_value = 0
+
+                X_train.loc[:, col] = X_train[col].fillna(fill_value)
+                X_val.loc[:, col] = X_val[col].fillna(fill_value)
+                X_test.loc[:, col] = X_test[col].fillna(fill_value)
 
         # Handle categorical features
         for col in self.categorical_features:
@@ -235,17 +276,32 @@ class DataLoader:
 
             if X_train[col].isna().any():
                 if categorical_strategy == "mode":
-                    fill_value = X_train[col].mode()[0] if len(X_train[col].mode()) > 0 else "unknown"
+                    mode_values = X_train[col].mode()
+                    fill_value = mode_values[0] if len(mode_values) > 0 else "unknown"
                 elif categorical_strategy == "unknown":
                     fill_value = "unknown"
                 else:
-                    continue
+                    fill_value = "unknown"
 
-                X_train[col].fillna(fill_value, inplace=True)
-                X_val[col].fillna(fill_value, inplace=True)
-                X_test[col].fillna(fill_value, inplace=True)
+                X_train.loc[:, col] = X_train[col].fillna(fill_value)
+                X_val.loc[:, col] = X_val[col].fillna(fill_value)
+                X_test.loc[:, col] = X_test[col].fillna(fill_value)
 
-        logger.info(f"   ✅ Missing values handled")
+        # 👇 NOVO: Preenchimento final forçado para garantir que não há NaN
+        X_train = X_train.fillna(0)
+        X_val = X_val.fillna(0)
+        X_test = X_test.fillna(0)
+
+        # Verificação final
+        final_train_missing = X_train.isna().sum().sum()
+        final_val_missing = X_val.isna().sum().sum()
+        final_test_missing = X_test.isna().sum().sum()
+
+        if final_train_missing > 0 or final_val_missing > 0 or final_test_missing > 0:
+            logger.warning(f"   ⚠️  Still have NaN after filling: "
+                          f"Train={final_train_missing}, Val={final_val_missing}, Test={final_test_missing}")
+        else:
+            logger.info(f"   ✅ Missing values handled")
 
         return X_train, X_val, X_test
 
