@@ -81,6 +81,13 @@ class ModelTrainer:
             X_train, X_val, X_test
         )
 
+        # 3.1 Convert categorical columns to category dtype for XGBoost and LightGBM
+        categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
+        for col in categorical_cols:
+            X_train[col] = X_train[col].astype('category')
+            X_val[col] = X_val[col].astype('category')
+            X_test[col] = X_test[col].astype('category')
+
         # 4. Initialize models
         self._initialize_models()
 
@@ -197,7 +204,7 @@ class ModelTrainer:
                 model = model_info["model"]
 
                 # Train
-                model.fit(X_train, y_train)
+                model.train(X_train, y_train, X_val, y_val)
 
                 # Quick validation
                 train_acc = model.score(X_train, y_train)
