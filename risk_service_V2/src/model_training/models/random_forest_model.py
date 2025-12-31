@@ -13,8 +13,10 @@ class RandomForestModel(BaseModel):
     """Random Forest classifier."""
 
     def __init__(self, config: dict):
-        super().__init__("random_forest", config)
-        self.params = config.get("random_forest", {}).get("params", {})
+        super().__init__(config, model_name='random_forest')
+
+        self.model_config = config.get('models', {}).get('random_forest', {})
+        self.params = self.model_config.get('params', {})
 
     def train(
         self,
