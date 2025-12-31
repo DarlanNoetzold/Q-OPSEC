@@ -1,44 +1,54 @@
 """
-Trainer - Main training orchestrator
+Model Trainer - Train and evaluate fraud detection models
 """
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Dict
-from datetime import datetime
+from typing import Dict, Any, List, Optional
 import json
+import joblib
+from datetime import datetime
 
 from src.common.logger import logger
 from src.model_training.data_loader import DataLoader
-from src.model_training.feature_engineering import FeatureEngineer
-from src.model_training.utils.model_registry import ModelRegistry
-from src.model_training.evaluation.metrics import MetricsCalculator
-from src.model_training.evaluation.visualizer import Visualizer
+from src.model_training.feature_engineer import FeatureEngineer
+from src.model_training.models.model_factory import ModelFactory
+from src.model_training.utils.evaluator import ModelEvaluator
 
 
 class ModelTrainer:
-    """Orchestrate the complete model training pipeline."""
+    """Train and evaluate fraud detection models."""
 
     def __init__(self, config: dict):
-        self.config = config
-        self.output_config = config.get("output", {})
-        self.training_config = config.get("training", {})
+        """
+        Initialize ModelTrainer.
 
-        self.models_dir = Path(self.output_config.get("models_dir", "output/models"))
-        self.eval_dir = Path(self.output_config.get("evaluation_dir", "output/evaluation"))
+        Args:
+            config: Training configuration dictionary
+        """
+        self.config = config
+        self.version = datetime.now().strftime("v%Y%m%d_%H%M%S")
+
+        # Initialize components
+        self.data_loader = DataLoader(config)
+        self.feature_engineer = FeatureEngineer(config)
+        self.model_factory = ModelFactory(config)
+        self.evaluator = ModelEvaluator(config)
+
+        # Output directories
+        self.models_dir = Path(config.get("output", {}).get("models_dir", "output/models"))
+        self.eval_dir = Path(config.get("output", {}).get("evaluation_dir", "output/evaluation"))
+
+        self.models_dir = self.models_dir / self.version
+        self.eval_dir = self.eval_dir / self.version
 
         self.models_dir.mkdir(parents=True, exist_ok=True)
         self.eval_dir.mkdir(parents=True, exist_ok=True)
 
-        self.version = self._generate_version()
-
-        self.data_loader = DataLoader(config)
-        self.model_registry = ModelRegistry(config)
-        self.metrics_calculator = MetricsCalculator(config)
-        self.visualizer = Visualizer(config, self.eval_dir)
-
-        self.models = {}
-        self.all_metrics = {}
+        # Storage
+        self.trained_models: Dict[str, Any] = {}
+        self.metrics: Dict[str, Dict[str, Any]] = {}
+        self.optimal_thresholds: Dict[str, float] = {}
 
         logger.info("=" * 80)
         logger.info("MODEL TRAINER INITIALIZED")
@@ -47,25 +57,13 @@ class ModelTrainer:
         logger.info(f"Models dir: {self.models_dir}")
         logger.info(f"Evaluation dir: {self.eval_dir}")
 
-    def _generate_version(self) -> str:
-        """Generate version string."""
-        versioning = self.output_config.get("versioning", {})
-        if not versioning.get("enabled", True):
-            return "v1"
-
-        format_type = versioning.get("format", "timestamp")
-        if format_type == "timestamp":
-            return datetime.now().strftime("v%Y%m%d_%H%M%S")
-        else:
-            return "v1"
-
-    def run(self):
-        """Run the complete training pipeline."""
+    def train_pipeline(self) -> None:
+        """Execute the complete training pipeline."""
         logger.info("\n" + "=" * 80)
         logger.info("STARTING TRAINING PIPELINE")
         logger.info("=" * 80)
 
-        # 1. Load data
+        # 1. Load datasets
         train_df, val_df, test_df = self.data_loader.load_datasets()
 
         # 2. Prepare features
@@ -73,187 +71,275 @@ class ModelTrainer:
             train_df, val_df, test_df
         )
 
+        # 👇 CORREÇÃO CRÍTICA: Garantir que y é 1D array
+        y_train = self._ensure_1d(y_train, "y_train")
+        y_val = self._ensure_1d(y_val, "y_val")
+        y_test = self._ensure_1d(y_test, "y_test")
+
         # 3. Feature engineering
-        feature_info = self.data_loader.get_feature_info()
-        feature_engineer = FeatureEngineer(self.config, feature_info)
-        X_train, X_val, X_test = feature_engineer.fit_transform(
-            X_train, y_train, X_val, X_test
+        X_train, X_val, X_test = self.feature_engineer.fit_transform(
+            X_train, X_val, X_test
         )
 
         # 4. Initialize models
-        self.models = self.model_registry.create_models()
-
-        if not self.models:
-            logger.error("❌ No models to train. Exiting.")
-            return
+        self._initialize_models()
 
         # 5. Train models
-        self._train_all_models(X_train, y_train, X_val, y_val)
+        self._train_models(X_train, y_train, X_val, y_val)
 
         # 6. Optimize thresholds
-        if self.training_config.get("threshold_optimization", {}).get("enabled", True):
-            self._optimize_thresholds(X_val, y_val)
+        self._optimize_thresholds(X_val, y_val)
 
         # 7. Evaluate on test set
-        self._evaluate_all_models(X_test, y_test)
+        self._evaluate_models(X_test, y_test)
 
-        # 8. Save models and artifacts
-        self._save_all_artifacts(feature_engineer, X_train.columns.tolist())
+        # 8. Save artifacts
+        self._save_artifacts()
 
-        # 9. Generate comparison report
-        self._generate_comparison_report()
+        # 9. Compare models
+        self._compare_models()
 
         logger.info("\n" + "=" * 80)
         logger.info("✅ TRAINING PIPELINE COMPLETED")
         logger.info("=" * 80)
         logger.info(f"Version: {self.version}")
-        logger.info(f"Models trained: {len(self.models)}")
-        logger.info(f"Artifacts saved to: {self.models_dir / self.version}")
+        logger.info(f"Models trained: {len(self.trained_models)}")
+        logger.info(f"Artifacts saved to: {self.models_dir}")
 
-    def _train_all_models(self, X_train, y_train, X_val, y_val):
+    def _ensure_1d(self, y: pd.Series, name: str) -> np.ndarray:
+        """
+        Ensure target variable is 1D numpy array.
+
+        Args:
+            y: Target variable
+            name: Variable name for logging
+
+        Returns:
+            1D numpy array
+        """
+        if isinstance(y, pd.DataFrame):
+            logger.warning(f"   ⚠️  {name} is DataFrame, converting to 1D array")
+            y = y.values.ravel()
+        elif isinstance(y, pd.Series):
+            y = y.values
+
+        # Ensure 1D
+        if len(y.shape) > 1:
+            logger.warning(f"   ⚠️  {name} is {y.shape}, flattening to 1D")
+            y = y.ravel()
+
+        # Remove NaN
+        if np.isnan(y).any():
+            logger.warning(f"   ⚠️  {name} contains {np.isnan(y).sum()} NaN values")
+            raise ValueError(f"{name} contains NaN values after cleaning")
+
+        # Ensure integer
+        y = y.astype(int)
+
+        logger.info(f"   ✅ {name} shape: {y.shape}, dtype: {y.dtype}, unique: {np.unique(y)}")
+
+        return y
+
+    def _initialize_models(self) -> None:
+        """Initialize all models."""
+        logger.info("\n" + "=" * 80)
+        logger.info("INITIALIZING MODELS")
+        logger.info("=" * 80)
+
+        model_configs = self.config.get("models", {})
+
+        for model_name, model_config in model_configs.items():
+            if model_config.get("enabled", True):
+                try:
+                    model = self.model_factory.create_model(model_name)
+                    self.trained_models[model_name] = {
+                        "model": model,
+                        "config": model_config
+                    }
+                    logger.info(f"   ✅ {model_name} initialized")
+                except Exception as e:
+                    logger.error(f"   ❌ Failed to initialize {model_name}: {e}")
+
+        logger.info(f"\n✅ {len(self.trained_models)} models ready for training")
+
+    def _train_models(
+            self,
+            X_train: pd.DataFrame,
+            y_train: np.ndarray,
+            X_val: pd.DataFrame,
+            y_val: np.ndarray
+    ) -> None:
         """Train all models."""
         logger.info("\n" + "=" * 80)
         logger.info("TRAINING MODELS")
         logger.info("=" * 80)
 
-        failed_models = []
+        for model_name, model_info in self.trained_models.items():
+            logger.info(f"\n🚀 Training {model_name.upper()}...")
 
-        for model_name, model in self.models.items():
             try:
-                model.train(X_train, y_train, X_val, y_val)
+                model = model_info["model"]
+
+                # Train
+                model.fit(X_train, y_train)
+
+                # Quick validation
+                train_acc = model.score(X_train, y_train)
+                val_acc = model.score(X_val, y_val)
+
+                logger.info(f"   ✅ {model_name} trained")
+                logger.info(f"      Train accuracy: {train_acc:.4f}")
+                logger.info(f"      Val accuracy:   {val_acc:.4f}")
+
+                # Store trained model
+                model_info["trained"] = True
+                model_info["train_accuracy"] = train_acc
+                model_info["val_accuracy"] = val_acc
+
             except Exception as e:
-                logger.error(f"❌ Failed to train {model_name}: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
-                failed_models.append(model_name)
+                logger.error(f"   ❌ Training failed for {model_name}: {e}")
+                model_info["trained"] = False
 
-        for model_name in failed_models:
-            del self.models[model_name]
-
-        if failed_models:
-            logger.warning(f"⚠️  {len(failed_models)} model(s) failed to train: {', '.join(failed_models)}")
-
-    def _optimize_thresholds(self, X_val, y_val):
+    def _optimize_thresholds(
+            self,
+            X_val: pd.DataFrame,
+            y_val: np.ndarray
+    ) -> None:
         """Optimize classification thresholds."""
         logger.info("\n" + "=" * 80)
         logger.info("OPTIMIZING THRESHOLDS")
         logger.info("=" * 80)
 
-        threshold_config = self.training_config.get("threshold_optimization", {})
-        metric = threshold_config.get("metric", "f1")
-        search_range = threshold_config.get("search_range", [0.1, 0.9])
-        search_steps = threshold_config.get("search_steps", 81)
+        from sklearn.metrics import f1_score
 
-        for model_name, model in self.models.items():
+        for model_name, model_info in self.trained_models.items():
+            if not model_info.get("trained", False):
+                continue
+
             try:
-                model.optimize_threshold(
-                    X_val, y_val, metric, tuple(search_range), search_steps
-                )
-            except Exception as e:
-                logger.warning(f"⚠️  Threshold optimization failed for {model_name}: {e}")
+                model = model_info["model"]
 
-    def _evaluate_all_models(self, X_test, y_test):
+                # Get probabilities
+                y_proba = model.predict_proba(X_val)
+
+                # 👇 CORREÇÃO: Garantir que y_proba é 1D
+                if len(y_proba.shape) > 1:
+                    y_proba = y_proba[:, 1]
+
+                # Try different thresholds
+                thresholds = np.arange(0.1, 0.9, 0.05)
+                best_f1 = 0
+                best_threshold = 0.5
+
+                for threshold in thresholds:
+                    y_pred = (y_proba >= threshold).astype(int)
+                    f1 = f1_score(y_val, y_pred, zero_division=0)
+
+                    if f1 > best_f1:
+                        best_f1 = f1
+                        best_threshold = threshold
+
+                self.optimal_thresholds[model_name] = best_threshold
+                logger.info(f"   ✅ {model_name}: threshold={best_threshold:.2f}, F1={best_f1:.4f}")
+
+            except Exception as e:
+                logger.warning(f"   ⚠️  Threshold optimization failed for {model_name}: {e}")
+                self.optimal_thresholds[model_name] = 0.5
+
+    def _evaluate_models(
+            self,
+            X_test: pd.DataFrame,
+            y_test: np.ndarray
+    ) -> None:
         """Evaluate all models on test set."""
         logger.info("\n" + "=" * 80)
         logger.info("EVALUATING MODELS ON TEST SET")
         logger.info("=" * 80)
 
-        for model_name, model in self.models.items():
+        for model_name, model_info in self.trained_models.items():
+            if not model_info.get("trained", False):
+                continue
+
             try:
-                y_proba = model.predict_proba(X_test)
-                y_pred = model.predict(X_test)
+                model = model_info["model"]
+                threshold = self.optimal_thresholds.get(model_name, 0.5)
 
-                metrics = self.metrics_calculator.calculate_metrics(
-                    y_test, y_pred, y_proba, "test"
-                )
-                self.all_metrics[model_name] = metrics
-
-                self.metrics_calculator.log_metrics(metrics, model_name, "test")
-
-                feature_importance = model.get_feature_importance()
-
-                self.visualizer.create_all_plots(
-                    model_name,
-                    y_test,
-                    y_pred,
-                    y_proba,
-                    feature_importance,
-                    self.version,
+                metrics = self.evaluator.evaluate_model(
+                    model=model,
+                    X=X_test,
+                    y_true=y_test,
+                    model_name=model_name,
+                    threshold=threshold
                 )
 
-                if "threshold_analysis" in self.visualizer.plots:
-                    plot_dir = self.eval_dir / self.version / model_name
-                    self.visualizer.plot_threshold_analysis(
-                        y_test, y_proba, model_name, plot_dir
-                    )
+                self.metrics[model_name] = metrics
 
             except Exception as e:
-                logger.error(f"❌ Evaluation failed for {model_name}: {e}")
+                logger.error(f"   ❌ Evaluation failed for {model_name}: {e}")
 
-    def _save_all_artifacts(self, feature_engineer, feature_names):
-        """Save all models and artifacts."""
+    def _save_artifacts(self) -> None:
+        """Save all training artifacts."""
         logger.info("\n" + "=" * 80)
         logger.info("SAVING ARTIFACTS")
         logger.info("=" * 80)
 
-        save_config = self.output_config.get("save_artifacts", {})
-
         # Save models
-        if save_config.get("model", True):
-            for model_name, model in self.models.items():
-                try:
-                    model.save(self.models_dir, self.version)
-                except Exception as e:
-                    logger.error(f"❌ Failed to save {model_name}: {e}")
+        for model_name, model_info in self.trained_models.items():
+            if not model_info.get("trained", False):
+                continue
 
-        # Save preprocessor
-        if save_config.get("preprocessor", True):
-            try:
-                feature_engineer.save_preprocessor(self.models_dir, self.version)
-            except Exception as e:
-                logger.error(f"❌ Failed to save preprocessor: {e}")
+            model_path = self.models_dir / f"{model_name}_model.pkl"
+            joblib.dump(model_info["model"], model_path)
+            logger.info(f"   💾 Model saved to {model_path}")
+
+            # Save metadata
+            metadata = {
+                "model_name": model_name,
+                "version": self.version,
+                "train_accuracy": model_info.get("train_accuracy"),
+                "val_accuracy": model_info.get("val_accuracy"),
+                "optimal_threshold": self.optimal_thresholds.get(model_name, 0.5),
+                "config": model_info.get("config", {})
+            }
+
+            metadata_path = self.models_dir / f"{model_name}_metadata.json"
+            with open(metadata_path, "w") as f:
+                json.dump(metadata, f, indent=2)
+            logger.info(f"   💾 Metadata saved to {metadata_path}")
+
+        # Save feature engineering artifacts
+        scaler_path = self.models_dir / "scaler.pkl"
+        joblib.dump(self.feature_engineer.scaler, scaler_path)
+        logger.info(f"   💾 Scaler saved to {scaler_path}")
+
+        encoders_path = self.models_dir / "label_encoders.pkl"
+        joblib.dump(self.feature_engineer.label_encoders, encoders_path)
+        logger.info(f"   💾 Label encoders saved to {encoders_path}")
 
         # Save feature names
-        if save_config.get("feature_names", True):
-            feature_path = self.models_dir / self.version / "feature_names.json"
-            with open(feature_path, "w") as f:
-                json.dump(feature_names, f, indent=2)
-            logger.info(f"   💾 Feature names saved to {feature_path}")
+        feature_names_path = self.models_dir / "feature_names.json"
+        feature_info = self.data_loader.get_feature_info()
+        with open(feature_names_path, "w") as f:
+            json.dump(feature_info, f, indent=2)
+        logger.info(f"   💾 Feature names saved to {feature_names_path}")
 
         # Save metrics
-        if save_config.get("metrics", True):
-            metrics_path = self.eval_dir / self.version / "metrics.json"
-            metrics_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(metrics_path, "w") as f:
-                json.dump(self.all_metrics, f, indent=2)
-            logger.info(f"   💾 Metrics saved to {metrics_path}")
+        metrics_path = self.eval_dir / "metrics.json"
+        with open(metrics_path, "w") as f:
+            json.dump(self.metrics, f, indent=2, default=str)
+        logger.info(f"   💾 Metrics saved to {metrics_path}")
 
         # Save config
-        if save_config.get("config", True):
-            config_path = self.models_dir / self.version / "training_config.json"
-            with open(config_path, "w") as f:
-                json.dump(self.config, f, indent=2)
-            logger.info(f"   💾 Config saved to {config_path}")
+        config_path = self.models_dir / "training_config.json"
+        with open(config_path, "w") as f:
+            json.dump(self.config, f, indent=2)
+        logger.info(f"   💾 Config saved to {config_path}")
 
-    def _generate_comparison_report(self):
-        """Generate model comparison report."""
-        logger.info("\n" + "=" * 80)
-        logger.info("MODEL COMPARISON")
-        logger.info("=" * 80)
+    def _compare_models(self) -> None:
+        """Compare all trained models."""
+        comparison_df = self.evaluator.compare_models(self.metrics)
 
-        if not self.all_metrics:
-            logger.warning("⚠️  No metrics to compare")
-            return
-
-        comparison_df = self.metrics_calculator.compare_models(self.all_metrics)
-
-        logger.info("\n" + comparison_df.to_string())
-
-        report_path = self.eval_dir / self.version / "model_comparison.csv"
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        comparison_df.to_csv(report_path)
-        logger.info(f"\n💾 Comparison report saved to {report_path}")
-
-        best_model = comparison_df.index[0]
-        best_auc = comparison_df.loc[best_model, "roc_auc"]
-        logger.info(f"\n🏆 Best model: {best_model} (ROC-AUC: {best_auc:.4f})")
+        if not comparison_df.empty:
+            comparison_path = self.eval_dir / "model_comparison.csv"
+            comparison_df.to_csv(comparison_path, index=False)
+            logger.info(f"\n💾 Comparison saved to {comparison_path}")
