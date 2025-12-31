@@ -1,11 +1,17 @@
-from src.model_training.models.xgboost_model import XGBoostModel
-from src.model_training.models.lightgbm_model import LightGBMModel
-from src.model_training.models.random_forest_model import RandomForestModel
-from src.model_training.models.logistic_regression_model import LogisticRegressionModel
+"""
+Model classes package
+"""
+
+from .base_model import BaseModel
+from .logistic_regression_model import LogisticRegressionModel
+from .random_forest_model import RandomForestModel
+from .lightgbm_model import LightGBMModel
+from .xgboost_model import XGBoostModel
 
 __all__ = [
-    "XGBoostModel",
-    "LightGBMModel",
-    "RandomForestModel",
+    "BaseModel",
     "LogisticRegressionModel",
+    "RandomForestModel",
+    "LightGBMModel",
+    "XGBoostModel",
 ]
