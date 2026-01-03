@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 import yaml
 from pathlib import Path
 
@@ -17,8 +17,7 @@ def get_manager() -> ModelManager:
 
 
 @router.get("/summary")
-async def dataset_summary():
-    manager = get_manager()
+async def dataset_summary(manager: ModelManager = Depends(get_manager)):
     try:
         summary = manager.get_dataset_summary()
         schema_path = Path("config/schema_fields.yaml")
