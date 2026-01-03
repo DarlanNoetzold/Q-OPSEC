@@ -6,7 +6,6 @@ from src.api.models.model_manager import ModelManager
 
 router = APIRouter()
 
-# Singleton manager instance
 _manager: ModelManager = None
 
 def get_manager() -> ModelManager:
