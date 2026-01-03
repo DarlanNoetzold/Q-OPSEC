@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 
 from src.api.models.model_manager import ModelManager
@@ -16,15 +16,13 @@ def get_manager() -> ModelManager:
 
 
 @router.get("/versions")
-async def list_versions(manager: ModelManager = None):
-    manager = manager or get_manager()
+async def list_versions(manager: ModelManager = Depends(get_manager)):
     versions = manager.list_versions()
     return {"versions": versions}
 
 
 @router.get("/{version}")
-async def get_metrics(version: str):
-    manager = get_manager()
+async def get_metrics(version: str, manager: ModelManager = Depends(get_manager)):
     try:
         metrics = manager.get_model_metrics(version=version)
         return {"version": version, "metrics": metrics}
