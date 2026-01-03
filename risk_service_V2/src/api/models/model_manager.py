@@ -24,13 +24,63 @@ class ModelManager:
 
     def _get_latest_version_dir(self) -> Optional[Path]:
         if not self.models_root.exists():
+            logger.debug(f"Models root {self.models_root} does not exist.")
             return None
         dirs = [d for d in self.models_root.iterdir() if d.is_dir()]
         if not dirs:
+            logger.debug(f"No version directories found under {self.models_root}")
             return None
-        # choose by folder name lexicographically (vYYYYMMDD_hhmmss) - should work
         latest = sorted(dirs)[-1]
+        logger.debug(f"Latest version directory resolved to: {latest}")
         return latest
+
+    def _normalize_feature_names(self, raw) -> List[str]:
+        """
+        Normalize possible formats of feature_names.json into a plain list[str].
+        Supported inputs:
+         - list[str]
+         - dict with 'all_features' key
+         - dict with numeric-string keys like {"0": "f1", "1": "f2"}
+         - dict inverted mapping {"f1": 0, "f2": 1}
+         - fallback -> first list inside dict or dict.keys()
+        """
+        logger.debug(f"Normalizing raw feature_names of type {type(raw)}")
+        if isinstance(raw, list):
+            return raw
+        if isinstance(raw, dict):
+            # explicit key
+            if "all_features" in raw and isinstance(raw["all_features"], list):
+                return raw["all_features"]
+            # other named lists
+            for candidate in ("features", "feature_list", "numeric_features", "categorical_features"):
+                if candidate in raw and isinstance(raw[candidate], list):
+                    return raw[candidate]
+            # numeric-string keys -> sort by int(key)
+            try:
+                items = [(int(k), v) for k, v in raw.items()]
+                items_sorted = [v for _, v in sorted(items)]
+                logger.debug("Feature names parsed from numeric-string keys.")
+                return items_sorted
+            except Exception:
+                pass
+            # inverted mapping value->index
+            try:
+                inverted = {int(v): k for k, v in raw.items() if isinstance(v, (int, float, str)) and str(v).isdigit()}
+                if inverted:
+                    return [inverted[i] for i in sorted(inverted.keys())]
+            except Exception:
+                pass
+            # find first list value
+            for v in raw.values():
+                if isinstance(v, list):
+                    logger.debug("Feature names taken from first list value inside dict.")
+                    return v
+            # fallback: keys
+            logger.debug("Falling back to dict keys as feature names.")
+            return list(raw.keys())
+        # fallback convert to str
+        logger.warning("feature_names.json has unexpected structure; coercing to single-element list.")
+        return [str(raw)]
 
     def load(self, version: Optional[str] = None) -> str:
         """Load models and artifacts for a given version (or latest if None). Returns loaded version."""
@@ -49,26 +99,51 @@ class ModelManager:
         # load feature names
         feature_path = version_dir / "feature_names.json"
         if feature_path.exists():
-            with open(feature_path, "r") as f:
-                self.feature_names = json.load(f)
+            try:
+                with open(feature_path, "r") as f:
+                    raw = json.load(f)
+                self.feature_names = self._normalize_feature_names(raw)
+            except Exception as e:
+                logger.exception(f"Failed to parse feature_names.json: {e}")
+                self.feature_names = []
         else:
             logger.warning("feature_names.json not found in model folder")
+            self.feature_names = []
+
+        # Ensure feature_names is explicitly a list
+        if not isinstance(self.feature_names, list):
+            try:
+                self.feature_names = list(self.feature_names or [])
+            except Exception:
+                self.feature_names = []
+        logger.info(f"Loaded {len(self.feature_names)} feature_names (sample): {self.feature_names[:50]}")
 
         # load label encoders
         encoders_path = version_dir / "label_encoders.pkl"
         if encoders_path.exists():
-            self.label_encoders = joblib.load(encoders_path)
+            try:
+                self.label_encoders = joblib.load(encoders_path)
+                logger.info("Label encoders loaded.")
+            except Exception as e:
+                logger.warning(f"Could not load label_encoders.pkl: {e}")
+                self.label_encoders = {}
         else:
-            logger.warning("label_encoders.pkl not found in model folder")
+            logger.info("label_encoders.pkl not found in model folder")
 
         # load scaler
         scaler_path = version_dir / "scaler.pkl"
         if scaler_path.exists():
-            self.scaler = joblib.load(scaler_path)
+            try:
+                self.scaler = joblib.load(scaler_path)
+                logger.info("Scaler loaded.")
+            except Exception as e:
+                logger.warning(f"Could not load scaler.pkl: {e}")
+                self.scaler = None
         else:
-            logger.warning("scaler.pkl not found in model folder")
+            logger.info("scaler.pkl not found in model folder")
 
         # load models and metadata
+        self.models = {}
         for p in version_dir.glob("*_model.pkl"):
             model_name = p.name.replace("_model.pkl", "")
             try:
@@ -76,15 +151,17 @@ class ModelManager:
                 self.models[model_name] = model
                 logger.info(f"Loaded model: {model_name}")
             except Exception as e:
-                logger.error(f"Failed to load model {p}: {e}")
+                logger.exception(f"Failed to load model {p}: {e}")
 
+        self.metadata = {}
         for m in version_dir.glob("*_metadata.json"):
             model_name = m.name.replace("_metadata.json", "")
             try:
                 with open(m, "r") as f:
                     self.metadata[model_name] = json.load(f)
+                logger.info(f"Loaded metadata for model: {model_name}")
             except Exception as e:
-                logger.error(f"Failed to load metadata {m}: {e}")
+                logger.exception(f"Failed to load metadata {m}: {e}")
 
         return self.loaded_version
 
@@ -94,17 +171,58 @@ class ModelManager:
         return sorted([d.name for d in self.models_root.iterdir() if d.is_dir()])
 
     def _prepare_dataframe(self, records: List[Dict[str, Any]]) -> pd.DataFrame:
-        df = pd.DataFrame(records)
-        # ensure all feature columns exist
+        """
+        Prepare pandas DataFrame from input records.
+        Accepts:
+         - list of flat dicts
+         - list of {"features": {...}} envelopes
+        Ensures the DataFrame contains all columns present in self.feature_names (adds NaN columns if missing).
+        """
+        logger.debug(f"_prepare_dataframe called with {len(records)} records.")
+        normalized = []
+        for i, r in enumerate(records):
+            if isinstance(r, dict) and "features" in r and isinstance(r["features"], dict):
+                normalized.append(r["features"])
+            else:
+                normalized.append(r)
+
+        df = pd.DataFrame(normalized)
+        logger.debug(f"Initial DataFrame shape: {df.shape}; columns: {df.columns.tolist()[:50]}")
+
+        # Defensive: ensure feature_names is list
+        if not isinstance(self.feature_names, list):
+            logger.debug(f"feature_names is not list; coercing. type={type(self.feature_names)}")
+            try:
+                if isinstance(self.feature_names, dict) and "all_features" in self.feature_names:
+                    self.feature_names = self.feature_names["all_features"]
+                else:
+                    self.feature_names = list(self.feature_names or [])
+            except Exception:
+                logger.exception("Failed to coerce feature_names to list; setting to []")
+                self.feature_names = []
+
+        # If we have expected feature ordering, ensure all exist and reorder
         if self.feature_names:
+            logger.debug(f"Ordering DataFrame by feature_names (n={len(self.feature_names)}).")
             for col in self.feature_names:
                 if col not in df.columns:
                     df[col] = np.nan
-            df = df[self.feature_names]
+            try:
+                df = df[self.feature_names]
+            except Exception as e:
+                # Provide rich debug info
+                logger.error("Indexing df with feature_names failed.")
+                logger.error(f"feature_names (type={type(self.feature_names)}): sample={self.feature_names[:60]}")
+                logger.error(f"df.columns (sample)={df.columns.tolist()[:60]}")
+                raise RuntimeError(f"Failed to index dataframe by feature_names: {e}")
+        else:
+            logger.debug("No feature_names provided; returning DataFrame as-is.")
+
         return df
 
     def _apply_label_encoders(self, df: pd.DataFrame) -> pd.DataFrame:
-        # label_encoders expected to be dict feature->encoder (sklearn LabelEncoder or similar)
+        if not self.label_encoders:
+            return df
         for col, encoder in (self.label_encoders or {}).items():
             if col not in df.columns:
                 continue
@@ -113,7 +231,6 @@ class ModelManager:
                 transformed = encoder.transform(vals)
                 df[col] = transformed
             except Exception:
-                # fallback: try to map using classes_
                 try:
                     mapping = {c: i for i, c in enumerate(encoder.classes_)}
                     df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
@@ -133,16 +250,20 @@ class ModelManager:
         return df
 
     def predict(self, records: List[Dict[str, Any]], model_names: Optional[List[str]] = None) -> Dict[str, Any]:
-        """Predict on a list of records. Returns dict with per-model probabilities and predictions."""
         if not self.loaded_version:
             self.load()
 
         df = self._prepare_dataframe(records)
+        logger.debug(f"Prepared DataFrame for prediction: shape={df.shape}; columns={df.columns.tolist()[:50]}")
+
+        if df.shape[0] == 0:
+            logger.warning("Empty input DataFrame to predict(); returning empty results.")
+            return {"version": self.loaded_version, "n_records": 0, "models": {}}
+
         df_enc = self._apply_label_encoders(df.copy())
         df_scaled = self._apply_scaler(df_enc.copy())
 
         results = {"version": self.loaded_version, "n_records": len(df), "models": {}}
-
         target_models = model_names or list(self.models.keys())
 
         for m_name in target_models:
@@ -152,13 +273,26 @@ class ModelManager:
                 continue
 
             try:
-                proba = model.predict_proba(df_scaled)
-                if proba.ndim > 1:
-                    pos = proba[:, 1].tolist()
+                pos = None
+                # Prefer predict_proba
+                if hasattr(model, "predict_proba"):
+                    proba = model.predict_proba(df_scaled)
+                    # shape handling
+                    if getattr(proba, "ndim", 1) > 1 and proba.shape[1] > 1:
+                        pos = proba[:, 1].astype(float).tolist()
+                    else:
+                        # single-column probability or 1d array
+                        pos = pd.Series(proba.ravel()).astype(float).tolist()
                 else:
-                    pos = proba.tolist()
+                    # fallback: decision_function -> sigmoid -> [0,1]
+                    if hasattr(model, "decision_function"):
+                        scores = model.decision_function(df_scaled)
+                        pos = (1 / (1 + np.exp(-scores))).astype(float).tolist()
+                    else:
+                        preds = model.predict(df_scaled)
+                        pos = pd.Series(preds).astype(float).tolist()
 
-                threshold = self.metadata.get(m_name, {}).get("optimal_threshold", 0.5)
+                threshold = float(self.metadata.get(m_name, {}).get("optimal_threshold", 0.5))
                 preds = [(1 if p >= threshold else 0) for p in pos]
 
                 results["models"][m_name] = {
@@ -168,6 +302,7 @@ class ModelManager:
                     "metadata": self.metadata.get(m_name, {}),
                 }
             except Exception as e:
+                logger.exception(f"Prediction failed for model {m_name}: {e}")
                 results["models"][m_name] = {"error": str(e)}
 
         return results
