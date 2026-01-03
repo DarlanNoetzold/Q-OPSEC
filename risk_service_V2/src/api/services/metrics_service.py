@@ -1,11 +1,14 @@
 from typing import Optional
 from src.api.models.model_manager import ModelManager
-
+from src.common.logger import logger
 
 class MetricsService:
     def __init__(self, manager: ModelManager = None):
         self.manager = manager or ModelManager()
-        self.manager.load()
+        try:
+            self.manager.load()
+        except Exception as e:
+            logger.exception("Failed to load models in MetricsService")
 
     def list_versions(self):
         return self.manager.list_versions()
