@@ -1,63 +1,76 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
-from src.api.schemas.prediction import PredictRequest, PredictResponse
 from src.api.models.model_manager import ModelManager
+from src.common.logger import logger
 
 router = APIRouter()
 
-_manager: ModelManager = None
+class PredictSingle(BaseModel):
+    features: Dict[str, Any]
+
+class PredictRequest(BaseModel):
+    single: Optional[PredictSingle] = None
+    batch: Optional[Dict[str, List[Dict[str, Any]]]] = None
+    models: Optional[List[str]] = None
+    version: Optional[str] = None
+
+_manager: Optional[ModelManager] = None
 
 def get_manager() -> ModelManager:
     global _manager
     if _manager is None:
         _manager = ModelManager()
-        _manager.load()
+        try:
+            _manager.load()
+        except Exception as e:
+            logger.exception(f"Error loading models in get_manager: {e}")
+            raise
     return _manager
 
-
-@router.post("/", response_model=PredictResponse)
+@router.post("/")
 async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manager)):
-    # prepare records
-    if req.single is None and req.batch is None:
-        raise HTTPException(status_code=400, detail="Provide either single or batch payload")
-
-    if req.single:
-        records = [req.single.features]
-    else:
-        records = req.batch.records
-
     try:
-        if req.version:
-            manager.load(req.version)
-        result = manager.predict(records, model_names=req.models)
+        # Build input records
+        if req.single:
+            records = [req.single.features]
+        elif req.batch and "records" in req.batch:
+            records = req.batch["records"]
+        else:
+            raise HTTPException(status_code=400, detail="Request must include 'single' or 'batch' records.")
 
-        # Convert models dict to PredictResponse compatible structure
-        models_resp = {}
-        for k, v in result.get("models", {}).items():
-            if "error" in v:
-                # include as empty model prediction with error in metadata
-                models_resp[k] = {
-                    "probabilities": [],
-                    "predictions": [],
-                    "threshold": v.get("threshold", 0.5),
-                    "metadata": {"error": v.get("error")},
-                }
+        normalized_records = []
+        for r in records:
+            if isinstance(r, dict) and "features" in r and isinstance(r["features"], dict):
+                normalized_records.append(r["features"])
             else:
-                models_resp[k] = {
-                    "probabilities": v.get("probabilities", []),
-                    "predictions": v.get("predictions", []),
-                    "threshold": v.get("threshold", 0.5),
-                    "metadata": v.get("metadata", {}),
-                }
+                normalized_records.append(r)
 
-        response = {
-            "version": result.get("version"),
-            "n_records": result.get("n_records"),
-            "models": models_resp,
-        }
+        # Optionally load specific version
+        if req.version:
+            try:
+                manager.load(req.version)
+            except Exception as e:
+                logger.exception(f"Failed to load model version {req.version}: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to load model version {req.version}: {e}")
 
-        return response
+        # Defensive coercion: ensure feature_names is a list
+        if not isinstance(manager.feature_names, list):
+            logger.debug(f"Coercing manager.feature_names from {type(manager.feature_names)} to list.")
+            try:
+                if isinstance(manager.feature_names, dict) and "all_features" in manager.feature_names:
+                    manager.feature_names = manager.feature_names["all_features"]
+                else:
+                    manager.feature_names = list(manager.feature_names or [])
+            except Exception:
+                manager.feature_names = []
 
+        logger.info(f"Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
+        result = manager.predict(normalized_records, model_names=req.models)
+        return result
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.exception("Unhandled exception in predict endpoint")
         raise HTTPException(status_code=500, detail=str(e))
