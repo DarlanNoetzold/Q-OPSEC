@@ -35,27 +35,15 @@ class ModelManager:
         return latest
 
     def _normalize_feature_names(self, raw) -> List[str]:
-        """
-        Normalize possible formats of feature_names.json into a plain list[str].
-        Supported inputs:
-         - list[str]
-         - dict with 'all_features' key
-         - dict with numeric-string keys like {"0": "f1", "1": "f2"}
-         - dict inverted mapping {"f1": 0, "f2": 1}
-         - fallback -> first list inside dict or dict.keys()
-        """
         logger.debug(f"Normalizing raw feature_names of type {type(raw)}")
         if isinstance(raw, list):
             return raw
         if isinstance(raw, dict):
-            # explicit key
             if "all_features" in raw and isinstance(raw["all_features"], list):
                 return raw["all_features"]
-            # other named lists
             for candidate in ("features", "feature_list", "numeric_features", "categorical_features"):
                 if candidate in raw and isinstance(raw[candidate], list):
                     return raw[candidate]
-            # numeric-string keys -> sort by int(key)
             try:
                 items = [(int(k), v) for k, v in raw.items()]
                 items_sorted = [v for _, v in sorted(items)]
@@ -63,27 +51,22 @@ class ModelManager:
                 return items_sorted
             except Exception:
                 pass
-            # inverted mapping value->index
             try:
                 inverted = {int(v): k for k, v in raw.items() if isinstance(v, (int, float, str)) and str(v).isdigit()}
                 if inverted:
                     return [inverted[i] for i in sorted(inverted.keys())]
             except Exception:
                 pass
-            # find first list value
             for v in raw.values():
                 if isinstance(v, list):
                     logger.debug("Feature names taken from first list value inside dict.")
                     return v
-            # fallback: keys
             logger.debug("Falling back to dict keys as feature names.")
             return list(raw.keys())
-        # fallback convert to str
         logger.warning("feature_names.json has unexpected structure; coercing to single-element list.")
         return [str(raw)]
 
     def load(self, version: Optional[str] = None) -> str:
-        """Load models and artifacts for a given version (or latest if None). Returns loaded version."""
         if version is None:
             version_dir = self._get_latest_version_dir()
             if version_dir is None:
@@ -96,7 +79,6 @@ class ModelManager:
         self.loaded_version = version_dir.name
         logger.info(f"Loading models from {version_dir}")
 
-        # load feature names
         feature_path = version_dir / "feature_names.json"
         if feature_path.exists():
             try:
@@ -110,7 +92,6 @@ class ModelManager:
             logger.warning("feature_names.json not found in model folder")
             self.feature_names = []
 
-        # Ensure feature_names is explicitly a list
         if not isinstance(self.feature_names, list):
             try:
                 self.feature_names = list(self.feature_names or [])
@@ -118,7 +99,6 @@ class ModelManager:
                 self.feature_names = []
         logger.info(f"Loaded {len(self.feature_names)} feature_names (sample): {self.feature_names[:50]}")
 
-        # load label encoders
         encoders_path = version_dir / "label_encoders.pkl"
         if encoders_path.exists():
             try:
@@ -130,7 +110,6 @@ class ModelManager:
         else:
             logger.info("label_encoders.pkl not found in model folder")
 
-        # load scaler
         scaler_path = version_dir / "scaler.pkl"
         if scaler_path.exists():
             try:
@@ -142,7 +121,6 @@ class ModelManager:
         else:
             logger.info("scaler.pkl not found in model folder")
 
-        # load models and metadata
         self.models = {}
         for p in version_dir.glob("*_model.pkl"):
             model_name = p.name.replace("_model.pkl", "")
@@ -171,13 +149,6 @@ class ModelManager:
         return sorted([d.name for d in self.models_root.iterdir() if d.is_dir()])
 
     def _prepare_dataframe(self, records: List[Dict[str, Any]]) -> pd.DataFrame:
-        """
-        Prepare pandas DataFrame from input records.
-        Accepts:
-         - list of flat dicts
-         - list of {"features": {...}} envelopes
-        Ensures the DataFrame contains all columns present in self.feature_names (adds NaN columns if missing).
-        """
         logger.debug(f"_prepare_dataframe called with {len(records)} records.")
         normalized = []
         for i, r in enumerate(records):
@@ -189,7 +160,6 @@ class ModelManager:
         df = pd.DataFrame(normalized)
         logger.debug(f"Initial DataFrame shape: {df.shape}; columns: {df.columns.tolist()[:50]}")
 
-        # Defensive: ensure feature_names is list
         if not isinstance(self.feature_names, list):
             logger.debug(f"feature_names is not list; coercing. type={type(self.feature_names)}")
             try:
@@ -201,7 +171,6 @@ class ModelManager:
                 logger.exception("Failed to coerce feature_names to list; setting to []")
                 self.feature_names = []
 
-        # If we have expected feature ordering, ensure all exist and reorder
         if self.feature_names:
             logger.debug(f"Ordering DataFrame by feature_names (n={len(self.feature_names)}).")
             for col in self.feature_names:
@@ -210,7 +179,6 @@ class ModelManager:
             try:
                 df = df[self.feature_names]
             except Exception as e:
-                # Provide rich debug info
                 logger.error("Indexing df with feature_names failed.")
                 logger.error(f"feature_names (type={type(self.feature_names)}): sample={self.feature_names[:60]}")
                 logger.error(f"df.columns (sample)={df.columns.tolist()[:60]}")
@@ -249,6 +217,45 @@ class ModelManager:
             logger.warning(f"Scaler transform failed: {e}")
         return df
 
+    def clean_and_convert(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Limpa e converte o DataFrame para tipos compatíveis com os modelos.
+        - Substitui strings vazias por NaN
+        - Converte colunas categóricas para 'category'
+        - Converte colunas numéricas para float
+        """
+        logger.info("Cleaning and converting DataFrame before prediction")
+
+        df = df.replace('', np.nan)
+
+        categorical_cols = []
+        if hasattr(self, 'metadata') and self.metadata:
+            for model_meta in self.metadata.values():
+                if 'categorical_features' in model_meta:
+                    categorical_cols = model_meta['categorical_features']
+                    break
+
+        if not categorical_cols:
+            categorical_cols = [
+                'beneficiary_bank_code', 'merchant_category_code', 'os_version',
+                'browser_family', 'browser_version', 'app_version',
+            ]
+
+        logger.debug(f"Categorical columns: {categorical_cols}")
+
+        for col in categorical_cols:
+            if col in df.columns:
+                df[col] = df[col].astype('category')
+                logger.debug(f"Converted column {col} to category")
+
+        numeric_cols = [col for col in df.columns if col not in categorical_cols]
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                logger.debug(f"Converted column {col} to numeric")
+
+        return df
+
     def predict(self, records: List[Dict[str, Any]], model_names: Optional[List[str]] = None) -> Dict[str, Any]:
         if not self.loaded_version:
             self.load()
@@ -259,6 +266,9 @@ class ModelManager:
         if df.shape[0] == 0:
             logger.warning("Empty input DataFrame to predict(); returning empty results.")
             return {"version": self.loaded_version, "n_records": 0, "models": {}}
+
+        df = self.clean_and_convert(df)
+        logger.debug(f"DataFrame dtypes after cleaning:\n{df.dtypes}")
 
         df_enc = self._apply_label_encoders(df.copy())
         df_scaled = self._apply_scaler(df_enc.copy())
@@ -274,17 +284,13 @@ class ModelManager:
 
             try:
                 pos = None
-                # Prefer predict_proba
                 if hasattr(model, "predict_proba"):
                     proba = model.predict_proba(df_scaled)
-                    # shape handling
                     if getattr(proba, "ndim", 1) > 1 and proba.shape[1] > 1:
                         pos = proba[:, 1].astype(float).tolist()
                     else:
-                        # single-column probability or 1d array
                         pos = pd.Series(proba.ravel()).astype(float).tolist()
                 else:
-                    # fallback: decision_function -> sigmoid -> [0,1]
                     if hasattr(model, "decision_function"):
                         scores = model.decision_function(df_scaled)
                         pos = (1 / (1 + np.exp(-scores))).astype(float).tolist()
