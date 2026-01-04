@@ -35,8 +35,6 @@ class XGBoostModel(BaseModel):
         eval_set = [(X_train, y_train), (X_val, y_val)]
 
         self.model = xgb.XGBClassifier(**self.params)
-        self.model = xgb.XGBClassifier(**self.params, enable_categorical=True)
-
 
         if early_stopping_enabled:
             self.model.fit(
