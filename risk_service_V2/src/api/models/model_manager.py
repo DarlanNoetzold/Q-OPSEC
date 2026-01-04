@@ -333,23 +333,28 @@ class ModelManager:
         return df
 
     def _preprocess_xgboost(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Substituir strings vazias por NaN
         df = df.replace('', np.nan)
 
-        # Para cada coluna categórica usada no treino:
-        for col in self.label_encoders.keys():
+        # Aplicar label encoders
+        for col, encoder in self.label_encoders.items():
             if col in df.columns:
-                categories = list(self.label_encoders[col].classes_)
-                fill_value = categories[0] if categories else None
-                df[col] = df[col].astype(object).fillna(fill_value)
-                df[col] = pd.Categorical(df[col], categories=categories)
-                df[col] = df[col].cat.codes.astype(int)
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
 
-        # Selecionar e ordenar colunas conforme treino
-        df = df[self.feature_names]
-
-        # Converter tudo para numérico e preencher NaNs com zero
+        # Converter todas as colunas para numérico e preencher NaNs com zero
         df = df.apply(pd.to_numeric, errors='coerce').fillna(0)
+
+        # Garantir ordem das colunas
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0
+            df = df[self.feature_names]
 
         return df
 
