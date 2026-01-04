@@ -249,51 +249,120 @@ class ModelManager:
             logger.warning(f"Scaler transform failed: {e}")
         return df
 
-    def clean_and_convert(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info("Cleaning and converting DataFrame before prediction")
-
-        # Replace empty strings with NaN
+    def _preprocess_lightgbm(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Preprocessing for LightGBM")
         df = df.replace('', np.nan)
-
-        # Define categorical columns from metadata or manually
-        categorical_cols = []
-        if hasattr(self, 'metadata') and self.metadata:
-            for model_meta in self.metadata.values():
-                if 'categorical_features' in model_meta:
-                    categorical_cols = model_meta['categorical_features']
-                    break
-
-        if not categorical_cols:
-            # Fallback list of categorical columns - adjust as needed
-            categorical_cols = [
-                'beneficiary_bank_code', 'merchant_category_code', 'os_version',
-                'browser_family', 'browser_version', 'app_version',
-                'event_type', 'event_source', 'timezone', 'currency',
-                'transaction_type', 'channel', 'user_type', 'user_segment',
-                'user_risk_class', 'registered_country', 'registered_region',
-                'ip_country', 'ip_region', 'ip_city', 'ip_asn', 'ip_isp',
-                # Add other categorical columns as needed
-            ]
-
-        logger.debug(f"Categorical columns: {categorical_cols}")
-
-        # Convert categorical columns to 'category' dtype and fill NaN with 'missing'
-        for col in categorical_cols:
+        for col, encoder in self.label_encoders.items():
             if col in df.columns:
-                df[col] = df[col].astype('category')
-                if 'missing' not in df[col].cat.categories:
-                    df[col] = df[col].cat.add_categories(['missing'])
-                df[col] = df[col].fillna('missing')
-                logger.debug(f"Processed categorical column {col}")
-
-        # For numeric columns, convert to numeric and fill NaN with 0
-        numeric_cols = [col for col in df.columns if col not in categorical_cols]
-        for col in numeric_cols:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+        for col in self.label_encoders.keys():
             if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-                df[col] = df[col].fillna(0)
-                logger.debug(f"Processed numeric column {col}")
+                categories = list(self.label_encoders[col].classes_)
+                fill_value = 'missing' if 'missing' in categories else (categories[0] if categories else None)
+                df[col] = df[col].astype(object).fillna(fill_value)
+                df[col] = pd.Categorical(df[col], categories=categories)
+        for col in self.label_encoders.keys():
+            if col in df.columns and df[col].isnull().any():
+                categories = df[col].cat.categories
+                fill_value = categories[0] if len(categories) > 0 else None
+                df[col] = df[col].fillna(fill_value)
+        for col in df.columns:
+            if col not in self.label_encoders:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0
+            df = df[self.feature_names]
+        return df
 
+    def _preprocess_logistic_regression(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Preprocessing for Logistic Regression")
+        df = df.replace('', np.nan)
+        for col, encoder in self.label_encoders.items():
+            if col in df.columns:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+        for col in self.label_encoders.keys():
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(int)
+        for col in df.columns:
+            if col not in self.label_encoders:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0
+            df = df[self.feature_names]
+        return df
+
+    def _preprocess_random_forest(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Preprocessing for Random Forest")
+        df = df.replace('', np.nan)
+        for col, encoder in self.label_encoders.items():
+            if col in df.columns:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+        for col in self.label_encoders.keys():
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(int)
+        for col in df.columns:
+            if col not in self.label_encoders:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0
+            df = df[self.feature_names]
+        return df
+
+    def _preprocess_xgboost(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Preprocessing for XGBoost")
+        df = df.replace('', np.nan)
+        for col, encoder in self.label_encoders.items():
+            if col in df.columns:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+        for col in self.label_encoders.keys():
+            if col in df.columns:
+                categories = list(self.label_encoders[col].classes_)
+                fill_value = 'missing' if 'missing' in categories else (categories[0] if categories else None)
+                df[col] = df[col].astype(object).fillna(fill_value)
+                df[col] = pd.Categorical(df[col], categories=categories)
+        for col in self.label_encoders.keys():
+            if col in df.columns and df[col].isnull().any():
+                categories = df[col].cat.categories
+                fill_value = categories[0] if len(categories) > 0 else None
+                df[col] = df[col].fillna(fill_value)
+        for col in df.columns:
+            if col not in self.label_encoders:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0
+            df = df[self.feature_names]
         return df
 
     def predict(self, records: List[Dict[str, Any]], model_names: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -307,10 +376,6 @@ class ModelManager:
             logger.warning("Empty input DataFrame to predict(); returning empty results.")
             return {"version": self.loaded_version, "n_records": 0, "models": {}}
 
-        df_clean = self.clean_and_convert(df.copy())
-        df_enc = self._apply_label_encoders(df_clean.copy())
-        df_scaled = self._apply_scaler(df_enc.copy())
-
         results = {"version": self.loaded_version, "n_records": len(df), "models": {}}
         target_models = model_names or list(self.models.keys())
 
@@ -321,24 +386,34 @@ class ModelManager:
                 continue
 
             try:
-                pos = None
-                # Prefer predict_proba
-                if hasattr(model, "predict_proba"):
-                    # For LightGBM, pass categorical_feature if possible
-                    if m_name == "lightgbm":
-                        cat_features = self.metadata.get(m_name, {}).get("categorical_features", [])
-                        # Ensure cat_features are in df_scaled columns
-                        cat_features = [f for f in cat_features if f in df_scaled.columns]
-                        pos_array = model.predict_proba(df_scaled, categorical_feature=cat_features)
-                    else:
-                        pos_array = model.predict_proba(df_scaled)
-
-                    if getattr(pos_array, "ndim", 1) > 1 and pos_array.shape[1] > 1:
-                        pos = pos_array[:, 1].astype(float).tolist()
-                    else:
-                        pos = pd.Series(pos_array.ravel()).astype(float).tolist()
+                # Pré-processamento específico por modelo
+                if m_name == "lightgbm":
+                    df_preprocessed = self._preprocess_lightgbm(df.copy())
+                elif m_name == "logistic_regression":
+                    df_preprocessed = self._preprocess_logistic_regression(df.copy())
+                elif m_name == "random_forest":
+                    df_preprocessed = self._preprocess_random_forest(df.copy())
+                elif m_name == "xgboost":
+                    df_preprocessed = self._preprocess_xgboost(df.copy())
                 else:
-                    # fallback: decision_function -> sigmoid -> [0,1]
+                    # Default: aplicar label encoders e scaler
+                    df_preprocessed = self._apply_label_encoders(df.copy())
+                    df_preprocessed = self._apply_scaler(df_preprocessed)
+
+                # Aplicar scaler se disponível e se não for logistic regression (que pode não precisar)
+                if m_name != "logistic_regression":
+                    df_scaled = self._apply_scaler(df_preprocessed.copy())
+                else:
+                    df_scaled = df_preprocessed
+
+                pos = None
+                if hasattr(model, "predict_proba"):
+                    proba = model.predict_proba(df_scaled)
+                    if getattr(proba, "ndim", 1) > 1 and proba.shape[1] > 1:
+                        pos = proba[:, 1].astype(float).tolist()
+                    else:
+                        pos = pd.Series(proba.ravel()).astype(float).tolist()
+                else:
                     if hasattr(model, "decision_function"):
                         scores = model.decision_function(df_scaled)
                         pos = (1 / (1 + np.exp(-scores))).astype(float).tolist()
