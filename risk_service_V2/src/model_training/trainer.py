@@ -82,11 +82,11 @@ class ModelTrainer:
         )
 
         # 3.1 Convert categorical columns to category dtype for XGBoost and LightGBM
-        categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
-        for col in categorical_cols:
-            X_train[col] = X_train[col].astype('category')
-            X_val[col] = X_val[col].astype('category')
-            X_test[col] = X_test[col].astype('category')
+        #categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
+        #for col in categorical_cols:
+        #    X_train[col] = X_train[col].astype('category')
+        #    X_val[col] = X_val[col].astype('category')
+        #    X_test[col] = X_test[col].astype('category')
 
         # 4. Initialize models
         self._initialize_models()
