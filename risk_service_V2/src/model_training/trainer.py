@@ -82,11 +82,11 @@ class ModelTrainer:
         )
 
         # 3.1 Convert categorical columns to category dtype for XGBoost and LightGBM
-        #categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
-        #for col in categorical_cols:
-        #    X_train[col] = X_train[col].astype('category')
-        #    X_val[col] = X_val[col].astype('category')
-        #    X_test[col] = X_test[col].astype('category')
+        categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
+        for col in categorical_cols:
+            X_train[col] = X_train[col].astype('category')
+            X_val[col] = X_val[col].astype('category')
+            X_test[col] = X_test[col].astype('category')
 
         # 4. Initialize models
         self._initialize_models()
@@ -170,9 +170,9 @@ class ModelTrainer:
                     # 👇 CORREÇÃO: create_model() só precisa do nome
                     model = self.model_factory.create_model(model_name)
                     self.trained_models[model_name] = {
-                        "model": model,
-                        "config": model_configs[model_name],
-                        "trained": False
+                    "model": model,
+                    "config": model_configs[model_name],
+                    "trained": False
                     }
                     logger.info(f"   ✅ {model_name} initialized")
                 except Exception as e:
@@ -197,6 +197,10 @@ class ModelTrainer:
         logger.info("TRAINING MODELS")
         logger.info("=" * 80)
 
+        # Use original y as pandas Series for model.train
+        y_train_orig = pd.Series(y_train)
+        y_val_orig = pd.Series(y_val)
+
         for model_name, model_info in self.trained_models.items():
             logger.info(f"\n🚀 Training {model_name.upper()}...")
 
@@ -204,7 +208,7 @@ class ModelTrainer:
                 model = model_info["model"]
 
                 # Train
-                model.train(X_train, y_train, X_val, y_val)
+                model.train(X_train, y_train_orig, X_val, y_val_orig)
 
                 # Quick validation
                 train_acc = model.score(X_train, y_train)
