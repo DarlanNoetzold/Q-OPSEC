@@ -358,6 +358,41 @@ class ModelManager:
 
         return df
 
+    def _preprocess_pytorch_mlp(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Preprocessing específico para PyTorch MLP.
+        Garante que todos os dados sejam numéricos (float/int) para conversão em tensor.
+        """
+        logger.info("Preprocessing for PyTorch MLP")
+        df = df.replace('', np.nan)
+
+        # Aplicar label encoders para colunas categóricas
+        for col, encoder in self.label_encoders.items():
+            if col in df.columns:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+
+        # Converter TODAS as colunas para numérico (crítico para PyTorch)
+        for col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+        # Garantir ordem das colunas
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = 0.0
+            df = df[self.feature_names]
+
+        # Garantir que todos os valores são float64 (compatível com PyTorch)
+        df = df.astype(np.float64)
+
+        return df
+
     def predict(self, records: List[Dict[str, Any]], model_names: Optional[List[str]] = None) -> Dict[str, Any]:
         if not self.loaded_version:
             self.load()
@@ -388,13 +423,16 @@ class ModelManager:
                     df_preprocessed = self._preprocess_random_forest(df.copy())
                 elif m_name == "xgboost":
                     df_preprocessed = self._preprocess_xgboost(df.copy())
+                elif m_name == "pytorch_mlp":
+                    # PyTorch MLP precisa de dados totalmente numéricos
+                    df_preprocessed = self._preprocess_pytorch_mlp(df.copy())
                 else:
                     # Default: aplicar label encoders e scaler
                     df_preprocessed = self._apply_label_encoders(df.copy())
                     df_preprocessed = self._apply_scaler(df_preprocessed)
 
                 # Aplicar scaler se disponível e se não for logistic regression (que pode não precisar)
-                if m_name != "logistic_regression":
+                if m_name not in ["logistic_regression", "pytorch_mlp"]:
                     df_scaled = self._apply_scaler(df_preprocessed.copy())
                 else:
                     df_scaled = df_preprocessed
