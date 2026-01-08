@@ -59,12 +59,28 @@ feature_engineering:
 
 # Model Configuration
 models:
-  # Which models to train
   enabled:
-    - "xgboost"
-    - "lightgbm"
-    - "random_forest"
-    - "logistic_regression"
+    - xgboost
+    - lightgbm
+    - logistic_regression
+    - random_forest
+    - catboost
+    - pytorch_mlp
+
+  catboost:
+    params:
+      iterations: 1000
+      learning_rate: 0.05
+      depth: 6
+      loss_function: Logloss
+      eval_metric: AUC
+      random_seed: 42
+      verbose: False
+
+  pytorch_mlp:
+    epochs: 20
+    batch_size: 64
+    learning_rate: 0.001
 
   # XGBoost
   xgboost:
