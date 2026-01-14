@@ -1,0 +1,9 @@
+event_type,0,1
+address_change,52342,7773
+device_registration,377830,40602
+email_change,104239,15577
+login,1560702,233761
+mfa_setup,104113,15517
+password_change,103801,15532
+phone_change,52024,7945
+transaction,2840889,452713
