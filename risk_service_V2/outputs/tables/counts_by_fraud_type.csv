@@ -1,0 +1,7 @@
+fraud_type,count
+<NA>,1951072
+account_takeover,13807
+identity_theft,10039
+card_testing,9785
+merchant_fraud,8764
+friendly_fraud,6533
