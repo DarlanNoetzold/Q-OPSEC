@@ -1,0 +1,25 @@
+\begin{longtable}{lll}
+\caption{Technical definitions used in the analysis.} \label{tab:tech_defs} \\
+\toprule
+Quantity & Definition (LaTeX) & Notes \\
+\midrule
+\endfirsthead
+\caption[]{Technical definitions used in the analysis.} \\
+\toprule
+Quantity & Definition (LaTeX) & Notes \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{Continued on next page} \\
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+Population Stability Index (PSI) & $\mathrm{PSI}=\sum_{i=1}^{B} (p_i-q_i)\ln\left(\frac{p_i}{q_i}\right)$ & B bins; \$p\_i\$ expected (reference) proportion; \$q\_i\$ actual (current). \\
+Kolmogorov–Smirnov (KS) & $\mathrm{KS}=\sup_x \left|F_1(x)-F_0(x)\right|$ & Max gap between CDFs of fraud (1) vs legit (0). \\
+Standardized Mean Difference (SMD) & $\mathrm{SMD}=\frac{\mu_1-\mu_0}{\sqrt{\frac{\sigma_1^2+\sigma_0^2}{2}}}$ & Effect size for numeric features; larger magnitude = stronger separation. \\
+ROC AUC & $\mathrm{AUC}=\Pr\left(s_1>s_0\right)$ & Probability a random fraud has higher score than a random legit. \\
+Average Precision (AP) & $\mathrm{AP}=\sum_k (R_k-R_{k-1})P_k$ & Area under precision–recall curve; sensitive to base rate. \\
+Brier score & $\mathrm{Brier}=\frac{1}{N}\sum_{j=1}^{N}(p_j-y_j)^2$ & Proper scoring rule for probabilistic outputs. \\
+ECE (Expected Calibration Error) & $\mathrm{ECE}=\sum_{b=1}^{B}\frac{n_b}{N}\left|\mathrm{acc}(b)-\mathrm{conf}(b)\right|$ & Bins by score; \$\textbackslash\{\}mathrm\{acc\}(b)=\textbackslash\{\}mathbb\{E\}[y|b]\$, \$\textbackslash\{\}mathrm\{conf\}(b)=\textbackslash\{\}mathbb\{E\}[p|b]\$. \\
+\end{longtable}
