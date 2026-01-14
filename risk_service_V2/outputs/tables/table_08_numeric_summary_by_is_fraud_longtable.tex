@@ -1,0 +1,40 @@
+\begin{longtable}{lllllllllll}
+\caption{Numeric feature summary stratified by is\_fraud.} \label{tab:numeric_by_fraud} \\
+\toprule
+Group & Feature & Missing & Mean & Std & Median & IQR & P1 & P99 & Min & Max \\
+\midrule
+\endfirsthead
+\caption[]{Numeric feature summary stratified by is\_fraud.} \\
+\toprule
+Group & Feature & Missing & Mean & Std & Median & IQR & P1 & P99 & Min & Max \\
+\midrule
+\endhead
+\midrule
+\multicolumn{11}{r}{Continued on next page} \\
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+is\_fraud=0 & amount & 25.25\% & 192.7 & 205.9 & 132.2 & 164.4 & 16.75 & 998.2 & 0.4012 & 9900 \\
+is\_fraud=0 & asn & 0.40\% & 3.312e+04 & 1.85e+04 & 3.306e+04 & 3.212e+04 & 1658 & 6.434e+04 & 1000 & 6.5e+04 \\
+is\_fraud=0 & account\_age\_days & 0.00\% & 107.4 & 119.8 & 71.81 & 92.54 & 6.597 & 580.4 & 0 & 5908 \\
+is\_fraud=0 & txn\_count\_1h & 0.00\% & 2.578 & 1.962 & 2 & 3 & 0 & 8 & 0 & 17 \\
+is\_fraud=0 & txn\_count\_24h & 0.00\% & 8.145 & 4.304 & 8 & 6 & 1 & 19 & 0 & 32 \\
+is\_fraud=0 & distinct\_recipients\_24h & 0.00\% & 3.457 & 2.264 & 3 & 3 & 0 & 10 & 0 & 19 \\
+is\_fraud=0 & failed\_logins\_24h & 0.00\% & 0.256 & 0.5556 & 0 & 0 & 0 & 2 & 0 & 9 \\
+is\_fraud=0 & velocity\_score & 0.00\% & 1.368 & 0.3964 & 1.413 & 0.5698 & 0.3828 & 2.102 & -0.3023 & 2.666 \\
+is\_fraud=0 & llm\_risk\_score & 75.26\% & 0.3452 & 0.06711 & 0.3405 & 0.09181 & 0.2101 & 0.5157 & 0.1006 & 0.6982 \\
+is\_fraud=0 & is\_fraud & 0.00\% & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+is\_fraud=0 & fraud\_probability & 0.00\% & 0.08426 & 0.1187 & 0.03846 & 0.08749 & 0.001129 & 0.5895 & 1.55e-05 & 0.9884 \\
+is\_fraud=1 & amount & 22.05\% & 309.9 & 430.8 & 182.5 & 276.2 & 15.14 & 1987 & 0.01 & 1.27e+04 \\
+is\_fraud=1 & asn & 0.34\% & 3.311e+04 & 1.851e+04 & 3.289e+04 & 3.218e+04 & 1674 & 6.434e+04 & 1000 & 6.5e+04 \\
+is\_fraud=1 & account\_age\_days & 0.00\% & 106.1 & 121.6 & 70.48 & 92.17 & 5.642 & 579.1 & 0 & 4301 \\
+is\_fraud=1 & txn\_count\_1h & 0.00\% & 2.848 & 2.005 & 3 & 3 & 0 & 8 & 0 & 15 \\
+is\_fraud=1 & txn\_count\_24h & 0.00\% & 8.802 & 4.3 & 9 & 6 & 1 & 19 & 0 & 32 \\
+is\_fraud=1 & distinct\_recipients\_24h & 0.00\% & 3.76 & 2.293 & 3 & 3 & 0 & 10 & 0 & 17 \\
+is\_fraud=1 & failed\_logins\_24h & 0.00\% & 0.2907 & 0.5862 & 0 & 0 & 0 & 2 & 0 & 5 \\
+is\_fraud=1 & velocity\_score & 0.00\% & 1.446 & 0.3773 & 1.499 & 0.5239 & 0.4768 & 2.138 & -0.3032 & 2.623 \\
+is\_fraud=1 & llm\_risk\_score & 78.37\% & 0.5648 & 0.0733 & 0.5648 & 0.1027 & 0.398 & 0.7277 & 0.2832 & 0.8043 \\
+is\_fraud=1 & is\_fraud & 0.00\% & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 \\
+is\_fraud=1 & fraud\_probability & 0.00\% & 0.09516 & 0.129 & 0.04494 & 0.1001 & 0.001347 & 0.6285 & 6.646e-05 & 0.9759 \\
+\end{longtable}
