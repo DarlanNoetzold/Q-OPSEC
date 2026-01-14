@@ -1,0 +1,16 @@
+feature,type,psi
+fraud_probability,numeric,0.23495463676999473
+llm_risk_score,numeric,0.005295048366018112
+amount,numeric,0.0003965915938643839
+velocity_score,numeric,0.00017228388376271776
+ip_country,categorical,0.00015784255086417356
+account_age_days,numeric,0.00010390166781663971
+os_family,categorical,4.5342241961181316e-05
+txn_count_24h,numeric,4.329163567172418e-05
+asn,numeric,4.22365422176073e-05
+distinct_recipients_24h,numeric,2.792074446801295e-05
+event_type,categorical,2.091518245957404e-05
+browser_family,categorical,2.0864603227588813e-05
+failed_logins_24h,numeric,1.5370694479925692e-05
+currency,categorical,9.082922098105681e-06
+txn_count_1h,numeric,8.293323900527442e-06
