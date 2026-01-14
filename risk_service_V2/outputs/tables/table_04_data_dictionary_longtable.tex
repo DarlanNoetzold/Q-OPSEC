@@ -1,0 +1,40 @@
+\begin{longtable}{llllll}
+\caption{Data dictionary (column-level metadata).} \label{tab:data_dictionary} \\
+\toprule
+Column & Block & Type & Missing & nunique & Example \\
+\midrule
+\endfirsthead
+\caption[]{Data dictionary (column-level metadata).} \\
+\toprule
+Column & Block & Type & Missing & nunique & Example \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{Continued on next page} \\
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+event\_id & event\_id\_core & numeric & 0.00\% & 2,000,000 & 1 \\
+user\_id & event\_id\_core & numeric & 0.00\% & 61,757 & 29 \\
+recipient\_id & event\_id\_core & numeric & 0.00\% & 50,146 & 1146 \\
+event\_type & event\_id\_core & categorical & 0.00\% & 5 & kyc\_update \\
+timestamp\_utc & event\_id\_core & datetime & 0.00\% & 1,929,413 & 2025-01-01 13:23:42 \\
+amount & transaction & numeric & 25.08\% & 1,498,428 & 45.27626435384129 \\
+currency & transaction & categorical & 0.00\% & 6 & USD \\
+device\_id & device & numeric & 5.90\% & 76,492 & 218.0 \\
+os\_family & device & categorical & 5.90\% & 5 & Android \\
+browser\_family & device & categorical & 5.90\% & 5 & WebView \\
+ip\_country & ip\_geo\_net & categorical & 0.40\% & 12 & FR \\
+asn & ip\_geo\_net & numeric & 0.40\% & 64,000 & 19357.0 \\
+account\_age\_days & account\_user & numeric & 0.00\% & 1,997,267 & 61.503237679092564 \\
+txn\_count\_1h & velocity\_behavior & numeric & 0.00\% & 18 & 4.0 \\
+txn\_count\_24h & velocity\_behavior & numeric & 0.00\% & 33 & 5.0 \\
+distinct\_recipients\_24h & velocity\_behavior & numeric & 0.00\% & 20 & 1.0 \\
+failed\_logins\_24h & security\_stack & numeric & 0.00\% & 9 & 0.0 \\
+velocity\_score & velocity\_behavior & numeric & 0.00\% & 2,000,000 & 1.277598291271184 \\
+llm\_risk\_score & message\_llm & numeric & 75.43\% & 491,481 & 0.40927522357389956 \\
+is\_fraud & labels & numeric & 0.00\% & 2 & 1 \\
+fraud\_type & labels & categorical & 94.57\% & 5 & money\_mule \\
+fraud\_probability & labels & numeric & 0.00\% & 2,000,000 & 0.14114702025192408 \\
+\end{longtable}
