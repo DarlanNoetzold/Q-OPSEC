@@ -1,0 +1,9 @@
+metric,value
+rows,2000000
+columns,25
+year,2025
+synthetic,True
+timestamp_utc_min,2025-01-01 00:00:41+00:00
+timestamp_utc_max,2025-12-31 23:59:37+00:00
+fraud_rate,0.024464
+fraud_count,48928
