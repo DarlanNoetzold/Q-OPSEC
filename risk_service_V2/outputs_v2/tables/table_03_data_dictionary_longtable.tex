@@ -1,0 +1,40 @@
+\begin{longtable}{llllll}
+\caption{Data dictionary (column-level metadata).} \label{tab:data_dict} \\
+\toprule
+Column & Block & Type & Missing & nunique & Example \\
+\midrule
+\endfirsthead
+\caption[]{Data dictionary (column-level metadata).} \\
+\toprule
+Column & Block & Type & Missing & nunique & Example \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{Continued on next page} \\
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+event\_id & event\_id\_core & numeric & 0.00\% & 1,000,000 & 290953 \\
+user\_id & event\_id\_core & numeric & 0.00\% & 52,498 & 14 \\
+recipient\_id & event\_id\_core & numeric & 0.00\% & 34,147 & 2 \\
+event\_type & event\_id\_core & categorical & 0.00\% & 5 & transaction \\
+timestamp\_utc & event\_id\_core & datetime & 0.00\% & 981,414 & 2025-02-20 05:27:11 \\
+amount & transaction & numeric & 26.00\% & 739,934 & 302.97353871526417 \\
+currency & transaction & categorical & 0.00\% & 6 & BRL \\
+device\_id & device & numeric & 6.85\% & 53,631 & 15.0 \\
+os\_family & device & categorical & 6.85\% & 5 & Android \\
+browser\_family & device & categorical & 6.85\% & 5 & Chrome \\
+ip\_country & ip\_geo\_net & categorical & 2.55\% & 12 & BR \\
+asn & ip\_geo\_net & numeric & 2.55\% & 64,000 & 4064.0 \\
+account\_age\_days & account\_user & numeric & 0.00\% & 996,784 & 43.131492756365105 \\
+txn\_count\_1h & velocity\_behavior & numeric & 1.62\% & 16 & 0.0 \\
+txn\_count\_24h & velocity\_behavior & numeric & 1.62\% & 31 & 4.0 \\
+distinct\_recipients\_24h & velocity\_behavior & numeric & 1.62\% & 19 & 4.0 \\
+failed\_logins\_24h & security\_stack & numeric & 53.86\% & 8 & 0.0 \\
+velocity\_score & velocity\_behavior & numeric & 1.62\% & 983,808 & 0.8613167085016706 \\
+llm\_risk\_score & message\_llm & numeric & 47.74\% & 522,620 & 0.14508569793766893 \\
+is\_fraud & labels & numeric & 0.00\% & 2 & 0 \\
+fraud\_type & labels & categorical & 97.79\% & 5 & card\_testing \\
+fraud\_probability & labels & numeric & 0.00\% & 1,000,000 & 0.0060375866217540234 \\
+\end{longtable}
