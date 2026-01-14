@@ -1,0 +1,26 @@
+column,missing_rate,missing_pct,dtype
+fraud_type,0.975536,97.55359999999999,object
+llm_risk_reasoning,0.7670025,76.70025,object
+amount,0.3198355,31.98355,float64
+currency,0.3198355,31.98355,object
+recipient_id,0.2600315,26.00315,float64
+device_id,0.0140865,1.40865,float64
+os_family,0.0140865,1.40865,object
+browser_family,0.0090665,0.90665,object
+account_id,0.0,0.0,int64
+txn_count_24h,0.0,0.0,int64
+llm_risk_score,0.0,0.0,float64
+fraud_probability,0.0,0.0,float64
+velocity_score,0.0,0.0,float64
+failed_logins_24h,0.0,0.0,int64
+account_age_days,0.0,0.0,float64
+distinct_recipients_24h,0.0,0.0,int64
+txn_count_1h,0.0,0.0,int64
+ip_address,0.0,0.0,object
+event_type,0.0,0.0,object
+is_fraud,0.0,0.0,int64
+timestamp_utc,0.0,0.0,"datetime64[ns, UTC]"
+user_id,0.0,0.0,int64
+asn,0.0,0.0,int64
+ip_country,0.0,0.0,object
+event_id,0.0,0.0,int64
