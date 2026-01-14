@@ -1,0 +1,33 @@
+{
+  "mode": "synthetic",
+  "year": 2025,
+  "seed": 42,
+  "rows": 2000000,
+  "plot_sample_frac": 0.25,
+  "analysis_sample_frac": 0.2,
+  "top_n": 40,
+  "psi_bins": 10,
+  "libs": {
+    "seaborn": true,
+    "scipy": true,
+    "sklearn": true
+  },
+  "synthetic_generation": {
+    "synthetic": true,
+    "year": 2025,
+    "rows_requested": 2000000,
+    "rows_written": 2000000,
+    "seed": 42,
+    "base_events_per_day": 22000,
+    "base_fraud_rate": 0.022,
+    "out_csv": "outputs\\synthetic_dataset_2025.csv",
+    "storyline": [
+      "Jan–Feb: baseline growth + seasonal oscillation",
+      "Mar: card-testing wave (fraud spike + low amount attempts)",
+      "Jul: control/model rollout (lower realized fraud, better score stability)",
+      "Sep: ATO wave (login/reset anomalies)",
+      "Nov: Black Friday (volume spike + merchant/identity mix)",
+      "Dec: holiday scams (volume spike + friendly/merchant mix)"
+    ]
+  }
+}
