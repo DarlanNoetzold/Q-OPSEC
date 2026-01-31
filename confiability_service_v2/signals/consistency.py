@@ -1,5 +1,5 @@
 """
-Consistency signal - evaluates cross-dimensional consistency.
+Consistency Signal - Avalia consistência cross-dimensional
 """
 from signals.base import TrustSignal
 from core.trust_context import TrustContext
@@ -8,7 +8,7 @@ from core.trust_result import SignalResult
 
 class ConsistencySignal(TrustSignal):
     """
-    Evaluates overall consistency across multiple dimensions.
+    Avalia consistência entre source, entity, data_type, environment
     """
 
     @property
@@ -16,118 +16,51 @@ class ConsistencySignal(TrustSignal):
         return "consistency"
 
     def evaluate(self, context: TrustContext) -> SignalResult:
-        """
-        Check consistency across source, entity, and data type.
-        """
-        if not self.storage:
-            return self._create_result(0.5, {"reason": "no_storage"})
+        """Verifica consistência cross-dimensional"""
+        try:
+            consistency_checks = []
 
-        score = 1.0
-        flags = []
+            # 1. Source-Entity consistency
+            if context.source_id and context.entity_id:
+                # Verifica se essa combinação já foi vista
+                history = self.trust_repo.get_entity_history(context.entity_id, limit=20)
+                source_matches = sum(1 for e in history if e.get("source_id") == context.source_id)
 
-        # 1. Source-Entity consistency
-        source_entity_score = self._check_source_entity_consistency(context)
-        score *= source_entity_score
-        if source_entity_score < 0.8:
-            flags.append("source_entity_mismatch")
+                if len(history) > 0:
+                    source_consistency = source_matches / len(history)
+                    consistency_checks.append(("source_entity", source_consistency))
 
-        # 2. Data type consistency
-        data_type_score = self._check_data_type_consistency(context)
-        score *= data_type_score
-        if data_type_score < 0.8:
-            flags.append("data_type_inconsistency")
+            # 2. Data type consistency
+            if context.entity_id and context.data_type:
+                history = self.trust_repo.get_entity_history(context.entity_id, limit=20)
+                type_matches = sum(1 for e in history if e.get("data_type") == context.data_type)
 
-        # 3. Environment consistency
-        env_score = self._check_environment_consistency(context)
-        score *= env_score
-        if env_score < 0.8:
-            flags.append("environment_mismatch")
+                if len(history) > 0:
+                    type_consistency = type_matches / len(history)
+                    consistency_checks.append(("data_type", type_consistency))
 
-        metadata = {
-            "flags": flags,
-            "source_entity_score": round(source_entity_score, 4),
-            "data_type_score": round(data_type_score, 4),
-            "environment_score": round(env_score, 4)
-        }
+            # 3. Environment consistency
+            if context.entity_id and context.environment:
+                history = self.trust_repo.get_entity_history(context.entity_id, limit=20)
+                env_matches = sum(1 for e in history if e.get("environment") == context.environment)
 
-        return self._create_result(score, metadata)
+                if len(history) > 0:
+                    env_consistency = env_matches / len(history)
+                    consistency_checks.append(("environment", env_consistency))
 
-    def _check_source_entity_consistency(self, context: TrustContext) -> float:
-        """
-        Check if source-entity pairing is consistent with history.
-        """
-        if not context.source_id or not context.entity_id:
-            return 1.0
+            if not consistency_checks:
+                return self._create_result(0.7, 0.5, {"reason": "no_checks_possible"})
 
-        # Get historical source-entity pairs
-        history = self.storage.get_entity_history(
-            entity_id=context.entity_id,
-            limit=20
-        )
+            # Score = média das consistências
+            avg_consistency = sum(c[1] for c in consistency_checks) / len(consistency_checks)
 
-        if not history:
-            return 1.0
+            metadata = {
+                "consistency_rate": avg_consistency,
+                "checks": dict(consistency_checks),
+                "is_inconsistent": avg_consistency < 0.5
+            }
 
-        # Check if this source has interacted with this entity before
-        historical_sources = [event.get("source_id") for event in history]
+            return self._create_result(avg_consistency, 0.8, metadata)
 
-        if context.source_id in historical_sources:
-            return 1.0  # consistent
-
-        # New source for this entity
-        # Check if entity typically has multiple sources
-        unique_sources = len(set(historical_sources))
-
-        if unique_sources > 3:
-            return 0.9  # entity has multiple sources, acceptable
-        else:
-            return 0.7  # entity usually has few sources, suspicious
-
-    def _check_data_type_consistency(self, context: TrustContext) -> float:
-        """
-        Check if data type is consistent for this entity.
-        """
-        history = self.storage.get_entity_history(
-            entity_id=context.entity_id,
-            limit=10
-        )
-
-        if not history:
-            return 1.0
-
-        historical_types = [event.get("data_type") for event in history]
-
-        if context.data_type in historical_types:
-            return 1.0  # consistent
-
-        # New data type for this entity
-        unique_types = len(set(historical_types))
-
-        if unique_types > 2:
-            return 0.9  # entity has varied data types
-        else:
-            return 0.75  # unusual new data type
-
-    def _check_environment_consistency(self, context: TrustContext) -> float:
-        """
-        Check if environment is consistent.
-        """
-        history = self.storage.get_entity_history(
-            entity_id=context.entity_id,
-            limit=10
-        )
-
-        if not history:
-            return 1.0
-
-        historical_envs = [event.get("environment") for event in history]
-
-        if context.environment in historical_envs:
-            return 1.0
-
-        # Different environment
-        # Prod -> Dev is suspicious, Dev -> Prod is normal
-        if "prod" in historical_envs and context.environment != "prod":
-            return 0.6  # downgrade from prod is suspicious
-
-        return 0.85  # environment change, but acceptable
+        except Exception as e:
+            return self._create_result(0.5, 0.3, {"error": str(e)})
