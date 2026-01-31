@@ -1,76 +1,75 @@
 """
-Base interface for trust signals.
-All signals must inherit from TrustSignal.
+Base abstrata para Trust Signals
+Define a interface comum para todos os signals
 """
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Dict, Any
 from core.trust_context import TrustContext
 from core.trust_result import SignalResult
-from config.trust_config import SignalConfig
+from config.trust_config import TrustConfig
+from storage.trust_repository import TrustRepository
 
 
 class TrustSignal(ABC):
     """
-    Abstract base class for trust signals.
-    Each signal evaluates one dimension of trust.
+    Classe base abstrata para todos os Trust Signals
+    Cada signal implementa uma dimensão específica de avaliação de confiança
     """
 
-    def __init__(self, config: SignalConfig, storage=None):
+    def __init__(self, config: TrustConfig, trust_repo: TrustRepository):
         """
-        Initialize signal with configuration.
+        Inicializa o signal com configuração e repositório
 
         Args:
-            config: Signal-specific configuration
-            storage: Optional storage backend for historical data
+            config: Configuração global do Trust Engine
+            trust_repo: Repositório de histórico de avaliações
         """
         self.config = config
-        self.storage = storage
-        self.enabled = config.enabled
-        self.weight = config.weight
-        self.params = config.params
+        self.trust_repo = trust_repo
+
+        # Carrega params específicos do signal da configuração
+        signal_config = config.get_signal_config(self.name)
+        self.params = signal_config.params if signal_config else {}
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Signal identifier."""
+        """Nome único do signal"""
         pass
 
     @abstractmethod
     def evaluate(self, context: TrustContext) -> SignalResult:
         """
-        Evaluate trust signal for given context.
+        Avalia o contexto e retorna um resultado
 
         Args:
-            context: Trust evaluation context
+            context: Contexto da avaliação (payload + metadata)
 
         Returns:
-            SignalResult with score (0.0 to 1.0) and metadata
+            SignalResult com score, confidence e metadata
         """
         pass
 
     def _create_result(
-            self,
-            score: float,
-            metadata: Optional[Dict] = None
+        self,
+        score: float,
+        confidence: float = 1.0,
+        metadata: Dict[str, Any] = None
     ) -> SignalResult:
         """
-        Helper to create SignalResult with proper normalization.
+        Helper para criar SignalResult
 
         Args:
-            score: Raw score (will be clamped to 0.0-1.0)
-            metadata: Optional metadata dictionary
+            score: Score normalizado [0, 1]
+            confidence: Confiança na avaliação [0, 1]
+            metadata: Metadados adicionais
+
+        Returns:
+            SignalResult
         """
-        normalized_score = max(0.0, min(1.0, score))
         return SignalResult(
-            name=self.name,
-            score=normalized_score,
-            weight=self.weight,
+            signal_name=self.name,
+            score=max(0.0, min(1.0, score)),  # Clamp [0, 1]
+            confidence=max(0.0, min(1.0, confidence)),
             metadata=metadata or {}
         )
-
-    def is_enabled(self) -> bool:
-        """Check if signal is enabled."""
-        return self.enabled
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(weight={self.weight}, enabled={self.enabled})"
