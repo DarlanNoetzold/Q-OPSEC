@@ -1,165 +1,153 @@
 """
-Dynamic weighting strategies for trust signals.
+Dynamic Weighting - Ajusta pesos dos signals baseado em contexto
 """
 from typing import Dict, List
 from core.trust_context import TrustContext
 from core.trust_result import SignalResult
+from config.trust_config import TrustConfig
+from storage.trust_repository import TrustRepository
 
 
 class DynamicWeighting:
     """
-    Adjusts signal weights based on context.
-    Different scenarios require different signal priorities.
+    Ajusta pesos dos signals dinamicamente baseado em:
+    - Tipo de dado
+    - Ambiente
+    - Histórico da entidade
+    - Performance dos signals
     """
 
-    def __init__(self, base_weights: Dict[str, float]):
+    def __init__(self, config: TrustConfig, trust_repo: TrustRepository):
         """
-        Initialize with base weights from config.
+        Inicializa dynamic weighting
 
         Args:
-            base_weights: Dictionary of signal_name -> weight
+            config: Configuração do Trust Engine
+            trust_repo: Repositório de histórico
         """
-        self.base_weights = base_weights
+        self.config = config
+        self.trust_repo = trust_repo
 
-    def adjust_weights(
-            self,
-            signals: List[SignalResult],
-            context: TrustContext
-    ) -> List[SignalResult]:
+    def calculate_weights(
+        self,
+        context: TrustContext,
+        signal_results: List[SignalResult]
+    ) -> Dict[str, float]:
         """
-        Adjust signal weights based on context.
+        Calcula pesos ajustados para cada signal
 
         Args:
-            signals: List of signal results
-            context: Trust context
+            context: Contexto da avaliação
+            signal_results: Resultados dos signals
 
         Returns:
-            Signals with adjusted weights
+            Dict {signal_name: weight}
         """
-        adjusted_signals = []
+        weights = {}
 
-        for signal in signals:
-            adjusted_weight = self._calculate_adjusted_weight(
-                signal,
-                context
-            )
+        for sr in signal_results:
+            # Peso base da configuração (com fallback)
+            signal_config = self.config.get_signal_config(sr.signal_name)
+            base_weight = signal_config.weight if signal_config else 1.0
 
-            # Create new signal result with adjusted weight
-            adjusted_signal = SignalResult(
-                name=signal.name,
-                score=signal.score,
-                weight=adjusted_weight,
-                metadata=signal.metadata
-            )
-            adjusted_signals.append(adjusted_signal)
+            # Ajustes contextuais
+            weight = base_weight
 
-        return adjusted_signals
+            # 1. Ajuste por tipo de dado
+            if context.data_type == "event":
+                if sr.signal_name == "temporal":
+                    weight *= 1.3  # Eventos são sensíveis a tempo
+            elif context.data_type == "profile":
+                if sr.signal_name == "semantic_consistency":
+                    weight *= 1.2  # Perfis devem ser consistentes
 
-    def _calculate_adjusted_weight(
-            self,
-            signal: SignalResult,
-            context: TrustContext
-    ) -> float:
-        """Calculate adjusted weight for a signal."""
-        base_weight = signal.weight
+            # 2. Ajuste por ambiente
+            if context.environment == "production":
+                if sr.signal_name in ["anomaly_detection", "source_reliability"]:
+                    weight *= 1.2  # Mais rigoroso em produção
 
-        # Data type specific adjustments
-        if context.data_type == "identity_claim":
-            if signal.name == "semantic_consistency":
-                base_weight *= 1.3  # identity should be consistent
-            elif signal.name == "temporal":
-                base_weight *= 0.8  # identity doesn't age as fast
+            # 3. Ajuste por confidence do signal
+            weight *= sr.confidence
 
-        elif context.data_type == "transaction":
-            if signal.name == "temporal":
-                base_weight *= 1.5  # transactions age quickly
-            elif signal.name == "anomaly_detection":
-                base_weight *= 1.4  # anomalies critical for transactions
+            # 4. Ajuste por histórico da entidade
+            if context.entity_id:
+                history = self.trust_repo.get_entity_history(context.entity_id, limit=10)
+                if len(history) < 3:
+                    # Entidade nova - aumenta peso de source_reliability
+                    if sr.signal_name == "source_reliability":
+                        weight *= 1.3
 
-        elif context.data_type == "analytics_event":
-            if signal.name == "temporal":
-                base_weight *= 1.2
-            elif signal.name == "semantic_consistency":
-                base_weight *= 0.7  # analytics can vary more
+            weights[sr.signal_name] = max(0.1, weight)  # Peso mínimo 0.1
 
-        # Environment specific adjustments
-        if context.environment == "prod":
-            if signal.name == "source_reliability":
-                base_weight *= 1.2  # source matters more in prod
+        # Normaliza pesos para somar 1.0
+        total = sum(weights.values())
+        if total > 0:
+            weights = {k: v / total for k, v in weights.items()}
 
-        elif context.environment == "dev":
-            # More lenient in dev
-            base_weight *= 0.9
-
-        # New entity adjustments
-        if not self._has_history(context):
-            if signal.name in ["semantic_consistency", "source_reliability"]:
-                base_weight *= 0.5  # can't rely on history
-            elif signal.name in ["anomaly_detection", "context_alignment"]:
-                base_weight *= 1.3  # rely more on structural checks
-
-        return base_weight
-
-    def _has_history(self, context: TrustContext) -> bool:
-        """Check if entity has historical data."""
-        # This would check storage, simplified here
-        return context.entity_id is not None
+        return weights
 
 
 class AdaptiveWeighting:
     """
-    Learns optimal weights over time (simplified version).
+    Aprende pesos ótimos ao longo do tempo baseado em performance
+    (Versão simplificada - pode ser expandida com ML)
     """
 
-    def __init__(self):
-        self.performance_history: Dict[str, List[float]] = {}
-
-    def update_performance(self, signal_name: str, accuracy: float):
+    def __init__(self, config: TrustConfig, trust_repo: TrustRepository):
         """
-        Update performance history for a signal.
+        Inicializa adaptive weighting
 
         Args:
-            signal_name: Name of the signal
-            accuracy: How accurate the signal was (0-1)
+            config: Configuração do Trust Engine
+            trust_repo: Repositório de histórico
         """
-        if signal_name not in self.performance_history:
-            self.performance_history[signal_name] = []
+        self.config = config
+        self.trust_repo = trust_repo
+        self.learned_weights: Dict[str, float] = {}
 
-        self.performance_history[signal_name].append(accuracy)
-
-        # Keep only recent history
-        if len(self.performance_history[signal_name]) > 100:
-            self.performance_history[signal_name] = \
-                self.performance_history[signal_name][-100:]
-
-    def get_adaptive_weight(self, signal_name: str, base_weight: float) -> float:
+    def update_weights(
+        self,
+        signal_results: List[SignalResult],
+        actual_outcome: float
+    ):
         """
-        Get adaptive weight based on historical performance.
+        Atualiza pesos baseado em outcome real
 
         Args:
-            signal_name: Name of the signal
-            base_weight: Base weight from config
+            signal_results: Resultados dos signals
+            actual_outcome: Outcome real observado [0, 1]
+        """
+        # Implementação simplificada
+        # Em produção, usar algoritmo de aprendizado (gradient descent, etc.)
+
+        for sr in signal_results:
+            # Calcula erro do signal
+            error = abs(sr.score - actual_outcome)
+
+            # Ajusta peso (signals com menor erro ganham mais peso)
+            current_weight = self.learned_weights.get(sr.signal_name, 1.0)
+            adjustment = 0.1 * (1.0 - error)  # Ajuste proporcional ao acerto
+
+            new_weight = current_weight + adjustment
+            self.learned_weights[sr.signal_name] = max(0.1, min(2.0, new_weight))
+
+    def get_weights(self, signal_names: List[str]) -> Dict[str, float]:
+        """
+        Retorna pesos aprendidos
+
+        Args:
+            signal_names: Lista de nomes de signals
 
         Returns:
-            Adjusted weight
+            Dict {signal_name: weight}
         """
-        if signal_name not in self.performance_history:
-            return base_weight
+        weights = {}
+        for name in signal_names:
+            weights[name] = self.learned_weights.get(name, 1.0)
 
-        history = self.performance_history[signal_name]
+        # Normaliza
+        total = sum(weights.values())
+        if total > 0:
+            weights = {k: v / total for k, v in weights.items()}
 
-        if len(history) < 10:
-            return base_weight  # not enough data
-
-        # Calculate average performance
-        avg_performance = sum(history) / len(history)
-
-        # Adjust weight based on performance
-        # Good performance (>0.8) -> increase weight
-        # Poor performance (<0.5) -> decrease weight
-        if avg_performance > 0.8:
-            return base_weight * 1.2
-        elif avg_performance < 0.5:
-            return base_weight * 0.7
-        else:
-            return base_weight
+        return weights
