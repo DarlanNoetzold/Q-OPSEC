@@ -1,5 +1,5 @@
 """
-Context alignment signal - evaluates if information fits expected context.
+Context Signals - Avalia alinhamento e estabilidade de contexto
 """
 from signals.base import TrustSignal
 from core.trust_context import TrustContext
@@ -8,7 +8,7 @@ from core.trust_result import SignalResult
 
 class ContextAlignmentSignal(TrustSignal):
     """
-    Evaluates if information aligns with expected context.
+    Verifica se informação está alinhada com contexto esperado
     """
 
     @property
@@ -16,85 +16,54 @@ class ContextAlignmentSignal(TrustSignal):
         return "context_alignment"
 
     def evaluate(self, context: TrustContext) -> SignalResult:
-        """
-        Check if context makes sense for this type of information.
-        """
-        score = 1.0
-        flags = []
+        """Verifica alinhamento contextual"""
+        try:
+            alignment_score = 1.0
+            checks = []
 
-        # 1. Environment validation
-        expected_envs = self.params.get("expected_contexts", ["prod", "staging", "dev"])
-        if context.environment not in expected_envs:
-            score -= 0.2
-            flags.append("unexpected_environment")
+            # 1. Verifica se environment é válido
+            valid_envs = ["production", "staging", "development", "test"]
+            if context.environment and context.environment not in valid_envs:
+                alignment_score -= 0.3
+                checks.append(("invalid_environment", False))
+            else:
+                checks.append(("valid_environment", True))
 
-        # 2. Source-DataType alignment
-        if self._is_misaligned_source_datatype(context):
-            score -= 0.15
-            flags.append("source_datatype_mismatch")
+            # 2. Verifica se data_type é válido
+            valid_types = ["event", "profile", "transaction", "log", "metric"]
+            if context.data_type and context.data_type not in valid_types:
+                alignment_score -= 0.2
+                checks.append(("invalid_data_type", False))
+            else:
+                checks.append(("valid_data_type", True))
 
-        # 3. Request ID validation
-        if not context.request_id:
-            score -= 0.1
-            flags.append("missing_request_id")
+            # 3. Verifica completude de metadata
+            required_fields = ["source_id", "entity_id"]
+            missing = [f for f in required_fields if not getattr(context, f, None)]
 
-        # 4. Metadata completeness
-        completeness_score = self._check_metadata_completeness(context)
-        score *= completeness_score
-        if completeness_score < 0.9:
-            flags.append("incomplete_metadata")
+            if missing:
+                alignment_score -= 0.1 * len(missing)
+                checks.append(("missing_metadata", missing))
+            else:
+                checks.append(("complete_metadata", True))
 
-        metadata = {
-            "flags": flags,
-            "environment": context.environment,
-            "metadata_completeness": round(completeness_score, 4)
-        }
+            alignment_score = max(0.0, alignment_score)
 
-        return self._create_result(score, metadata)
+            metadata = {
+                "alignment_score": alignment_score,
+                "checks": dict(checks),
+                "is_aligned": alignment_score > 0.7
+            }
 
-    def _is_misaligned_source_datatype(self, context: TrustContext) -> bool:
-        """
-        Check if source and data type combination makes sense.
-        """
-        # Example rules (customize based on your domain)
-        misalignments = {
-            "auth_service": ["payment_data", "analytics_event"],
-            "payment_service": ["user_profile", "auth_token"],
-            "analytics_service": ["credentials", "payment_data"]
-        }
+            return self._create_result(alignment_score, 0.9, metadata)
 
-        source_id = context.source_id or ""
-        data_type = context.data_type
-
-        for source_pattern, forbidden_types in misalignments.items():
-            if source_pattern in source_id and data_type in forbidden_types:
-                return True
-
-        return False
-
-    def _check_metadata_completeness(self, context: TrustContext) -> float:
-        """
-        Check if all expected metadata is present.
-        """
-        required_fields = ["source_id", "entity_id", "data_type", "timestamp"]
-        present_fields = []
-
-        if context.source_id:
-            present_fields.append("source_id")
-        if context.entity_id:
-            present_fields.append("entity_id")
-        if context.data_type:
-            present_fields.append("data_type")
-        if context.timestamp:
-            present_fields.append("timestamp")
-
-        completeness = len(present_fields) / len(required_fields)
-        return completeness
+        except Exception as e:
+            return self._create_result(0.5, 0.3, {"error": str(e)})
 
 
 class ContextStabilitySignal(TrustSignal):
     """
-    Evaluates stability of context over time for an entity.
+    Avalia estabilidade do contexto ao longo do tempo
     """
 
     @property
@@ -102,40 +71,36 @@ class ContextStabilitySignal(TrustSignal):
         return "context_stability"
 
     def evaluate(self, context: TrustContext) -> SignalResult:
-        """
-        Check if context is stable compared to history.
-        """
-        if not self.storage or not context.entity_id:
-            return self._create_result(0.5, {"reason": "no_history"})
+        """Verifica se contexto é estável"""
+        try:
+            if not context.entity_id:
+                return self._create_result(0.7, 0.5, {"reason": "no_entity_id"})
 
-        history = self.storage.get_entity_history(
-            entity_id=context.entity_id,
-            limit=10
-        )
+            history = self.trust_repo.get_entity_history(context.entity_id, limit=10)
 
-        if len(history) < 3:
-            return self._create_result(0.5, {"reason": "insufficient_history"})
+            if len(history) < 3:
+                return self._create_result(0.7, 0.5, {"reason": "insufficient_history"})
 
-        # Check environment stability
-        historical_envs = [event.get("environment") for event in history]
-        env_changes = len(set(historical_envs))
+            # Verifica estabilidade de environment
+            envs = [e.get("environment") for e in history if e.get("environment")]
+            env_stability = len(set(envs)) == 1 if envs else True
 
-        # Check source stability
-        historical_sources = [event.get("source_id") for event in history]
-        source_changes = len(set(historical_sources))
+            # Verifica estabilidade de data_type
+            types = [e.get("data_type") for e in history if e.get("data_type")]
+            type_stability = len(set(types)) == 1 if types else True
 
-        # Calculate stability score
-        # Fewer changes = more stable = higher score
-        env_stability = 1.0 - min(env_changes / len(historical_envs), 0.5)
-        source_stability = 1.0 - min(source_changes / len(historical_sources), 0.5)
+            # Score baseado em estabilidade
+            stability_score = (int(env_stability) + int(type_stability)) / 2.0
 
-        score = (env_stability + source_stability) / 2
+            metadata = {
+                "env_stability": env_stability,
+                "type_stability": type_stability,
+                "unique_envs": len(set(envs)) if envs else 0,
+                "unique_types": len(set(types)) if types else 0,
+                "is_stable": stability_score > 0.5
+            }
 
-        metadata = {
-            "environment_changes": env_changes,
-            "source_changes": source_changes,
-            "env_stability": round(env_stability, 4),
-            "source_stability": round(source_stability, 4)
-        }
+            return self._create_result(stability_score, 0.8, metadata)
 
-        return self._create_result(score, metadata)
+        except Exception as e:
+            return self._create_result(0.5, 0.3, {"error": str(e)})
