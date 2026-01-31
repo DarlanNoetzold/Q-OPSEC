@@ -1,133 +1,201 @@
 """
-Scoring strategies for trust aggregation.
+Scoring Strategies - Diferentes estratégias para agregar scores de signals
 """
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from core.trust_result import SignalResult
 import math
 
 
 class ScoringStrategy:
-    """Different strategies for aggregating signal scores."""
+    """
+    Estratégias estáticas para agregar scores de múltiplos signals
+    """
 
     @staticmethod
-    def weighted_average(signals: List[SignalResult]) -> float:
+    def weighted_average(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> float:
         """
-        Simple weighted average.
-        score = Σ(signal_score × weight) / Σ(weight)
+        Média ponderada simples
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos por signal
+
+        Returns:
+            Score agregado [0, 1]
         """
-        if not signals:
+        if not signal_results:
             return 0.5
 
-        weighted_sum = sum(s.score * s.weight for s in signals)
-        weight_sum = sum(s.weight for s in signals)
+        total_score = 0.0
+        total_weight = 0.0
 
-        if weight_sum == 0:
-            return 0.5
+        for sr in signal_results:
+            weight = weights.get(sr.signal_name, 0.0)
+            total_score += sr.score * weight
+            total_weight += weight
 
-        return weighted_sum / weight_sum
+        return total_score / total_weight if total_weight > 0 else 0.5
 
     @staticmethod
-    def geometric_mean(signals: List[SignalResult]) -> float:
+    def confidence_weighted(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> Tuple[float, Tuple[float, float]]:
         """
-        Geometric mean with weights.
-        More sensitive to low scores (one bad signal hurts more).
+        Média ponderada considerando confidence dos signals
+        Retorna também confidence interval
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos por signal
+
+        Returns:
+            (score, (lower_bound, upper_bound))
         """
-        if not signals:
-            return 0.5
+        if not signal_results:
+            return 0.5, (0.0, 1.0)
 
-        # Avoid log(0) by adding small epsilon
-        epsilon = 0.001
+        total_score = 0.0
+        total_weight = 0.0
+        confidence_sum = 0.0
 
-        weighted_log_sum = sum(
-            s.weight * math.log(s.score + epsilon)
-            for s in signals
-        )
-        weight_sum = sum(s.weight for s in signals)
+        for sr in signal_results:
+            weight = weights.get(sr.signal_name, 0.0)
+            confidence_adjusted_weight = weight * sr.confidence
 
-        if weight_sum == 0:
-            return 0.5
+            total_score += sr.score * confidence_adjusted_weight
+            total_weight += confidence_adjusted_weight
+            confidence_sum += sr.confidence
 
-        result = math.exp(weighted_log_sum / weight_sum) - epsilon
-        return max(0.0, min(1.0, result))
+        score = total_score / total_weight if total_weight > 0 else 0.5
+
+        # Calcula confidence interval baseado na confidence média
+        avg_confidence = confidence_sum / len(signal_results)
+        margin = (1.0 - avg_confidence) * 0.2  # Margem proporcional à incerteza
+
+        lower = max(0.0, score - margin)
+        upper = min(1.0, score + margin)
+
+        return score, (lower, upper)
 
     @staticmethod
-    def harmonic_mean(signals: List[SignalResult]) -> float:
+    def geometric_mean(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> float:
         """
-        Harmonic mean with weights.
-        Even more sensitive to low scores than geometric.
+        Média geométrica ponderada
+        Mais conservadora - um signal baixo puxa o score para baixo
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos por signal
+
+        Returns:
+            Score agregado [0, 1]
         """
-        if not signals:
+        if not signal_results:
             return 0.5
 
-        epsilon = 0.001
+        product = 1.0
+        total_weight = sum(weights.get(sr.signal_name, 0.0) for sr in signal_results)
 
-        weighted_reciprocal_sum = sum(
-            s.weight / (s.score + epsilon)
-            for s in signals
-        )
-        weight_sum = sum(s.weight for s in signals)
+        for sr in signal_results:
+            weight = weights.get(sr.signal_name, 0.0)
+            normalized_weight = weight / total_weight if total_weight > 0 else 1.0 / len(signal_results)
 
-        if weight_sum == 0 or weighted_reciprocal_sum == 0:
-            return 0.5
+            # Evita log(0)
+            score = max(0.001, sr.score)
+            product *= score ** normalized_weight
 
-        result = weight_sum / weighted_reciprocal_sum
-        return max(0.0, min(1.0, result))
+        return product
 
     @staticmethod
-    def minimum(signals: List[SignalResult]) -> float:
+    def harmonic_mean(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> float:
         """
-        Take minimum score (most conservative).
-        One bad signal = bad overall score.
+        Média harmônica ponderada
+        Ainda mais conservadora que geométrica
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos por signal
+
+        Returns:
+            Score agregado [0, 1]
         """
-        if not signals:
+        if not signal_results:
             return 0.5
 
-        return min(s.score for s in signals)
+        total_weighted_inverse = 0.0
+        total_weight = 0.0
+
+        for sr in signal_results:
+            weight = weights.get(sr.signal_name, 0.0)
+            # Evita divisão por zero
+            score = max(0.001, sr.score)
+
+            total_weighted_inverse += weight / score
+            total_weight += weight
+
+        if total_weighted_inverse == 0:
+            return 0.5
+
+        return total_weight / total_weighted_inverse
 
     @staticmethod
-    def adaptive(signals: List[SignalResult], context_score: float = 0.5) -> float:
+    def minimum(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> float:
         """
-        Adaptive scoring based on signal variance.
-        If signals agree -> weighted average
-        If signals disagree -> more conservative (geometric mean)
+        Retorna o menor score (mais conservador)
+        Útil para cenários de alta segurança
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos (não usado, mas mantido para interface consistente)
+
+        Returns:
+            Score mínimo [0, 1]
         """
-        if not signals:
+        if not signal_results:
             return 0.5
 
-        scores = [s.score for s in signals]
+        return min(sr.score for sr in signal_results)
 
-        # Calculate variance
+    @staticmethod
+    def adaptive(
+        signal_results: List[SignalResult],
+        weights: Dict[str, float]
+    ) -> float:
+        """
+        Estratégia adaptativa que escolhe entre média e geométrica
+        baseado na variância dos scores
+
+        Args:
+            signal_results: Lista de resultados
+            weights: Pesos por signal
+
+        Returns:
+            Score agregado [0, 1]
+        """
+        if not signal_results:
+            return 0.5
+
+        # Calcula variância
+        scores = [sr.score for sr in signal_results]
         mean_score = sum(scores) / len(scores)
         variance = sum((s - mean_score) ** 2 for s in scores) / len(scores)
 
-        # High variance = use geometric mean (conservative)
-        # Low variance = use weighted average (optimistic)
-        if variance > 0.05:  # threshold
-            return ScoringStrategy.geometric_mean(signals)
+        # Se variância alta, usa geométrica (mais conservadora)
+        # Se variância baixa, usa média ponderada
+        if variance > 0.1:
+            return ScoringStrategy.geometric_mean(signal_results, weights)
         else:
-            return ScoringStrategy.weighted_average(signals)
-
-    @staticmethod
-    def confidence_weighted(signals: List[SignalResult]) -> tuple:
-        """
-        Calculate score with confidence interval.
-        Returns (score, confidence_lower, confidence_upper)
-        """
-        if not signals:
-            return (0.5, 0.4, 0.6)
-
-        # Base score
-        base_score = ScoringStrategy.weighted_average(signals)
-
-        # Calculate confidence based on signal agreement
-        scores = [s.score for s in signals]
-        mean_score = sum(scores) / len(scores)
-        std_dev = math.sqrt(
-            sum((s - mean_score) ** 2 for s in scores) / len(scores)
-        )
-
-        # Confidence interval (±1 std dev)
-        confidence_lower = max(0.0, base_score - std_dev)
-        confidence_upper = min(1.0, base_score + std_dev)
-
-        return (base_score, confidence_lower, confidence_upper)
+            return ScoringStrategy.weighted_average(signal_results, weights)
