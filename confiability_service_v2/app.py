@@ -1,118 +1,127 @@
+"""
+Confiability Service V2 - Trust Engine Only
+"""
 from flask import Flask, jsonify
-from controllers.confidentiality_controller import conf_bp
-from controllers.dataset_controller import dataset_bp
-
-# ✨ NOVO: Importar o controller do Trust Engine V2
-from api.v2.trust_controller import router as trust_router_fastapi
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from services.conf_model_service import ConfidentialityModelService
 import os
-import atexit
+import sys
+
+# Adicionar diretório raiz ao path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Importar Trust Engine V2 Controller
+from api.v2.trust_controller import trust_v2_bp
+
+# Importar bootstrap
+from bootstrap_v2 import initialize_trust_engine
 
 
 def ensure_dirs():
+    """Cria diretórios necessários"""
     os.makedirs("data", exist_ok=True)
     os.makedirs("models", exist_ok=True)
-
-
-conf_service = ConfidentialityModelService()
+    os.makedirs("logs", exist_ok=True)
 
 
 def create_app():
+    """Factory para criar a aplicação Flask"""
     ensure_dirs()
+
+    # Inicializar Trust Engine V2
+    try:
+        initialize_trust_engine()
+        print("✅ Trust Engine V2 initialized")
+    except Exception as e:
+        print(f"⚠️  Trust Engine V2 initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
+
     app = Flask(__name__)
 
-    # Blueprints existentes
-    app.register_blueprint(conf_bp)
-    app.register_blueprint(dataset_bp)
+    # Registrar blueprint do Trust Engine V2
+    app.register_blueprint(trust_v2_bp)       # /api/v2/trust/*
 
+    # Health check geral
     @app.get("/health")
     def health():
+        """Health check geral da aplicação"""
         return jsonify({
             "status": "ok",
-            "services": ["risk", "confidentiality", "trust_v2"]
+            "version": "2.0.0",
+            "services": {
+                "trust_engine_v2": "/api/v2/trust/*"
+            }
         }), 200
 
-    # Scheduler existente
-    scheduler = BackgroundScheduler(daemon=True)
-
-    scheduler.add_job(
-        func=conf_service.scheduled_cleanup,
-        trigger="interval",
-        days=3,
-        id="cleanup_old_conf_models",
-        max_instances=1,
-        replace_existing=True
-    )
-
-    scheduler.add_job(
-        func=conf_service.scheduled_retrain,
-        trigger="interval",
-        hours=1,
-        id="hourly_conf_retrain",
-        max_instances=1,
-        replace_existing=True,
-        start_date="2024-01-01 00:30:00"
-    )
-
-    scheduler.start()
-    atexit.register(lambda: scheduler.shutdown(wait=False))
+    @app.get("/")
+    def root():
+        """Endpoint raiz com informações da API"""
+        return jsonify({
+            "service": "Trust Engine V2",
+            "version": "2.0.0",
+            "description": "Information Trust Engine - Contextual Trustworthiness Evaluation",
+            "endpoints": {
+                "health": "GET /health",
+                "trust_v2": {
+                    "evaluate": "POST /api/v2/trust/evaluate",
+                    "health": "GET /api/v2/trust/health",
+                    "config": "GET /api/v2/trust/config",
+                    "signals": "GET /api/v2/trust/signals",
+                    "stats": "GET /api/v2/trust/stats",
+                    "history_entity": "GET /api/v2/trust/history/<entity_id>",
+                    "history_source": "GET /api/v2/trust/history/source/<source_id>"
+                }
+            },
+            "documentation": {
+                "evaluate_example": {
+                    "method": "POST",
+                    "url": "/api/v2/trust/evaluate",
+                    "body": {
+                        "payload": {
+                            "claim": "User reported suspicious activity",
+                            "details": {"ip": "192.168.1.1"}
+                        },
+                        "metadata": {
+                            "source_id": "security_system_1",
+                            "entity_id": "user_12345",
+                            "timestamp": "2024-01-15T10:30:00Z",
+                            "data_type": "security_event",
+                            "environment": "production"
+                        }
+                    }
+                }
+            }
+        }), 200
 
     return app
 
 
+# Criar aplicação
 app = create_app()
-
-# ✨ NOVO: Adicionar rotas do Trust Engine V2 (Flask-style)
-from flask import request
-from bootstrap_v2 import get_trust_orchestrator
-from core.trust_context import TrustContext
-
-
-@app.post("/api/v2/trust/evaluate")
-def evaluate_trust_v2():
-    """Endpoint do Trust Engine V2"""
-    try:
-        data = request.get_json()
-
-        # Criar contexto
-        context = TrustContext(
-            payload=data.get("payload", {}),
-            metadata=data.get("metadata", {}),
-            history=data.get("history", {})
-        )
-
-        # Executar avaliação
-        orchestrator = get_trust_orchestrator()
-        result = orchestrator.evaluate(context)
-
-        return jsonify(result.to_dict()), 200
-
-    except Exception as e:
-        return jsonify({
-            "error": "Trust evaluation failed",
-            "message": str(e)
-        }), 500
-
-
-@app.get("/api/v2/trust/health")
-def trust_health_v2():
-    """Health check do Trust Engine V2"""
-    try:
-        orchestrator = get_trust_orchestrator()
-        return jsonify({
-            "status": "healthy",
-            "version": "2.0.0",
-            "signals_count": len(orchestrator.signals),
-            "signals": [s.name for s in orchestrator.signals]
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "status": "unhealthy",
-            "error": str(e)
-        }), 503
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8083, debug=False)
+    print("=" * 70)
+    print("🚀 Trust Engine V2 - Starting...")
+    print("=" * 70)
+    print("📍 Service:")
+    print("   ✅ Trust Engine V2: /api/v2/trust/*")
+    print("=" * 70)
+    print("🌐 Server: http://0.0.0.0:8083")
+    print("📚 API Docs: http://0.0.0.0:8083/")
+    print("=" * 70)
+    print("🔍 Quick Health Checks:")
+    print("   curl http://localhost:8083/health")
+    print("   curl http://localhost:8083/api/v2/trust/health")
+    print("=" * 70)
+    print("\n🧪 Test Evaluation:")
+    print('   curl -X POST http://localhost:8083/api/v2/trust/evaluate \\')
+    print('     -H "Content-Type: application/json" \\')
+    print('     -d "{\\"payload\\": {\\"test\\": \\"data\\"}, \\"metadata\\": {\\"source_id\\": \\"test\\"}}"')
+    print("=" * 70)
+
+    app.run(
+        host="0.0.0.0",
+        port=8083,
+        debug=False,
+        threaded=True
+    )
