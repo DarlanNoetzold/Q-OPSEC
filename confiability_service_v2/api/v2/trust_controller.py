@@ -57,8 +57,7 @@ def evaluate():
             "timestamp": "...",
             "data_type": "...",
             "environment": "..."
-        },
-        "history": {...}            # Histórico opcional
+        }
     }
     """
     t0 = time.time()
@@ -83,11 +82,10 @@ def evaluate():
                 "details": err.errors()
             }), 400
 
-        # Criar contexto
+        # Criar contexto (SEM history)
         context = TrustContext(
             payload=req_obj.payload,
-            metadata=req_obj.metadata,
-            history=req_obj.history or {}
+            metadata=req_obj.metadata
         )
 
         # Executar avaliação
