@@ -1,17 +1,18 @@
 """
-Temporal trust signal - evaluates information freshness and decay.
+Temporal Signals - Avalia freshness e drift temporal
 """
 from signals.base import TrustSignal
 from core.trust_context import TrustContext
 from core.trust_result import SignalResult
 from strategies.decay import DecayStrategy
-from utils.time import now_utc, delta_seconds
+from utils.time import get_age_hours, parse_timestamp
+from datetime import datetime
 
 
 class TemporalSignal(TrustSignal):
     """
-    Evaluates trust based on temporal validity.
-    Older information is less trustworthy.
+    Avalia freshness da informação usando decay temporal
+    Informação mais recente = maior confiança
     """
 
     @property
@@ -19,41 +20,38 @@ class TemporalSignal(TrustSignal):
         return "temporal"
 
     def evaluate(self, context: TrustContext) -> SignalResult:
-        """
-        Calculate temporal trust score using exponential decay.
+        """Avalia freshness baseado no timestamp"""
+        try:
+            # Obtém idade da informação
+            age_hours = get_age_hours(context.timestamp)
 
-        Score decreases as information ages.
-        """
-        # Get parameters
-        decay_lambda = self.params.get("decay_lambda", 0.0001)
-        max_age_hours = self.params.get("max_age_hours", 720)
+            # Parâmetros de decay
+            decay_lambda = self.params.get("decay_lambda", 0.0001)
+            half_life_hours = self.params.get("half_life_hours", 168.0)  # 7 dias
 
-        # Calculate age
-        now = now_utc()
-        age_seconds = delta_seconds(now, context.timestamp)
-        age_hours = age_seconds / 3600
+            # Calcula score usando decay exponencial
+            score = DecayStrategy.exponential(age_hours, decay_lambda)
 
-        # Apply exponential decay
-        score = DecayStrategy.exponential(age_seconds, decay_lambda)
+            # Confidence baseado na presença de timestamp
+            confidence = 1.0 if context.timestamp else 0.5
 
-        # Hard cutoff at max age
-        if age_hours > max_age_hours:
-            score = 0.0
+            metadata = {
+                "age_hours": age_hours,
+                "decay_lambda": decay_lambda,
+                "half_life_hours": half_life_hours,
+                "is_stale": age_hours > half_life_hours
+            }
 
-        # Metadata
-        metadata = {
-            "age_seconds": round(age_seconds, 2),
-            "age_hours": round(age_hours, 2),
-            "decay_applied": round(1.0 - score, 4),
-            "is_expired": age_hours > max_age_hours
-        }
+            return self._create_result(score, confidence, metadata)
 
-        return self._create_result(score, metadata)
+        except Exception as e:
+            # Fallback em caso de erro
+            return self._create_result(0.5, 0.3, {"error": str(e)})
 
 
 class TemporalDriftSignal(TrustSignal):
     """
-    Detects temporal inconsistencies (e.g., future timestamps, time jumps).
+    Detecta inconsistências temporais (timestamps futuros, regressões)
     """
 
     @property
@@ -61,38 +59,39 @@ class TemporalDriftSignal(TrustSignal):
         return "temporal_drift"
 
     def evaluate(self, context: TrustContext) -> SignalResult:
-        """
-        Detect temporal anomalies.
-        """
-        now = now_utc()
-        timestamp = context.timestamp
+        """Detecta anomalias temporais"""
+        try:
+            current_time = datetime.utcnow()
+            info_time = context.timestamp
 
-        score = 1.0
-        flags = []
+            # Verifica timestamp futuro
+            if info_time and info_time > current_time:
+                return self._create_result(
+                    0.0,
+                    1.0,
+                    {"is_future": True, "drift_hours": get_age_hours(info_time)}
+                )
 
-        # Future timestamp (suspicious)
-        if timestamp > now:
-            future_seconds = delta_seconds(timestamp, now)
-            if future_seconds > 60:  # allow 1 min clock skew
-                score -= 0.3
-                flags.append("future_timestamp")
+            # Verifica regressão temporal (comparado com histórico)
+            if context.entity_id:
+                history = self.trust_repo.get_entity_history(context.entity_id, limit=1)
 
-        # Check for time jumps if storage available
-        if self.storage:
-            last_event = self.storage.get_last_event(
-                entity_id=context.entity_id,
-                source_id=context.source_id
-            )
+                if history:
+                    last_timestamp = history[0].get("timestamp")
+                    if last_timestamp and info_time:
+                        last_time = parse_timestamp(last_timestamp)
 
-            if last_event:
-                last_ts = last_event.get("timestamp")
-                if last_ts and timestamp < last_ts:
-                    score -= 0.2
-                    flags.append("timestamp_regression")
+                        # Se timestamp atual é anterior ao último, há regressão
+                        if info_time < last_time:
+                            hours_regression = (last_time - info_time).total_seconds() / 3600
+                            return self._create_result(
+                                0.3,
+                                1.0,
+                                {"is_regression": True, "regression_hours": hours_regression}
+                            )
 
-        metadata = {
-            "flags": flags,
-            "timestamp": timestamp.isoformat()
-        }
+            # Sem anomalias temporais
+            return self._create_result(1.0, 1.0, {"is_drift": False})
 
-        return self._create_result(score, metadata)
+        except Exception as e:
+            return self._create_result(0.5, 0.3, {"error": str(e)})
