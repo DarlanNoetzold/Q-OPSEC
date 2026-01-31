@@ -1,0 +1,11 @@
+# Existentes
+flask==3.0.0
+apscheduler==3.10.4
+
+# Para Trust Engine V2
+pydantic==2.5.0
+fastapi==0.109.0
+uvicorn==0.27.0
+
+# Utilitários
+python-dateutil==2.8.2
