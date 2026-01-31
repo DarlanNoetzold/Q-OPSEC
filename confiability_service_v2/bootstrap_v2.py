@@ -6,7 +6,6 @@ from core.orchestrator import TrustOrchestrator
 from config.trust_config import TrustConfig
 from storage.trust_repository import TrustRepository
 from storage.fingerprint_repo import FingerprintRepository
-from storage.trust_graph import TrustGraph
 
 # Singleton global
 _trust_orchestrator: TrustOrchestrator | None = None
@@ -28,14 +27,12 @@ def initialize_trust_engine() -> TrustOrchestrator:
     # 2. Repositórios
     trust_repo = TrustRepository()
     fingerprint_repo = FingerprintRepository()
-    trust_graph = TrustGraph()
 
-    # 3. Criar orchestrator
+    # 3. Criar orchestrator (SEM trust_graph)
     _trust_orchestrator = TrustOrchestrator(
         config=config,
         trust_repo=trust_repo,
-        fingerprint_repo=fingerprint_repo,
-        trust_graph=trust_graph
+        fingerprint_repo=fingerprint_repo
     )
 
     print("✅ Trust Engine V2 initialized successfully")
