@@ -20,11 +20,6 @@ class TrustEvaluationRequest(BaseModel):
         description="Metadados contextuais (source_id, entity_id, timestamp, etc.)"
     )
 
-    history: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Histórico opcional para contexto adicional"
-    )
-
     class Config:
         json_schema_extra = {
             "example": {
