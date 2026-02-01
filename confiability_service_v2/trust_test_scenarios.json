@@ -1,0 +1,173 @@
+{
+  "scenarios": [
+    {
+      "name": "Scenario 1: Fresh Event from Trusted Source",
+      "description": "Evento recente de fonte confiável em produção",
+      "payload": {
+        "event_type": "user_login",
+        "user_id": "user_12345",
+        "ip_address": "192.168.1.100",
+        "timestamp": "2026-02-01T22:00:00Z",
+        "device": "mobile",
+        "location": "São Paulo, BR"
+      },
+      "metadata": {
+        "source_id": "auth_service_prod",
+        "entity_id": "user_12345",
+        "timestamp": "2026-02-01T22:00:00Z",
+        "data_type": "event",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 2: Stale Data from Unknown Source",
+      "description": "Dados antigos (30 dias) de fonte desconhecida",
+      "payload": {
+        "profile_update": "email_changed",
+        "old_email": "user@old.com",
+        "new_email": "user@new.com",
+        "timestamp": "2026-01-01T10:00:00Z"
+      },
+      "metadata": {
+        "source_id": "unknown_service",
+        "entity_id": "user_99999",
+        "timestamp": "2026-01-01T10:00:00Z",
+        "data_type": "profile",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 3: High Entropy Anomaly",
+      "description": "Payload com alta entropia (possível ataque)",
+      "payload": {
+        "data": "aB3xK9mP2qL7vN4wR8tY6uI1oE5sD0fG",
+        "hash": "7f3a9b2c8d1e4f6a5b9c0d2e3f4a5b6c",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+        "encrypted": "U2FsdGVkX1+vupppZksvRf5pq5g5XjFRIipRkwB0K1Y="
+      },
+      "metadata": {
+        "source_id": "external_api",
+        "entity_id": "entity_suspicious",
+        "timestamp": "2026-02-01T21:00:00Z",
+        "data_type": "transaction",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 4: Consistent Profile Update",
+      "description": "Atualização de perfil consistente de fonte conhecida",
+      "payload": {
+        "user_id": "user_12345",
+        "name": "João Silva",
+        "email": "joao.silva@example.com",
+        "phone": "+55 11 98765-4321",
+        "updated_at": "2026-02-01T20:00:00Z"
+      },
+      "metadata": {
+        "source_id": "user_service_prod",
+        "entity_id": "user_12345",
+        "timestamp": "2026-02-01T20:00:00Z",
+        "data_type": "profile",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 5: Development Environment Test",
+      "description": "Dados de teste em ambiente de desenvolvimento",
+      "payload": {
+        "test_id": "test_001",
+        "test_data": "sample_value",
+        "debug": true,
+        "timestamp": "2026-02-01T19:00:00Z"
+      },
+      "metadata": {
+        "source_id": "dev_service",
+        "entity_id": "test_entity",
+        "timestamp": "2026-02-01T19:00:00Z",
+        "data_type": "log",
+        "environment": "development"
+      }
+    },
+    {
+      "name": "Scenario 6: Future Timestamp (Temporal Drift)",
+      "description": "Timestamp no futuro - possível erro de clock",
+      "payload": {
+        "event": "future_event",
+        "value": 100,
+        "timestamp": "2026-03-01T10:00:00Z"
+      },
+      "metadata": {
+        "source_id": "sensor_device_01",
+        "entity_id": "device_001",
+        "timestamp": "2026-03-01T10:00:00Z",
+        "data_type": "metric",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 7: Large Payload",
+      "description": "Payload muito grande (possível anomalia)",
+      "payload": {
+        "data": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "metadata": {
+          "key": "value"
+        },
+        "timestamp": "2026-02-01T18:00:00Z"
+      },
+      "metadata": {
+        "source_id": "bulk_import_service",
+        "entity_id": "bulk_001",
+        "timestamp": "2026-02-01T18:00:00Z",
+        "data_type": "event",
+        "environment": "staging"
+      }
+    },
+    {
+      "name": "Scenario 8: Minimal Valid Payload",
+      "description": "Payload mínimo válido",
+      "payload": {
+        "id": "123",
+        "status": "ok"
+      },
+      "metadata": {
+        "source_id": "health_check",
+        "entity_id": "service_health",
+        "timestamp": "2026-02-01T22:10:00Z",
+        "data_type": "metric",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 9: Repeated Source Pattern",
+      "description": "Mesmo source enviando dados similares (consistência)",
+      "payload": {
+        "transaction_id": "txn_001",
+        "amount": 100.5,
+        "currency": "BRL",
+        "timestamp": "2026-02-01T22:05:00Z"
+      },
+      "metadata": {
+        "source_id": "payment_gateway",
+        "entity_id": "merchant_001",
+        "timestamp": "2026-02-01T22:05:00Z",
+        "data_type": "transaction",
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Scenario 10: Invalid Environment",
+      "description": "Ambiente não reconhecido",
+      "payload": {
+        "data": "test_data",
+        "timestamp": "2026-02-01T22:15:00Z"
+      },
+      "metadata": {
+        "source_id": "unknown_env_service",
+        "entity_id": "entity_unknown",
+        "timestamp": "2026-02-01T22:15:00Z",
+        "data_type": "event",
+        "environment": "invalid_env"
+      }
+    }
+  ]
+}
