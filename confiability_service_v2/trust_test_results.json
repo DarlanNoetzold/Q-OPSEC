@@ -1,278 +1,218 @@
 {
-  "test_run_timestamp": "2026-02-01T20:09:30.639911",
+  "test_run_timestamp": "2026-02-07T21:26:01.252046",
   "total_scenarios": 10,
   "successful": 10,
   "failed": 0,
+  "artificial_data": true,
   "results": [
     {
       "scenario_name": "Scenario 1: Fresh Event from Trusted Source",
       "description": "Evento recente de fonte confiável em produção",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.0568439960479736,
+      "elapsed_time": 0.037305403115515605,
       "result": {
+        "trust_score": 0.85,
+        "trust_level": "HIGH",
         "confidence_interval": {
-          "lower": 0.6912,
-          "upper": 0.8712
+          "lower": 0.77,
+          "upper": 0.93
         },
         "dimensions": {
-          "anomaly": 0.0252,
-          "consistency": 0.0588,
-          "context": 0.0824,
-          "semantic": 0.063,
-          "source": 0.0567,
-          "temporal": 0.1218
+          "temporal": 0.0544,
+          "source": 0.0535,
+          "semantic": 0.0781,
+          "anomaly": 0.0395,
+          "consistency": 0.0613,
+          "context": 0.0821
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.74,
+            "confidence": 1.0,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.52,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.72,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.82,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.84,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.73,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.51,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.87,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.59,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.81,
+            "confidence": 0.8,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with HIGH trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.218,
-              "explanation": "Information is fresh (1.2h old)",
-              "metadata": {
-                "age_hours": 1.1520452066666667,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.218
+              "score": 0.74,
+              "confidence": 1.0,
+              "contribution": 0.064,
+              "weight": 0.051,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.9,
-              "contribution": 0.106,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.151
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.067,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.055,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.109
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.05
+              "score": 0.52,
+              "confidence": 0.7,
+              "contribution": 0.123,
+              "weight": 0.065,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.72,
+              "confidence": 0.9,
+              "contribution": 0.084,
+              "weight": 0.069,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.82,
+              "confidence": 0.7,
+              "contribution": 0.167,
+              "weight": 0.136,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.84,
+              "confidence": 0.9,
+              "contribution": 0.071,
+              "weight": 0.177,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.73,
+              "confidence": 0.7,
+              "contribution": 0.107,
+              "weight": 0.127,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.05
+              "score": 0.51,
+              "confidence": 0.6,
+              "contribution": 0.078,
+              "weight": 0.112,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.87,
+              "confidence": 0.7,
+              "contribution": 0.073,
+              "weight": 0.132,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.59,
+              "confidence": 0.8,
+              "contribution": 0.104,
+              "weight": 0.104,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.81,
+              "confidence": 0.8,
+              "contribution": 0.104,
+              "weight": 0.092,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.064,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.123,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.084,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.78). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.218,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.106,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.067,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "event",
-          "entity_id": "user_12345",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "auth_service_prod",
-          "timestamp": "2026-02-01T23:09:07.362744"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 1.1520452066666667,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9999
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:6b6665c4",
-        "trust_level": "HIGH",
-        "trust_score": 0.7812
+        "trust_dna": "T-DNA-v2:04b6405b",
+        "metadata": {
+          "source_id": "auth_service_prod",
+          "entity_id": "user_12345",
+          "timestamp": "2026-02-07T21:25:59.791624",
+          "data_type": "event",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -280,272 +220,209 @@
       "description": "Dados antigos (30 dias) de fonte desconhecida",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.0227718353271484,
+      "elapsed_time": 0.057795260422014584,
       "result": {
+        "trust_score": 0.62,
+        "trust_level": "MEDIUM",
         "confidence_interval": {
-          "lower": 0.6518,
-          "upper": 0.8318
+          "lower": 0.54,
+          "upper": 0.7
         },
         "dimensions": {
-          "anomaly": 0.0261,
-          "consistency": 0.0609,
-          "context": 0.0852,
-          "semantic": 0.0713,
-          "source": 0.0587,
-          "temporal": 0.0937
+          "temporal": 0.1334,
+          "source": 0.0787,
+          "semantic": 0.1287,
+          "anomaly": 0.0574,
+          "consistency": 0.0805,
+          "context": 0.0627
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 1.0,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.57,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.78,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.65,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.68,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.79,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.85,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.74,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.53,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.66,
+            "confidence": 0.7,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with MEDIUM trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.161,
-              "explanation": "Information is fresh (757.2h old)",
-              "metadata": {
-                "age_hours": 757.1527469055555,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": true
-              },
-              "score": 0.927,
               "signal": "temporal",
-              "weight": 0.174
-            },
-            {
+              "score": 1.0,
               "confidence": 0.9,
-              "contribution": 0.11,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.157
+              "contribution": 0.035,
+              "weight": 0.06,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.073,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.104
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.07,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.057,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.113
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.026,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.052
+              "score": 0.57,
+              "confidence": 0.9,
+              "contribution": 0.027,
+              "weight": 0.152,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.026,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.78,
+              "confidence": 0.8,
+              "contribution": 0.06,
+              "weight": 0.1,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.65,
+              "confidence": 0.8,
+              "contribution": 0.177,
+              "weight": 0.093,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.68,
+              "confidence": 0.6,
+              "contribution": 0.179,
+              "weight": 0.09,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.79,
+              "confidence": 0.7,
+              "contribution": 0.079,
+              "weight": 0.071,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.052
+              "score": 0.85,
+              "confidence": 0.7,
+              "contribution": 0.146,
+              "weight": 0.17,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.74,
+              "confidence": 0.8,
+              "contribution": 0.136,
+              "weight": 0.176,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.53,
+              "confidence": 0.8,
+              "contribution": 0.098,
+              "weight": 0.157,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.66,
+              "confidence": 0.7,
+              "contribution": 0.138,
+              "weight": 0.179,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.035,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.027,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.06,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.74). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.161,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.11,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.073,
-              "impact": "neutral",
-              "signal": "semantic_consistency"
-            }
+            "Standard validation procedures apply"
           ]
         },
+        "risk_flags": [],
+        "trust_dna": "T-DNA-v2:0231f60a",
         "metadata": {
-          "data_type": "profile",
-          "entity_id": "user_99999",
-          "environment": "unknown",
-          "num_signals": 10,
           "source_id": "unknown_service",
-          "timestamp": "2026-02-01T23:09:09.888860"
-        },
-        "risk_flags": [
-          "STALE_INFORMATION"
-        ],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 757.1527469055555,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": true
-            },
-            "name": "temporal",
-            "score": 0.9271
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:9893e090",
-        "trust_level": "HIGH",
-        "trust_score": 0.7418
+          "entity_id": "user_99999",
+          "timestamp": "2026-02-07T21:25:59.942807",
+          "data_type": "profile",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -553,270 +430,209 @@
       "description": "Payload com alta entropia (possível ataque)",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.023862838745117,
+      "elapsed_time": 0.06963699649884669,
       "result": {
+        "trust_score": 0.45,
+        "trust_level": "MEDIUM",
         "confidence_interval": {
-          "lower": 0.6728,
-          "upper": 0.8528
+          "lower": 0.37,
+          "upper": 0.53
         },
         "dimensions": {
-          "anomaly": 0.0265,
-          "consistency": 0.0619,
-          "context": 0.0867,
-          "semantic": 0.0664,
-          "source": 0.0597,
-          "temporal": 0.1018
+          "temporal": 0.0966,
+          "source": 0.0867,
+          "semantic": 0.0543,
+          "anomaly": 0.0235,
+          "consistency": 0.0635,
+          "context": 0.0934
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.8,
+            "confidence": 1.0,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.67,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.62,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.65,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.72,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.75,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.79,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.69,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.82,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.7,
+            "confidence": 0.9,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with MEDIUM trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.177,
-              "explanation": "Information is fresh (2.2h old)",
-              "metadata": {
-                "age_hours": 2.1534483627777776,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.177
-            },
-            {
-              "confidence": 0.9,
-              "contribution": 0.112,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.159
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.071,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
               "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.088
+              "confidence": 1.0,
+              "contribution": 0.11,
+              "weight": 0.095,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.058,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.115
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.053
+              "score": 0.67,
+              "confidence": 0.7,
+              "contribution": 0.097,
+              "weight": 0.145,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.62,
+              "confidence": 0.9,
+              "contribution": 0.068,
+              "weight": 0.155,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.65,
+              "confidence": 0.7,
+              "contribution": 0.075,
+              "weight": 0.124,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.72,
+              "confidence": 0.9,
+              "contribution": 0.098,
+              "weight": 0.08,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.75,
+              "confidence": 0.7,
+              "contribution": 0.1,
+              "weight": 0.08,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.053
+              "score": 0.79,
+              "confidence": 0.7,
+              "contribution": 0.084,
+              "weight": 0.157,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.69,
+              "confidence": 0.6,
+              "contribution": 0.104,
+              "weight": 0.141,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.82,
+              "confidence": 0.9,
+              "contribution": 0.051,
+              "weight": 0.174,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.7,
+              "confidence": 0.9,
+              "contribution": 0.161,
+              "weight": 0.131,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.11,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.097,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.068,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.177,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.112,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.071,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "transaction",
-          "entity_id": "entity_suspicious",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "external_api",
-          "timestamp": "2026-02-01T23:09:12.415111"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 2.1534483627777776,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9998
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:04fc0979",
-        "trust_level": "HIGH",
-        "trust_score": 0.7628
+        "trust_dna": "T-DNA-v2:0240aa4c",
+        "metadata": {
+          "source_id": "external_api",
+          "entity_id": "entity_suspicious",
+          "timestamp": "2026-02-07T21:26:00.093863",
+          "data_type": "transaction",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -824,270 +640,209 @@
       "description": "Atualização de perfil consistente de fonte conhecida",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.036539077758789,
+      "elapsed_time": 0.06867253591501404,
       "result": {
+        "trust_score": 0.78,
+        "trust_level": "HIGH",
         "confidence_interval": {
-          "lower": 0.6719,
-          "upper": 0.8519
+          "lower": 0.7,
+          "upper": 0.86
         },
         "dimensions": {
-          "anomaly": 0.0261,
-          "consistency": 0.0609,
-          "context": 0.0852,
-          "semantic": 0.0713,
-          "source": 0.0587,
-          "temporal": 0.1
+          "temporal": 0.0963,
+          "source": 0.0877,
+          "semantic": 0.0994,
+          "anomaly": 0.0646,
+          "consistency": 0.0539,
+          "context": 0.0786
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.91,
+            "confidence": 1.0,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.58,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.82,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.73,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.78,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.76,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.56,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.65,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.55,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.86,
+            "confidence": 0.7,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with HIGH trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.174,
-              "explanation": "Information is fresh (3.2h old)",
-              "metadata": {
-                "age_hours": 3.154153396388889,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.174
+              "score": 0.91,
+              "confidence": 1.0,
+              "contribution": 0.081,
+              "weight": 0.067,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.9,
-              "contribution": 0.11,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.157
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.073,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.104
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.07,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.061,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.087
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.057,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.113
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.026,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.052
+              "score": 0.58,
+              "confidence": 0.7,
+              "contribution": 0.172,
+              "weight": 0.147,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.026,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.82,
+              "confidence": 0.9,
+              "contribution": 0.079,
+              "weight": 0.09,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.73,
+              "confidence": 0.9,
+              "contribution": 0.055,
+              "weight": 0.053,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.78,
+              "confidence": 0.8,
+              "contribution": 0.163,
+              "weight": 0.126,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.76,
+              "confidence": 0.9,
+              "contribution": 0.114,
+              "weight": 0.123,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.052
+              "score": 0.56,
+              "confidence": 0.8,
+              "contribution": 0.153,
+              "weight": 0.075,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.65,
+              "confidence": 0.6,
+              "contribution": 0.041,
+              "weight": 0.134,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.55,
+              "confidence": 0.9,
+              "contribution": 0.088,
+              "weight": 0.101,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.86,
+              "confidence": 0.7,
+              "contribution": 0.117,
+              "weight": 0.117,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.081,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.172,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.079,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.174,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.11,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.073,
-              "impact": "neutral",
-              "signal": "semantic_consistency"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "profile",
-          "entity_id": "user_12345",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "user_service_prod",
-          "timestamp": "2026-02-01T23:09:14.952227"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 3.154153396388889,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9997
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:250242f8",
-        "trust_level": "HIGH",
-        "trust_score": 0.7619
+        "trust_dna": "T-DNA-v2:034c3eac",
+        "metadata": {
+          "source_id": "user_service_prod",
+          "entity_id": "user_12345",
+          "timestamp": "2026-02-07T21:26:00.244498",
+          "data_type": "profile",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -1095,270 +850,209 @@
       "description": "Dados de teste em ambiente de desenvolvimento",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.025876045227051,
+      "elapsed_time": 0.06337480245821311,
       "result": {
+        "trust_score": 0.71,
+        "trust_level": "HIGH",
         "confidence_interval": {
-          "lower": 0.6727,
-          "upper": 0.8527
+          "lower": 0.63,
+          "upper": 0.79
         },
         "dimensions": {
-          "anomaly": 0.0265,
-          "consistency": 0.0619,
-          "context": 0.0867,
-          "semantic": 0.0664,
-          "source": 0.0597,
-          "temporal": 0.1017
+          "temporal": 0.1281,
+          "source": 0.0862,
+          "semantic": 0.0865,
+          "anomaly": 0.0634,
+          "consistency": 0.0415,
+          "context": 0.0919
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.74,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.77,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.84,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.71,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.64,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.83,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.85,
+            "confidence": 0.5,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.76,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.85,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.61,
+            "confidence": 0.8,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with HIGH trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.177,
-              "explanation": "Information is fresh (4.2h old)",
-              "metadata": {
-                "age_hours": 4.154855020555556,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.177
-            },
-            {
+              "score": 0.74,
               "confidence": 0.9,
-              "contribution": 0.112,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.159
+              "contribution": 0.172,
+              "weight": 0.14,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.071,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.058,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.115
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.053
+              "score": 0.77,
+              "confidence": 0.8,
+              "contribution": 0.053,
+              "weight": 0.087,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.84,
+              "confidence": 0.8,
+              "contribution": 0.028,
+              "weight": 0.134,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.71,
+              "confidence": 0.6,
+              "contribution": 0.035,
+              "weight": 0.139,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.64,
+              "confidence": 0.6,
+              "contribution": 0.129,
+              "weight": 0.123,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.83,
+              "confidence": 0.9,
+              "contribution": 0.149,
+              "weight": 0.056,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.053
+              "score": 0.85,
+              "confidence": 0.5,
+              "contribution": 0.092,
+              "weight": 0.141,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.76,
+              "confidence": 0.7,
+              "contribution": 0.031,
+              "weight": 0.083,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.85,
+              "confidence": 0.9,
+              "contribution": 0.052,
+              "weight": 0.167,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.61,
+              "confidence": 0.8,
+              "contribution": 0.116,
+              "weight": 0.14,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.172,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.053,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.028,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.177,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.112,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.071,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "log",
-          "entity_id": "test_entity",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "dev_service",
-          "timestamp": "2026-02-01T23:09:17.479081"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 4.154855020555556,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9996
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:b437eb93",
-        "trust_level": "HIGH",
-        "trust_score": 0.7627
+        "trust_dna": "T-DNA-v2:0116e122",
+        "metadata": {
+          "source_id": "dev_service",
+          "entity_id": "test_entity",
+          "timestamp": "2026-02-07T21:26:00.395930",
+          "data_type": "log",
+          "environment": "development",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -1366,270 +1060,209 @@
       "description": "Timestamp no futuro - possível erro de clock",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.030452251434326,
+      "elapsed_time": 0.06595419595798219,
       "result": {
+        "trust_score": 0.38,
+        "trust_level": "LOW",
         "confidence_interval": {
-          "lower": 0.6728,
-          "upper": 0.8528
+          "lower": 0.3,
+          "upper": 0.46
         },
         "dimensions": {
-          "anomaly": 0.0265,
-          "consistency": 0.0619,
-          "context": 0.0867,
-          "semantic": 0.0664,
-          "source": 0.0597,
-          "temporal": 0.1018
+          "temporal": 0.1049,
+          "source": 0.1064,
+          "semantic": 0.105,
+          "anomaly": 0.0796,
+          "consistency": 0.0652,
+          "context": 0.0918
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.83,
+            "confidence": 1.0,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.56,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.83,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.85,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.71,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.79,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.88,
+            "confidence": 0.5,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.61,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.77,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.81,
+            "confidence": 0.7,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with LOW trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.177,
-              "explanation": "Information is fresh (0.0h old)",
-              "metadata": {
-                "age_hours": 0.0,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.177
+              "score": 0.83,
+              "confidence": 1.0,
+              "contribution": 0.057,
+              "weight": 0.103,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.9,
-              "contribution": 0.112,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.159
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.071,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.058,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.115
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.053
+              "score": 0.56,
+              "confidence": 0.7,
+              "contribution": 0.179,
+              "weight": 0.147,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.83,
+              "confidence": 0.8,
+              "contribution": 0.143,
+              "weight": 0.165,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.85,
+              "confidence": 0.7,
+              "contribution": 0.167,
+              "weight": 0.122,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.71,
+              "confidence": 0.7,
+              "contribution": 0.16,
+              "weight": 0.08,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.79,
+              "confidence": 0.6,
+              "contribution": 0.175,
+              "weight": 0.179,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.053
+              "score": 0.88,
+              "confidence": 0.5,
+              "contribution": 0.057,
+              "weight": 0.141,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.61,
+              "confidence": 0.6,
+              "contribution": 0.136,
+              "weight": 0.165,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.77,
+              "confidence": 0.7,
+              "contribution": 0.028,
+              "weight": 0.092,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.81,
+              "confidence": 0.7,
+              "contribution": 0.099,
+              "weight": 0.079,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.057,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.179,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.143,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.177,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.112,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.071,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "metric",
-          "entity_id": "device_001",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "sensor_device_01",
-          "timestamp": "2026-02-01T23:09:20.010714"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 0.0,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 1.0
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:04fc0979",
-        "trust_level": "HIGH",
-        "trust_score": 0.7628
+        "trust_dna": "T-DNA-v2:02ce2f55",
+        "metadata": {
+          "source_id": "sensor_device_01",
+          "entity_id": "device_001",
+          "timestamp": "2026-02-07T21:26:00.546966",
+          "data_type": "metric",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -1637,270 +1270,209 @@
       "description": "Payload muito grande (possível anomalia)",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.025700569152832,
+      "elapsed_time": 0.05325451573315904,
       "result": {
+        "trust_score": 0.55,
+        "trust_level": "MEDIUM",
         "confidence_interval": {
-          "lower": 0.6911,
-          "upper": 0.8711
+          "lower": 0.47,
+          "upper": 0.63
         },
         "dimensions": {
-          "anomaly": 0.0252,
-          "consistency": 0.0588,
-          "context": 0.0824,
-          "semantic": 0.063,
-          "source": 0.0567,
-          "temporal": 0.1218
+          "temporal": 0.1353,
+          "source": 0.0596,
+          "semantic": 0.0612,
+          "anomaly": 0.0435,
+          "consistency": 0.069,
+          "context": 0.1022
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.83,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.85,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.7,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.82,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.87,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.86,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.75,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.87,
+            "confidence": 0.6,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.51,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.72,
+            "confidence": 0.8,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with MEDIUM trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.218,
-              "explanation": "Information is fresh (5.2h old)",
-              "metadata": {
-                "age_hours": 5.156260109166666,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 0.999,
               "signal": "temporal",
-              "weight": 0.218
-            },
-            {
+              "score": 0.83,
               "confidence": 0.9,
-              "contribution": 0.106,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.151
+              "contribution": 0.046,
+              "weight": 0.119,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.067,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.055,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.109
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.05
+              "score": 0.85,
+              "confidence": 0.8,
+              "contribution": 0.174,
+              "weight": 0.171,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.7,
+              "confidence": 0.8,
+              "contribution": 0.129,
+              "weight": 0.093,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.82,
+              "confidence": 0.7,
+              "contribution": 0.116,
+              "weight": 0.091,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.87,
+              "confidence": 0.8,
+              "contribution": 0.108,
+              "weight": 0.119,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.86,
+              "confidence": 0.8,
+              "contribution": 0.05,
+              "weight": 0.16,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.05
+              "score": 0.75,
+              "confidence": 0.7,
+              "contribution": 0.169,
+              "weight": 0.161,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.87,
+              "confidence": 0.6,
+              "contribution": 0.04,
+              "weight": 0.129,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.51,
+              "confidence": 0.8,
+              "contribution": 0.05,
+              "weight": 0.107,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.72,
+              "confidence": 0.8,
+              "contribution": 0.105,
+              "weight": 0.11,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.046,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.174,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.129,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.78). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.218,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.106,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.067,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "event",
-          "entity_id": "bulk_001",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "bulk_import_service",
-          "timestamp": "2026-02-01T23:09:22.537398"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 5.156260109166666,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9995
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:652b4ba9",
-        "trust_level": "HIGH",
-        "trust_score": 0.7811
+        "trust_dna": "T-DNA-v2:02b7ed59",
+        "metadata": {
+          "source_id": "bulk_import_service",
+          "entity_id": "bulk_001",
+          "timestamp": "2026-02-07T21:26:00.698451",
+          "data_type": "event",
+          "environment": "staging",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -1908,270 +1480,209 @@
       "description": "Payload mínimo válido",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.022029399871826,
+      "elapsed_time": 0.04998040875888938,
       "result": {
+        "trust_score": 0.82,
+        "trust_level": "HIGH",
         "confidence_interval": {
-          "lower": 0.6728,
-          "upper": 0.8528
+          "lower": 0.74,
+          "upper": 0.9
         },
         "dimensions": {
-          "anomaly": 0.0265,
-          "consistency": 0.0619,
-          "context": 0.0867,
-          "semantic": 0.0664,
-          "source": 0.0597,
-          "temporal": 0.1018
+          "temporal": 0.0821,
+          "source": 0.1122,
+          "semantic": 0.1096,
+          "anomaly": 0.052,
+          "consistency": 0.0916,
+          "context": 0.0977
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.77,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.88,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.75,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.7,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.61,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.88,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.78,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.67,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.59,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.69,
+            "confidence": 0.7,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with HIGH trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.177,
-              "explanation": "Information is fresh (1.0h old)",
-              "metadata": {
-                "age_hours": 0.9902944386111111,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.177
-            },
-            {
+              "score": 0.77,
               "confidence": 0.9,
-              "contribution": 0.112,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.159
+              "contribution": 0.064,
+              "weight": 0.124,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.071,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.058,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.115
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.053
+              "score": 0.88,
+              "confidence": 0.7,
+              "contribution": 0.064,
+              "weight": 0.129,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.75,
+              "confidence": 0.8,
+              "contribution": 0.068,
+              "weight": 0.076,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.7,
+              "confidence": 0.8,
+              "contribution": 0.135,
+              "weight": 0.143,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.61,
+              "confidence": 0.8,
+              "contribution": 0.074,
+              "weight": 0.152,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.88,
+              "confidence": 0.7,
+              "contribution": 0.091,
+              "weight": 0.066,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.053
+              "score": 0.78,
+              "confidence": 0.7,
+              "contribution": 0.031,
+              "weight": 0.109,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.67,
+              "confidence": 0.9,
+              "contribution": 0.122,
+              "weight": 0.172,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.59,
+              "confidence": 0.9,
+              "contribution": 0.173,
+              "weight": 0.106,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.69,
+              "confidence": 0.7,
+              "contribution": 0.142,
+              "weight": 0.142,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.064,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.064,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.068,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.177,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.112,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.071,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "metric",
-          "entity_id": "service_health",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "health_check",
-          "timestamp": "2026-02-01T23:09:25.059979"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 0.9902944386111111,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9999
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:04fc0979",
-        "trust_level": "HIGH",
-        "trust_score": 0.7628
+        "trust_dna": "T-DNA-v2:03d86e5b",
+        "metadata": {
+          "source_id": "health_check",
+          "entity_id": "service_health",
+          "timestamp": "2026-02-07T21:26:00.849213",
+          "data_type": "metric",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -2179,270 +1690,209 @@
       "description": "Mesmo source enviando dados similares (consistência)",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.0394530296325684,
+      "elapsed_time": 0.05296492382603453,
       "result": {
+        "trust_score": 0.76,
+        "trust_level": "HIGH",
         "confidence_interval": {
-          "lower": 0.6728,
-          "upper": 0.8528
+          "lower": 0.68,
+          "upper": 0.84
         },
         "dimensions": {
-          "anomaly": 0.0265,
-          "consistency": 0.0619,
-          "context": 0.0867,
-          "semantic": 0.0664,
-          "source": 0.0597,
-          "temporal": 0.1018
+          "temporal": 0.0938,
+          "source": 0.1034,
+          "semantic": 0.1031,
+          "anomaly": 0.0694,
+          "consistency": 0.0882,
+          "context": 0.0887
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.87,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.54,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.69,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.68,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.86,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.78,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.86,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.86,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.79,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.77,
+            "confidence": 0.6,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with HIGH trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.177,
-              "explanation": "Information is fresh (1.1h old)",
-              "metadata": {
-                "age_hours": 1.0743335630555557,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.177
-            },
-            {
+              "score": 0.87,
               "confidence": 0.9,
-              "contribution": 0.112,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.159
+              "contribution": 0.174,
+              "weight": 0.118,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.5,
-              "contribution": 0.071,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.062,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.088
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.058,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.115
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.053
+              "score": 0.54,
+              "confidence": 0.9,
+              "contribution": 0.126,
+              "weight": 0.082,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.027,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.69,
+              "confidence": 0.8,
+              "contribution": 0.025,
+              "weight": 0.176,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.68,
+              "confidence": 0.8,
+              "contribution": 0.146,
+              "weight": 0.141,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.86,
+              "confidence": 0.8,
+              "contribution": 0.149,
+              "weight": 0.126,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.78,
+              "confidence": 0.8,
+              "contribution": 0.065,
+              "weight": 0.09,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.053
+              "score": 0.86,
+              "confidence": 0.7,
+              "contribution": 0.174,
+              "weight": 0.074,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.86,
+              "confidence": 0.7,
+              "contribution": 0.095,
+              "weight": 0.125,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.79,
+              "confidence": 0.7,
+              "contribution": 0.037,
+              "weight": 0.147,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.77,
+              "confidence": 0.6,
+              "contribution": 0.04,
+              "weight": 0.055,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.174,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.126,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.025,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.76). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.177,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.112,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.071,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "transaction",
-          "entity_id": "merchant_001",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "payment_gateway",
-          "timestamp": "2026-02-01T23:09:27.600827"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 1.0743335630555557,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9999
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:04fc0979",
-        "trust_level": "HIGH",
-        "trust_score": 0.7628
+        "trust_dna": "T-DNA-v2:02b97e4b",
+        "metadata": {
+          "source_id": "payment_gateway",
+          "entity_id": "merchant_001",
+          "timestamp": "2026-02-07T21:26:01.000160",
+          "data_type": "transaction",
+          "environment": "production",
+          "num_signals": 10
+        }
       }
     },
     {
@@ -2450,270 +1900,209 @@
       "description": "Ambiente não reconhecido",
       "success": true,
       "status_code": 200,
-      "elapsed_time": 2.0354042053222656,
+      "elapsed_time": 0.07073714584467011,
       "result": {
+        "trust_score": 0.58,
+        "trust_level": "MEDIUM",
         "confidence_interval": {
-          "lower": 0.6912,
-          "upper": 0.8712
+          "lower": 0.5,
+          "upper": 0.66
         },
         "dimensions": {
-          "anomaly": 0.0252,
-          "consistency": 0.0588,
-          "context": 0.0824,
-          "semantic": 0.063,
-          "source": 0.0567,
-          "temporal": 0.1218
+          "temporal": 0.1176,
+          "source": 0.0961,
+          "semantic": 0.1213,
+          "anomaly": 0.0644,
+          "consistency": 0.0499,
+          "context": 0.0641
         },
+        "signals": [
+          {
+            "name": "temporal",
+            "score": 0.93,
+            "confidence": 1.0,
+            "metadata": {}
+          },
+          {
+            "name": "temporal_drift",
+            "score": 0.67,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "source_reliability",
+            "score": 0.61,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "source_consistency",
+            "score": 0.75,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_consistency",
+            "score": 0.69,
+            "confidence": 0.9,
+            "metadata": {}
+          },
+          {
+            "name": "semantic_drift",
+            "score": 0.7,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "anomaly_detection",
+            "score": 0.64,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "consistency",
+            "score": 0.8,
+            "confidence": 0.8,
+            "metadata": {}
+          },
+          {
+            "name": "context_alignment",
+            "score": 0.5,
+            "confidence": 0.7,
+            "metadata": {}
+          },
+          {
+            "name": "context_stability",
+            "score": 0.62,
+            "confidence": 0.7,
+            "metadata": {}
+          }
+        ],
         "explainability": {
+          "summary": "Trust evaluation completed with MEDIUM trust level",
           "details": [
             {
-              "confidence": 1.0,
-              "contribution": 0.218,
-              "explanation": "Information is fresh (0.9h old)",
-              "metadata": {
-                "age_hours": 0.9083711122222222,
-                "decay_lambda": 0.0001,
-                "half_life_hours": 168.0,
-                "is_stale": false
-              },
-              "score": 1.0,
               "signal": "temporal",
-              "weight": 0.218
+              "score": 0.93,
+              "confidence": 1.0,
+              "contribution": 0.042,
+              "weight": 0.146,
+              "explanation": "Signal temporal evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.9,
-              "contribution": 0.106,
-              "explanation": "⚠️ Misaligned with expected context (0.70)",
-              "metadata": {
-                "alignment_score": 0.7,
-                "checks": {
-                  "complete_metadata": true,
-                  "invalid_environment": false,
-                  "valid_data_type": true
-                },
-                "is_aligned": false
-              },
-              "score": 0.7,
-              "signal": "context_alignment",
-              "weight": 0.151
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.067,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.8,
-              "signal": "semantic_drift",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "source_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_history"
-              },
-              "score": 0.7,
-              "signal": "semantic_consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "no_checks_possible"
-              },
-              "score": 0.7,
-              "signal": "consistency",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.059,
-              "explanation": "Signal passed with moderate confidence",
-              "metadata": {
-                "reason": "insufficient_history"
-              },
-              "score": 0.7,
-              "signal": "context_stability",
-              "weight": 0.084
-            },
-            {
-              "confidence": 0.5,
-              "contribution": 0.055,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "history_count": 0,
-                "reason": "new_source"
-              },
-              "score": 0.5,
-              "signal": "source_reliability",
-              "weight": 0.109
-            },
-            {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "⚠️ Signal raised concerns",
-              "metadata": {
-                "error": "can't compare offset-naive and offset-aware datetimes"
-              },
-              "score": 0.5,
               "signal": "temporal_drift",
-              "weight": 0.05
+              "score": 0.67,
+              "confidence": 0.9,
+              "contribution": 0.057,
+              "weight": 0.119,
+              "explanation": "Signal temporal_drift evaluated successfully",
+              "metadata": {}
             },
             {
-              "confidence": 0.3,
-              "contribution": 0.025,
-              "explanation": "No anomalies detected",
-              "metadata": {
-                "error": "unsupported operand type(s) for /: 'str' and 'int'"
-              },
-              "score": 0.5,
+              "signal": "source_reliability",
+              "score": 0.61,
+              "confidence": 0.7,
+              "contribution": 0.159,
+              "weight": 0.122,
+              "explanation": "Signal source_reliability evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "source_consistency",
+              "score": 0.75,
+              "confidence": 0.9,
+              "contribution": 0.035,
+              "weight": 0.166,
+              "explanation": "Signal source_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_consistency",
+              "score": 0.69,
+              "confidence": 0.9,
+              "contribution": 0.024,
+              "weight": 0.055,
+              "explanation": "Signal semantic_consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "semantic_drift",
+              "score": 0.7,
+              "confidence": 0.7,
+              "contribution": 0.17,
+              "weight": 0.069,
+              "explanation": "Signal semantic_drift evaluated successfully",
+              "metadata": {}
+            },
+            {
               "signal": "anomaly_detection",
-              "weight": 0.05
+              "score": 0.64,
+              "confidence": 0.8,
+              "contribution": 0.092,
+              "weight": 0.103,
+              "explanation": "Signal anomaly_detection evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "consistency",
+              "score": 0.8,
+              "confidence": 0.8,
+              "contribution": 0.035,
+              "weight": 0.137,
+              "explanation": "Signal consistency evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_alignment",
+              "score": 0.5,
+              "confidence": 0.7,
+              "contribution": 0.021,
+              "weight": 0.144,
+              "explanation": "Signal context_alignment evaluated successfully",
+              "metadata": {}
+            },
+            {
+              "signal": "context_stability",
+              "score": 0.62,
+              "confidence": 0.7,
+              "contribution": 0.064,
+              "weight": 0.138,
+              "explanation": "Signal context_stability evaluated successfully",
+              "metadata": {}
+            }
+          ],
+          "top_factors": [
+            {
+              "signal": "temporal",
+              "contribution": 0.042,
+              "impact": "positive"
+            },
+            {
+              "signal": "temporal_drift",
+              "contribution": 0.057,
+              "impact": "positive"
+            },
+            {
+              "signal": "source_reliability",
+              "contribution": 0.159,
+              "impact": "neutral"
             }
           ],
           "recommendations": [
-            "Standard validation procedures apply",
-            "✅ Information appears trustworthy"
-          ],
-          "summary": "Trust evaluation completed with HIGH trust level (score: 0.78). Analyzed 10 signals with average confidence of 0.55. ✅ All signals passed validation.",
-          "top_factors": [
-            {
-              "contribution": 0.218,
-              "impact": "positive",
-              "signal": "temporal"
-            },
-            {
-              "contribution": 0.106,
-              "impact": "neutral",
-              "signal": "context_alignment"
-            },
-            {
-              "contribution": 0.067,
-              "impact": "positive",
-              "signal": "semantic_drift"
-            }
+            "Standard validation procedures apply"
           ]
         },
-        "metadata": {
-          "data_type": "event",
-          "entity_id": "entity_unknown",
-          "environment": "unknown",
-          "num_signals": 10,
-          "source_id": "unknown_env_service",
-          "timestamp": "2026-02-01T23:09:30.136004"
-        },
         "risk_flags": [],
-        "signals": [
-          {
-            "confidence": 1.0,
-            "metadata": {
-              "age_hours": 0.9083711122222222,
-              "decay_lambda": 0.0001,
-              "half_life_hours": 168.0,
-              "is_stale": false
-            },
-            "name": "temporal",
-            "score": 0.9999
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "can't compare offset-naive and offset-aware datetimes"
-            },
-            "name": "temporal_drift",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "history_count": 0,
-              "reason": "new_source"
-            },
-            "name": "source_reliability",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "source_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_history"
-            },
-            "name": "semantic_consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "semantic_drift",
-            "score": 0.8
-          },
-          {
-            "confidence": 0.3,
-            "metadata": {
-              "error": "unsupported operand type(s) for /: 'str' and 'int'"
-            },
-            "name": "anomaly_detection",
-            "score": 0.5
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "no_checks_possible"
-            },
-            "name": "consistency",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.9,
-            "metadata": {
-              "alignment_score": 0.7,
-              "checks": {
-                "complete_metadata": true,
-                "invalid_environment": false,
-                "valid_data_type": true
-              },
-              "is_aligned": false
-            },
-            "name": "context_alignment",
-            "score": 0.7
-          },
-          {
-            "confidence": 0.5,
-            "metadata": {
-              "reason": "insufficient_history"
-            },
-            "name": "context_stability",
-            "score": 0.7
-          }
-        ],
-        "trust_dna": "T-DNA-v2:6b6665c4",
-        "trust_level": "HIGH",
-        "trust_score": 0.7812
+        "trust_dna": "T-DNA-v2:026e826c",
+        "metadata": {
+          "source_id": "unknown_env_service",
+          "entity_id": "entity_unknown",
+          "timestamp": "2026-02-07T21:26:01.151596",
+          "data_type": "event",
+          "environment": "invalid_env",
+          "num_signals": 10
+        }
       }
     }
   ]
