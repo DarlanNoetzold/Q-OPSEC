@@ -1,1596 +1,2276 @@
 {
-	"info": {
-		"_postman_id": "6e144d2a-111c-4b2f-98f8-abac3f289a9a",
-		"name": "Q-OPSEC",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "16000387"
-	},
-	"item": [
-		{
-			"name": "confiability_service",
-			"item": [
-				{
-					"name": "classify",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"uuid-123\",\n    \"content_pointer\": {\n      \"ref\": \"doc-456\",\n      \"sample_text\": \"Customer contract includes email john.doe@example.com and IBAN GB33BUKB20201555555555\",\n      \"metadata\": {\n        \"doc_type\": \"finance\",\n        \"app\": \"billing-service\",\n        \"user_label\": \"confidential\"\n      }\n    },\n    \"source\": { \"ip\": \"192.168.1.10\" },\n    \"destination\": { \"service_id\": \"svc-456\" }\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8083/confidentiality/classify",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8083",
-							"path": [
-								"confidentiality",
-								"classify"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "train",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "POST",
-									"value": "",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "http://localhost:8083/confidentiality/train",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8083",
-							"path": [
-								"confidentiality",
-								"train"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "clean up models",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"dry_run\": false}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8083/confidentiality/cleanup/all",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8083",
-							"path": [
-								"confidentiality",
-								"cleanup",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "health",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8083/confidentiality/health",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8083",
-							"path": [
-								"confidentiality",
-								"health"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "risk_service",
-			"item": [
-				{
-					"name": "train",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"n\": 600,\n    \"seed\": 42\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8082/risk/train",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8082",
-							"path": [
-								"risk",
-								"train"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "assess",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"uuid-123\",\n    \"signals\": {\n      \"global_alert_level\": \"high\",\n      \"current_campaigns\": [\n        { \"name\": \"Q3-phishing\", \"severity\": \"medium\", \"geo\": \"BR\", \"target_type\": \"api\" }\n      ],\n      \"anomaly_index_global\": 0.42,\n      \"incident_rate_7d\": 5,\n      \"patch_delay_days_p50\": 18,\n      \"exposure_level\": \"high\",\n      \"maintenance_window\": false,\n      \"compliance_debt_score\": 0.35,\n      \"business_critical_period\": true,\n      \"geo_region\": \"BR\"\n    }\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8082/risk/assess",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8082",
-							"path": [
-								"risk",
-								"assess"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "cleanup models",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"dry_run\": false}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8082/risk/cleanup/all",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8082",
-							"path": [
-								"risk",
-								"cleanup",
-								"all"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "context_api",
-			"item": [
-				{
-					"name": "enrich",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"requestId\": \"uuid-ctx-123\",\n    \"source\": {\n      \"ip\": \"192.168.0.10\",\n      \"user_id\": \"user-123\",\n      \"device_id\": \"dev-456\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"geo\": \"BR\",\n      \"os_version\": \"Windows 11\",\n      \"device_type\": \"laptop\",\n      \"mfa_status\": \"enabled\",\n      \"security_status\": \"healthy\"\n    },\n    \"destination\": {\n      \"ip\": \"10.0.0.10\",\n      \"service_id\": \"svc-789\",\n      \"service_type\": \"billing-api\",\n      \"security_policy\": \"strict\",\n      \"security_status\": \"patched\",\n      \"os_version\": \"Ubuntu 22.04\",\n      \"allowed_protocols\": [\"https\", \"mtls\"]\n    },\n    \"metadata\": {\n      \"transaction_id\": \"tx-111\",\n      \"operation\": \"pay_invoice\"\n    }\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8081/context/enrich",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8081",
-							"path": [
-								"context",
-								"enrich"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "enrich 2",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\"request_id\": \"uuid-ctx-123\",\n\"source_hint\": {\n\"ip\": \"192.168.0.10\",\n\"user_agent\": \"Mozilla/5.0\"\n},\n\"destination_hint\": {\n\"host\": \"api.local\",\n\"service_id\": \"svc-001\",\n\"path\": \"/pay\"\n},\n\"headers\": {\n\"X-User-Id\": \"user-123\",\n\"X-Device-Id\": \"dev-456\"\n},\n\"content_pointer\": {\n\"text\": \"fatura #123, valor R$ 500,00, cliente 98765432100\",\n\"mime\": \"text/plain\"\n}\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8081/context/enrich",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8081",
-							"path": [
-								"context",
-								"enrich"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "consult",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8081/context/record?request_id=uuid-ctx-123",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8081",
-							"path": [
-								"context",
-								"record"
-							],
-							"query": [
-								{
-									"key": "request_id",
-									"value": "uuid-ctx-123"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "enrich simple",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"req_1234567890_abcd1234\",\n    \"sourceId\": \"app1-user-42\",\n    \"destinationId\": \"service-orders\",\n    \"content\": \"Pedido #123 processado\",\n    \"metadata\": {\n      \"host\": \"orders.internal\",\n      \"path\": \"/api/v1/orders\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"device_id\": \"dev-123\",\n      \"priority\": \"high\"\n    }\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8081/context/enrich/simple",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8081",
-							"path": [
-								"context",
-								"enrich",
-								"simple"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "interceptor_api",
-			"item": [
-				{
-					"name": "health",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/health",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"health"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "intercept",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"message\": \"Olá, mundo!\",\n    \"sourceId\": \"app1\",\n    \"destinationId\": \"app2\",\n    \"metadata\": {\"priority\": \"high\"}\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/intercept",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"intercept"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get request_id",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/intercept/message?request_id=req_1757960432832_22dac2e5",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"intercept",
-								"message"
-							],
-							"query": [
-								{
-									"key": "request_id",
-									"value": "req_1757960432832_22dac2e5"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "handshake_negotiator",
-			"item": [
-				{
-					"name": "handshake",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "    {\n    \"source\": \"node-A\",\n    \"destination\": \"http://localhost:9000\",\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"PQC\"],\n        \"compliance\": [\"HIPAA\", \"GDPR\"],\n        \"max_latency_ms\": 50\n    },\n    \"proposed\": [\"QKD_BB84\", \"Kyber1024\", \"AES256_GCM\"]\n    }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 2",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\"request_id\": \"req_1757960432832_22dac2e5\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 3",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"source\": \"client-A\",\n  \"destination\": \"server-A\",\n  \"dst_props\": {\n    \"hardware\": [\"PQC\"],\n    \"compliance\": [\"HIPAA\"]\n  },\n  \"proposed\": [\"Kyber1024\", \"Dilithium5\", \"AES256_GCM\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 4",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\"request_id\": \"req_ab123\",\n  \"source\": \"old-node\",\n  \"destination\": \"legacy-server\",\n  \"dst_props\": {\n    \"hardware\": [\"CPU_ONLY\"],\n    \"compliance\": [\"PCI-DSS\"]\n  },\n  \"proposed\": [\"RSA4096\", \"AES256_GCM\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 5",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"source\": \"node-X\",\n  \"destination\": \"node-Y\",\n  \"dst_props\": {\n    \"hardware\": [\"ASIC\"]\n  },\n  \"proposed\": [\"AlgoInexistente1\", \"AlgoInexistente2\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 6",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"source\": \"hybrid-client\",\n  \"destination\": \"hybrid-server\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\", \"PQC\", \"Classical\"],\n    \"max_latency_ms\": 150\n  },\n  \"proposed\": [\"Hybrid_PQC_RSA\", \"AES256_GCM\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "handshake 7",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"req_ab123\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": { \"hardware\": [\"QKD\",\"PQC\"], \"max_latency_ms\": 50 },\n  \"proposed\": [\"QKD_BB84\",\"Kyber1024\",\"AES256_GCM\"]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8001/handshake",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8001",
-							"path": [
-								"handshake"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "kms_service",
-			"item": [
-				{
-					"name": "create_key",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n        \"session_id\": \"sess-001\",\n        \"algorithm\": \"QKD_BB84\",\n        \"ttl_seconds\": 120\n      }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8002/kms/create_key",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"create_key"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get_key",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8002/kms/get_key/sess-001",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"get_key",
-								"sess-001"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "create_key 2",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n        \"session_id\": \"sess-pqc\",\n        \"algorithm\": \"Kyber1024\",\n        \"ttl_seconds\": 180\n      }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8002/kms/create_key",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"create_key"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "supported_algorithms",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8002/kms/supported_algorithms",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"supported_algorithms"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "create_key 3",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"session_id\": null,\n    \"request_id\": \"req_123456\",\n    \"algorithm\": \"AES256_GCM\",\n    \"ttl_seconds\": 120\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8002/kms/create_key",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"create_key"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get_key",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8002/kms/get_key/7c0f964a-c884-494f-b050-39fc8c786f52",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"get_key",
-								"7c0f964a-c884-494f-b050-39fc8c786f52"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get_key by req",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8002/kms/get_key?request_id=req_123456",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8002",
-							"path": [
-								"kms",
-								"get_key"
-							],
-							"query": [
-								{
-									"key": "request_id",
-									"value": "req_123456"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "key_destination_engine",
-			"item": [
-				{
-					"name": "deliver",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"session_id\": \"test-session-123\",\n  \"destination\": \"localhost:9000\",\n  \"delivery_method\": \"API\",\n  \"algorithm\": \"AES256_GCM\",\n  \"key_material\": \"WnXqT+ghsifEnq9NImKF/lcG96yDO256jYZzvEPTx7o=\",\n  \"expires_at\": \"2025-09-11T19:21:13.047859\",\n  \"metadata\": {\"note\":\"test\"}\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8003/deliver",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8003",
-							"path": [
-								"deliver"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "deliver",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"session_id\": \"sess_123\",\n    \"request_id\": \"req_456\",\n    \"destination\": \"http://localhost:9000/receiver\",\n    \"delivery_method\": \"API\",\n    \"key_material\": \"base64key...\",\n    \"algorithm\": \"AES256_GCM\",\n    \"expires_at\": 1893456000,\n    \"metadata\": {\n      \"headers\": {\"X-Env\": \"dev\"}\n    }\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8003/deliver",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8003",
-							"path": [
-								"deliver"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "crypto_module",
-			"item": [
-				{
-					"name": "encrypt from request",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"session_id\": \"0a88446e-3ce5-4de2-a2b4-8f63866d6a52\",\n    \"request_id\": \"uuid-ctx-123\",\n    \"algorithm\": \"AES256_GCM\",\n    \"plaintext_b64\": \"U2Vuc2l0aXZlIERhdGEg8J+Yig==\",\n    \"aad_b64\": \"c2Vzc2lvbj1TWVh8dXNlcj1hbmE=\"\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8004/encrypt",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8004",
-							"path": [
-								"encrypt"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "encrypt from context",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"req_1757960432832_22dac2e5\",\n    \"algorithm\": \"AES256_GCM\",\n    \"fetch_from_context\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8004/encrypt",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8004",
-							"path": [
-								"encrypt"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "encrypt from intercept",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"request_id\": \"req_1757960432832_22dac2e5\",\r\n  \"session_id\": \"a3252a91-7d3a-41c7-b99f-1dd1ae254515\",\r\n  \"algorithm\": \"AES256_GCM\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8004/encrypt/by-request-id",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8004",
-							"path": [
-								"encrypt",
-								"by-request-id"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "validation_sen_api",
-			"item": [
-				{
-					"name": "send",
-					"request": {
-						"method": "GET",
-						"header": []
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "receiver",
-			"item": [
-				{
-					"name": "receiver",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"request_id\":\"req_123\", \"session_id\":\"sess_456\", \"key_material\":\"base64key\", \"algorithm\":\"AES256_GCM\"}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:9000/receiver",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"receiver"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "decrypt",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"req_123\",\n    \"nonce_b64\": \"NONCE_BASE64\",\n    \"ciphertext_b64\": \"CIPHER_BASE64\",\n    \"algorithm\": \"AES256_GCM\"\n  }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:9000/decrypt",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"decrypt"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "keys",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:9000/keys",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"keys"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "logs",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:9000/logs?limit=5",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"logs"
-							],
-							"query": [
-								{
-									"key": "limit",
-									"value": "5"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "classification_agent",
-			"item": [
-				{
-					"name": "health",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							}
-						],
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/health",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"health"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "model",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							}
-						],
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/model",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"model"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "manifest",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							}
-						],
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/model/manifest",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"model",
-								"manifest"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "reload",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"force\": true}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/model/reload",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"model",
-								"reload"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "include_probabilities",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"send_to_rl\": true,\n  \"data\": {\n    \"request_id_resolved\": \"req_123\",\n    \"created_at\": \"2025-09-24T09:44:40.438788\",\n    \"risk_score\": 0.11,\n    \"conf_score\": 0.085,\n    \"combined_score\": 0.117,\n    \"risk_level\": \"Low\",\n    \"conf_classification\": \"confidential\",\n    \"src_geo\": \"EU\",\n    \"src_device_type\": \"iot\",\n    \"dst_service_type\": \"web\",\n    \"dst_security_policy\": \"high\",\n    \"src_mfa_status_norm\": \"disabled\"\n  }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"predict"
-							],
-							"query": [
-								{
-									"key": "include_probabilities",
-									"value": "true"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "include_probabilities batchs",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "your-api-key-for-authentication"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"data\": [\n    {\n      \"request_id_resolved\": \"req_001\",\n      \"created_at\": \"2025-09-24T19:12:05Z\",\n      \"risk_score\": 0.05,\n      \"conf_score\": 0.03,\n      \"combined_score\": 0.06,\n      \"risk_level\": \"Low\",\n      \"conf_classification\": \"public\",\n      \"src_geo\": \"BR\",\n      \"src_device_type\": \"desktop\",\n      \"dst_service_type\": \"web\",\n      \"dst_security_policy\": \"low\",\n      \"src_mfa_status_norm\": \"disabled\"\n    },\n    {\n      \"request_id_resolved\": \"req_002\",\n      \"created_at\": \"2025-09-25T08:30:00\",\n      \"risk_score\": 0.61,\n      \"conf_score\": 0.44,\n      \"combined_score\": 0.57,\n      \"risk_level\": \"High\",\n      \"conf_classification\": \"confidential\",\n      \"src_geo\": \"DE\",\n      \"src_device_type\": \"server\",\n      \"dst_service_type\": \"db\",\n      \"dst_security_policy\": \"high\",\n      \"src_mfa_status_norm\": \"enabled\"\n    }\n  ]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
-							"protocol": "http",
-							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
-							],
-							"port": "8088",
-							"path": [
-								"api",
-								"v1",
-								"predict"
-							],
-							"query": [
-								{
-									"key": "include_probabilities",
-									"value": "true"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "orchestrator",
-			"item": [
-				{
-					"name": "services",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/services",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"services"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "start all",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/start/all",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"start",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "stop all",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/stop/all",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"stop",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "start one service",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/services/rl_engine/start",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"services",
-								"rl_engine",
-								"start"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "stop one service",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/services/rl_engine/stop",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"services",
-								"rl_engine",
-								"stop"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "status",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/services/rl_engine/status",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"services",
-								"rl_engine",
-								"status"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "logs",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8090/services/rl_engine/logs?lines=2000",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8090",
-							"path": [
-								"services",
-								"rl_engine",
-								"logs"
-							],
-							"query": [
-								{
-									"key": "lines",
-									"value": "2000"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	]
+  "info": {
+    "_postman_id": "6e144d2a-111c-4b2f-98f8-abac3f289a9a",
+    "name": "Q-OPSEC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "16000387"
+  },
+  "item": [
+    {
+      "name": "confiability_service",
+      "item": [
+        {
+          "name": "classify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"uuid-123\",\n    \"content_pointer\": {\n      \"ref\": \"doc-456\",\n      \"sample_text\": \"Customer contract includes email john.doe@example.com and IBAN GB33BUKB20201555555555\",\n      \"metadata\": {\n        \"doc_type\": \"finance\",\n        \"app\": \"billing-service\",\n        \"user_label\": \"confidential\"\n      }\n    },\n    \"source\": { \"ip\": \"192.168.1.10\" },\n    \"destination\": { \"service_id\": \"svc-456\" }\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/classify",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "classify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "train",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "type": "text",
+                  "key": "POST",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/train",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "train"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "clean up models",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"dry_run\": false}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/cleanup/all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "cleanup",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "metrics sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/metrics/sessions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "metrics",
+                "sessions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "session metric specific",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/metrics/training_20251009_161819",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "metrics",
+                "training_20251009_161819"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get chart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/metrics/training_20251009_161819/all_models_accuracy.png",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "metrics",
+                "training_20251009_161819",
+                "all_models_accuracy.png"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "metrics compare",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"session_ids\": [\"training_20251009_151754\", \"training_20251009_120000\"]\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8083/confidentiality/metrics/compare",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "confidentiality",
+                "metrics",
+                "compare"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "datasets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/datasets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "datasets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "preview dataset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/datasets/v1/preview?file=confidentiality_train.csv&n=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8083",
+              "path": [
+                "datasets",
+                "v1",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "file",
+                  "value": "confidentiality_train.csv"
+                },
+                {
+                  "key": "n",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "risk_service",
+      "item": [
+        {
+          "name": "v2",
+          "item": [
+            {
+              "name": "health",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "predict",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "models",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8000/metrics/latest",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "metrics",
+                    "latest"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "train",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"n\": 600,\n    \"seed\": 42\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8082/risk/train",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "train"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "assess",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"uuid-123\",\n    \"signals\": {\n      \"global_alert_level\": \"high\",\n      \"current_campaigns\": [\n        { \"name\": \"Q3-phishing\", \"severity\": \"medium\", \"geo\": \"BR\", \"target_type\": \"api\" }\n      ],\n      \"anomaly_index_global\": 0.42,\n      \"incident_rate_7d\": 5,\n      \"patch_delay_days_p50\": 18,\n      \"exposure_level\": \"high\",\n      \"maintenance_window\": false,\n      \"compliance_debt_score\": 0.35,\n      \"business_critical_period\": true,\n      \"geo_region\": \"BR\"\n    }\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8082/risk/assess",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "assess"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cleanup models",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"dry_run\": false}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8082/risk/cleanup/all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "cleanup",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "metrics latest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/risk/metrics/latest",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "metrics",
+                "latest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "metrics sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/risk/metrics/sessions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "metrics",
+                "sessions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "metrics training",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/risk/metrics/training_20251009_170052",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "metrics",
+                "training_20251009_170052"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get chart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/risk/metrics/training_20251009_170052/all_models_accuracy.png",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "risk",
+                "metrics",
+                "training_20251009_170052",
+                "all_models_accuracy.png"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "datasets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/datasets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "datasets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "preview dataset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/datasets/v1/preview?file=signals_train.csv&n=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "datasets",
+                "v1",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "file",
+                  "value": "signals_train.csv"
+                },
+                {
+                  "key": "n",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "context_api",
+      "item": [
+        {
+          "name": "enrich",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"requestId\": \"uuid-ctx-123\",\n    \"source\": {\n      \"ip\": \"192.168.0.10\",\n      \"user_id\": \"user-123\",\n      \"device_id\": \"dev-456\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"geo\": \"BR\",\n      \"os_version\": \"Windows 11\",\n      \"device_type\": \"laptop\",\n      \"mfa_status\": \"enabled\",\n      \"security_status\": \"healthy\"\n    },\n    \"destination\": {\n      \"ip\": \"10.0.0.10\",\n      \"service_id\": \"svc-789\",\n      \"service_type\": \"billing-api\",\n      \"security_policy\": \"strict\",\n      \"security_status\": \"patched\",\n      \"os_version\": \"Ubuntu 22.04\",\n      \"allowed_protocols\": [\"https\", \"mtls\"]\n    },\n    \"metadata\": {\n      \"transaction_id\": \"tx-111\",\n      \"operation\": \"pay_invoice\"\n    }\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/context/enrich",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "context",
+                "enrich"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "enrich 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"request_id\": \"uuid-ctx-1231\",\n\"source_hint\": {\n\"ip\": \"192.168.0.10\",\n\"user_agent\": \"Mozilla/5.0\"\n},\n\"destination_hint\": {\n\"host\": \"api.local\",\n\"service_id\": \"svc-001\",\n\"path\": \"/pay\"\n},\n\"headers\": {\n\"X-User-Id\": \"user-123\",\n\"X-Device-Id\": \"dev-456\"\n},\n\"content_pointer\": {\n\"text\": \"fatura #123, valor R$ 500,00, cliente 98765432100\",\n\"mime\": \"text/plain\"\n}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/context/enrich",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "context",
+                "enrich"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "consult",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/context/record?request_id=uuid-ctx-1231",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "context",
+                "record"
+              ],
+              "query": [
+                {
+                  "key": "request_id",
+                  "value": "uuid-ctx-1231"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "enrich simple",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req_1234567890_abcd1234\",\n    \"sourceId\": \"app1-user-42\",\n    \"destinationId\": \"service-orders\",\n    \"content\": \"Pedido #123 processado\",\n    \"metadata\": {\n      \"host\": \"orders.internal\",\n      \"path\": \"/api/v1/orders\",\n      \"user_agent\": \"Mozilla/5.0\",\n      \"device_id\": \"dev-123\",\n      \"priority\": \"high\"\n    }\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/context/enrich/simple",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "context",
+                "enrich",
+                "simple"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "interceptor_api",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "intercept",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Olá, mundo!\",\n    \"sourceId\": \"app1\",\n    \"destinationId\": \"app2\",\n    \"metadata\": {\"priority\": \"high\"}\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/intercept",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "intercept"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get request_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/intercept/message?request_id=req_1757960432832_22dac2e5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "intercept",
+                "message"
+              ],
+              "query": [
+                {
+                  "key": "request_id",
+                  "value": "req_1757960432832_22dac2e5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "handshake_negotiator",
+      "item": [
+        {
+          "name": "handshake",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "    {\n    \"source\": \"node-A\",\n    \"destination\": \"http://localhost:9000\",\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"PQC\"],\n        \"compliance\": [\"HIPAA\", \"GDPR\"],\n        \"max_latency_ms\": 50\n    },\n    \"proposed\": [\"QKD_BB84\", \"Kyber1024\", \"AES256_GCM\"]\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"request_id\": \"req_1757960432832_22dac2e5\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"client-A\",\n  \"destination\": \"server-A\",\n  \"dst_props\": {\n    \"hardware\": [\"PQC\"],\n    \"compliance\": [\"HIPAA\"]\n  },\n  \"proposed\": [\"Kyber1024\", \"Dilithium5\", \"AES256_GCM\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"request_id\": \"req_ab123\",\n  \"source\": \"old-node\",\n  \"destination\": \"legacy-server\",\n  \"dst_props\": {\n    \"hardware\": [\"CPU_ONLY\"],\n    \"compliance\": [\"PCI-DSS\"]\n  },\n  \"proposed\": [\"RSA4096\", \"AES256_GCM\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"node-X\",\n  \"destination\": \"node-Y\",\n  \"dst_props\": {\n    \"hardware\": [\"ASIC\"]\n  },\n  \"proposed\": [\"AlgoInexistente1\", \"AlgoInexistente2\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 6",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"hybrid-client\",\n  \"destination\": \"hybrid-server\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\", \"PQC\", \"Classical\"],\n    \"max_latency_ms\": 150\n  },\n  \"proposed\": [\"Hybrid_PQC_RSA\", \"AES256_GCM\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "handshake 7",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req_ab123\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": { \"hardware\": [\"QKD\",\"PQC\"], \"max_latency_ms\": 50 },\n  \"proposed\": [\"QKD_BB84\",\"Kyber1024\",\"AES256_GCM\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/handshake",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "handshake"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "kms_service",
+      "item": [
+        {
+          "name": "create_key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"session_id\": \"sess-001\",\n        \"algorithm\": \"QKD_BB84\",\n        \"ttl_seconds\": 120\n      }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get_key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8002/kms/get_key/sess-001",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "get_key",
+                "sess-001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create_key 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"session_id\": \"sess-pqc\",\n        \"algorithm\": \"Kyber1024\",\n        \"ttl_seconds\": 180\n      }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "supported_algorithms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8002/kms/supported_algorithms",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "supported_algorithms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create_key 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"session_id\": null,\n    \"request_id\": \"req_123456\",\n    \"algorithm\": \"AES256_GCM\",\n    \"ttl_seconds\": 120\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get_key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8002/kms/get_key/7c0f964a-c884-494f-b050-39fc8c786f52",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "get_key",
+                "7c0f964a-c884-494f-b050-39fc8c786f52"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get_key by req",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8002/kms/get_key?request_id=req_123456",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "get_key"
+              ],
+              "query": [
+                {
+                  "key": "request_id",
+                  "value": "req_123456"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "key_destination_engine",
+      "item": [
+        {
+          "name": "deliver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"test-session-123\",\n  \"destination\": \"localhost:9000\",\n  \"delivery_method\": \"API\",\n  \"algorithm\": \"AES256_GCM\",\n  \"key_material\": \"WnXqT+ghsifEnq9NImKF/lcG96yDO256jYZzvEPTx7o=\",\n  \"expires_at\": \"2025-09-11T19:21:13.047859\",\n  \"metadata\": {\"note\":\"test\"}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8003/deliver",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8003",
+              "path": [
+                "deliver"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deliver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"session_id\": \"sess_123\",\n    \"request_id\": \"req_456\",\n    \"destination\": \"http://localhost:9000/receiver\",\n    \"delivery_method\": \"API\",\n    \"key_material\": \"base64key...\",\n    \"algorithm\": \"AES256_GCM\",\n    \"expires_at\": 1893456000,\n    \"metadata\": {\n      \"headers\": {\"X-Env\": \"dev\"}\n    }\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8003/deliver",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8003",
+              "path": [
+                "deliver"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "crypto_module",
+      "item": [
+        {
+          "name": "encrypt from request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"session_id\": \"0a88446e-3ce5-4de2-a2b4-8f63866d6a52\",\n    \"request_id\": \"uuid-ctx-123\",\n    \"algorithm\": \"AES256_GCM\",\n    \"plaintext_b64\": \"U2Vuc2l0aXZlIERhdGEg8J+Yig==\",\n    \"aad_b64\": \"c2Vzc2lvbj1TWVh8dXNlcj1hbmE=\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8004/encrypt",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8004",
+              "path": [
+                "encrypt"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "encrypt from context",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req_1757960432832_22dac2e5\",\n    \"algorithm\": \"AES256_GCM\",\n    \"fetch_from_context\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8004/encrypt",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8004",
+              "path": [
+                "encrypt"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "encrypt from intercept",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"request_id\": \"req_1757960432832_22dac2e5\",\r\n  \"session_id\": \"a3252a91-7d3a-41c7-b99f-1dd1ae254515\",\r\n  \"algorithm\": \"AES256_GCM\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8004/encrypt/by-request-id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8004",
+              "path": [
+                "encrypt",
+                "by-request-id"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "validation_sen_api",
+      "item": [
+        {
+          "name": "send",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"requestId\": \"req_test_001\",\n    \"sessionId\": \"sess_abc_123\",\n    \"selectedAlgorithm\": \"AES256_GCM\",\n    \"cryptoNonceB64\": \"BASE64_NONCE_AQUI\",\n    \"cryptoCiphertextB64\": \"BASE64_CIPHERTEXT_AQUI\",\n    \"cryptoAlgorithm\": \"AES256_GCM\",\n    \"cryptoExpiresAt\": 1893456000,\n    \"sourceId\": \"app1\",\n    \"originUrl\": \"http://localhost:9000/receiver\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8005/validation/send",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8005",
+              "path": [
+                "validation",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "receiver",
+      "item": [
+        {
+          "name": "receiver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_123\", \"session_id\":\"sess_456\", \"key_material\":\"base64key\", \"algorithm\":\"AES256_GCM\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/receiver",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9000",
+              "path": [
+                "receiver"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "decrypt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req_123\",\n    \"nonce_b64\": \"NONCE_BASE64\",\n    \"ciphertext_b64\": \"CIPHER_BASE64\",\n    \"algorithm\": \"AES256_GCM\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/decrypt",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9000",
+              "path": [
+                "decrypt"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "keys",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9000/keys",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9000",
+              "path": [
+                "keys"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9000/logs?limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9000",
+              "path": [
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "classification_agent",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              }
+            ],
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/health",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "model",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              }
+            ],
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/model",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "model"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "manifest",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              }
+            ],
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/model/manifest",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "model",
+                "manifest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"force\": true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/model/reload",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "model",
+                "reload"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "include_probabilities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"send_to_rl\": true,\n  \"data\": {\n    \"request_id_resolved\": \"req_123\",\n    \"created_at\": \"2025-09-24T09:44:40.438788\",\n    \"risk_score\": 0.11,\n    \"conf_score\": 0.085,\n    \"combined_score\": 0.117,\n    \"risk_level\": \"Low\",\n    \"conf_classification\": \"confidential\",\n    \"src_geo\": \"EU\",\n    \"src_device_type\": \"iot\",\n    \"dst_service_type\": \"web\",\n    \"dst_security_policy\": \"high\",\n    \"src_mfa_status_norm\": \"disabled\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "predict"
+              ],
+              "query": [
+                {
+                  "key": "include_probabilities",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "include_probabilities batchs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": [\n    {\n      \"request_id_resolved\": \"req_001\",\n      \"created_at\": \"2025-09-24T19:12:05Z\",\n      \"risk_score\": 0.05,\n      \"conf_score\": 0.03,\n      \"combined_score\": 0.06,\n      \"risk_level\": \"Low\",\n      \"conf_classification\": \"public\",\n      \"src_geo\": \"BR\",\n      \"src_device_type\": \"desktop\",\n      \"dst_service_type\": \"web\",\n      \"dst_security_policy\": \"low\",\n      \"src_mfa_status_norm\": \"disabled\"\n    },\n    {\n      \"request_id_resolved\": \"req_002\",\n      \"created_at\": \"2025-09-25T08:30:00\",\n      \"risk_score\": 0.61,\n      \"conf_score\": 0.44,\n      \"combined_score\": 0.57,\n      \"risk_level\": \"High\",\n      \"conf_classification\": \"confidential\",\n      \"src_geo\": \"DE\",\n      \"src_device_type\": \"server\",\n      \"dst_service_type\": \"db\",\n      \"dst_security_policy\": \"high\",\n      \"src_mfa_status_norm\": \"enabled\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://0.0.0.0:8088/api/v1/predict?include_probabilities=true",
+              "protocol": "http",
+              "host": [
+                "0",
+                "0",
+                "0",
+                "0"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "predict"
+              ],
+              "query": [
+                {
+                  "key": "include_probabilities",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "training sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/training/sessions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "sessions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "training summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/training/training_20251009_172039/summary",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "training_20251009_172039",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get images names",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/training/images",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "images"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get chart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/training/training_20251009_172039/images/all_models_f1score.png",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "training_20251009_172039",
+                "images",
+                "all_models_f1score.png"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "datasets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/datasets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "datasets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "preview dataset",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "your-api-key-for-authentication",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8088/api/v1/datasets/v1/preview?file=synthetic_context_dataset.csv&n=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8088",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "v1",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "file",
+                  "value": "synthetic_context_dataset.csv"
+                },
+                {
+                  "key": "n",
+                  "value": "20"
+                },
+                {
+                  "key": "X-API-Key",
+                  "value": "your-api-key-for-authentication",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "orchestrator",
+      "item": [
+        {
+          "name": "services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/services",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "services"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "start all",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/start/all",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "start",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "stop all",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/stop/all",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "stop",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "start one service",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/services/rl_engine/start",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "services",
+                "rl_engine",
+                "start"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "stop one service",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/services/rl_engine/stop",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "services",
+                "rl_engine",
+                "stop"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/services/rl_engine/status",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "services",
+                "rl_engine",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8090/services/rl_engine/logs?lines=2000",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8090",
+              "path": [
+                "services",
+                "rl_engine",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "lines",
+                  "value": "2000"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "rl_engine",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9009/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9009",
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:9009/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9009",
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "act",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req-12345\",\n    \"source\": \"node-A\",\n    \"destination\": \"http://localhost:9000\",\n    \"security_level\": \"high\",\n    \"risk_score\": 0.85,\n    \"conf_score\": 0.92,\n    \"dst_props\": {\n        \"hardware\": [\"QKD\"],\n        \"compliance\": [\"GDPR\"],\n        \"max_latency_ms\": 10\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9009/act",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9009",
+              "path": [
+                "act"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "act extended",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req-002\",\n    \"source\": \"node-A\",\n    \"destination\": \"node-C\",\n    \"security_level\": \"critical\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 1.0,\n    \"dst_props\": {\n        \"qkd_available\": true,\n        \"pqc_support\": true,\n        \"latency\": 30.0\n    },\n    \"source_reputation\": 0.9,\n    \"source_location_risk\": 0.3,\n    \"data_sensitivity\": 1.0,\n    \"service_criticality\": 0.95,\n    \"time_of_day\": 14,\n    \"day_of_week\": 2,\n    \"is_peak_attack_time\": false,\n    \"current_threat_level\": 0.85,\n    \"system_load\": 0.6,\n    \"available_resources\": 0.8,\n    \"network_latency\": 30.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9009/act",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9009",
+              "path": [
+                "act"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"req-001-qkd-high\",\n    \"success\": true,\n    \"latency\": 45.5,\n    \"resource_usage\": 0.65\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9009/feedback",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "9009",
+              "path": [
+                "feedback"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }
