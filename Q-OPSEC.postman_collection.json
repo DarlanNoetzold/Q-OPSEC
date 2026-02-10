@@ -296,8 +296,34 @@
             {
               "name": "predict",
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"batch\": {\n    \"records\": [\n      {\n        \"features\": {\n          \"registered_devices_count\": 3,\n          \"active_devices_last_30d\": 2,\n          \"hour_of_day\": 14,\n          \"day_of_week\": 3,\n          \"is_weekend\": 0,\n          \"is_local_holiday\": 0,\n          \"seconds_since_last_login\": 3600,\n          \"seconds_since_last_transaction\": 7200,\n          \"transactions_last_1h\": 1,\n          \"transactions_last_24h\": 5,\n          \"transactions_last_7d\": 20,\n          \"transactions_last_30d\": 50,\n          \"amount_sum_last_24h\": 10000.0,\n          \"amount_sum_last_7d\": 50000.0,\n          \"amount_sum_last_30d\": 200000.0,\n          \"amount_mean_last_30d\": 4000.0,\n          \"amount_std_last_30d\": 500.0,\n          \"logins_last_24h\": 2,\n          \"login_failures_last_24h\": 0,\n          \"password_resets_last_30d\": 0,\n          \"beneficiary_bank_code\": \"001\",\n          \"merchant_category_code\": \"5411\",\n          \"is_round_amount\": 1,\n          \"is_international\": 0,\n          \"amount_increase_vs_30d_mean\": 0.1,\n          \"ip_country\": \"BR\",\n          \"ip_region\": \"SP\",\n          \"ip_city\": \"Sao Paulo\",\n          \"ip_asn\": 12345,\n          \"ip_isp\": \"ISP Example\",\n          \"is_vpn\": 0,\n          \"is_datacenter_ip\": 0,\n          \"geolocation_lat\": -23.55,\n          \"geolocation_lon\": -46.63,\n          \"ip_blacklisted\": 0,\n          \"is_proxy\": 0\n        }\n      },\n      {\n        \"features\": {\n          \"registered_devices_count\": 1,\n          \"active_devices_last_30d\": 1,\n          \"hour_of_day\": 9,\n          \"day_of_week\": 1,\n          \"is_weekend\": 0,\n          \"is_local_holiday\": 0,\n          \"seconds_since_last_login\": 7200,\n          \"seconds_since_last_transaction\": 14400,\n          \"transactions_last_1h\": 0,\n          \"transactions_last_24h\": 2,\n          \"transactions_last_7d\": 10,\n          \"transactions_last_30d\": 30,\n          \"amount_sum_last_24h\": 5000.0,\n          \"amount_sum_last_7d\": 20000.0,\n          \"amount_sum_last_30d\": 80000.0,\n          \"amount_mean_last_30d\": 2666.67,\n          \"amount_std_last_30d\": 300.0,\n          \"logins_last_24h\": 1,\n          \"login_failures_last_24h\": 1,\n          \"password_resets_last_30d\": 0,\n          \"beneficiary_bank_code\": \"237\",\n          \"merchant_category_code\": \"5812\",\n          \"is_round_amount\": 0,\n          \"is_international\": 1,\n          \"amount_increase_vs_30d_mean\": 0.2,\n          \"ip_country\": \"BR\",\n          \"ip_region\": \"RJ\",\n          \"ip_city\": \"Rio de Janeiro\",\n          \"ip_asn\": 54321,\n          \"ip_isp\": \"ISP Example 2\",\n          \"is_vpn\": 1,\n          \"is_datacenter_ip\": 0,\n          \"geolocation_lat\": -22.90,\n          \"geolocation_lon\": -43.20,\n          \"ip_blacklisted\": 0,\n          \"is_proxy\": 0\n        }\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8000/predict/",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "predict",
+                    ""
+                  ]
+                }
               },
               "response": []
             },
@@ -316,6 +342,40 @@
                   "path": [
                     "metrics",
                     "latest"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "predict single",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"single\": {\n    \"features\": {\n      \"registered_devices_count\": 3,\n      \"active_devices_last_30d\": 2,\n      \"hour_of_day\": 14,\n      \"day_of_week\": 3,\n      \"is_weekend\": 0,\n      \"is_local_holiday\": 0,\n      \"seconds_since_last_login\": 3600,\n      \"seconds_since_last_transaction\": 7200,\n      \"transactions_last_1h\": 1,\n      \"transactions_last_24h\": 5,\n      \"transactions_last_7d\": 20,\n      \"transactions_last_30d\": 50,\n      \"amount_sum_last_24h\": 10000.0,\n      \"amount_sum_last_7d\": 50000.0,\n      \"amount_sum_last_30d\": 200000.0,\n      \"amount_mean_last_30d\": 4000.0,\n      \"amount_std_last_30d\": 500.0,\n      \"logins_last_24h\": 2,\n      \"login_failures_last_24h\": 0,\n      \"password_resets_last_30d\": 0,\n      \"beneficiary_bank_code\": \"001\",\n      \"merchant_category_code\": \"5411\",\n      \"is_round_amount\": 1,\n      \"is_international\": 0,\n      \"amount_increase_vs_30d_mean\": 0.1,\n      \"ip_country\": \"BR\",\n      \"ip_region\": \"SP\",\n      \"ip_city\": \"Sao Paulo\",\n      \"ip_asn\": 12345,\n      \"ip_isp\": \"ISP Example\",\n      \"is_vpn\": 0,\n      \"is_datacenter_ip\": 0,\n      \"geolocation_lat\": -23.55,\n      \"geolocation_lon\": -46.63,\n      \"ip_blacklisted\": 0,\n      \"is_proxy\": 0\n    }\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8000/predict/",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "predict",
+                    ""
                   ]
                 }
               },
