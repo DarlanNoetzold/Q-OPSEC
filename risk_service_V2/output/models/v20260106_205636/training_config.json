@@ -1,0 +1,358 @@
+{
+  "data": {
+    "input_dir": "output",
+    "train_file": "dataset_train.parquet",
+    "val_file": "dataset_val.parquet",
+    "test_file": "dataset_test.parquet",
+    "target_column": "is_fraud",
+    "exclude_columns": [
+      "event_id",
+      "user_id",
+      "account_id",
+      "is_fraud",
+      "fraud_type",
+      "timestamp_utc",
+      "timestamp_local",
+      "account_creation_date",
+      "message_text",
+      "llm_risk_reasoning",
+      "transaction_description",
+      "ip_address",
+      "device_id"
+    ],
+    "numeric_features": [],
+    "categorical_features": [],
+    "missing_value_strategy": {
+      "numeric": "median",
+      "categorical": "mode"
+    },
+    "balance_classes": false,
+    "balance_method": "none",
+    "balance_ratio": 0.5
+  },
+  "feature_engineering": {
+    "categorical_encoding": "label",
+    "max_categories_onehot": 10,
+    "numeric_scaling": "standard",
+    "feature_selection": {
+      "enabled": false,
+      "method": "importance",
+      "top_k": 50,
+      "correlation_threshold": 0.95
+    }
+  },
+  "models": {
+    "enabled": [
+      "xgboost",
+      "lightgbm",
+      "logistic_regression",
+      "random_forest",
+      "catboost",
+      "pytorch_mlp"
+    ],
+    "catboost": {
+      "params": {
+        "iterations": 1000,
+        "learning_rate": 0.05,
+        "depth": 6,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "random_seed": 42,
+        "verbose": false
+      }
+    },
+    "pytorch_mlp": {
+      "epochs": 20,
+      "batch_size": 64,
+      "learning_rate": 0.001
+    },
+    "xgboost": {
+      "params": {
+        "objective": "binary:logistic",
+        "eval_metric": "auc",
+        "max_depth": 6,
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "min_child_weight": 1,
+        "gamma": 0,
+        "reg_alpha": 0,
+        "reg_lambda": 1,
+        "scale_pos_weight": 1,
+        "random_state": 42,
+        "n_jobs": -1,
+        "tree_method": "hist"
+      },
+      "hyperparameter_tuning": {
+        "enabled": false,
+        "method": "random",
+        "n_trials": 50,
+        "cv_folds": 3,
+        "param_grid": {
+          "max_depth": [
+            3,
+            5,
+            7,
+            9
+          ],
+          "learning_rate": [
+            0.01,
+            0.05,
+            0.1,
+            0.2
+          ],
+          "n_estimators": [
+            50,
+            100,
+            200,
+            300
+          ],
+          "subsample": [
+            0.6,
+            0.8,
+            1.0
+          ],
+          "colsample_bytree": [
+            0.6,
+            0.8,
+            1.0
+          ],
+          "min_child_weight": [
+            1,
+            3,
+            5
+          ],
+          "gamma": [
+            0,
+            0.1,
+            0.2
+          ]
+        }
+      }
+    },
+    "lightgbm": {
+      "params": {
+        "objective": "binary",
+        "metric": "auc",
+        "boosting_type": "gbdt",
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "min_child_samples": 20,
+        "reg_alpha": 0,
+        "reg_lambda": 1,
+        "scale_pos_weight": 1,
+        "random_state": 42,
+        "n_jobs": -1,
+        "verbose": -1
+      },
+      "hyperparameter_tuning": {
+        "enabled": false,
+        "method": "random",
+        "n_trials": 50,
+        "cv_folds": 3,
+        "param_grid": {
+          "num_leaves": [
+            15,
+            31,
+            63,
+            127
+          ],
+          "learning_rate": [
+            0.01,
+            0.05,
+            0.1,
+            0.2
+          ],
+          "n_estimators": [
+            50,
+            100,
+            200,
+            300
+          ],
+          "subsample": [
+            0.6,
+            0.8,
+            1.0
+          ],
+          "colsample_bytree": [
+            0.6,
+            0.8,
+            1.0
+          ],
+          "min_child_samples": [
+            10,
+            20,
+            30
+          ]
+        }
+      }
+    },
+    "random_forest": {
+      "params": {
+        "n_estimators": 100,
+        "max_depth": 10,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+        "max_features": "sqrt",
+        "bootstrap": true,
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1,
+        "verbose": 0
+      },
+      "hyperparameter_tuning": {
+        "enabled": false,
+        "method": "random",
+        "n_trials": 30,
+        "cv_folds": 3,
+        "param_grid": {
+          "n_estimators": [
+            50,
+            100,
+            200
+          ],
+          "max_depth": [
+            5,
+            10,
+            15,
+            20,
+            null
+          ],
+          "min_samples_split": [
+            2,
+            5,
+            10
+          ],
+          "min_samples_leaf": [
+            1,
+            2,
+            4
+          ],
+          "max_features": [
+            "sqrt",
+            "log2"
+          ]
+        }
+      }
+    },
+    "logistic_regression": {
+      "params": {
+        "penalty": "l2",
+        "C": 1.0,
+        "solver": "lbfgs",
+        "max_iter": 1000,
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1,
+        "verbose": 0
+      },
+      "hyperparameter_tuning": {
+        "enabled": false,
+        "method": "grid",
+        "cv_folds": 3,
+        "param_grid": {
+          "C": [
+            0.001,
+            0.01,
+            0.1,
+            1,
+            10,
+            100
+          ],
+          "penalty": [
+            "l1",
+            "l2"
+          ],
+          "solver": [
+            "liblinear",
+            "saga"
+          ]
+        }
+      }
+    }
+  },
+  "training": {
+    "cross_validation": {
+      "enabled": false,
+      "n_folds": 5,
+      "stratified": true
+    },
+    "early_stopping": {
+      "enabled": true,
+      "rounds": 50,
+      "metric": "auc"
+    },
+    "metrics": [
+      "accuracy",
+      "precision",
+      "recall",
+      "f1",
+      "roc_auc",
+      "pr_auc",
+      "log_loss"
+    ],
+    "threshold_optimization": {
+      "enabled": true,
+      "metric": "f1",
+      "search_range": [
+        0.1,
+        0.9
+      ],
+      "search_steps": 81
+    }
+  },
+  "evaluation": {
+    "visualizations": {
+      "enabled": true,
+      "plots": [
+        "confusion_matrix",
+        "roc_curve",
+        "precision_recall_curve",
+        "feature_importance",
+        "calibration_curve",
+        "threshold_analysis"
+      ]
+    },
+    "feature_importance": {
+      "enabled": true,
+      "top_n": 30,
+      "method": "gain"
+    },
+    "shap_analysis": {
+      "enabled": false,
+      "sample_size": 1000,
+      "plot_types": [
+        "summary",
+        "waterfall",
+        "dependence"
+      ]
+    }
+  },
+  "output": {
+    "models_dir": "output/models",
+    "evaluation_dir": "output/evaluation",
+    "logs_dir": "logs",
+    "versioning": {
+      "enabled": true,
+      "format": "timestamp"
+    },
+    "save_artifacts": {
+      "model": true,
+      "preprocessor": true,
+      "feature_names": true,
+      "metrics": true,
+      "predictions": true,
+      "config": true
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "console": true,
+    "file": true,
+    "file_name": "training.log"
+  }
+}
