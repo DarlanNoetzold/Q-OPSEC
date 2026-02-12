@@ -1,0 +1,47 @@
+{
+  "lightgbm": {
+    "model_name": "lightgbm",
+    "threshold": 0.20000000000000004,
+    "accuracy": 0.7861526569273471,
+    "precision": 0.303651836690725,
+    "recall": 0.47340974933870766,
+    "f1": 0.3699880227731382,
+    "roc_auc": 0.7324111199369213,
+    "confusion_matrix": {
+      "tn": 649435,
+      "fp": 129284,
+      "fn": 62709,
+      "tp": 56376
+    }
+  },
+  "random_forest": {
+    "model_name": "random_forest",
+    "threshold": 0.20000000000000004,
+    "accuracy": 0.7213367282836789,
+    "precision": 0.2572905404404686,
+    "recall": 0.5835159759835412,
+    "f1": 0.35711697729217473,
+    "roc_auc": 0.7134284791577906,
+    "confusion_matrix": {
+      "tn": 578131,
+      "fp": 200588,
+      "fn": 49597,
+      "tp": 69488
+    }
+  },
+  "logistic_regression": {
+    "model_name": "logistic_regression",
+    "threshold": 0.15000000000000002,
+    "accuracy": 0.7244721565063199,
+    "precision": 0.26421405911695833,
+    "recall": 0.6035688793718772,
+    "f1": 0.36753749469475,
+    "roc_auc": 0.7281855863575828,
+    "confusion_matrix": {
+      "tn": 578558,
+      "fp": 200161,
+      "fn": 47209,
+      "tp": 71876
+    }
+  }
+}
