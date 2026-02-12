@@ -1,0 +1,62 @@
+{
+  "lightgbm": {
+    "model_name": "lightgbm",
+    "threshold": 0.15000000000000002,
+    "accuracy": 0.7544642260448828,
+    "precision": 0.2816181603509346,
+    "recall": 0.5488012763992106,
+    "f1": 0.37222733240116074,
+    "roc_auc": 0.7324189579029631,
+    "confusion_matrix": {
+      "tn": 612007,
+      "fp": 166712,
+      "fn": 53731,
+      "tp": 65354
+    }
+  },
+  "logistic_regression": {
+    "model_name": "logistic_regression",
+    "threshold": 0.5500000000000002,
+    "accuracy": 0.7462686733407291,
+    "precision": 0.2765509643685154,
+    "recall": 0.5649410085233236,
+    "f1": 0.37132851114796894,
+    "roc_auc": 0.7307440334773085,
+    "confusion_matrix": {
+      "tn": 602727,
+      "fp": 175992,
+      "fn": 51809,
+      "tp": 67276
+    }
+  },
+  "random_forest": {
+    "model_name": "random_forest",
+    "threshold": 0.6000000000000002,
+    "accuracy": 0.7426899412343897,
+    "precision": 0.2729128203047333,
+    "recall": 0.5647898559852207,
+    "f1": 0.3680026263234208,
+    "roc_auc": 0.7299884034030171,
+    "confusion_matrix": {
+      "tn": 599532,
+      "fp": 179187,
+      "fn": 51827,
+      "tp": 67258
+    }
+  },
+  "catboost": {
+    "model_name": "catboost",
+    "threshold": 0.20000000000000004,
+    "accuracy": 0.7907137860824857,
+    "precision": 0.30745899483483213,
+    "recall": 0.4613679304698325,
+    "f1": 0.36900820062999107,
+    "roc_auc": 0.7325055934409066,
+    "confusion_matrix": {
+      "tn": 654964,
+      "fp": 123755,
+      "fn": 64143,
+      "tp": 54942
+    }
+  }
+}
