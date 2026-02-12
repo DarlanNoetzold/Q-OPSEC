@@ -29,9 +29,9 @@ def create_app():
     # Inicializar Trust Engine V2
     try:
         initialize_trust_engine()
-        print("✅ Trust Engine V2 initialized")
+        print("Trust Engine V2 initialized")
     except Exception as e:
-        print(f"⚠️  Trust Engine V2 initialization failed: {e}")
+        print(f"Trust Engine V2 initialization failed: {e}")
         import traceback
         traceback.print_exc()
 
@@ -101,19 +101,19 @@ app = create_app()
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("🚀 Trust Engine V2 - Starting...")
+    print("Trust Engine V2 - Starting...")
     print("=" * 70)
-    print("📍 Service:")
-    print("   ✅ Trust Engine V2: /api/v2/trust/*")
+    print("Service:")
+    print("    Trust Engine V2: /api/v2/trust/*")
     print("=" * 70)
-    print("🌐 Server: http://0.0.0.0:8083")
-    print("📚 API Docs: http://0.0.0.0:8083/")
+    print("Server: http://0.0.0.0:8083")
+    print("API Docs: http://0.0.0.0:8083/")
     print("=" * 70)
-    print("🔍 Quick Health Checks:")
+    print("Quick Health Checks:")
     print("   curl http://localhost:8083/health")
     print("   curl http://localhost:8083/api/v2/trust/health")
     print("=" * 70)
-    print("\n🧪 Test Evaluation:")
+    print("\nTest Evaluation:")
     print('   curl -X POST http://localhost:8083/api/v2/trust/evaluate \\')
     print('     -H "Content-Type: application/json" \\')
     print('     -d "{\\"payload\\": {\\"test\\": \\"data\\"}, \\"metadata\\": {\\"source_id\\": \\"test\\"}}"')
