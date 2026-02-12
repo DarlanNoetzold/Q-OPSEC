@@ -1,0 +1,32 @@
+{
+  "random_forest": {
+    "model_name": "random_forest",
+    "threshold": 0.20000000000000004,
+    "accuracy": 0.7223224668190384,
+    "precision": 0.25790438510707125,
+    "recall": 0.5824327161271361,
+    "f1": 0.3575040333180419,
+    "roc_auc": 0.713396234188383,
+    "confusion_matrix": {
+      "tn": 579145,
+      "fp": 199574,
+      "fn": 49726,
+      "tp": 69359
+    }
+  },
+  "logistic_regression": {
+    "model_name": "logistic_regression",
+    "threshold": 0.15000000000000002,
+    "accuracy": 0.7244721565063199,
+    "precision": 0.26421405911695833,
+    "recall": 0.6035688793718772,
+    "f1": 0.36753749469475,
+    "roc_auc": 0.7281855863575828,
+    "confusion_matrix": {
+      "tn": 578558,
+      "fp": 200161,
+      "fn": 47209,
+      "tp": 71876
+    }
+  }
+}
