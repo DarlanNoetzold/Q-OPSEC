@@ -1,161 +1,210 @@
-services:
-  interceptor_api:
-    type: spring
-    cwd: "./interceptor_api"
-    start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
-    health: "http://127.0.0.1:8080/actuator/health"
-    port: 8080
-    base_url: "http://127.0.0.1:8080"
-    pid_file: "./logs/interceptor_api.pid"
-    log_file: "./logs/interceptor_api.log"
-    env: {}
-
-  context_api:
-    type: spring
-    cwd: "./context_api"
-    start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
-    health: "http://127.0.0.1:8081/actuator/health"
-    port: 8081
-    base_url: "http://127.0.0.1:8081"
-    pid_file: "./logs/context_api.pid"
-    log_file: "./logs/context_api.log"
-    env: {}
-
-  validation_send_api:
-    type: spring
-    cwd: "./validation_send_api"
-    start: ["mvnw.cmd", "spring-boot:run", "-DskipTests"]
-    health: "http://127.0.0.1:8005/actuator/health"
-    port: 8005
-    base_url: "http://127.0.0.1:8005"
-    pid_file: "./logs/validation_send_api.pid"
-    log_file: "./logs/validation_send_api.log"
-    env: {}
-
-  dataset_extractor:
-    type: script
-    cwd: "./dataset_extractor"
-    start: ["python", "main.py"]
-    health: ""
-    pid_file: "./logs/dataset_extractor.pid"
-    log_file: "./logs/dataset_extractor.log"
-    env: {}
-
-  classify_scheduler:
-    type: script
-    cwd: "./classify_scheduler"
-    start: ["python", "-m", "main", "--mode", "train-once", "--data", "datasets/v1/context_dataset_advanced.csv", "--registry", "./model_registry"]
-    health: ""
-    pid_file: "./logs/classify_scheduler.pid"
-    log_file: "./logs/classify_scheduler.log"
-    env: {}
-
-  key_destination_engine:
-    type: fastapi
-    cwd: "./key_destination_engine"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
-    health: "http://127.0.0.1:8003/health"
-    port: 8003
-    base_url: "http://127.0.0.1:8003"
-    pid_file: "./logs/key_destination_engine.pid"
-    log_file: "./logs/key_destination_engine.log"
-    env: {}
-
-  confiability_service:
-    type: fastapi
-    cwd: "./confiability_service"
-    start: ["python", "app.py"]
-    health: "http://127.0.0.1:8083/confidentiality/health"
-    port: 8083
-    base_url: "http://127.0.0.1:8083"
-    pid_file: "./logs/confiability_service.pid"
-    log_file: "./logs/confiability_service.log"
-    env: {}
-
-  crypto_module:
-    type: fastapi
-    cwd: "./crypto_module"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
-    health: "http://127.0.0.1:8004/health"
-    port: 8004
-    base_url: "http://127.0.0.1:8004"
-    pid_file: "./logs/crypto_module.pid"
-    log_file: "./logs/crypto_module.log"
-    env: {}
-
-  risk_service:
-    type: fastapi
-    cwd: "./risk_service"
-    start: ["python", "app.py"]
-    health: "http://127.0.0.1:8082/risk/health"
-    port: 8082
-    base_url: "http://127.0.0.1:8082"
-    pid_file: "./logs/risk_service.pid"
-    log_file: "./logs/risk_service.log"
-    env: {}
-
-  handshake_negotiator:
-    type: fastapi
-    cwd: "./handshake_negotiator"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--ws", "none"]
-    health: "http://127.0.0.1:8001/docs"
-    port: 8001
-    base_url: "http://127.0.0.1:8001"
-    pid_file: "./logs/handshake_negotiator.pid"
-    log_file: "./logs/handshake_negotiator.log"
-    env: {}
-
-  kms_service:
-    type: fastapi
-    cwd: "./kms_service"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]
-    health: "http://127.0.0.1:8002/health"
-    port: 8002
-    base_url: "http://127.0.0.1:8002"
-    pid_file: "./logs/kms_service.pid"
-    log_file: "./logs/kms_service.log"
-    env: {}
-
-  classification_agent:
-    type: fastapi
-    cwd: "./classification_agent"
-    start: ["python", "main.py"]
-    health: "http://127.0.0.1:8088/api/v1/health"
-    metrics: "http://127.0.0.1:9090/metrics"
-    port: 8088
-    base_url: "http://127.0.0.1:8088"
-    pid_file: "./logs/classification_agent.pid"
-    log_file: "./logs/classification_agent.log"
-    env:
-      CLASSIFY_API_KEY: "your-api-key-for-authentication"
-
-  rl_engine:
-    type: fastapi
-    cwd: "./rl_engine"
-    start: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9009"]
-    health: "http://127.0.0.1:9009/docs"
-    port: 9009
-    base_url: "http://127.0.0.1:9009"
-    pid_file: "./logs/rl_engine.pid"
-    log_file: "./logs/rl_engine.log"
-    env: {}
-
 paths:
-  datasets_dir: "./datasets"
-  model_registry: "./classify_scheduler/model_registry"
-  risk_registry: "./risk_service/model_registry"
-  conf_registry: "./confiability_service/model_registry"
-  logs_dir: "./logs"
-
+  conf_registry: ./confiability_service/model_registry
+  datasets_dir: ./datasets
+  logs_dir: ./logs
+  model_registry: ./classify_scheduler/model_registry
+  risk_registry: ./risk_service/model_registry
+services:
+  classification_agent:
+    base_url: http://127.0.0.1:8088
+    cwd: ./classification_agent
+    env:
+      CLASSIFY_API_KEY: your-api-key-for-authentication
+    health: http://127.0.0.1:8088/api/v1/health
+    log_file: ./logs/classification_agent.log
+    metrics: http://127.0.0.1:9090/metrics
+    pid_file: ./logs/classification_agent.pid
+    port: 8088
+    start:
+    - python
+    - main.py
+    type: fastapi
+  classify_scheduler:
+    cwd: ./classify_scheduler
+    env: {}
+    health: ''
+    log_file: ./logs/classify_scheduler.log
+    pid_file: ./logs/classify_scheduler.pid
+    start:
+    - python
+    - -m
+    - main
+    - --mode
+    - train-once
+    - --data
+    - datasets/v1/context_dataset_advanced.csv
+    - --registry
+    - ./model_registry
+    type: script
+  confiability_service:
+    base_url: http://127.0.0.1:8083
+    cwd: ./confiability_service_v2
+    env: {}
+    health: http://127.0.0.1:8083/confidentiality/health
+    log_file: ./logs/confiability_service_v2.log
+    pid_file: ./logs/confiability_service_v2.pid
+    port: 8083
+    start:
+    - python
+    - app.py
+    type: fastapi
+  context_api:
+    base_url: http://127.0.0.1:8081
+    cwd: ./context_api
+    env: {}
+    health: http://127.0.0.1:8081/actuator/health
+    log_file: ./logs/context_api.log
+    pid_file: ./logs/context_api.pid
+    port: 8081
+    start:
+    - mvnw.cmd
+    - spring-boot:run
+    - -DskipTests
+    type: spring
+  crypto_module:
+    base_url: http://127.0.0.1:8004
+    cwd: ./crypto_module
+    env: {}
+    health: http://127.0.0.1:8004/health
+    log_file: ./logs/crypto_module.log
+    pid_file: ./logs/crypto_module.pid
+    port: 8004
+    start:
+    - uvicorn
+    - main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8004'
+    type: fastapi
+  dataset_extractor:
+    cwd: ./dataset_extractor
+    env: {}
+    health: ''
+    log_file: ./logs/dataset_extractor.log
+    pid_file: ./logs/dataset_extractor.pid
+    start:
+    - python
+    - main.py
+    type: script
+  handshake_negotiator:
+    base_url: http://127.0.0.1:8001
+    cwd: ./handshake_negotiator
+    env: {}
+    health: http://127.0.0.1:8001/docs
+    log_file: ./logs/handshake_negotiator.log
+    pid_file: ./logs/handshake_negotiator.pid
+    port: 8001
+    start:
+    - uvicorn
+    - main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8001'
+    - --ws
+    - none
+    type: fastapi
+  interceptor_api:
+    base_url: http://127.0.0.1:8080
+    cwd: ./interceptor_api
+    env: {}
+    health: http://127.0.0.1:8080/actuator/health
+    log_file: ./logs/interceptor_api.log
+    pid_file: ./logs/interceptor_api.pid
+    port: 8080
+    start:
+    - mvnw.cmd
+    - spring-boot:run
+    - -DskipTests
+    type: spring
+  key_destination_engine:
+    base_url: http://127.0.0.1:8003
+    cwd: ./key_destination_engine
+    env: {}
+    health: http://127.0.0.1:8003/health
+    log_file: ./logs/key_destination_engine.log
+    pid_file: ./logs/key_destination_engine.pid
+    port: 8003
+    start:
+    - uvicorn
+    - main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8003'
+    type: fastapi
+  kms_service:
+    base_url: http://127.0.0.1:8002
+    cwd: ./kms_service
+    env: {}
+    health: http://127.0.0.1:8002/health
+    log_file: ./logs/kms_service.log
+    pid_file: ./logs/kms_service.pid
+    port: 8002
+    start:
+    - uvicorn
+    - main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8002'
+    type: fastapi
+  risk_service:
+    base_url: http://127.0.0.1:8082
+    cwd: ./risk_service_V2
+    env: {}
+    health: http://127.0.0.1:8082/risk/health
+    log_file: ./logs/risk_service_V2.log
+    pid_file: ./logs/risk_service_V2.pid
+    port: 8082
+    start:
+    - uvicorn
+    - src.api.main:app
+    - --reload
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8000'
+    type: fastapi
+  rl_engine:
+    base_url: http://127.0.0.1:9009
+    cwd: ./rl_engine
+    env: {}
+    health: http://127.0.0.1:9009/docs
+    log_file: ./logs/rl_engine.log
+    pid_file: ./logs/rl_engine.pid
+    port: 9009
+    start:
+    - uvicorn
+    - main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '9009'
+    type: fastapi
+  validation_send_api:
+    base_url: http://127.0.0.1:8005
+    cwd: ./validation_send_api
+    env: {}
+    health: http://127.0.0.1:8005/actuator/health
+    log_file: ./logs/validation_send_api.log
+    pid_file: ./logs/validation_send_api.pid
+    port: 8005
+    start:
+    - mvnw.cmd
+    - spring-boot:run
+    - -DskipTests
+    type: spring
 startup_order:
-  - kms_service
-  - key_destination_engine
-  - crypto_module
-  - validation_send_api
-  - handshake_negotiator
-  - risk_service
-  - confiability_service
-  - context_api
-  - classification_agent
-  - rl_engine
-  - interceptor_api
+- kms_service
+- key_destination_engine
+- crypto_module
+- validation_send_api
+- handshake_negotiator
+- risk_service
+- confiability_service
+- context_api
+- classification_agent
+- rl_engine
+- interceptor_api
