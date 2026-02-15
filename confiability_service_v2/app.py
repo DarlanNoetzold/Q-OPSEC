@@ -9,7 +9,7 @@ import sys
 # Adicionar diretório raiz ao path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Importar Trust Engine V2 Controller
+# Importar Confiability Sevice V2 Controller
 from api.v2.trust_controller import trust_v2_bp
 
 # Importar bootstrap
@@ -27,19 +27,19 @@ def create_app():
     """Factory para criar a aplicação Flask"""
     ensure_dirs()
 
-    # Inicializar Trust Engine V2
+    # Inicializar Confiability Sevice V2
     try:
         initialize_trust_engine()
-        print("Trust Engine V2 initialized")
+        print("Confiability Sevice V2 initialized")
     except Exception as e:
-        print(f"Trust Engine V2 initialization failed: {e}")
+        print(f"Confiability Sevice V2 initialization failed: {e}")
         import traceback
         traceback.print_exc()
 
     app = Flask(__name__)
 
     # ========== CONFIGURAÇÃO DO SWAGGER/OPENAPI ==========
-    app.config["API_TITLE"] = "Trust Engine V2 API"
+    app.config["API_TITLE"] = "Confiability Sevice V2 API"
     app.config["API_VERSION"] = "2.0.0"
     app.config["OPENAPI_VERSION"] = "3.0.3"
     app.config["OPENAPI_URL_PREFIX"] = "/"
@@ -50,7 +50,7 @@ def create_app():
     app.config["API_SPEC_OPTIONS"] = {
         "info": {
             "description": """
-# Trust Engine V2 - Information Trust Evaluation API
+# Confiability Sevice V2 - Information Trust Evaluation API
 
 API completa para avaliação contextual de confiança em informações.
 
@@ -89,7 +89,7 @@ API completa para avaliação contextual de confiança em informações.
     # Inicializa a API com Swagger
     api = Api(app)
 
-    # Registrar blueprint do Trust Engine V2
+    # Registrar blueprint do Confiability Sevice V2
     api.register_blueprint(trust_v2_bp)       # /api/v2/trust/*
 
     # Health check geral
@@ -108,7 +108,7 @@ API completa para avaliação contextual de confiança em informações.
     def root():
         """Endpoint raiz com informações da API"""
         return jsonify({
-            "service": "Trust Engine V2",
+            "service": "Confiability Sevice V2",
             "version": "2.0.0",
             "description": "Information Trust Engine - Contextual Trustworthiness Evaluation",
             "documentation": {
@@ -139,10 +139,10 @@ app = create_app()
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("Trust Engine V2 - Starting...")
+    print("Confiability Sevice V2 - Starting...")
     print("=" * 70)
     print("Service:")
-    print("    Trust Engine V2: /api/v2/trust/*")
+    print("    Confiability Sevice V2: /api/v2/trust/*")
     print("=" * 70)
     print("Server: http://0.0.0.0:8083")
     print("Swagger UI: http://0.0.0.0:8083/swagger-ui")
