@@ -2,6 +2,7 @@
 Confiability Service V2 - Trust Engine Only
 """
 from flask import Flask, jsonify
+from flask_smorest import Api
 import os
 import sys
 
@@ -37,8 +38,59 @@ def create_app():
 
     app = Flask(__name__)
 
+    # ========== CONFIGURAÇÃO DO SWAGGER/OPENAPI ==========
+    app.config["API_TITLE"] = "Trust Engine V2 API"
+    app.config["API_VERSION"] = "2.0.0"
+    app.config["OPENAPI_VERSION"] = "3.0.3"
+    app.config["OPENAPI_URL_PREFIX"] = "/"
+    app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
+    app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+    app.config["OPENAPI_REDOC_PATH"] = "/redoc"
+    app.config["OPENAPI_REDOC_URL"] = "https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"
+    app.config["API_SPEC_OPTIONS"] = {
+        "info": {
+            "description": """
+# Trust Engine V2 - Information Trust Evaluation API
+
+API completa para avaliação contextual de confiança em informações.
+
+## Recursos Principais
+- **Avaliação de Confiança**: Análise multi-dimensional de trustworthiness
+- **Sinais Contextuais**: Temporal, semântico, anomalia, consistência
+- **Histórico**: Rastreamento de entidades e fontes
+- **Estatísticas**: Métricas agregadas do sistema
+
+## Fluxo de Uso
+1. Envie dados para `/api/v2/trust/evaluate`
+2. Receba score de confiança (0-1) e nível de risco
+3. Consulte histórico e estatísticas conforme necessário
+            """,
+            "contact": {
+                "name": "Trust Engine Team",
+                "email": "support@trustengine.com"
+            },
+            "license": {
+                "name": "Apache 2.0",
+                "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+            }
+        },
+        "servers": [
+            {"url": "http://localhost:8083", "description": "Desenvolvimento Local"},
+            {"url": "http://0.0.0.0:8083", "description": "Servidor Local"},
+        ],
+        "tags": [
+            {"name": "Trust Evaluation", "description": "Endpoints de avaliação de confiança"},
+            {"name": "Health & Config", "description": "Status e configuração do sistema"},
+            {"name": "History", "description": "Histórico de avaliações"},
+            {"name": "Statistics", "description": "Estatísticas e métricas"}
+        ]
+    }
+
+    # Inicializa a API com Swagger
+    api = Api(app)
+
     # Registrar blueprint do Trust Engine V2
-    app.register_blueprint(trust_v2_bp)       # /api/v2/trust/*
+    api.register_blueprint(trust_v2_bp)       # /api/v2/trust/*
 
     # Health check geral
     @app.get("/health")
@@ -59,6 +111,11 @@ def create_app():
             "service": "Trust Engine V2",
             "version": "2.0.0",
             "description": "Information Trust Engine - Contextual Trustworthiness Evaluation",
+            "documentation": {
+                "swagger_ui": "/swagger-ui",
+                "redoc": "/redoc",
+                "openapi_spec": "/openapi.json"
+            },
             "endpoints": {
                 "health": "GET /health",
                 "trust_v2": {
@@ -69,25 +126,6 @@ def create_app():
                     "stats": "GET /api/v2/trust/stats",
                     "history_entity": "GET /api/v2/trust/history/<entity_id>",
                     "history_source": "GET /api/v2/trust/history/source/<source_id>"
-                }
-            },
-            "documentation": {
-                "evaluate_example": {
-                    "method": "POST",
-                    "url": "/api/v2/trust/evaluate",
-                    "body": {
-                        "payload": {
-                            "claim": "User reported suspicious activity",
-                            "details": {"ip": "192.168.1.1"}
-                        },
-                        "metadata": {
-                            "source_id": "security_system_1",
-                            "entity_id": "user_12345",
-                            "timestamp": "2024-01-15T10:30:00Z",
-                            "data_type": "security_event",
-                            "environment": "production"
-                        }
-                    }
                 }
             }
         }), 200
@@ -107,7 +145,9 @@ if __name__ == "__main__":
     print("    Trust Engine V2: /api/v2/trust/*")
     print("=" * 70)
     print("Server: http://0.0.0.0:8083")
-    print("API Docs: http://0.0.0.0:8083/")
+    print("Swagger UI: http://0.0.0.0:8083/swagger-ui")
+    print("ReDoc: http://0.0.0.0:8083/redoc")
+    print("OpenAPI Spec: http://0.0.0.0:8083/openapi.json")
     print("=" * 70)
     print("Quick Health Checks:")
     print("   curl http://localhost:8083/health")
