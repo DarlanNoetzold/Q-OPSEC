@@ -158,15 +158,6 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     # Add hostname
     if cfg.get("hostname"):
-    # If this is a Python service, run pip install -r requirements.txt before starting
-    if service_type == "process" and cmd and isinstance(cmd, list) and len(cmd) > 0 and cmd[0].endswith("python"):
-        req_file = cwd / "requirements.txt"
-        if req_file.exists():
-            try:
-                subprocess.check_call([str(cmd[0]), "-m", "pip", "install", "-r", str(req_file)], cwd=str(cwd))
-            except subprocess.CalledProcessError as e:
-                return {"status": "error", "error": f"Failed to install requirements: {e}"}
-
         cmd.extend(["--hostname", cfg["hostname"]])
 
     # Add environment variables
@@ -468,6 +459,16 @@ async def start_service(name: str) -> Dict[str, Any]:
         return {"status": "running", "pid": exist_pid}
 
     # Prepare environment
+    # Auto-install requirements for Python services
+    if service_type == "process" and cmd and isinstance(cmd, list) and len(cmd) > 0 and cmd[0].endswith("python"):
+        req_file = cwd / "requirements.txt"
+        if req_file.exists():
+            try:
+                print(f"Installing requirements for {name}...")
+                subprocess.run([cmd[0], "-m", "pip", "install", "-r", str(req_file)], check=True)
+            except Exception as e:
+                print(f"Failed to install requirements for {name}: {e}")
+
     cwd = (BASE_DIR / cfg["cwd"]).resolve() if cfg.get("cwd") else BASE_DIR
     cmd = cfg["start"]
     logs_dir = Path(CONFIG["paths"]["logs_dir"]).resolve()
