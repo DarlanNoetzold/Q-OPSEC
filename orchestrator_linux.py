@@ -158,6 +158,15 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     # Add hostname
     if cfg.get("hostname"):
+    # If this is a Python service, run pip install -r requirements.txt before starting
+    if service_type == "process" and cmd and isinstance(cmd, list) and len(cmd) > 0 and cmd[0].endswith("python"):
+        req_file = cwd / "requirements.txt"
+        if req_file.exists():
+            try:
+                subprocess.check_call([str(cmd[0]), "-m", "pip", "install", "-r", str(req_file)], cwd=str(cwd))
+            except subprocess.CalledProcessError as e:
+                return {"status": "error", "error": f"Failed to install requirements: {e}"}
+
         cmd.extend(["--hostname", cfg["hostname"]])
 
     # Add environment variables
@@ -590,7 +599,7 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
                     os.kill(port_pid, signal.SIGTERM)
                     await asyncio.sleep(0.5)
                     if find_pid_by_port(int(port)) is not None:
-                        os.kill(port_pid, signal.SIGKILL)
+                    os.kill(port_pid, signal.SIGKILL)
                 except Exception:
                     pass
 
