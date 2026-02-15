@@ -18,9 +18,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Context API")
+                        .title("Interceptor API")
                         .version("1.0.0")
-                        .description("API completa para gerenciamento de contextos com integração RabbitMQ e PostgreSQL")
+                        .description("")
                         .contact(new Contact()
                                 .name("Noetzold Tech")
                                 .email("contato@noetzold.tech")
@@ -30,13 +30,10 @@ public class SwaggerConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:65534")
+                                .url("http://localhost:8080")
                                 .description("Servidor de Desenvolvimento"),
                         new Server()
                                 .url("https://api.noetzold.tech")
-                                .description("Servidor de Produção")))
-                .tags(List.of(
-                        new Tag().name("Context").description("Operações relacionadas a contextos"),
-                        new Tag().name("Health").description("Endpoints de saúde e monitoramento")));
+                                .description("Servidor de Produção")));
     }
 }
