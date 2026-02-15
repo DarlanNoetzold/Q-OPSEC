@@ -36,7 +36,7 @@ APP.add_middleware(
     allow_headers=["*"],
 )
 
-# ===== DOCKER UTILITIES =====
+# ==== DOCKER UTILITIES ====
 
 def docker_available() -> bool:
     """Check if Docker is available"""
@@ -293,7 +293,7 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
     except (subprocess.CalledProcessError, json.JSONDecodeError):
         return None
 
-# ===== ORIGINAL UTILITIES =====
+# ==== ORIGINAL UTILITIES ====
 
 @APP.get("/", response_class=HTMLResponse)
 async def dashboard():
