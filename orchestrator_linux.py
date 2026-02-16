@@ -48,7 +48,7 @@ def get_swagger_url(cfg: Dict[str, Any], name: str) -> Optional[str]:
     
     # Special case for confiability_service (uses /swagger-ui/index.html even though it's Python)
     if name == "confiability_service":
-        return f"http://192.168.18.18:{port}/swagger-ui/index.html"
+        return f"http://192.168.18.18:{port}/swagger-ui"
     
     # Java/Spring applications use /swagger-ui/index.html
     if service_type in ["spring", "java"]:
