@@ -49,13 +49,13 @@ services:
     - app.py
     type: fastapi
   context_api:
-    base_url: http://127.0.0.1:8081
+    base_url: http://127.0.0.1:65534
     cwd: ./context_api
     env: {}
-    health: http://127.0.0.1:8081/actuator/health
+    health: http://127.0.0.1:65534/actuator/health
     log_file: ./logs/context_api.log
     pid_file: ./logs/context_api.pid
-    port: 8081
+    port: 65534
     start:
     - mvnw.cmd
     - spring-boot:run
@@ -151,13 +151,13 @@ services:
     - '8002'
     type: fastapi
   risk_service:
-    base_url: http://127.0.0.1:8082
+    base_url: http://127.0.0.1:8000
     cwd: ./risk_service_V2
     env: {}
-    health: http://127.0.0.1:8082/risk/health
+    health: http://127.0.0.1:8000/risk/health
     log_file: ./logs/risk_service_V2.log
     pid_file: ./logs/risk_service_V2.pid
-    port: 8082
+    port: 8000
     start:
     - uvicorn
     - src.api.main:app
