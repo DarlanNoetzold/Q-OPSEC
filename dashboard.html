@@ -744,25 +744,8 @@
       };
 
       const getSwaggerUrl = (service) => {
-        const port = service.port;
-        if (!port) return null;
-
-        // Exceção: confiability_service usa /swagger-ui mesmo sendo fastapi
-        if (service.name === 'confiability_service') {
-          return `http://${SWAGGER_IP}:${port}/swagger-ui`;
-        }
-        
-        // Para aplicações Java (spring): /swagger-ui
-        if (service.type === 'spring') {
-          return `http://${SWAGGER_IP}:${port}/swagger-ui`;
-        }
-        
-        // Para aplicações Python (fastapi): /docs
-        if (service.type === 'fastapi') {
-          return `http://${SWAGGER_IP}:${port}/docs`;
-        }
-
-        return null;
+        // Use swagger_url directly from API response if available
+        return service.swagger_url || null;
       };
 
       const ServiceCard = ({ s }) => {
