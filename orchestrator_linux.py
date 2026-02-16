@@ -36,6 +36,34 @@ APP.add_middleware(
     allow_headers=["*"],
 )
 
+# ==== SWAGGER URL HELPER ====
+
+def get_swagger_url(cfg: Dict[str, Any], name: str) -> Optional[str]:
+    """Generate Swagger documentation URL based on service type"""
+    port = cfg.get("port")
+    if not port:
+        return None
+    
+    service_type = cfg.get("type", "process")
+    
+    # Special case for confiability_service (uses /swagger-ui even though it's Python)
+    if name == "confiability_service":
+        return f"http://192.168.18.18:{port}/swagger-ui"
+    
+    # Java/Spring applications use /swagger-ui
+    if service_type in ["spring", "java"]:
+        return f"http://192.168.18.18:{port}/swagger-ui"
+    
+    # Python/FastAPI applications use /docs
+    if service_type in ["fastapi", "python", "process"]:
+        # Check if it's a Python service by looking at the start command
+        start_cmd = cfg.get("start", [])
+        if start_cmd and isinstance(start_cmd, list):
+            if any("python" in str(cmd).lower() or "uvicorn" in str(cmd).lower() for cmd in start_cmd):
+                return f"http://192.168.18.18:{port}/docs"
+    
+    return None
+
 # ==== DOCKER UTILITIES ====
 
 def docker_available() -> bool:
@@ -600,7 +628,7 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
                     os.kill(port_pid, signal.SIGTERM)
                     await asyncio.sleep(0.5)
                     if find_pid_by_port(int(port)) is not None:
-                        os.kill(port_pid, signal.SIGKILL)
+                    os.kill(port_pid, signal.SIGKILL)
                 except Exception:
                     pass
 
@@ -701,6 +729,7 @@ def list_services():
                 "running": running,
                 "health": cfg.get("health"),
                 "ports": cfg.get("ports", []),
+                "swagger_url": get_swagger_url(cfg, name),
             })
         else:
             pid = state.get("pid") or read_pidfile(name)
@@ -722,6 +751,7 @@ def list_services():
                 "port": cfg.get("port"),
                 "start": cfg.get("start"),
                 "cwd": cfg.get("cwd"),
+                "swagger_url": get_swagger_url(cfg, name),
             })
     return out
 
