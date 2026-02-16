@@ -1,19 +1,36 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
-from models import EncryptRequest, EncryptResponse, DecryptRequest, DecryptResponse, ErrorResponse
-from crypto_engine import (
-    fetch_key_context,
-    fetch_message_from_interceptor,
-    aead_encrypt,
-    aead_decrypt,
-    b64d,
-    b64e,
+from models import CreateKeyRequest, CreateKeyResponse, KeyResponse
+from key_manager import build_session, get_supported_algorithms, get_algorithm_info
+from storage import save_session, get_session, get_session_by_request
+
+app = FastAPI(
+    title="KMS Service",
+    version="2.0.0",
+    description="""
+## 🔐 Key Management Service (KMS)
+
+Serviço para criação e consulta de **sessões de chave** para criptografia/AEAD.
+
+### Principais capacidades
+- Criar uma sessão de chave (`/kms/create_key`)
+- Consultar sessão por `session_id` ou `request_id`
+- Listar algoritmos suportados e obter detalhes de algoritmos
+
+### Documentação
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+- OpenAPI JSON: `/openapi.json`
+""",
+    openapi_tags=[
+        {"name": "Algorithms", "description": "Descoberta de algoritmos e metadados"},
+        {"name": "Sessions", "description": "Criação/consulta/remoção de sessões de chave"},
+        {"name": "Health", "description": "Endpoints de saúde e verificação de dependências"},
+    ],
 )
-from config import HOST, PORT
 
 
 def _to_unix_ts(value) -> int:
@@ -22,454 +39,284 @@ def _to_unix_ts(value) -> int:
         return value
     if isinstance(value, float):
         return int(value)
-    if isinstance(value, str):
-        try:
-            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-            return int(dt.timestamp())
-        except Exception:
-            raise ValueError(f"Invalid expires_at format: {value}")
     if isinstance(value, datetime):
         return int(value.timestamp())
     return int(value)
 
 
-# Enhanced FastAPI app with comprehensive Swagger documentation
-app = FastAPI(
-    title="OraculumPrisec Crypto Module",
-    description="""
-    ## 🔐 Encryption/Decryption Service
-
-    This service provides secure encryption and decryption operations using session keys from KMS 
-    and messages from the Interceptor API.
-
-    ### Features
-    * **AES-256-GCM** and **ChaCha20-Poly1305** encryption algorithms
-    * Integration with KMS for key management
-    * Integration with Interceptor API for message retrieval
-    * Authenticated Encryption with Associated Data (AEAD)
-    * Base64 encoding for safe transport
-
-    ### Workflow
-    1. Fetch session key from KMS using `session_id`
-    2. Optionally fetch message from Interceptor using `request_id`
-    3. Perform encryption/decryption with AEAD
-    4. Return base64-encoded results
-
-    ### Security Notes
-    * All keys are fetched from KMS - never stored locally
-    * AAD (Additional Authenticated Data) ensures integrity
-    * Nonces are randomly generated for each encryption
-    """,
-    version="1.3.1",
-    contact={
-        "name": "OraculumPrisec Security Team",
-        "email": "security@oraculum.example.com",
-    },
-    license_info={
-        "name": "Proprietary",
-    },
-    openapi_tags=[
-        {
-            "name": "Encryption",
-            "description": "Operations for encrypting plaintext data using AEAD algorithms",
-        },
-        {
-            "name": "Decryption",
-            "description": "Operations for decrypting ciphertext back to plaintext",
-        },
-        {
-            "name": "Health",
-            "description": "Service health and status endpoints",
-        },
-    ],
+@app.get(
+    "/",
+    tags=["Health"],
+    summary="Links rápidos para documentação e endpoints",
+    description="Endpoint raiz com links úteis para Swagger, ReDoc e OpenAPI.",
 )
+def root():
+    return {
+        "service": "KMS Service",
+        "version": "2.0.0",
+        "documentation": {
+            "swagger_ui": "/docs",
+            "redoc": "/redoc",
+            "openapi_json": "/openapi.json",
+        },
+        "endpoints": {
+            "supported_algorithms": "/kms/supported_algorithms",
+            "algorithm_info": "/kms/algorithm_info/{algorithm}",
+            "create_key": "/kms/create_key",
+            "get_key_by_session": "/kms/get_key/{session_id}",
+            "get_key_by_request": "/kms/get_key?request_id=...",
+            "session_get": "/kms/session/{session_id}",
+            "session_delete": "/kms/session/{session_id}",
+            "health": "/health",
+        },
+    }
 
 
-def _default_aad(session_id: str, request_id: str, algorithm: str) -> bytes:
-    """Generate default Additional Authenticated Data (AAD) for AEAD."""
-    s = f"session:{session_id}|request:{request_id}|alg:{algorithm}"
-    return s.encode("utf-8")
+@app.get(
+    "/kms/supported_algorithms",
+    tags=["Algorithms"],
+    summary="Lista algoritmos suportados",
+    description="Retorna a lista (ou estrutura) de algoritmos suportados pelo serviço.",
+    responses={
+        200: {
+            "description": "Lista/estrutura de algoritmos suportados",
+        }
+    },
+)
+def supported_algorithms():
+    return get_supported_algorithms()
+
+
+@app.get(
+    "/kms/algorithm_info/{algorithm}",
+    tags=["Algorithms"],
+    summary="Detalhes de um algoritmo",
+    description="Retorna metadados/detalhes do algoritmo informado (ex.: parâmetros, disponibilidade, etc.).",
+    responses={
+        200: {"description": "Informações do algoritmo"},
+        404: {"description": "Algoritmo não encontrado"},
+        400: {"description": "Parâmetro inválido"},
+    },
+)
+def algorithm_info(algorithm: str):
+    # Se get_algorithm_info já lança erro, ok.
+    # Se não, você pode ajustar aqui para retornar 404 quando None.
+    info = get_algorithm_info(algorithm)
+    if not info:
+        raise HTTPException(status_code=404, detail="Algorithm not found")
+    return info
 
 
 @app.post(
-    "/encrypt",
-    response_model=EncryptResponse,
+    "/kms/create_key",
+    response_model=CreateKeyResponse,
+    tags=["Sessions"],
+    summary="Cria uma sessão de chave",
+    description="""
+Cria (ou negocia) uma sessão contendo:
+- `session_id`
+- `request_id`
+- `selected_algorithm`
+- `key_material`
+- `expires_at`
+
+Pode aplicar fallback de algoritmo, dependendo da disponibilidade.
+""",
     responses={
         200: {
-            "description": "Successful encryption",
+            "description": "Sessão criada com sucesso",
             "content": {
                 "application/json": {
                     "example": {
                         "session_id": "sess_abc123xyz",
-                        "algorithm": "AES256_GCM",
-                        "nonce_b64": "MTIzNDU2Nzg5MDEy",
-                        "ciphertext_b64": "ZW5jcnlwdGVkX2RhdGFfaGVyZQ==",
-                        "expires_at": 1708012800
+                        "request_id": "req_xyz789abc",
+                        "requested_algorithm": "AES256_GCM",
+                        "selected_algorithm": "AES256_GCM",
+                        "key_material": "base64-or-hex-material",
+                        "expires_at": 1708012800,
+                        "fallback_applied": False,
+                        "fallback_reason": None,
+                        "source_of_key": "qkd|pqc|classical|mock",
                     }
                 }
-            }
+            },
         },
-        400: {
-            "model": ErrorResponse,
-            "description": "Bad Request - Invalid input parameters",
-        },
-        500: {
-            "model": ErrorResponse,
-            "description": "Internal Server Error - Encryption failed",
-        }
+        400: {"description": "Requisição inválida"},
+        500: {"description": "Erro interno ao criar sessão"},
     },
-    tags=["Encryption"],
-    summary="Encrypt data with flexible input options",
-    description="""
-    Encrypts plaintext data using AEAD (Authenticated Encryption with Associated Data).
-
-    **Input Options:**
-    1. Provide `plaintext_b64` directly
-    2. Provide `request_id` to fetch message from Interceptor (requires `fetch_from_interceptor=True`)
-
-    **Required:**
-    - `session_id`: Used to fetch encryption key from KMS
-
-    **Optional:**
-    - `request_id`: Used to fetch message from Interceptor
-    - `plaintext_b64`: Base64-encoded plaintext (if not fetching from Interceptor)
-    - `algorithm`: Encryption algorithm (default: AES256_GCM)
-    - `aad_b64`: Custom Additional Authenticated Data (auto-generated if not provided)
-    - `fetch_from_interceptor`: Whether to fetch message from Interceptor (default: True)
-    """,
 )
-async def encrypt(req: EncryptRequest):
-    """
-    Encrypt plaintext data using session key from KMS.
+async def create_key(req: CreateKeyRequest):
+    (
+        session_id,
+        request_id,
+        selected_alg,
+        key_material,
+        expires_at,
+        fallback_applied,
+        fallback_reason,
+        source_of_key,
+    ) = build_session(req.session_id, req.request_id, req.algorithm, req.ttl_seconds)
 
-    The encryption process:
-    1. Fetches session key context from KMS
-    2. Optionally fetches message from Interceptor
-    3. Generates or uses provided AAD
-    4. Performs AEAD encryption
-    5. Returns nonce and ciphertext (both base64-encoded)
-    """
-    try:
-        if not req.session_id:
-            raise ValueError("session_id is required to fetch key from KMS")
-
-        ctx = await fetch_key_context(session_id=req.session_id, request_id=None)
-        session_id = ctx["session_id"]
-        req_id = req.request_id or ctx.get("request_id") or ""
-
-        if not req.plaintext_b64:
-            fetch_flag = getattr(req, "fetch_from_interceptor", True)
-            if not fetch_flag:
-                raise ValueError("plaintext_b64 is required when fetch_from_interceptor=False")
-            if not req_id:
-                raise ValueError("request_id is required to fetch message from Interceptor")
-
-            intercepted = await fetch_message_from_interceptor(req_id)
-            msg = intercepted.get("message")
-            if msg is None:
-                raise ValueError("Interceptor response missing 'message' field")
-            payload_b64 = b64e(msg.encode("utf-8"))
-        else:
-            payload_b64 = req.plaintext_b64
-
-        plaintext = b64d(payload_b64) or b""
-
-        aad = b64d(req.aad_b64) if req.aad_b64 else _default_aad(session_id, req_id, req.algorithm)
-
-        nonce_b64, ciphertext_b64 = aead_encrypt(ctx, req.algorithm, plaintext, aad)
-
-        return EncryptResponse(
-            session_id=session_id,
-            algorithm=req.algorithm,
-            nonce_b64=nonce_b64,
-            ciphertext_b64=ciphertext_b64,
-            expires_at=_to_unix_ts(ctx["expires_at"]),
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Encrypt error: {e}")
-
-
-class EncryptByRequestId(BaseModel):
-    """Request model for simplified encryption using request_id."""
-
-    request_id: str = Field(
-        ...,
-        description="Request ID used to fetch message from Interceptor API",
-        example="req_xyz789abc",
-        min_length=1,
-    )
-    session_id: str = Field(
-        ...,
-        description="Session ID used to fetch encryption key from KMS",
-        example="sess_abc123xyz",
-        min_length=1,
-    )
-    algorithm: str = Field(
-        "AES256_GCM",
-        description="Encryption algorithm to use",
-        example="AES256_GCM",
-        pattern="^(AES256_GCM|CHACHA20_POLY1305)$",
-    )
-    aad_b64: Optional[str] = Field(
-        None,
-        description="Base64-encoded Additional Authenticated Data (auto-generated if not provided)",
-        example="c2Vzc2lvbjphYmMxMjN8cmVxdWVzdDp4eXo3ODk=",
+    await save_session(
+        session_id,
+        request_id,
+        selected_alg,
+        key_material,
+        expires_at,
+        source_of_key,
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "request_id": "req_xyz789abc",
-                "session_id": "sess_abc123xyz",
-                "algorithm": "AES256_GCM",
-                "aad_b64": None
-            }
-        }
+    return CreateKeyResponse(
+        session_id=session_id,
+        request_id=request_id,
+        requested_algorithm=req.algorithm,
+        selected_algorithm=selected_alg,
+        key_material=key_material,
+        expires_at=expires_at,  # int
+        fallback_applied=fallback_applied,
+        fallback_reason=fallback_reason,
+        source_of_key=source_of_key,
+    )
 
 
-@app.post(
-    "/encrypt/by-request-id",
-    response_model=EncryptResponse,
+@app.get(
+    "/kms/get_key/{session_id}",
+    response_model=KeyResponse,
+    tags=["Sessions"],
+    summary="Consulta chave por session_id",
+    description="Busca a sessão (se existir e não estiver expirada) usando `session_id`.",
+    responses={
+        200: {"description": "Sessão encontrada"},
+        404: {"description": "Não encontrada ou expirada"},
+    },
+)
+async def get_key_by_session(session_id: str):
+    sess = await get_session(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Not found or expired")
+
+    return KeyResponse(
+        session_id=sess["session_id"],
+        request_id=sess.get("request_id", ""),
+        algorithm=sess["algorithm"],
+        key_material=sess["key_material"],
+        expires_at=_to_unix_ts(sess["expires_at"]),
+    )
+
+
+@app.get(
+    "/kms/get_key",
+    response_model=KeyResponse,
+    tags=["Sessions"],
+    summary="Consulta chave por request_id",
+    description="Busca a sessão usando `request_id` como query parameter.",
+    responses={
+        200: {"description": "Sessão encontrada"},
+        404: {"description": "Não encontrada ou expirada"},
+        422: {"description": "Parâmetros inválidos (FastAPI validation)"},
+    },
+)
+async def get_key_by_request(request_id: str):
+    sess = await get_session_by_request(request_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Not found or expired")
+
+    return KeyResponse(
+        session_id=sess["session_id"],
+        request_id=sess.get("request_id", request_id),
+        algorithm=sess["algorithm"],
+        key_material=sess["key_material"],
+        expires_at=_to_unix_ts(sess["expires_at"]),
+    )
+
+
+@app.get(
+    "/kms/session/{session_id}",
+    response_model=KeyResponse,
+    tags=["Sessions"],
+    summary="Consulta sessão (raw) por session_id",
+    description="Retorna a sessão inteira (mesmos campos do armazenamento), se existir.",
+    responses={
+        200: {"description": "Sessão encontrada"},
+        404: {"description": "Sessão não encontrada ou expirada"},
+    },
+)
+async def get_key(session_id: str):
+    sess = await get_session(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+    return KeyResponse(**sess)
+
+
+@app.delete(
+    "/kms/session/{session_id}",
+    tags=["Sessions"],
+    summary="Remove uma sessão",
+    description="Apaga uma sessão existente por `session_id`.",
     responses={
         200: {
-            "description": "Successful encryption",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "session_id": "sess_abc123xyz",
-                        "algorithm": "AES256_GCM",
-                        "nonce_b64": "MTIzNDU2Nzg5MDEy",
-                        "ciphertext_b64": "ZW5jcnlwdGVkX2RhdGFfaGVyZQ==",
-                        "expires_at": 1708012800
-                    }
-                }
-            }
+            "description": "Sessão deletada",
+            "content": {"application/json": {"example": {"message": "Session deleted successfully"}}},
         },
-        400: {
-            "model": ErrorResponse,
-            "description": "Bad Request - Invalid request_id or session_id",
-        },
-        500: {
-            "model": ErrorResponse,
-            "description": "Internal Server Error - Encryption or API call failed",
-        }
+        404: {"description": "Sessão não encontrada"},
     },
-    tags=["Encryption"],
-    summary="Simplified encryption using request_id",
-    description="""
-    Simplified encryption endpoint that automatically fetches the message from Interceptor.
-
-    **Workflow:**
-    1. Fetches message from Interceptor using `request_id`
-    2. Fetches encryption key from KMS using `session_id`
-    3. Encrypts the message using specified algorithm
-    4. Returns encrypted data with nonce
-
-    **Use this endpoint when:**
-    - You have a `request_id` from the Interceptor
-    - You want a simpler API without managing plaintext directly
-    - You need automatic message retrieval
-    """,
 )
-async def encrypt_by_request_id(body: EncryptByRequestId):
-    """
-    Encrypt message fetched from Interceptor using request_id.
+async def delete_key(session_id: str):
+    from storage import delete_session
 
-    This is a convenience endpoint that combines message fetching and encryption
-    in a single operation.
-    """
-    try:
-        intercepted = await fetch_message_from_interceptor(body.request_id)
-        msg = intercepted.get("message")
-        if msg is None:
-            raise ValueError("Interceptor response missing 'message' field")
-
-        ctx = await fetch_key_context(session_id=body.session_id, request_id=None)
-
-        aad = b64d(body.aad_b64) if body.aad_b64 else _default_aad(body.session_id, body.request_id, body.algorithm)
-
-        nonce_b64, ciphertext_b64 = aead_encrypt(
-            ctx,
-            body.algorithm,
-            msg.encode("utf-8"),
-            aad,
-        )
-
-        return EncryptResponse(
-            session_id=ctx["session_id"],
-            algorithm=body.algorithm,
-            nonce_b64=nonce_b64,
-            ciphertext_b64=ciphertext_b64,
-            expires_at=_to_unix_ts(ctx["expires_at"]),
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Encrypt error: {e}")
-
-
-@app.post(
-    "/decrypt",
-    response_model=DecryptResponse,
-    responses={
-        200: {
-            "description": "Successful decryption",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "session_id": "sess_abc123xyz",
-                        "algorithm": "AES256_GCM",
-                        "plaintext_b64": "SGVsbG8sIFdvcmxkIQ=="
-                    }
-                }
-            }
-        },
-        400: {
-            "model": ErrorResponse,
-            "description": "Bad Request - Invalid input or authentication failed",
-        },
-        500: {
-            "model": ErrorResponse,
-            "description": "Internal Server Error - Decryption failed",
-        }
-    },
-    tags=["Decryption"],
-    summary="Decrypt ciphertext using session key",
-    description="""
-    Decrypts ciphertext using AEAD (Authenticated Encryption with Associated Data).
-
-    **Required:**
-    - `session_id`: Used to fetch decryption key from KMS
-    - `nonce_b64`: Base64-encoded nonce used during encryption
-    - `ciphertext_b64`: Base64-encoded ciphertext to decrypt
-    - `algorithm`: Algorithm used for encryption
-
-    **Optional:**
-    - `request_id`: Request ID for AAD generation
-    - `aad_b64`: Custom Additional Authenticated Data (must match encryption AAD)
-
-    **Important:**
-    - The AAD must match exactly what was used during encryption
-    - The nonce must be the same one returned from encryption
-    - Authentication will fail if any parameter is incorrect
-    """,
-)
-async def decrypt(req: DecryptRequest):
-    """
-    Decrypt ciphertext using session key from KMS.
-
-    The decryption process:
-    1. Fetches session key context from KMS
-    2. Generates or uses provided AAD (must match encryption AAD)
-    3. Performs AEAD decryption with authentication
-    4. Returns base64-encoded plaintext
-
-    Note: Decryption will fail if the ciphertext has been tampered with or
-    if the AAD doesn't match the one used during encryption.
-    """
-    try:
-        if not req.session_id:
-            raise ValueError("session_id is required to fetch key from KMS")
-
-        ctx = await fetch_key_context(session_id=req.session_id, request_id=None)
-        session_id = ctx["session_id"]
-        req_id = req.request_id or ctx.get("request_id") or ""
-
-        aad = b64d(req.aad_b64) if req.aad_b64 else _default_aad(session_id, req_id, req.algorithm)
-
-        plaintext = aead_decrypt(ctx, req.algorithm, req.nonce_b64, req.ciphertext_b64, aad)
-        return DecryptResponse(
-            session_id=session_id,
-            algorithm=req.algorithm,
-            plaintext_b64=b64e(plaintext),
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Decrypt error: {e}")
+    success = await delete_session(session_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"message": "Session deleted successfully"}
 
 
 @app.get(
     "/health",
     tags=["Health"],
-    summary="Health check endpoint",
-    description="Returns the current health status of the crypto module service.",
+    summary="Health check",
+    description="Retorna estado de saúde do serviço e disponibilidade de componentes (liboqs, pqcrypto, etc.).",
     responses={
         200: {
-            "description": "Service is healthy",
+            "description": "Status do serviço",
             "content": {
                 "application/json": {
                     "example": {
                         "status": "healthy",
-                        "module": "crypto",
-                        "version": "1.3.1"
+                        "components": {
+                            "liboqs": True,
+                            "pqcrypto": True,
+                            "qkd_gateway": False,
+                            "storage": True,
+                        },
                     }
                 }
-            }
+            },
         }
     },
 )
-async def health():
-    """
-    Check service health status.
+def health_check():
+    from key_manager import OQS_AVAILABLE, PQC_AVAILABLE
+    import os
 
-    Returns basic information about the service including:
-    - Status: Current health status
-    - Module: Service module name
-    - Version: Current version number
-    """
-    return {"status": "healthy", "module": "crypto", "version": "1.3.1"}
-
-
-@app.get(
-    "/",
-    tags=["Health"],
-    summary="API documentation redirect",
-    description="Root endpoint that provides links to API documentation.",
-    include_in_schema=True,
-)
-async def root():
-    """
-    Root endpoint with links to documentation.
-
-    Provides quick access to:
-    - Swagger UI (interactive API documentation)
-    - ReDoc (alternative documentation view)
-    - OpenAPI JSON schema
-    """
-    return {
-        "service": "OraculumPrisec Crypto Module",
-        "version": "1.3.1",
-        "documentation": {
-            "swagger_ui": "/docs",
-            "redoc": "/redoc",
-            "openapi_json": "/openapi.json"
+    status = {
+        "status": "healthy",
+        "components": {
+            "liboqs": OQS_AVAILABLE,
+            "pqcrypto": PQC_AVAILABLE,
+            "qkd_gateway": os.getenv("QKD_AVAILABLE", "false").lower() == "true",
+            "storage": True,  # TODO: verify Redis/DB connectivity
         },
-        "endpoints": {
-            "encrypt": "/encrypt",
-            "encrypt_by_request_id": "/encrypt/by-request-id",
-            "decrypt": "/decrypt",
-            "health": "/health"
-        }
     }
+    return status
 
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🔐 OraculumPrisec Crypto Module v1.3.1")
+    print("🔐 KMS Service v2.0.0")
     print("=" * 60)
-    print(f"🚀 Server starting on http://{HOST}:{PORT}")
-    print(f"📚 Swagger UI: http://{HOST}:{PORT}/docs")
-    print(f"📖 ReDoc: http://{HOST}:{PORT}/redoc")
-    print(f"📄 OpenAPI JSON: http://{HOST}:{PORT}/openapi.json")
-    print("=" * 60)
+    print("📚 Swagger UI: http://0.0.0.0:8002/docs")
+    print("📖 ReDoc:      http://0.0.0.0:8002/redoc")
+    print("📄 OpenAPI:    http://0.0.0.0:8002/openapi.json")
+    print("="* 60)
 
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
