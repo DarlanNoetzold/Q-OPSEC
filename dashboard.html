@@ -747,12 +747,12 @@
         const port = service.port;
         if (!port) return null;
 
-        // Para aplicações Java ou confiability_service: /swagger-ui
-        if (service.type === 'java' || service.name === 'confiability_service') {
+        // Regra: Java (spring) ou confiability_service -> /swagger-ui
+        if (service.type === 'spring' || service.name === 'confiability_service') {
           return `http://${SWAGGER_IP}:${port}/swagger-ui`;
         } 
-        // Para aplicações Python: /docs
-        else if (service.type === 'python') {
+        // Regra: Python (fastapi) -> /docs
+        else if (service.type === 'fastapi') {
           return `http://${SWAGGER_IP}:${port}/docs`;
         }
 
