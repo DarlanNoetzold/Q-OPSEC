@@ -746,11 +746,16 @@
       const getSwaggerUrl = (service) => {
         const port = service.port;
         if (!port) return null;
+
+        // Para aplicações Java ou confiability_service: /swagger-ui
         if (service.type === 'java' || service.name === 'confiability_service') {
           return `http://${SWAGGER_IP}:${port}/swagger-ui`;
-        } else if (service.type === 'python') {
+        } 
+        // Para aplicações Python: /docs
+        else if (service.type === 'python') {
           return `http://${SWAGGER_IP}:${port}/docs`;
         }
+
         return null;
       };
 
