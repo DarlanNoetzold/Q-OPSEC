@@ -203,6 +203,39 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    .service-footer {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #1f233a;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .footer-label {
+      font-weight: 600;
+      color: #a5b4fc;
+      min-width: 80px;
+    }
+    .footer-value {
+      font-family: monospace;
+      color: #d1d5db;
+      word-break: break-all;
+    }
+    .footer-link {
+      color: #3b82f6;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .footer-link:hover {
+      text-decoration: underline;
+    }
     .panel {
       background: #0f1328;
       border: 1px solid #1f233a;
@@ -768,6 +801,31 @@
               <button className="btn-sm" onClick={() => restartService(s.name)} disabled={loading}>Restart</button>
               <button className="btn-sm" onClick={() => viewLogs(s.name)}>Logs</button>
               <button className="btn-sm" onClick={() => saveServiceConfig(s.name)}>Save Config</button>
+            </div>
+
+            <div className="service-footer">
+              {s.base_url && (
+                <div className="footer-item">
+                  <span className="footer-label">Base URL:</span>
+                  <a href={s.base_url} target="_blank" rel="noopener noreferrer" className="footer-link footer-value">
+                    {s.base_url}
+                  </a>
+                </div>
+              )}
+              {s.health && (
+                <div className="footer-item">
+                  <span className="footer-label">Health:</span>
+                  <a href={s.health} target="_blank" rel="noopener noreferrer" className="footer-link footer-value">
+                    {s.health}
+                  </a>
+                </div>
+              )}
+              {s.log_file && (
+                <div className="footer-item">
+                  <span className="footer-label">Log File:</span>
+                  <span className="footer-value">{s.log_file}</span>
+                </div>
+              )}
             </div>
           </div>
         );
