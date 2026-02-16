@@ -82,11 +82,11 @@
     }
     .btn-ghost {
       background-color: transparent;
-      border-color: #ffffff33;
+      border-color: #ffff33;
       color: #a5b4fc;
     }
     .btn-ghost:hover:not(:disabled) {
-      background-color: #ffffff1a;
+      background-color: #ffff1a;
       color: #e0e7ff;
     }
     .tabs {
@@ -781,6 +781,7 @@
               <button className="btn btn-green" onClick={startAll} disabled={loading}>▶ Start All</button>
               <button className="btn btn-red" onClick={stopAll} disabled={loading}>■ Stop All</button>
               <button className="btn btn-ghost" onClick={fetchServices}>↻ Refresh</button>
+              <button className="btn btn-ghost" onClick={() => window.open(API + '/docs', '_blank')}>📖 Swagger</button>
             </div>
           </header>
 
@@ -869,7 +870,7 @@
                     style={{padding: '0.25rem 0.5rem', borderRadius: 6, borderColor: '#444', backgroundColor: '#111425', color: '#e5e7eb'}}
                   >
                     {SERVICES_WITH_METRICS.map(svc => (
-                      <option key={svc} value={svc}>{svc}</option>
+                    <option key={svc} value={svc}>{svc}</option>
                     ))}
                   </select>
                 </div>
@@ -878,21 +879,21 @@
                   <>
                     <h2 style={{fontWeight: '700', fontSize: '1.25rem', marginBottom: '1rem'}}>Metric Sessions - {metricsService}</h2>
                     <div className="grid" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem'}}>
-                      {metricsSessions.length === 0 && <p>No sessions found.</p>}
-                      {metricsSessions.map(session => (
-                        <div
-                          key={session.session_id}
-                          className="card cursor-pointer hover:border-blue-500"
-                          onClick={() => loadSessionDetail(metricsService, session)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={e => e.key === 'Enter' && loadSessionDetail(metricsService, session)}
-                        >
-                          <div style={{fontWeight: '600'}}>{session.session_id}</div>
-                          <div style={{fontSize: '0.85rem', color: '#9ca3af'}}>{new Date(session.timestamp).toLocaleString()}</div>
-                          <div style={{fontSize: '0.85rem', marginTop: 4}}>Best model: {session.best_model_name}</div>
-                        </div>
-                      ))}
+                    {metricsSessions.length === 0 && <p>No sessions found.</p>}
+                    {metricsSessions.map(session => (
+                    <div
+                    key={session.session_id}
+                    className="card cursor-pointer hover:border-blue-500"
+                    onClick={() => loadSessionDetail(metricsService, session)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && loadSessionDetail(metricsService, session)}
+                    >
+                    <div style={{fontWeight: '600'}}>{session.session_id}</div>
+                    <div style={{fontSize: '0.85rem', color: '#9ca3af'}}>{new Date(session.timestamp).toLocaleString()}</div>
+                    <div style={{fontSize: '0.85rem', marginTop: 4}}>Best model: {session.best_model_name}</div>
+                    </div>
+                    ))}
                     </div>
                   </>
                 )}
@@ -901,8 +902,8 @@
                     <button className="btn btn-ghost" style={{marginBottom: '1rem'}} onClick={backToSessions}>← Back to Sessions</button>
                     <h3 style={{fontWeight: '700', fontSize: '1.125rem', marginBottom: '1rem'}}>{selectedSession.session_id}</h3>
                     <ImageCarousel
-                      images={sessionImages}
-                      basePath={`/metrics/${metricsService}/sessions/${selectedSession.session_id}`}
+                    images={sessionImages}
+                    basePath={`/metrics/${metricsService}/sessions/${selectedSession.session_id}`}
                     />
                   </>
                 )}
@@ -920,7 +921,7 @@
                     style={{padding: '0.25rem 0.5rem', borderRadius: 6, borderColor: '#444', backgroundColor: '#111425', color: '#e5e7eb'}}
                   >
                     {SERVICES_WITH_METRICS.map(svc => (
-                      <option key={svc} value={svc}>{svc}</option>
+                    <option key={svc} value={svc}>{svc}</option>
                     ))}
                   </select>
                 </div>
@@ -929,32 +930,32 @@
                   <>
                     <h2 style={{fontWeight: '700', fontSize: '1.25rem', marginBottom: '1rem'}}>Datasets - {datasetsService}</h2>
                     <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                      {datasets.length === 0 && <p>No datasets found.</p>}
-                      {datasets.map(ds => (
-                        <div key={ds.name} className="card">
-                          <div style={{fontWeight: '600'}}>
-                            {ds.name} {ds.type && <span style={{fontSize: '0.85rem', color: '#9ca3af'}}>({ds.type})</span>}
-                          </div>
-                          <div style={{fontSize: '0.85rem', marginTop: 4}}>
-                            Files: {ds.files ? ds.files.length : 1}
-                          </div>
-                          {ds.files && ds.files.length > 0 && (
-                            <ul style={{listStyleType: 'disc', paddingLeft: '1.25rem', marginTop: 8, maxHeight: 160, overflowY: 'auto'}}>
-                              {ds.files.map(f => (
-                                <li
-                                  key={f}
-                                  style={{cursor: 'pointer', color: '#3b82f6'}}
-                                  onClick={() => loadDatasetPreview(datasetsService, ds.name, f)}
-                                  tabIndex={0}
-                                  onKeyDown={e => e.key === 'Enter' && loadDatasetPreview(datasetsService, ds.name, f)}
-                                >
-                                  {f}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
+                    {datasets.length === 0 && <p>No datasets found.</p>}
+                    {datasets.map(ds => (
+                    <div key={ds.name} className="card">
+                    <div style={{fontWeight: '600'}}>
+                    {ds.name} {ds.type && <span style={{fontSize: '0.85rem', color: '#9ca3af'}}>({ds.type})</span>}
+                    </div>
+                    <div style={{fontSize: '0.85rem', marginTop: 4}}>
+                    Files: {ds.files ? ds.files.length : 1}
+                    </div>
+                    {ds.files && ds.files.length > 0 && (
+                    <ul style={{listStyleType: 'disc', paddingLeft: '1.25rem', marginTop: 8, maxHeight: 160, overflowY: 'auto'}}>
+                    {ds.files.map(f => (
+                    <li
+                    key={f}
+                    style={{cursor: 'pointer', color: '#3b82f6'}}
+                    onClick={() => loadDatasetPreview(datasetsService, ds.name, f)}
+                    tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && loadDatasetPreview(datasetsService, ds.name, f)}
+                    >
+                    {f}
+                    </li>
+                    ))}
+                    </ul>
+                    )}
+                    </div>
+                    ))}
                     </div>
                   </>
                 )}
@@ -962,33 +963,33 @@
                   <>
                     <button className="btn btn-ghost" style={{marginBottom: '1rem'}} onClick={backToDatasets}>← Back to Datasets</button>
                     <h3 style={{fontWeight: '700', fontSize: '1.125rem', marginBottom: '1rem'}}>
-                      {selectedDataset.datasetName} / {selectedDataset.fileName}
+                    {selectedDataset.datasetName} / {selectedDataset.fileName}
                     </h3>
                     {datasetPreview && datasetPreview.rows && datasetPreview.rows.length > 0 ? (
-                      <div style={{overflowX: 'auto', maxHeight: 400, border: '1px solid #444', borderRadius: 6}}>
-                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem'}}>
-                          <thead style={{backgroundColor: '#1e293b', position: 'sticky', top: 0}}>
-                            <tr>
-                              <th style={{padding: '0.5rem', border: '1px solid #444'}}>#</th>
-                              <th style={{padding: '0.5rem', border: '1px solid #444'}}>Column</th>
-                              <th style={{padding: '0.5rem', border: '1px solid #444'}}>Value</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {datasetPreview.rows.map((row, idx) =>
-                              Object.entries(row).map(([col, val], i) => (
-                                <tr key={`${idx}-${i}`} style={{backgroundColor: idx % 2 === 0 ? '#111827' : '#1f2937'}}>
-                                  <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{idx + 1}</td>
-                                  <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', fontFamily: 'monospace', verticalAlign: 'top'}}>{col}</td>
-                                  <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{String(val)}</td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                    <div style={{overflowX: 'auto', maxHeight: 400, border: '1px solid #444', borderRadius: 6}}>
+                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem'}}>
+                    <thead style={{backgroundColor: '#1e293b', position: 'sticky', top: 0}}>
+                    <tr>
+                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>#</th>
+                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>Column</th>
+                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {datasetPreview.rows.map((row, idx) =>
+                    Object.entries(row).map(([col, val], i) => (
+                    <tr key={`${idx}-${i}`} style={{backgroundColor: idx % 2 === 0 ? '#111827' : '#1f2937'}}>
+                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{idx + 1}</td>
+                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', fontFamily: 'monospace', verticalAlign: 'top'}}>{col}</td>
+                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{String(val)}</td>
+                    </tr>
+                    ))
+                    )}
+                    </tbody>
+                    </table>
+                    </div>
                     ) : (
-                      <p>No data to display.</p>
+                    <p>No data to display.</p>
                     )}
                   </>
                 )}
@@ -1006,7 +1007,7 @@
                     <p style={{color: '#9ca3af'}}>No lines to show.</p>
                   ) : logs.map((ln, i) => (
                     <div key={i} style={{whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.85rem', borderBottom: '1px dashed #1d2240', padding: '0.25rem 0'}}>
-                      {ln}
+                    {ln}
                     </div>
                   ))}
                 </div>
@@ -1032,21 +1033,21 @@
                     <div style={{fontWeight: '700', marginBottom: 8}}>Trace for: {traceData.request_id}</div>
                     <div style={{color: '#9ca3af', marginBottom: 16}}>Status: {traceData.status} | Total matches: {traceData.total_matches || 0}</div>
                     {Object.entries(traceData.services || {}).map(([svc, data]) => (
-                      <div key={svc} className="trace-service" tabIndex={0} aria-label={`Logs for service ${svc}`}>
-                        <div style={{fontWeight: '700', color: '#3b82f6', marginBottom: 8}}>{svc} ({data.count} matches)</div>
-                        {(data.matches || []).map((m, i) => (
-                          <div key={i} className="trace-match">
-                            <div style={{color: '#9ca3af'}}>Line {m.line_number} | {m.timestamp || 'No timestamp'}</div>
-                            <div style={{marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>{m.line}</div>
-                            {m.context && m.context.length > 0 && (
-                              <details style={{marginTop: 6}}>
-                                <summary>Show context</summary>
-                                <div style={{fontFamily: 'monospace', whiteSpace: 'pre-wrap', marginTop: 6}}>{m.context.join('\n')}</div>
-                              </details>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                    <div key={svc} className="trace-service" tabIndex={0} aria-label={`Logs for service ${svc}`}>
+                    <div style={{fontWeight: '700', color: '#3b82f6', marginBottom: 8}}>{svc} ({data.count} matches)</div>
+                    {(data.matches || []).map((m, i) => (
+                    <div key={i} className="trace-match">
+                    <div style={{color: '#9ca3af'}}>Line {m.line_number} | {m.timestamp || 'No timestamp'}</div>
+                    <div style={{marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>{m.line}</div>
+                    {m.context && m.context.length > 0 && (
+                    <details style={{marginTop: 6}}>
+                    <summary>Show context</summary>
+                    <div style={{fontFamily: 'monospace', whiteSpace: 'pre-wrap', marginTop: 6}}>{m.context.join('\n')}</div>
+                    </details>
+                    )}
+                    </div>
+                    ))}
+                    </div>
                     ))}
                   </div>
                 )}
@@ -1072,25 +1073,25 @@
                     <div style={{fontWeight: '700', marginBottom: 8}}>Flow for: {flowData.request_id}</div>
                     <div style={{color: '#9ca3af', marginBottom: 16}}>Current step: {flowData.current_step}/{flowData.total_steps}</div>
                     <div>
-                      {(flowData.flow || []).map(step => (
-                        <div key={step.step} className="flow-step" tabIndex={0} aria-label={`Step ${step.step} of service ${step.service}`}>
-                          <div className="ball">{step.step}</div>
-                          <div style={{flex: 1}}>
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                              <div style={{fontWeight: '700'}}>{step.service}</div>
-                              <span className={`chip ${
-                                step.status === 'processed' ? 'ok' :
-                                step.status === 'error' ? 'err' : 'wait'
-                              }`}>
-                                {step.status === 'processed' ? 'Processed' : step.status === 'error' ? 'Error' : 'Pending'}
-                              </span>
-                            </div>
-                            <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>{step.endpoint}</div>
-                            {step.last_seen && <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>Last seen: {step.last_seen}</div>}
-                            {step.error && <div style={{marginTop: 6, fontFamily: 'monospace', color: '#ef4444'}}>{step.error}</div>}
-                          </div>
-                        </div>
-                      ))}
+                    {(flowData.flow || []).map(step => (
+                    <div key={step.step} className="flow-step" tabIndex={0} aria-label={`Step ${step.step} of service ${step.service}`}>
+                    <div className="ball">{step.step}</div>
+                    <div style={{flex: 1}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <div style={{fontWeight: '700'}}>{step.service}</div>
+                    <span className={`chip ${
+                    step.status === 'processed' ? 'ok' :
+                    step.status === 'error' ? 'err' : 'wait'
+                    }`}>
+                    {step.status === 'processed' ? 'Processed' : step.status === 'error' ? 'Error' : 'Pending'}
+                    </span>
+                    </div>
+                    <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>{step.endpoint}</div>
+                    {step.last_seen && <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>Last seen: {step.last_seen}</div>}
+                    {step.error && <div style={{marginTop: 6, fontFamily: 'monospace', color: '#ef4444'}}>{step.error}</div>}
+                    </div>
+                    </div>
+                    ))}
                     </div>
                   </div>
                 )}
@@ -1116,13 +1117,13 @@
                     <div style={{fontWeight: '700', marginBottom: 8}}>Timeline for: {timelineData.request_id}</div>
                     <div style={{color: '#9ca3af', marginBottom: 16}}>Events: {timelineData.total_events}</div>
                     <div>
-                      {(timelineData.timeline || []).map((ev, i) => (
-                        <div key={i} className="timeline-item" tabIndex={0} aria-label={`Event ${i + 1} of service ${ev.service}`}>
-                          <div style={{color: '#9ca3af', fontFamily: 'monospace'}}>{ev.timestamp}</div>
-                          <div style={{color: '#3b82f6', fontWeight: '700'}}>{ev.service}</div>
-                          <div style={{fontFamily: 'monospace'}}>{ev.line}</div>
-                        </div>
-                      ))}
+                    {(timelineData.timeline || []).map((ev, i) => (
+                    <div key={i} className="timeline-item" tabIndex={0} aria-label={`Event ${i + 1} of service ${ev.service}`}>
+                    <div style={{color: '#9ca3af', fontFamily: 'monospace'}}>{ev.timestamp}</div>
+                    <div style={{color: '#3b82f6', fontWeight: '700'}}>{ev.service}</div>
+                    <div style={{fontFamily: 'monospace'}}>{ev.line}</div>
+                    </div>
+                    ))}
                     </div>
                   </div>
                 )}
@@ -1136,13 +1137,13 @@
                   {activeRequests.length === 0 && <p>No active requests found.</p>}
                   {activeRequests.map(id => (
                     <button
-                      key={id}
-                      className="card cursor-pointer"
-                      onClick={() => { setRequestId(id); setActiveTab('trace'); doTrace(); }}
-                      tabIndex={0}
-                      aria-label={`Active request ${id}`}
+                    key={id}
+                    className="card cursor-pointer"
+                    onClick={() => { setRequestId(id); setActiveTab('trace'); doTrace(); }}
+                    tabIndex={0}
+                    aria-label={`Active request ${id}`}
                     >
-                      <div style={{fontFamily: 'monospace'}}>{id}</div>
+                    <div style={{fontFamily: 'monospace'}}>{id}</div>
                     </button>
                   ))}
                 </div>
