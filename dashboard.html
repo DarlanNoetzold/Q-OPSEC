@@ -203,39 +203,6 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
-    .service-footer {
-      margin-top: 1rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid #1f233a;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .footer-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .footer-label {
-      font-weight: 600;
-      color: #a5b4fc;
-      min-width: 80px;
-    }
-    .footer-value {
-      font-family: monospace;
-      color: #d1d5db;
-      word-break: break-all;
-    }
-    .footer-link {
-      color: #3b82f6;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .footer-link:hover {
-      text-decoration: underline;
-    }
     .panel {
       background: #0f1328;
       border: 1px solid #1f233a;
@@ -407,6 +374,31 @@
       color: #fecaca;
       border-color: #ef444455;
     }
+    .service-footer {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .footer-link {
+      font-size: 0.75rem;
+      color: #3b82f6;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .footer-link:hover {
+      text-decoration: underline;
+      color: #60a5fa;
+    }
+    .footer-text {
+      font-size: 0.7rem;
+      color: #6b7280;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -416,6 +408,7 @@
     const { useState, useEffect } = React;
 
     const SERVICES_WITH_METRICS = ['risk_service', 'confiability_service', 'classification_agent'];
+    const SWAGGER_IP = '192.168.18.18';
 
     function ImageCarousel({ images, basePath }) {
       const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -750,8 +743,20 @@
         setSessionImages([]);
       };
 
+      const getSwaggerUrl = (service) => {
+        const port = service.port;
+        if (!port) return null;
+        if (service.type === 'java' || service.name === 'confiability_service') {
+          return `http://${SWAGGER_IP}:${port}/swagger-ui`;
+        } else if (service.type === 'python') {
+          return `http://${SWAGGER_IP}:${port}/docs`;
+        }
+        return null;
+      };
+
       const ServiceCard = ({ s }) => {
         const config = serviceConfigs[s.name] || { start: '[]', cwd: '' };
+        const swaggerUrl = getSwaggerUrl(s);
 
         return (
           <div className="card" role="group" aria-label={`Service ${s.name}`}>
@@ -795,37 +800,23 @@
               />
             </div>
 
+            <div className="service-footer">
+              {swaggerUrl && (
+                <a href={swaggerUrl} target="_blank" className="footer-link">
+                  📖 Swagger: {swaggerUrl}
+                </a>
+              )}
+              {s.log_file && (
+                <span className="footer-text">📄 Log: {s.log_file}</span>
+              )}
+            </div>
+
             <div className="row" style={{marginTop: '0.75rem'}}>
               <button className="btn-sm" onClick={() => startService(s.name)} disabled={s.running || loading}>Start</button>
               <button className="btn-sm" onClick={() => stopService(s.name)} disabled={!s.running || loading}>Stop</button>
               <button className="btn-sm" onClick={() => restartService(s.name)} disabled={loading}>Restart</button>
               <button className="btn-sm" onClick={() => viewLogs(s.name)}>Logs</button>
               <button className="btn-sm" onClick={() => saveServiceConfig(s.name)}>Save Config</button>
-            </div>
-
-            <div className="service-footer">
-              {s.base_url && (
-                <div className="footer-item">
-                  <span className="footer-label">Base URL:</span>
-                  <a href={s.base_url} target="_blank" rel="noopener noreferrer" className="footer-link footer-value">
-                    {s.base_url}
-                  </a>
-                </div>
-              )}
-              {s.health && (
-                <div className="footer-item">
-                  <span className="footer-label">Health:</span>
-                  <a href={s.health} target="_blank" rel="noopener noreferrer" className="footer-link footer-value">
-                    {s.health}
-                  </a>
-                </div>
-              )}
-              {s.log_file && (
-                <div className="footer-item">
-                  <span className="footer-label">Log File:</span>
-                  <span className="footer-value">{s.log_file}</span>
-                </div>
-              )}
             </div>
           </div>
         );
