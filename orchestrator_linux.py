@@ -628,7 +628,7 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
                     os.kill(port_pid, signal.SIGTERM)
                     await asyncio.sleep(0.5)
                     if find_pid_by_port(int(port)) is not None:
-                    os.kill(port_pid, signal.SIGKILL)
+                        os.kill(port_pid, signal.SIGKILL)
                 except Exception:
                     pass
 
