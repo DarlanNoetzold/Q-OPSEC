@@ -2,18 +2,74 @@ import httpx
 import uvicorn
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
-from models import NegotiationRequest, NegotiationResponse
-from negotiator import negotiate_algorithms
+from typing import Optional
 from urllib.parse import urlsplit, urlunsplit
 
-app = FastAPI(title="Handshake Negotiator", version="2.3.0")
+from models import NegotiationRequest, NegotiationResponse
+from negotiator import negotiate_algorithms
 
+app = FastAPI(
+    title="Handshake Negotiator",
+    version="2.3.0",
+    description="""
+## 🤝 Handshake Negotiator Service
+
+Serviço de **negociação de algoritmos criptográficos** e orquestração do fluxo completo de:
+1. **Negociação** de algoritmo entre cliente e servidor
+2. **Criação de chave** no KMS
+3. **Entrega de chave** via KDE
+4. **Criptografia** da mensagem via Crypto Module
+5. **Validação** e envio para o receptor
+
+### Fluxo Completo
+```
+Cliente → Handshake → KMS → KDE → Crypto → Validation → Receptor
+```
+
+### Integrações
+- **KMS** (porta 8002): Criação de sessões de chave
+- **KDE** (porta 8003): Entrega de chaves
+- **Crypto** (porta 8004): Criptografia de mensagens
+- **Validation** (porta 8005): Validação e envio final
+
+### Documentação
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+- OpenAPI JSON: `/openapi.json`
+""",
+    contact={
+        "name": "Q-OPSEC Team",
+        "email": "security@qopsec.example.com",
+    },
+    openapi_tags=[
+        {
+            "name": "Negotiation",
+            "description": "Endpoints de negociação e orquestração do handshake completo",
+        },
+        {
+            "name": "Health",
+            "description": "Endpoints de saúde e informações do serviço",
+        },
+    ],
+)
+
+# URLs dos serviços integrados
 KMS_URL = "http://localhost:8002/kms/create_key"
 KDE_URL = "http://localhost:8003/deliver"
 CRYPTO_URL = "http://localhost:8004/encrypt/by-request-id"
-VALIDATION_URL = "http://localhost:8005/validation/send"  # novo
+VALIDATION_URL = "http://localhost:8005/validation/send"
+
 
 def normalize_destination(dest: str) -> str:
+    """
+    Normaliza a URL de destino, adicionando /receiver se necessário.
+
+    Args:
+        dest: URL de destino original
+
+    Returns:
+        URL normalizada com path /receiver se aplicável
+    """
     try:
         parts = urlsplit(dest)
         if parts.scheme not in ("http", "https"):
@@ -25,14 +81,149 @@ def normalize_destination(dest: str) -> str:
     except Exception:
         return dest
 
-@app.post("/handshake", response_model=NegotiationResponse)
+
+@app.get(
+    "/",
+    tags=["Health"],
+    summary="Informações do serviço e links de documentação",
+    description="Endpoint raiz com informações sobre o serviço e links úteis.",
+)
+def root():
+    """
+    Retorna informações básicas do serviço e links para documentação.
+    """
+    return {
+        "service": "Handshake Negotiator",
+        "version": "2.3.0",
+        "description": "Serviço de negociação de algoritmos e orquestração de handshake criptográfico",
+        "documentation": {
+            "swagger_ui": "/docs",
+            "redoc": "/redoc",
+            "openapi_json": "/openapi.json",
+        },
+        "endpoints": {
+            "handshake": "/handshake",
+            "health": "/health",
+        },
+        "integrations": {
+            "kms": KMS_URL,
+            "kde": KDE_URL,
+            "crypto": CRYPTO_URL,
+            "validation": VALIDATION_URL,
+        },
+    }
+
+
+@app.post(
+    "/handshake",
+    response_model=NegotiationResponse,
+    tags=["Negotiation"],
+    summary="Executa handshake completo com negociação de algoritmo",
+    description="""
+Orquestra o fluxo completo de handshake criptográfico:
+
+### Etapas do Processo
+
+1. **Negociação de Algoritmo**
+   - Recebe lista de algoritmos propostos pelo cliente
+   - Negocia o melhor algoritmo disponível
+   - Aplica fallback se necessário
+
+2. **Criação de Chave (KMS)**
+   - Cria sessão de chave no KMS
+   - Obtém `session_id`, `key_material`, `expires_at`
+   - Registra fonte da chave (QKD, PQC, Classical)
+
+3. **Entrega de Chave (KDE)**
+   - Envia chave para o destino via KDE
+   - Normaliza URL de destino (adiciona `/receiver` se necessário)
+   - Método de entrega: API
+
+4. **Criptografia (Crypto Module)**
+   - Busca mensagem do Interceptor usando `request_id`
+   - Criptografa usando a chave da sessão
+   - Retorna `nonce_b64` e `ciphertext_b64`
+
+5. **Validação e Envio Final**
+   - Envia dados criptografados para o serviço de Validação
+   - Validação encaminha para o receptor final
+   - Inclui todos os metadados necessários para decriptação
+
+### Parâmetros de Entrada
+
+- `proposed`: Lista de algoritmos propostos (ex: `["KYBER1024", "AES256_GCM"]`)
+- `destination`: URL do receptor (ex: `http://receiver.example.com`)
+- `request_id`: ID da requisição (opcional, gerado automaticamente se não fornecido)
+- `source_id`: ID da origem (opcional)
+
+### Resposta
+
+Retorna objeto completo com:
+- IDs de sessão e requisição
+- Algoritmo selecionado e fallback (se aplicado)
+- Material de chave e expiração
+- Dados de criptografia (nonce, ciphertext)
+- Status de entrega (KDE + Validation)
+""",
+    responses={
+        200: {
+            "description": "Handshake completado com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "request_id": "req_abc123xyz",
+                        "session_id": "sess_xyz789abc",
+                        "requested_algorithm": "KYBER1024",
+                        "selected_algorithm": "AES256_GCM",
+                        "key_material": "base64-encoded-key",
+                        "expires_at": 1708012800,
+                        "fallback_applied": True,
+                        "fallback_reason": "KYBER1024 not available",
+                        "source_of_key": "classical",
+                        "message": "Negotiation completed with fallback: KYBER1024 -> AES256_GCM",
+                        "delivery_status": "{'kde': {...}, 'validation': {...}}",
+                        "crypto_nonce_b64": "MTIzNDU2Nzg5MDEy",
+                        "crypto_ciphertext_b64": "ZW5jcnlwdGVkX2RhdGE=",
+                        "crypto_algorithm": "AES256_GCM",
+                        "crypto_expires_at": 1708012800,
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Requisição inválida - parâmetros faltando ou inválidos",
+        },
+        500: {
+            "description": "Erro interno - falha em algum serviço integrado (KMS, KDE, Crypto, Validation)",
+        },
+    },
+)
 async def handshake(req: NegotiationRequest):
+    """
+    Executa o handshake completo de negociação criptográfica.
+
+    Este endpoint orquestra todo o fluxo de:
+    - Negociação de algoritmo
+    - Criação de chave no KMS
+    - Entrega de chave via KDE
+    - Criptografia da mensagem
+    - Validação e envio para o receptor
+
+    Args:
+        req: Objeto NegotiationRequest contendo algoritmos propostos e destino
+
+    Returns:
+        NegotiationResponse com todos os dados do handshake completado
+
+    Raises:
+        HTTPException: Se algum serviço integrado falhar
+    """
     request_id = req.request_id or f"req_{uuid4()}"
 
     requested_alg = req.proposed[0] if req.proposed else "UNKNOWN"
     chosen_alg, session_id, _, _ = negotiate_algorithms(req)
 
-    # 1) KMS
+    # 1) KMS - Criação de chave
     kms_payload = {
         "session_id": session_id,
         "request_id": request_id,
@@ -59,7 +250,7 @@ async def handshake(req: NegotiationRequest):
         "Negotiation completed successfully"
     )
 
-    # 2) KDE
+    # 2) KDE - Entrega de chave
     normalized_dest = normalize_destination(req.destination)
     delivery_payload = {
         "session_id": key_data["session_id"],
@@ -80,7 +271,7 @@ async def handshake(req: NegotiationRequest):
         except Exception:
             kde_data = {"raw": kde_resp.text}
 
-    # 3) CRYPTO
+    # 3) CRYPTO - Criptografia da mensagem
     crypto_payload = {
         "request_id": request_id,
         "session_id": key_data["session_id"],
@@ -104,7 +295,7 @@ async def handshake(req: NegotiationRequest):
         except Exception:
             pass
 
-    # 4) VALIDATION SEND API (encaminhar para a origem/receiver)
+    # 4) VALIDATION - Envio para validação e receptor final
     validation_data: dict | str
     if crypto_nonce_b64 and crypto_ciphertext_b64:
         validation_payload = {
@@ -115,9 +306,7 @@ async def handshake(req: NegotiationRequest):
             "cryptoCiphertextB64": crypto_ciphertext_b64,
             "cryptoAlgorithm": crypto_algorithm or actual_selected,
             "cryptoExpiresAt": crypto_expires_at,
-            # opcional, se tiver um sourceId no seu NegotiationRequest
             "sourceId": getattr(req, "source_id", None),
-            # para onde o Validation deve reenviar (receiver)
             "originUrl": normalized_dest
         }
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -154,5 +343,72 @@ async def handshake(req: NegotiationRequest):
         crypto_expires_at=crypto_expires_at,
     )
 
+
+@app.get(
+    "/health",
+    tags=["Health"],
+    summary="Health check do serviço",
+    description="Verifica o status de saúde do Handshake Negotiator e conectividade com serviços integrados.",
+    responses={
+        200: {
+            "description": "Serviço saudável",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "healthy",
+                        "service": "handshake-negotiator",
+                        "version": "2.3.0",
+                        "integrations": {
+                            "kms": "http://localhost:8002/kms/create_key",
+                            "kde": "http://localhost:8003/deliver",
+                            "crypto": "http://localhost:8004/encrypt/by-request-id",
+                            "validation": "http://localhost:8005/validation/send",
+                        },
+                    }
+                }
+            },
+        }
+    },
+)
+async def health_check():
+    """
+    Verifica o status de saúde do serviço.
+
+    Retorna informações sobre:
+    - Status geral do serviço
+    - Versão atual
+    - URLs dos serviços integrados
+
+    Note: Este endpoint não verifica conectividade real com os serviços integrados.
+    Para verificação completa, use o endpoint /handshake com dados de teste.
+    """
+    return {
+        "status": "healthy",
+        "service": "handshake-negotiator",
+        "version": "2.3.0",
+        "integrations": {
+            "kms": KMS_URL,
+            "kde": KDE_URL,
+            "crypto": CRYPTO_URL,
+            "validation": VALIDATION_URL,
+        },
+    }
+
+
 if __name__ == "__main__":
+    print("=" * 70)
+    print("🤝 Handshake Negotiator v2.3.0")
+    print("=" * 70)
+    print("🚀 Server starting on http://0.0.0.0:8001")
+    print("📚 Swagger UI:    http://0.0.0.0:8001/docs")
+    print("📖 ReDoc:         http://0.0.0.0:8001/redoc")
+    print("📄 OpenAPI JSON:  http://0.0.0.0:8001/openapi.json")
+    print("=" * 70)
+    print("🔗 Integrated Services:")
+    print(f"   • KMS:        {KMS_URL}")
+    print(f"   • KDE:        {KDE_URL}")
+    print(f"   • Crypto:     {CRYPTO_URL}")
+    print(f"   • Validation: {VALIDATION_URL}")
+    print("=" * 70)
+
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
