@@ -1,0 +1,42 @@
+{
+  "model_name": "logistic_regression",
+  "version": "v20260107_173940",
+  "train_accuracy": 0.7119344323803491,
+  "val_accuracy": 0.7118505688874532,
+  "optimal_threshold": 0.5500000000000002,
+  "config": {
+    "params": {
+      "penalty": "l2",
+      "C": 1.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "class_weight": "balanced",
+      "random_state": 42,
+      "n_jobs": -1,
+      "verbose": 0
+    },
+    "hyperparameter_tuning": {
+      "enabled": false,
+      "method": "grid",
+      "cv_folds": 3,
+      "param_grid": {
+        "C": [
+          0.001,
+          0.01,
+          0.1,
+          1,
+          10,
+          100
+        ],
+        "penalty": [
+          "l1",
+          "l2"
+        ],
+        "solver": [
+          "liblinear",
+          "saga"
+        ]
+      }
+    }
+  }
+}
