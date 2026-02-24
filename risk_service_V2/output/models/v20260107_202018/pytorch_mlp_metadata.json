@@ -1,0 +1,12 @@
+{
+  "model_name": "pytorch_mlp",
+  "version": "v20260107_202018",
+  "train_accuracy": 0.8682274913234701,
+  "val_accuracy": 0.8682999092230496,
+  "optimal_threshold": 0.15000000000000002,
+  "config": {
+    "epochs": 20,
+    "batch_size": 64,
+    "learning_rate": 0.001
+  }
+}
