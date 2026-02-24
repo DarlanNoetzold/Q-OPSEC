@@ -1,0 +1,20 @@
+================================================================================
+FRAUD DETECTION DATASET - SUMMARY
+================================================================================
+
+Total Events: 4,141,166
+Total Columns: 110
+Date Range: 2025-01-01 00:00:21 to 2026-01-01 23:59:55
+
+Fraudulent: 515,567 (12.45%)
+Legitimate: 3,625,599 (87.55%)
+
+Event Types:
+  transaction: 3,106,037 (75.00%)
+  login: 744,967 (17.99%)
+  password_change: 82,736 (2.00%)
+  mfa_setup: 41,824 (1.01%)
+  email_change: 41,742 (1.01%)
+  phone_change: 41,458 (1.00%)
+  device_registration: 41,323 (1.00%)
+  address_change: 41,079 (0.99%)
