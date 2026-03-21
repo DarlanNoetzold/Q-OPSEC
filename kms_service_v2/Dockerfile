@@ -1,11 +1,11 @@
 FROM python:3.11-slim
 
-# Dependências para compilar liboqs
+# Dependencies for liboqs build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git cmake build-essential ninja-build ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Build liboqs (somente a lib, sem OpenSSL)
+# Build liboqs
 WORKDIR /opt
 RUN git clone --depth 1 https://github.com/open-quantum-safe/liboqs \
  && cmake -S liboqs -B liboqs/build -G Ninja \
@@ -15,19 +15,18 @@ RUN git clone --depth 1 https://github.com/open-quantum-safe/liboqs \
  && cmake --build liboqs/build \
  && cmake --install liboqs/build --prefix /usr/local
 
-# Instala oqs-python (principal) e pqcrypto (fallback) + demais deps
-RUN pip install --no-cache-dir oqs pqcrypto fastapi uvicorn[standard] cryptography redis httpx sqlalchemy psycopg2-binary qunetsim
-
-# Copia seu serviço
+# Install Python dependencies
 WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Try to install optional PQC libraries (non-blocking)
+RUN pip install --no-cache-dir oqs pqcrypto || true
+
 COPY . /app
 
-# Porta do KMS
 EXPOSE 8002
 
-# Redis host via env se quiser (default localhost)
-ENV REDIS_URL=redis://host.docker.internal:6379
 ENV QKD_AVAILABLE=true
 
-# Start com uvicorn para garantir exposição da porta
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
