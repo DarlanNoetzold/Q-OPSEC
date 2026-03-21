@@ -1,134 +1,131 @@
-"""
-Key Session Storage for KMS - In-Memory backend with TTL support.
-
-Stores expires_at as epoch seconds (int).
-"""
-
 import time
+import threading
+import logging
 from typing import Optional, Dict, Any, List
 
-# In-memory store
-_memory_store: Dict[str, Dict[str, Any]] = {}
-# Index: request_id -> session_id
-_request_index: Dict[str, str] = {}
+logger = logging.getLogger("qopsec.storage")
 
 
-def _cleanup_expired():
-    """Remove expired sessions."""
-    current_time = int(time.time())
-    expired_keys = [
-        k for k, v in _memory_store.items()
-        if int(v.get("expires_at", 0)) < current_time
-    ]
-    for key in expired_keys:
-        sess = _memory_store.pop(key, None)
-        if sess:
-            rid = sess.get("request_id", "")
-            _request_index.pop(rid, None)
-    if expired_keys:
-        print(f"[Storage] Removed {len(expired_keys)} expired sessions")
+class KeySessionStore:
 
+    def __init__(self, cleanup_interval_seconds: int = 60):
+        self._sessions: Dict[str, Dict[str, Any]] = {}
+        self._request_index: Dict[str, str] = {}
+        self._lock = threading.Lock()
+        self._cleanup_interval = cleanup_interval_seconds
+        self._last_cleanup = time.time()
 
-async def save_session(
-    session_id: str,
-    request_id: str,
-    algorithm: str,
-    key_material: str,
-    expires_at: int,
-    source: str = "unknown"
-) -> bool:
-    """Save a key session to memory."""
-    session_data = {
-        "session_id": session_id,
-        "request_id": request_id,
-        "algorithm": algorithm,
-        "key_material": key_material,
-        "expires_at": expires_at,
-        "source": source,
-    }
-    _memory_store[session_id] = session_data
-    if request_id:
-        _request_index[request_id] = session_id
+    def _run_cleanup_if_needed(self):
+        current_time = time.time()
+        if current_time - self._last_cleanup < self._cleanup_interval:
+            return
 
-    # Periodic cleanup
-    if len(_memory_store) % 50 == 0:
-        _cleanup_expired()
+        self._last_cleanup = current_time
+        expired_session_ids = [
+            sid for sid, data in self._sessions.items()
+            if data.get("expires_at", 0) < current_time
+        ]
 
-    return True
+        for sid in expired_session_ids:
+            session_data = self._sessions.pop(sid, None)
+            if session_data:
+                rid = session_data.get("request_id")
+                if rid and rid in self._request_index:
+                    del self._request_index[rid]
 
+        if expired_session_ids:
+            logger.info("Cleaned up %d expired sessions", len(expired_session_ids))
 
-async def get_session(session_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Retrieve a key session by session_id OR request_id.
-    Returns dict or None if not found/expired.
-    """
-    current_time = int(time.time())
-
-    # Try direct session_id lookup
-    session_data = _memory_store.get(session_id)
-    if session_data and int(session_data.get("expires_at", 0)) > current_time:
-        return dict(session_data)
-    elif session_data:
-        _memory_store.pop(session_id, None)
-
-    # Try request_id index
-    mapped_sid = _request_index.get(session_id)
-    if mapped_sid:
-        session_data = _memory_store.get(mapped_sid)
-        if session_data and int(session_data.get("expires_at", 0)) > current_time:
-            return dict(session_data)
-
-    # Fallback: linear search by request_id
-    for sess in _memory_store.values():
-        if sess.get("request_id") == session_id and int(sess.get("expires_at", 0)) > current_time:
-            return dict(sess)
-
-    return None
-
-
-async def get_session_by_request(request_id: str) -> Optional[Dict[str, Any]]:
-    """Retrieve a key session by request_id."""
-    current_time = int(time.time())
-
-    # Check index first
-    mapped_sid = _request_index.get(request_id)
-    if mapped_sid:
-        session_data = _memory_store.get(mapped_sid)
-        if session_data and int(session_data.get("expires_at", 0)) > current_time:
-            return dict(session_data)
-
-    # Linear search fallback
-    for session_data in _memory_store.values():
-        if (session_data.get("request_id") == request_id and
-                int(session_data.get("expires_at", 0)) > current_time):
-            return dict(session_data)
-
-    return None
-
-
-async def delete_session(session_id: str) -> bool:
-    """Delete a key session."""
-    if session_id in _memory_store:
-        sess = _memory_store.pop(session_id)
-        rid = sess.get("request_id", "")
-        _request_index.pop(rid, None)
+    def save(self, session_id: str, request_id: str, algorithm: str,
+             key_material: str, expires_at: int, source: str = "unknown") -> bool:
+        with self._lock:
+            self._sessions[session_id] = {
+                "session_id": session_id,
+                "request_id": request_id,
+                "algorithm": algorithm,
+                "key_material": key_material,
+                "expires_at": expires_at,
+                "source": source,
+                "created_at": int(time.time()),
+            }
+            self._request_index[request_id] = session_id
+            self._run_cleanup_if_needed()
         return True
-    return False
+
+    def get_by_session_id(self, session_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            self._run_cleanup_if_needed()
+            session = self._sessions.get(session_id)
+            if not session:
+                return None
+            if session["expires_at"] < time.time():
+                self._sessions.pop(session_id, None)
+                rid = session.get("request_id")
+                if rid:
+                    self._request_index.pop(rid, None)
+                return None
+            return dict(session)
+
+    def get_by_request_id(self, request_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            session_id = self._request_index.get(request_id)
+            if session_id:
+                session = self._sessions.get(session_id)
+                if session and session["expires_at"] >= time.time():
+                    return dict(session)
+                if session:
+                    self._sessions.pop(session_id, None)
+                    self._request_index.pop(request_id, None)
+                return None
+
+            for sid, data in self._sessions.items():
+                if data.get("request_id") == request_id and data["expires_at"] >= time.time():
+                    self._request_index[request_id] = sid
+                    return dict(data)
+
+            return None
+
+    def delete(self, session_id: str) -> bool:
+        with self._lock:
+            session = self._sessions.pop(session_id, None)
+            if session:
+                rid = session.get("request_id")
+                if rid:
+                    self._request_index.pop(rid, None)
+                return True
+            return False
+
+    def list_active(self, limit: int = 100) -> List[Dict[str, Any]]:
+        with self._lock:
+            self._run_cleanup_if_needed()
+            current_time = time.time()
+            active = []
+            for data in self._sessions.values():
+                if data["expires_at"] >= current_time:
+                    active.append({
+                        "session_id": data["session_id"],
+                        "request_id": data["request_id"],
+                        "algorithm": data["algorithm"],
+                        "expires_at": data["expires_at"],
+                        "source": data.get("source", "unknown"),
+                    })
+                if len(active) >= limit:
+                    break
+            return active
+
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            current_time = time.time()
+            active_count = sum(
+                1 for d in self._sessions.values()
+                if d["expires_at"] >= current_time
+            )
+            return {
+                "backend": "memory",
+                "total_sessions": len(self._sessions),
+                "active_sessions": active_count,
+                "request_index_size": len(self._request_index),
+            }
 
 
-async def list_sessions(limit: int = 100) -> List[Dict[str, Any]]:
-    """List active sessions."""
-    current_time = int(time.time())
-    sessions = []
-    for session_data in list(_memory_store.values())[:limit]:
-        if int(session_data.get("expires_at", 0)) > current_time:
-            sessions.append({
-                "session_id": session_data["session_id"],
-                "algorithm": session_data["algorithm"],
-                "expires_at": session_data["expires_at"],
-                "source": session_data.get("source", "unknown"),
-            })
-    return sessions
-
-
-print("[Storage] Backend configured: memory")
+session_store = KeySessionStore()
