@@ -1,5 +1,4 @@
-"""
-QKD Interface - Quantum Key Distribution Protocol Simulations
+"""QKD Interface - Quantum Key Distribution Protocol Simulations
 
 Each protocol returns raw key material as bytes (pseudo-random).
 """
