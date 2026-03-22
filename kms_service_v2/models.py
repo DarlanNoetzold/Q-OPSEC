@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 
@@ -8,12 +8,6 @@ class CreateKeyRequest(BaseModel):
     algorithm: str
     ttl_seconds: int = 3600
     strict: bool = False
-
-    @model_validator(mode="after")
-    def validate_identifiers(self):
-        if not self.session_id and not self.request_id:
-            raise ValueError("At least one of session_id or request_id must be provided")
-        return self
 
 
 class CreateKeyResponse(BaseModel):
@@ -31,7 +25,7 @@ class CreateKeyResponse(BaseModel):
 
 class KeyResponse(BaseModel):
     session_id: str
-    request_id: str
+    request_id: Optional[str] = None
     algorithm: str
     key_material: str
     expires_at: int
