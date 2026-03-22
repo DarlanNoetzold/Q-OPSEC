@@ -136,7 +136,7 @@ services:
     type: fastapi
   kms_service:
     base_url: http://127.0.0.1:8002
-    cwd: ./kms_service
+    cwd: ./kms_service_v2
     env: {}
     health: http://127.0.0.1:8002/health
     log_file: ./logs/kms_service.log
