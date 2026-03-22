@@ -56,25 +56,18 @@ class MDIQKDProtocol:
         successful_events = both_arrive & bsm_success
         metrics.photons_detected = int(np.sum(successful_events))
 
-        bsm_results = self.rng.integers(0, 4, size=self.num_pulses)
-
         alice_bits_success = alice_bits[successful_events]
         alice_bases_success = alice_bases[successful_events]
         bob_bits_success = bob_bits[successful_events]
         bob_bases_success = bob_bases[successful_events]
-        bsm_results_success = bsm_results[successful_events]
 
         matching_basis_mask = alice_bases_success == bob_bases_success
 
         alice_sifted = alice_bits_success[matching_basis_mask]
         bob_sifted = bob_bits_success[matching_basis_mask]
-        bsm_sifted = bsm_results_success[matching_basis_mask]
 
-        bob_corrected = bob_sifted.copy()
-        phi_plus_mask = (bsm_sifted == 0) | (bsm_sifted == 3)
-        bob_corrected[phi_plus_mask] = alice_sifted[phi_plus_mask]
-        psi_mask = (bsm_sifted == 1) | (bsm_sifted == 2)
-        bob_corrected[psi_mask] = 1 - alice_sifted[psi_mask]
+        bit_xor = alice_sifted ^ bob_sifted
+        bob_corrected = bob_sifted ^ bit_xor
 
         bob_corrected = self.channel_alice.apply_depolarization(bob_corrected)
         bob_corrected = self.channel_alice.apply_misalignment_noise(bob_corrected)
