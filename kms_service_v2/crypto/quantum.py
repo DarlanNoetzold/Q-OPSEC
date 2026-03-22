@@ -1,6 +1,7 @@
 import base64
 import logging
 import os
+import numpy as np
 from typing import Optional, Tuple, Dict
 
 from quantum_gateway.netsquid_adapter import (
@@ -12,6 +13,22 @@ from quantum_gateway.netsquid_adapter import (
 from quantum_gateway.channel_simulator import QuantumChannelParameters
 
 logger = logging.getLogger("qopsec.quantum")
+
+
+def _sanitize_numpy(obj):
+    if isinstance(obj, dict):
+        return {k: _sanitize_numpy(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_numpy(item) for item in obj]
+    if isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
 
 
 QKD_PROTOCOL_MAP = {
@@ -70,20 +87,20 @@ def generate_qkd_key(algorithm: str,
 
         if result.protocol_successful and result.raw_key:
             key_b64 = base64.b64encode(result.raw_key).decode()
-            metadata = {
+            metadata = _sanitize_numpy({
                 "protocol": protocol,
                 "qber": result.quantum_bit_error_rate,
                 "sifted_key_length": result.sifted_key_length,
                 "final_key_length": result.final_key_length,
                 "channel_transmittance": result.channel_metrics.transmission_efficiency,
                 "pulses_sent": estimated_pulses,
-            }
+            })
             return algorithm, key_b64, metadata
 
-        return algorithm, None, {
+        return algorithm, None, _sanitize_numpy({
             "error": result.error_message or "BB84 protocol failed",
             "qber": result.quantum_bit_error_rate,
-        }
+        })
 
     if protocol == "E91":
         from quantum_gateway.e91 import run_e91_simulation
@@ -106,20 +123,20 @@ def generate_qkd_key(algorithm: str,
 
         if result.protocol_successful and result.raw_key:
             key_b64 = base64.b64encode(result.raw_key).decode()
-            metadata = {
+            metadata = _sanitize_numpy({
                 "protocol": protocol,
                 "qber": result.quantum_bit_error_rate,
                 "bell_parameter_s": result.bell_parameter_s,
                 "bell_violation": result.bell_violation_detected,
                 "sifted_key_length": result.sifted_key_length,
                 "final_key_length": result.final_key_length,
-            }
+            })
             return algorithm, key_b64, metadata
 
-        return algorithm, None, {
+        return algorithm, None, _sanitize_numpy({
             "error": result.error_message or "E91 protocol failed",
             "qber": result.quantum_bit_error_rate,
-        }
+        })
 
     if protocol == "MDI-QKD":
         from quantum_gateway.mdi_qkd import run_mdi_qkd_simulation
@@ -144,19 +161,19 @@ def generate_qkd_key(algorithm: str,
 
         if result.protocol_successful and result.raw_key:
             key_b64 = base64.b64encode(result.raw_key).decode()
-            metadata = {
+            metadata = _sanitize_numpy({
                 "protocol": protocol,
                 "qber": result.quantum_bit_error_rate,
                 "bsm_success_rate": result.bell_state_measurement_success_rate,
                 "sifted_key_length": result.sifted_key_length,
                 "final_key_length": result.final_key_length,
-            }
+            })
             return algorithm, key_b64, metadata
 
-        return algorithm, None, {
+        return algorithm, None, _sanitize_numpy({
             "error": result.error_message or "MDI-QKD protocol failed",
             "qber": result.quantum_bit_error_rate,
-        }
+        })
 
     return algorithm, None, {"error": f"Unknown QKD protocol mapping for {algorithm}"}
 
