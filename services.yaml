@@ -57,7 +57,7 @@ services:
     pid_file: ./logs/context_api.pid
     port: 65534
     start:
-    - mvnw.cmd
+    - mvn
     - spring-boot:run
     - -DskipTests
     type: spring
@@ -114,7 +114,7 @@ services:
     pid_file: ./logs/interceptor_api.pid
     port: 8080
     start:
-    - mvnw.cmd
+    - mvn
     - spring-boot:run
     - -DskipTests
     type: spring
@@ -192,7 +192,7 @@ services:
     pid_file: ./logs/validation_send_api.pid
     port: 8005
     start:
-    - mvnw.cmd
+    - mvn
     - spring-boot:run
     - -DskipTests
     type: spring
