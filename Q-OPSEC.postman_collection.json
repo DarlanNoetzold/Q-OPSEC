@@ -646,12 +646,15 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8081/context/enrich",
+              "raw": "http://192.168.18.18:65534/context/enrich",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
-              "port": "8081",
+              "port": "65534",
               "path": [
                 "context",
                 "enrich"
@@ -799,10 +802,13 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/intercept",
+              "raw": "http://192.168.18.18:8080/intercept",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
               "port": "8080",
               "path": [
@@ -818,10 +824,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/intercept/message?request_id=req_1757960432832_22dac2e5",
+              "raw": "http://192.168.18.18:8080/intercept/message?request_id=req_1774396601973_70ed6bb9",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
               "port": "8080",
               "path": [
@@ -831,7 +840,7 @@
               "query": [
                 {
                   "key": "request_id",
-                  "value": "req_1757960432832_22dac2e5"
+                  "value": "req_1774396601973_70ed6bb9"
                 }
               ]
             }
@@ -888,7 +897,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"request_id\": \"req_1757960432832_22dac2e5\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://localhost:9000\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
+              "raw": "{\n\"request_id\": \"req_1757960432832_22dac2e5\",\n  \"source\": \"node-A\",\n  \"destination\": \"http://192.168.18.18:9000\",\n  \"dst_props\": {\n    \"hardware\": [\"QKD\"],\n    \"compliance\": [\"GDPR\"],\n    \"max_latency_ms\": 10\n  },\n  \"proposed\": [\"QKD_E91\", \"AES256_GCM\"]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -896,10 +905,13 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8001/handshake",
+              "raw": "http://192.168.18.18:8001/handshake",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
               "port": "8001",
               "path": [
@@ -1268,6 +1280,257 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "create_key 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_001\",\"algorithm\":\"AES256_GCM\",\"ttl_seconds\":3600}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create key PQC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_002\",\"algorithm\":\"Kyber768\",\"ttl_seconds\":3600}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create key QKD",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_003\",\"algorithm\":\"QKD_BB84\",\"ttl_seconds\":1800}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create key  PQC 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_004\",\"algorithm\":\"NTRU-HRSS-701\",\"ttl_seconds\":3600}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create key QKD 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_006\",\"algorithm\":\"QKD_E91\",\"ttl_seconds\":1800}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create key QKD 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request_id\":\"req_007\",\"algorithm\":\"QKD_MDI\",\"ttl_seconds\":1800}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/create_key",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "create_key"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get key 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://192.168.18.18:8002/kms/get_key?request_id=req_003",
+              "protocol": "http",
+              "host": [
+                "192",
+                "168",
+                "18",
+                "18"
+              ],
+              "port": "8002",
+              "path": [
+                "kms",
+                "get_key"
+              ],
+              "query": [
+                {
+                  "key": "request_id",
+                  "value": "req_003"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -1294,10 +1557,13 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8003/deliver",
+              "raw": "http://192.168.18.18:8003/deliver",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
               "port": "8003",
               "path": [
@@ -2276,7 +2542,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"request_id\": \"req-002\",\n    \"source\": \"node-A\",\n    \"destination\": \"node-C\",\n    \"security_level\": \"critical\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 1.0,\n    \"dst_props\": {\n        \"qkd_available\": true,\n        \"pqc_support\": true,\n        \"latency\": 30.0\n    },\n    \"source_reputation\": 0.9,\n    \"source_location_risk\": 0.3,\n    \"data_sensitivity\": 1.0,\n    \"service_criticality\": 0.95,\n    \"time_of_day\": 14,\n    \"day_of_week\": 2,\n    \"is_peak_attack_time\": false,\n    \"current_threat_level\": 0.85,\n    \"system_load\": 0.6,\n    \"available_resources\": 0.8,\n    \"network_latency\": 30.0\n}",
+              "raw": "{\n    \"request_id\": \"req_1774396601973_70ed6bb9\",\n    \"source\": \"node-A\",\n    \"destination\": \"node-C\",\n    \"security_level\": \"critical\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 1.0,\n    \"dst_props\": {\n        \"qkd_available\": true,\n        \"pqc_support\": true,\n        \"latency\": 30.0\n    },\n    \"source_reputation\": 0.9,\n    \"source_location_risk\": 0.3,\n    \"data_sensitivity\": 1.0,\n    \"service_criticality\": 0.95,\n    \"time_of_day\": 14,\n    \"day_of_week\": 2,\n    \"is_peak_attack_time\": false,\n    \"current_threat_level\": 0.85,\n    \"system_load\": 0.6,\n    \"available_resources\": 0.8,\n    \"network_latency\": 30.0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2284,10 +2550,13 @@
               }
             },
             "url": {
-              "raw": "http://localhost:9009/act",
+              "raw": "http://192.168.18.18:9009/act",
               "protocol": "http",
               "host": [
-                "localhost"
+                "192",
+                "168",
+                "18",
+                "18"
               ],
               "port": "9009",
               "path": [
