@@ -1,7 +1,6 @@
 #!/bin/bash
 # ============================================================
 # Q-OPSEC Middleware - Full Flow Test Script
-# Testa o fluxo completo do middleware com o KMS integrado
 #
 # Pré-requisitos (todos os serviços rodando):
 #   - Interceptor API     : http://localhost:8080
