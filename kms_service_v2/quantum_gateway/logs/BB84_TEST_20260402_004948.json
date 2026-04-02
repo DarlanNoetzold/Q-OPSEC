@@ -1,0 +1,27 @@
+{
+  "protocol": "BB84_TEST",
+  "timestamp": "20260402_004948",
+  "events": [
+    {
+      "timestamp": "2026-04-02T00:49:48.475937",
+      "type": "PREP",
+      "message": "1000 qubits preparados em bases aleatórias"
+    },
+    {
+      "timestamp": "2026-04-02T00:49:48.475985",
+      "type": "TRANS",
+      "message": "Transmissão através de fibra de 20km"
+    },
+    {
+      "timestamp": "2026-04-02T00:49:48.476017",
+      "type": "MEAS",
+      "message": "Medição em 500 bases coincidentes"
+    }
+  ],
+  "metrics": {
+    "qber": 0.0042,
+    "key_length_bits": 256,
+    "transmission_efficiency": 0.0688,
+    "execution_time_s": 1.23
+  }
+}
