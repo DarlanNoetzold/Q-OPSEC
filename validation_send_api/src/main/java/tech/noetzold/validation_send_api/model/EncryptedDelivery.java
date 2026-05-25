@@ -43,7 +43,7 @@ public class EncryptedDelivery {
     private String originUrl;
 
     @Column(name="status", length=40, nullable=false)
-    private String status; // pending, delivered, failed
+    private String status;
 
     @Column(name="error_message", columnDefinition = "text")
     private String errorMessage;
