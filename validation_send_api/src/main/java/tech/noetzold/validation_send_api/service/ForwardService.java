@@ -2,17 +2,14 @@ package tech.noetzold.validation_send_api.service;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import tech.noetzold.validation_send_api.model.EncryptedDelivery;
 import tech.noetzold.validation_send_api.model.NegotiationPayload;
 import tech.noetzold.validation_send_api.repository.EncryptedDeliveryRepository;
 
 import java.time.Duration;
-import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +20,6 @@ public class ForwardService {
 
     @Transactional
     public EncryptedDelivery receiveAndPersist(NegotiationPayload p) {
-        // cria/atualiza registro como pending
         EncryptedDelivery entity = repository.findByRequestId(p.getRequestId())
                 .orElseGet(EncryptedDelivery::new);
 
@@ -67,7 +63,7 @@ public class ForwardService {
                     .bodyValue(payload)
                     .retrieve()
                     .toBodilessEntity()
-                    .timeout(Duration.ofSeconds(10))  // timeout de 10s
+                    .timeout(Duration.ofSeconds(10))
                     .block();
         } catch (Exception e) {
             throw new RuntimeException("Failed to forward to origin: " + e.getMessage(), e);
