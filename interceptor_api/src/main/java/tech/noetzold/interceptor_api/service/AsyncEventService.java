@@ -1,4 +1,3 @@
-// src/main/java/tech/noetzold/interceptor_api/service/AsyncEventService.java
 package tech.noetzold.interceptor_api.service;
 
 import org.slf4j.Logger;
