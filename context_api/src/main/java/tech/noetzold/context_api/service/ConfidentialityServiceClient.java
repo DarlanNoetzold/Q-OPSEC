@@ -42,7 +42,7 @@ public class ConfidentialityServiceClient {
             if (first.modelNotReady()) {
                 boolean trained = tryTrainDefault();
                 for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-                    sleepQuietly(RETRY_DELAY.multipliedBy(attempt)); // backoff linear
+                    sleepQuietly(RETRY_DELAY.multipliedBy(attempt));
                     ClassifyOutcome retry = doClassify(payload);
                     if (retry.result().isPresent()) {
                         return retry.result();
