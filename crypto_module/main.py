@@ -418,14 +418,6 @@ async def decrypt(req: DecryptRequest):
     },
 )
 async def health():
-    """
-    Check service health status.
-
-    Returns basic information about the service including:
-    - Status: Current health status
-    - Module: Service module name
-    - Version: Current version number
-    """
     return {"status": "healthy", "module": "crypto", "version": "1.3.1"}
 
 
