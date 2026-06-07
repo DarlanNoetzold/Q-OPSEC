@@ -849,9 +849,12 @@ class RequestSpec(BaseModel):
     method: str = Field(..., pattern="(?i)^(GET|POST|PUT|DELETE|PATCH)$")
     url: str
     headers: Dict[str, str] = Field(default_factory=dict)
-    json: Optional[Dict[str, Any]] = None
+    payload: Optional[Dict[str, Any]] = Field(default=None, alias="json")
     params: Dict[str, Any] = Field(default_factory=dict)
     timeout: float = 15.0
+
+    class Config:
+        populate_by_name = True
 
 @APP.post("/request")
 async def api_request(spec: RequestSpec):
@@ -862,7 +865,7 @@ async def api_request(spec: RequestSpec):
                 spec.method.upper(),
                 spec.url,
                 headers=spec.headers,
-                json=spec.json,
+                json=spec.payload,
                 params=spec.params
             )
             return {
@@ -1320,6 +1323,80 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
     return await proxy_get(url, headers=headers)
+
+@APP.post("/run-pipeline")
+async def run_pipeline(data: Dict[str, Any] = Body(...)):
+    """Run sequential Q-OPSEC middleware pipeline"""
+    # Order: Handshake -> KMS (create_key) -> Crypto (encrypt) -> Context (enrich) -> Validation (send)
+    pipeline = [
+        {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
+        {"name": "kms_service", "port": 8002, "endpoint": "/keys/generate", "method": "POST"},
+        {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
+        {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
+        {"name": "validation_send_api", "port": 8005, "endpoint": "/validation/send", "method": "POST"},
+    ]
+    
+    results = []
+    current_data = data
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        for step in pipeline:
+            name = step["name"]
+            url = f"http://127.0.0.1:{step['port']}{step['endpoint']}"
+            
+            step_result = {
+                "service": name,
+                "url": url,
+                "status": "pending"
+            }
+            
+            try:
+                # Check if service is running locally first
+                svc = CONFIG.get("services", {}).get(name, {})
+                port = svc.get("port", step["port"])
+                if not find_pid_by_port(port):
+                    step_result["status"] = "error"
+                    step_result["error"] = f"Service {name} is not running on port {port}"
+                    results.append(step_result)
+                    break
+
+                response = await client.request(
+                    step["method"],
+                    url,
+                    json=current_data
+                )
+                
+                step_result["status_code"] = response.status_code
+                
+                if response.status_code == 200:
+                    step_result["status"] = "success"
+                    # Update data for next step if service returns new state
+                    try:
+                        resp_json = response.json()
+                        step_result["response"] = resp_json
+                        if isinstance(resp_json, dict):
+                            current_data.update(resp_json)
+                    except:
+                        step_result["response"] = response.text[:500]
+                else:
+                    step_result["status"] = "error"
+                    step_result["error"] = response.text[:500]
+                    results.append(step_result)
+                    break
+                    
+            except Exception as e:
+                step_result["status"] = "error"
+                step_result["error"] = str(e)
+                results.append(step_result)
+                break
+                
+            results.append(step_result)
+            
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "pipeline_results": results,
+        "final_data": current_data
+    }
 
 if __name__ == "__main__":
     uvicorn.run("orchestrator_linux:APP", host="0.0.0.0", port=8090, reload=False)
