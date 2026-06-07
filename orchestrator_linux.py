@@ -1589,12 +1589,12 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
                             if name == "context_api":
-                                from datetime import datetime
+                                import datetime as dt_mod
                                 final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
                                 
                                 flow_metrics = {
                                     "total_steps": len(pipeline),
-                                    "timestamp": datetime.now().isoformat(),
+                                    "timestamp": dt_mod.datetime.now().isoformat(),
                                     "negotiated_algorithm": final_alg,
                                     "pipeline_trace": [
                                         {"service": r["service"], "status": r["status"], "port": r["port"]} 
