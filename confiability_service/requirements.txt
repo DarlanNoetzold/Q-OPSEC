@@ -1,9 +1,17 @@
-Flask==3.0.2
-pydantic==2.8.2
-scikit-learn==1.4.2
-numpy==1.26.4
-pydantic
-xgboost
-pandas
-lightgbm
+# Q-OPSEC Automated Requirements
+Flask
 apscheduler
+atexit
+glob
+joblib
+lightgbm
+matplotlib
+numpy
+pandas
+pydantic
+regex
+scikit-learn
+seaborn
+traceback
+werkzeug
+xgboost
