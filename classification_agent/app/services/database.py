@@ -18,8 +18,16 @@ class DatabaseService:
     async def connect(self):
         """Conecta ao MongoDB"""
         try:
-            self.client = AsyncIOMotorClient(settings.mongodb_url)
+            print(f"Connecting to MongoDB at {settings.mongodb_url}...")
+            self.client = AsyncIOMotorClient(settings.mongodb_url, serverSelectionTimeoutMS=5000)
             self.database = self.client[settings.mongodb_database]
+            
+            # Skip if MongoDB is not available (fallback for classification-only mode)
+            try:
+                await self.client.admin.command('ping')
+            except Exception as e:
+                print(f"CRITICAL: MongoDB not reachable: {e}. Proceeding without DB...")
+                return
 
             # Inicializa Beanie com os modelos
             await init_beanie(

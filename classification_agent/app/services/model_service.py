@@ -54,6 +54,11 @@ class ModelService:
                 model_info = json.load(f)
 
             model_path = model_info.get("artifact_path") or model_info.get("file_path")
+            
+            # Ajuste para rodar no Linux/WSL se o path estiver em formato Windows
+            if model_path and ":\\" in model_path:
+                model_path = model_path.replace("C:\\Projetos\\", "/mnt/c/Projetos/").replace("\\", "/")
+                
             if not model_path or not os.path.exists(model_path):
                 raise ModelLoadError(f"Model file not found: {model_path}")
 

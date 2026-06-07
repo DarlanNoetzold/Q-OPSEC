@@ -23,10 +23,10 @@ class Settings(BaseSettings):
     mongodb_database: str = "classification_agent"
 
     # ML Model Registry - renomeado (evita conflitos "model_")
-    ml_registry_dir: str = r"C:\Projetos\Q-OPSEC\classify_scheduler\model_registry"
+    ml_registry_dir: str = "/mnt/c/Projetos/Q-OPSEC/classify_scheduler/model_registry"
     ml_registry_latest_file: str = "latest.json"
     auto_reload_ml: bool = True
-    ml_cache_ttl: int = 300
+
 
     # Monitoring
     enable_metrics: bool = True
