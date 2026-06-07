@@ -1385,11 +1385,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         try: payload_data = json.loads(payload_data)
                         except: pass
                     payload = {"data": payload_data, "request_id": current_data.get("request_id")}
+                
+                # Add Authentication Headers for Classification Agent
+                headers = {}
+                if name == "classification_agent":
+                    api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
+                    headers["X-API-Key"] = api_key
 
                 response = await client.request(
                     step["method"],
                     url,
                     json=payload,
+                    headers=headers,
                     follow_redirects=True
                 )
                 
