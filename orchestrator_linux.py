@@ -1393,28 +1393,30 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
                     km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
                     
-                    # O KDE V2 exige expires_at como string ISO no Pydantic para rodar as validações de datetime
-                    if isinstance(km_expires, (int, float)):
-                        from datetime import datetime, timezone
-                        km_expires = datetime.fromtimestamp(km_expires, tz=timezone.utc).isoformat().replace("+00:00", "Z")
-                    elif isinstance(km_expires, str) and not km_expires.endswith("Z") and "+" not in km_expires:
-                         km_expires = km_expires + "Z"
+                    # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
+                    if isinstance(km_expires, str):
+                        try:
+                            from datetime import datetime
+                            # Limpa o Z se houver e converte para timestamp
+                            clean_date = km_expires.replace("Z", "").split(".")[0]
+                            km_expires = int(datetime.fromisoformat(clean_date).timestamp())
+                        except:
+                            km_expires = int(time.time() + 3600)
+                    else:
+                        km_expires = int(km_expires)
 
                     payload = {
                         "session_id": str(km_session),
-                        "request_id": str(current_data.get("request_id") or "req-gen-" + str(int(time.time()))),
-                        "destination": "http://192.168.18.18:8005/validation/receive", # Endpoint final de validação
+                        "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
+                        "destination": "http://192.168.18.18:8005/validation/receive",
                         "delivery_method": "API",
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
-                        "expires_at": km_expires,
+                        "expires_at": km_expires, # Voltou para INT conforme erro 422/detail
                         "metadata": {
                             "original_destination": current_data.get("destination"),
                             "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
-                            "risk_score": current_data.get("risk_score"),
-                            "security_level": current_data.get("security_level"),
-                            "model_version": current_data.get("version"),
-                            "pipeline_trace": current_data.get("flowMetrics", {}).get("pipeline_trace", [])
+                            "pipeline_sync": True
                         }
                     }
 
@@ -1548,6 +1550,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         resp_json = response.json()
                         step_result["response"] = resp_json
                         if isinstance(resp_json, dict):
+                            # Preserva metadados de modelos e versões para o dashboard
+                            if name == "risk_service":
+                                current_data["risk_v2_details"] = resp_json
+                                if "results" in resp_json:
+                                    current_data["results"] = resp_json["results"]
+                                    current_data["model_version"] = resp_json.get("model_version")
+                            
                             # Injeção automática de URL de destino para o KDE
                             if "destination" not in current_data or current_data["destination"] == "server-backend":
                                 current_data["destination"] = "http://192.168.18.18:8090/callback"
@@ -1564,11 +1573,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
                             
-                            # Normalização para o Validation Send API (formato Java expectantes)
+                            # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
                             if name == "context_api":
+                                from datetime import datetime
                                 final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
                                 
-                                # Coleta métricas e detalhes do fluxo para o payload final
                                 flow_metrics = {
                                     "total_steps": len(pipeline),
                                     "timestamp": datetime.now().isoformat(),
@@ -1580,19 +1589,20 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 }
                                 resp_json["requestId"] = current_data.get("request_id")
                                 resp_json["sessionId"] = current_data.get("session_id")
-                                resp_json["selectedAlgorithm"] = current_data.get("selected_algorithm") or current_data.get("algorithm")
+                                resp_json["selectedAlgorithm"] = final_alg
                                 resp_json["cryptoNonceB64"] = current_data.get("nonce_b64")
                                 resp_json["cryptoCiphertextB64"] = current_data.get("ciphertext_b64")
                                 resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
                                 resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
                                 resp_json["sourceId"] = current_data.get("source")
-                                # Injeta métricas no campo de metadados se existir ou no final
                                 resp_json["flowMetrics"] = flow_metrics
                                 resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
                             current_data.update(resp_json)
-                    except:
-                        step_result["response"] = response.text[:500]
+                    except Exception as e:
+                         # Log do erro para depuração interna sem quebrar o 200
+                         print(f"Erro ao processar JSON no passo {name}: {str(e)}")
+                         step_result["response"] = response.text[:500]
                 else:
                     step_result["status"] = "error"
                     step_result["error"] = response.text[:500]
