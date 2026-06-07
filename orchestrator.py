@@ -918,5 +918,61 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
 
     return await proxy_get(url, headers=headers)
 
+@APP.post("/run-pipeline")
+async def run_pipeline(payload: Dict[str, Any] = Body(...)):
+    """Executa o fluxo sequencial do Q-OPSEC como um middleware."""
+    results = []
+    request_id = payload.get("requestId", f"req_{int(time.time())}")
+    
+    # 1. Handshake (Port 8001)
+    results.append({"step": "handshake", "status": "executing"})
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            hs = await client.post("http://127.0.0.1:8001/handshake", json={
+                "requestId": request_id, "data": payload.get("data", {}), "metadata": payload.get("metadata", {})
+            })
+            results[-1].update({"code": hs.status_code, "body": hs.json()})
+    except Exception as e:
+        results[-1].update({"status": "failed", "error": str(e)})
+        return {"pipeline_status": "aborted", "steps": results}
+
+    # 2. KMS - Create Key (Port 8002)
+    results.append({"step": "kms", "status": "executing"})
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            kms = await client.post("http://127.0.0.1:8002/kms/create_key", json={"requestId": request_id})
+            results[-1].update({"code": kms.status_code})
+    except Exception as e:
+        results[-1].update({"status": "failed", "error": str(e)})
+
+    # 3. Crypto - Encrypt (Port 8004)
+    results.append({"step": "encrypt", "status": "executing"})
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            crypto = await client.post("http://127.0.0.1:8004/encrypt", json={"requestId": request_id, "data": payload.get("data", {})})
+            results[-1].update({"code": crypto.status_code})
+    except Exception as e:
+        results[-1].update({"status": "failed", "error": str(e)})
+
+    # 4. Context - Enrich (Port 65534)
+    results.append({"step": "context_enrich", "status": "executing"})
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            ctx = await client.post("http://127.0.0.1:65534/context/enrich", json={"requestId": request_id, "data": {}})
+            results[-1].update({"code": ctx.status_code})
+    except Exception as e:
+        results[-1].update({"status": "failed", "error": str(e)})
+
+    # 5. Validation - Send (Port 8005)
+    results.append({"step": "validation_send", "status": "executing"})
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            send = await client.post("http://127.0.0.1:8005/validation/send", json={"requestId": request_id, "data": payload.get("data", {})})
+            results[-1].update({"code": send.status_code})
+    except Exception as e:
+        results[-1].update({"status": "failed", "error": str(e)})
+
+    return {"pipeline_status": "completed", "steps": results}
+
 if __name__ == "__main__":
     uvicorn.run("orchestrator:APP", host="0.0.0.0", port=8090, reload=False)
