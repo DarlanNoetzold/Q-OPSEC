@@ -1379,12 +1379,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 # Prepare sub-payload for RL/Classification if needed
                 payload = current_data
                 if name == "classification_agent":
-                    payload = {"data": current_data.get("data", {}), "request_id": current_data.get("request_id")}
+                    # Normalização para Classification Agent: extrair o conteúdo do JSON se enviado como data
+                    payload_data = current_data.get("data", {})
+                    if isinstance(payload_data, str):
+                        try: payload_data = json.loads(payload_data)
+                        except: pass
+                    payload = {"data": payload_data, "request_id": current_data.get("request_id")}
 
                 response = await client.request(
                     step["method"],
                     url,
-                    json=payload
+                    json=payload,
+                    follow_redirects=True
                 )
                 
                 step_result["status_code"] = response.status_code
