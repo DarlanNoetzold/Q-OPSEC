@@ -19,6 +19,10 @@ class ModelLoadError(Exception):
     """Erro de carregamento de modelo."""
     pass
 
+class PredictionError(Exception):
+    """Erro de predição."""
+    pass
+
 class ModelService:
     """Serviço para gerenciar o modelo ML carregado na API."""
 
