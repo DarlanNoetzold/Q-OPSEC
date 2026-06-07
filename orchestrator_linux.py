@@ -1388,15 +1388,20 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         except: pass
                     payload = {"data": payload_data, "request_id": current_data.get("request_id")}
                 
-                # Injeção de security_level para o RL Engine (obtido da classificação anterior)
+                # Injeção de security_level para o RL Engine
                 if name == "rl_engine":
+                    # Força valores padrão ANTES de injetar no payload para evitar NoneType em cálculos internos
+                    risk = current_data.get("risk_score")
+                    conf = current_data.get("conf_score")
+                    
+                    if risk is None: risk = 0.5
+                    if conf is None: conf = 0.5
+                    
+                    payload["risk_score"] = float(risk)
+                    payload["conf_score"] = float(conf)
+                    
                     if not payload.get("security_level"):
                         payload["security_level"] = current_data.get("security_level") or "moderate"
-                    # Garante que scores sejam float para o RL
-                    for field in ["risk_score", "conf_score"]:
-                         if field in payload and payload[field] is not None:
-                             try: payload[field] = float(payload[field])
-                             except: pass
                 
                 # Add Authentication Headers for Classification Agent
                 headers = {}
