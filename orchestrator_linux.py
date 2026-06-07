@@ -1387,40 +1387,52 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 
                 # Normalização para KDE (Key Destination Engine)
                 if name == "key_destination_engine":
-                    # Força a URL de validação baseada no IP 192.168.18.18 para evitar erro de 'Invalid API destination URL'
-                    # e mapeia do KMS (que pode estar aninhado no 'negotiation' ou no topo)
                     negotiation = current_data.get("negotiation") or {}
-                    km_material = negotiation.get("key_material") or current_data.get("key_material")
+                    km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
                     km_algo = negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
                     km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
                     km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
                     
-                    # Converte expires_at de string ISO para timestamp se necessário
-                    if isinstance(km_expires, str):
-                        try:
-                            from datetime import datetime
-                            km_expires = int(datetime.fromisoformat(km_expires.replace("Z", "")).timestamp())
-                        except:
-                            km_expires = int(time.time() + 3600)
-                    
+                    # O KDE V2 exige expires_at como string ISO no Pydantic para rodar as validações de datetime
+                    if isinstance(km_expires, (int, float)):
+                        from datetime import datetime, timezone
+                        km_expires = datetime.fromtimestamp(km_expires, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+                    elif isinstance(km_expires, str) and not km_expires.endswith("Z") and "+" not in km_expires:
+                         km_expires = km_expires + "Z"
+
                     payload = {
                         "session_id": str(km_session),
-                        "request_id": str(current_data.get("request_id")),
-                        "destination": "http://192.168.18.18:8005/validate",
+                        "request_id": str(current_data.get("request_id") or "req-gen-" + str(int(time.time()))),
+                        "destination": "http://192.168.18.18:8005/validation/receive", # Endpoint final de validação
                         "delivery_method": "API",
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
-                        "expires_at": int(km_expires),
+                        "expires_at": km_expires,
                         "metadata": {
                             "original_destination": current_data.get("destination"),
-                            "pipeline_sync": True,
-                            "source_node": "192.168.18.18"
+                            "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
+                            "risk_score": current_data.get("risk_score"),
+                            "security_level": current_data.get("security_level"),
+                            "model_version": current_data.get("version"),
+                            "pipeline_trace": current_data.get("flowMetrics", {}).get("pipeline_trace", [])
                         }
+                    }
+
+                # Enriquecimento de informações dos modelos no Risk Service V2
+                if name == "risk_service":
+                    # Força a limpeza de erros de 'model not loaded' injetando o contexto do que foi selecionado
+                    payload = {
+                        "single": {
+                            "features": current_data.get("data", {})
+                        },
+                        "models": ["random_forest", "logistic_regression", "lightgbm"],
+                        "version": "v20260107_202018",
+                        "include_prob": True
                     }
 
                 # Injeção de security_level para o RL Engine
                 if name == "rl_engine":
-                    # Normalização de source/destination para string (exigência do RL Engine Pydantic schema)
+                    # Garante que as infos de Risk e Confiability passem completas para o RL
                     src = current_data.get("source")
                     dst = current_data.get("destination")
                     
@@ -1434,29 +1446,28 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     else:
                         payload["destination"] = str(dst or "10.0.0.5")
 
-                    # Melhora o mapeamento de scores do Risk Service V2 para o RL Engine
                     risk_data = current_data.get("risk") or {}
                     conf_data = current_data.get("confidentiality") or {}
                     
-                    # Tenta pegar score real do V2 se disponível, senão fallback para o histórico do projeto
                     risk = risk_data.get("score") or current_data.get("risk_score")
                     conf = conf_data.get("score") or current_data.get("conf_score")
                     
-                    # Se o risk_service retornou erro de load, injetamos score moderado via análise de label
                     if not risk and current_data.get("results"):
                         label = current_data["results"][0].get("label", "").lower()
                         if "high" in label: risk = 0.8
                         elif "low" in label: risk = 0.2
                     
-                    if risk is None: risk = 0.5
-                    if conf is None: conf = 0.5
+                    payload["risk_score"] = float(risk or 0.5)
+                    payload["conf_score"] = float(conf or 0.5)
                     
-                    payload["risk_score"] = float(risk)
-                    payload["conf_score"] = float(conf)
+                    security_lvl = current_data.get("security_level") or risk_data.get("level") or "moderate"
+                    payload["security_level"] = str(security_lvl).upper()
                     
-                    if not payload.get("security_level"):
-                        security_lvl = current_data.get("security_level") or risk_data.get("level") or "moderate"
-                        payload["security_level"] = str(security_lvl).upper()
+                    # Adiciona metadados para auditoria do RL
+                    payload["metadata"] = {
+                        "risk_label": current_data.get("results", [{}])[0].get("label"),
+                        "context_version": current_data.get("version")
+                    }
                 
                 # Normalização para Crypto (Módulo Final)
                 if name == "crypto_module":
