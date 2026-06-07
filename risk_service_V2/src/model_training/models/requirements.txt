@@ -1,0 +1,9 @@
+# Q-OPSEC Automated Requirements
+catboost
+lightgbm
+numpy
+pandas
+scikit-learn
+src
+torch
+xgboost
