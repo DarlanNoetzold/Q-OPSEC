@@ -1432,8 +1432,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "single": {
                             "features": current_data.get("data", {})
                         },
-                        "models": ["random_forest", "xgboost"],
-                        "version": "1.0.0"
+                        "models": ["random_forest", "logistic_regression", "lightgbm"],
+                        "version": "v20260107_202018"
                     }
                 
                 # Normalização para Confiability Service
