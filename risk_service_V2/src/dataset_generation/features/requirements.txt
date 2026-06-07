@@ -1,0 +1,5 @@
+# Q-OPSEC Automated Requirements
+dateutil
+numpy
+pandas
+src
