@@ -1341,6 +1341,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     # Order: Handshake -> KMS (create_key) -> Crypto (encrypt) -> Context (enrich) -> Validation (send)
     pipeline = [
         {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
+        {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
+        {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
         {"name": "kms_service", "port": 8002, "endpoint": "/kms/create_key", "method": "POST"},
         {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
@@ -1360,7 +1362,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             step_result = {
                 "service": name,
                 "url": url,
-                "status": "pending"
+                "status": "pending",
+                "port": step["port"]
             }
             
             try:
@@ -1373,10 +1376,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     results.append(step_result)
                     break
 
+                # Prepare sub-payload for RL/Classification if needed
+                payload = current_data
+                if name == "classification_agent":
+                    payload = {"data": current_data.get("data", {}), "request_id": current_data.get("request_id")}
+
                 response = await client.request(
                     step["method"],
                     url,
-                    json=current_data
+                    json=payload
                 )
                 
                 step_result["status_code"] = response.status_code
@@ -1401,11 +1409,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             # Normalização para o Validation Send API (formato Java expectantes)
                             if name == "context_api":
+                                final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
+                                
                                 # Coleta métricas e detalhes do fluxo para o payload final
                                 flow_metrics = {
                                     "total_steps": len(pipeline),
                                     "timestamp": datetime.now().isoformat(),
-                                    "negotiated_algorithm": current_data.get("selected_algorithm") or current_data.get("algorithm"),
+                                    "negotiated_algorithm": final_alg,
                                     "pipeline_trace": [
                                         {"service": r["service"], "status": r["status"], "port": r["port"]} 
                                         for r in results
