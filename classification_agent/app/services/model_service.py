@@ -107,11 +107,13 @@ class ModelService:
         if self.required_columns:
             for col in self.required_columns:
                 if col not in df.columns:
-                    df[col] = "unknown" if "geo" in col or "device" in col or "policy" in col else 0.0
+                    df[col] = "unknown"
             
             df = df[self.required_columns]
             
-        return df.fillna("unknown")
+        # O pulo do gato: forca tudo para string antes do preprocessor
+        # O OneHotEncoder original do Sklearn odeia misturar float(0.0) com strings
+        return df.astype(str).replace({"0.0": "unknown", "0": "unknown", "nan": "unknown", "None": "unknown"})
 
     def predict(self, data: Union[Dict, List]):
         try:
