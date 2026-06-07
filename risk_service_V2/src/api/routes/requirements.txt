@@ -1,0 +1,6 @@
+# Q-OPSEC Automated Requirements
+PyYAML
+fastapi
+pydantic
+src
+traceback

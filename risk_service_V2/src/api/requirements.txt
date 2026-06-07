@@ -1,0 +1,10 @@
+# Q-OPSEC Automated Requirements
+PyYAML
+fastapi
+joblib
+loguru
+numpy
+pandas
+pydantic
+src
+traceback
