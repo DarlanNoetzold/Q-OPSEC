@@ -51,7 +51,7 @@ class ModelService:
             
             latest_file = next((p for p in possible_latest if p.exists()), None)
             if not latest_file:
-                raise ModelLoadError(f"latest.json não encontrado. Verifique se o caminho {project_root} está correto.")
+                raise ModelLoadError(f"latest.json não encontrado.")
 
             with open(latest_file, "r", encoding="utf-8") as f:
                 model_info = json.load(f)
@@ -60,13 +60,10 @@ class ModelService:
             tag = model_info.get("tag") or model_info.get("version")
             registry_path = latest_file.parent
             
-            # Procura a pasta que começa com a TAG (ex: 20251009T202040Z_logreg_lbfgs)
-            # Isso mata o problema do nome da pasta ser diferente entre Win/Linux
             model_path = None
             if os.path.exists(registry_path):
                 for entry in os.listdir(registry_path):
                     if entry.startswith(str(tag)) and os.path.isdir(registry_path / entry):
-                        # Tenta encontrar o .pkl lá dentro
                         folder_path = registry_path / entry
                         for file in os.listdir(folder_path):
                             if file.endswith(".pkl"):
@@ -75,13 +72,9 @@ class ModelService:
                     if model_path: break
 
             if not model_path or not model_path.exists():
-                raise ModelLoadError(f"Artefato .pkl não encontrado para a TAG {tag} em {registry_path}")
+                raise ModelLoadError(f"Artefato .pkl não encontrado.")
 
             # 3. Carregamento
-            new_name = model_info.get("saved_model_name") or model_info.get("model_name")
-            if not force and self.model_name == new_name and self.model_version == tag:
-                return False
-
             with open(model_path, "rb") as f:
                 artifact = pickle.load(f)
 
@@ -93,11 +86,12 @@ class ModelService:
                 self.preprocessor = None
 
             self.classes = [str(c) for c in (model_info.get("classes") or [])]
-            self.model_name = new_name or "unknown_model"
+            self.required_columns = list(model_info.get("required_columns") or [])
+            self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
             self.model_version = tag
             self.loaded_at = datetime.utcnow()
 
-            logger.info("Model loaded successfully", tag=tag, path=str(model_path))
+            logger.info("Model loaded successfully", tag=tag)
             return True
 
         except Exception as e:
@@ -112,11 +106,47 @@ class ModelService:
         return {
             "model_name": self.model_name,
             "version": self.model_version,
-            "loaded_at": self.loaded_at.isoformat()
+            "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None
         }
 
+    def validate_input(self, data: Union[Dict, List]) -> pd.DataFrame:
+        """Valida e prepara os dados de entrada para predicao."""
+        if isinstance(data, dict):
+            data = [data]
+        df = pd.DataFrame(data)
+        return df
+
     def predict(self, data: Union[Dict, List]):
-        if not self.is_model_loaded(): raise Exception("No model loaded")
-        return ["Low"], [0.99], ["hash"]
+        """Executa a predicao real usando o modelo e preprocessador carregados."""
+        try:
+            if not self.is_model_loaded():
+                raise PredictionError("No model loaded")
+            
+            df = self.validate_input(data)
+            
+            # Se houver preprocessador (ColumnTransformer/Pipeline), aplica
+            if self.preprocessor:
+                X = self.preprocessor.transform(df)
+            else:
+                X = df
+
+            # Predicao
+            predictions = self.model.predict(X)
+            probabilities = self.model.predict_proba(X)
+            
+            # Processa resultados
+            results = []
+            probs = []
+            for i, pred in enumerate(predictions):
+                results.append(self.classes[int(pred)] if self.classes else str(pred))
+                probs.append(float(np.max(probabilities[i])))
+            
+            # Gera um log/tracking ID
+            track_id = hashlib.md5(str(datetime.now()).encode()).hexdigest()[:8]
+            
+            return results, probs, track_id
+        except Exception as e:
+            logger.error("Prediction failed", error=str(e))
+            raise PredictionError(f"Prediction failed: {str(e)}")
 
 model_service = ModelService()
