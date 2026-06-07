@@ -1,0 +1,13 @@
+# Q-OPSEC Automated Requirements
+dataclasses
+fastapi
+matplotlib
+numpy
+pandas
+pydantic
+requests
+scipy
+seaborn
+statistics
+traceback
+uvicorn
