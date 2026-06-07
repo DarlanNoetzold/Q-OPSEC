@@ -36,11 +36,8 @@ class ModelService:
         self.loaded_at: Optional[datetime] = None
 
     async def load_latest_model(self, force: bool = False) -> bool:
-        """
-        Carrega o modelo mais recente do registry pesquisando dinamicamente as pastas da TAG.
-        """
+        """Carrega o modelo mais recente pesquisando dinamicamente."""
         try:
-            # 1. Localiza a raiz do projeto e o latest.json
             current_file_path = Path(__file__).resolve()
             project_root = current_file_path.parents[3] 
             
@@ -51,12 +48,11 @@ class ModelService:
             
             latest_file = next((p for p in possible_latest if p.exists()), None)
             if not latest_file:
-                raise ModelLoadError(f"latest.json não encontrado.")
+                raise ModelLoadError("latest.json nao encontrado.")
 
             with open(latest_file, "r", encoding="utf-8") as f:
                 model_info = json.load(f)
 
-            # 2. Localiza o artefato (.pkl) dinamicamente pela TAG
             tag = model_info.get("tag") or model_info.get("version")
             registry_path = latest_file.parent
             
@@ -71,10 +67,8 @@ class ModelService:
                                 break
                     if model_path: break
 
-            if not model_path or not model_path.exists():
-                raise ModelLoadError(f"Artefato .pkl não encontrado.")
+            if not model_path: raise ModelLoadError("Artefato .pkl nao encontrado.")
 
-            # 3. Carregamento
             with open(model_path, "rb") as f:
                 artifact = pickle.load(f)
 
@@ -85,66 +79,67 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
+            # Tenta extrair colunas do proprio modelo (Sklearn Pipeline)
+            try:
+                if hasattr(self.model, "feature_names_in_"):
+                    self.required_columns = self.model.feature_names_in_.tolist()
+                elif hasattr(self.model, "steps") and hasattr(self.model.steps[0][1], "feature_names_in_"):
+                    self.required_columns = self.model.steps[0][1].feature_names_in_.tolist()
+            except:
+                pass
+
+            if not self.required_columns:
+                self.required_columns = list(model_info.get("required_columns") or [])
+            
             self.classes = [str(c) for c in (model_info.get("classes") or [])]
-            self.required_columns = list(model_info.get("required_columns") or [])
             self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
             self.model_version = tag
             self.loaded_at = datetime.utcnow()
 
-            logger.info("Model loaded successfully", tag=tag)
+            logger.info("Model loaded successfully", tag=tag, cols=len(self.required_columns))
             return True
-
         except Exception as e:
             logger.error("Failed to load model", error=str(e))
-            raise ModelLoadError(f"Failed to load model: {str(e)}")
+            raise ModelLoadError(str(e))
 
     def is_model_loaded(self) -> bool:
         return self.model is not None
 
-    def get_model_info(self) -> Optional[Dict[str, Any]]:
-        if not self.is_model_loaded(): return None
-        return {
-            "model_name": self.model_name,
-            "version": self.model_version,
-            "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None
-        }
-
     def validate_input(self, data: Union[Dict, List]) -> pd.DataFrame:
-        """Valida e prepara os dados de entrada para predicao."""
         if isinstance(data, dict):
             data = [data]
         df = pd.DataFrame(data)
+        
+        # O Scikit-learn valida colunas exatas.
+        if self.required_columns:
+            for col in self.required_columns:
+                if col not in df.columns:
+                    df[col] = 0.0
+            df = df[self.required_columns]
+            
         return df
 
     def predict(self, data: Union[Dict, List]):
-        """Executa a predicao real usando o modelo e preprocessador carregados."""
         try:
             if not self.is_model_loaded():
                 raise PredictionError("No model loaded")
             
             df = self.validate_input(data)
             
-            # Se houver preprocessador (ColumnTransformer/Pipeline), aplica
-            if self.preprocessor is not None:
-                X = self.preprocessor.transform(df)
-            else:
-                X = df
-
-            # Predicao
-            predictions = self.model.predict(X)
-            probabilities = self.model.predict_proba(X)
+            # Predicao (self.model e o Pipeline completo)
+            predictions = self.model.predict(df)
+            probabilities = self.model.predict_proba(df)
             
-            # Processa resultados
             results = []
             probs = []
             for i, pred in enumerate(predictions):
-                results.append(self.classes[int(pred)] if self.classes else str(pred))
+                label = self.classes[int(pred)] if (self.classes and int(pred) < len(self.classes)) else str(pred)
+                results.append(label)
                 probs.append(float(np.max(probabilities[i])))
             
-            # Gera um log/tracking ID
             track_id = hashlib.md5(str(datetime.now()).encode()).hexdigest()[:8]
-            
             return results, probs, track_id
+            
         except Exception as e:
             logger.error("Prediction failed", error=str(e))
             raise PredictionError(f"Prediction failed: {str(e)}")
