@@ -1,0 +1,6 @@
+# Q-OPSEC Automated Requirements
+cryptography
+fastapi
+httpx
+pydantic
+uvicorn
