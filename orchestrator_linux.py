@@ -1006,7 +1006,7 @@ async def flow_status(request_id: str):
     """Show request flow status through pipeline"""
     pipeline = [
         {"service": "interceptor_api", "endpoint": "/intercept", "port": 8080},
-        {"service": "context_api", "endpoint": "/context/enrich", "port": 8086},
+        {"service": "context_api", "endpoint": "/context/enrich", "port": 65534},
         {"service": "risk_service", "endpoint": "/assess", "port": 8082},
         {"service": "confiability_service", "endpoint": "/classify", "port": 8083},
         {"service": "classification_agent", "endpoint": "/api/v1/predict", "port": 8088},
@@ -1343,7 +1343,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     # Order: Full Q-OPSEC discovery/risk/classification pipeline
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
-        {"name": "context_api", "port": 8086, "endpoint": "/context/enrich", "method": "POST"},
+        {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
         {"name": "risk_service", "port": 8082, "endpoint": "/assess", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
