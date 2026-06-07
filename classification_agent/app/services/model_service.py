@@ -125,7 +125,7 @@ class ModelService:
             df = self.validate_input(data)
             
             # Se houver preprocessador (ColumnTransformer/Pipeline), aplica
-            if self.preprocessor:
+            if self.preprocessor is not None:
                 X = self.preprocessor.transform(df)
             else:
                 X = df
