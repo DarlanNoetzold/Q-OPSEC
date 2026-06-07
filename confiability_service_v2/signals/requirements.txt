@@ -1,0 +1,7 @@
+# Q-OPSEC Automated Requirements
+config
+core
+signals
+storage
+strategies
+utils
