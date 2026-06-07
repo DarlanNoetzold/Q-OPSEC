@@ -1,0 +1,8 @@
+# Q-OPSEC Automated Requirements
+aggregation
+config
+core
+dataclasses
+signals
+storage
+utils
