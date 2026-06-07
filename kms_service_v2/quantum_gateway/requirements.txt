@@ -1,0 +1,4 @@
+# Q-OPSEC Automated Requirements
+dataclasses
+numpy
+quantum_gateway
