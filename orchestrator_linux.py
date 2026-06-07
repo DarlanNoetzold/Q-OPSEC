@@ -3,7 +3,9 @@ Q-OPSEC Orchestrator - Linux Version with Docker Support
 Manages microservices lifecycle (processes + containers), health checks, logs and metrics
 """
 import asyncio
+from datetime import datetime
 import json
+import base64
 import os
 import signal
 import sys
@@ -1399,6 +1401,16 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             # Normalização para o Validation Send API (formato Java expectantes)
                             if name == "context_api":
+                                # Coleta métricas e detalhes do fluxo para o payload final
+                                flow_metrics = {
+                                    "total_steps": len(pipeline),
+                                    "timestamp": datetime.now().isoformat(),
+                                    "negotiated_algorithm": current_data.get("selected_algorithm") or current_data.get("algorithm"),
+                                    "pipeline_trace": [
+                                        {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                        for r in results
+                                    ]
+                                }
                                 resp_json["requestId"] = current_data.get("request_id")
                                 resp_json["sessionId"] = current_data.get("session_id")
                                 resp_json["selectedAlgorithm"] = current_data.get("selected_algorithm") or current_data.get("algorithm")
@@ -1407,7 +1419,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
                                 resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
                                 resp_json["sourceId"] = current_data.get("source")
-                                # Origin URL é obrigatório no Java
+                                # Injeta métricas no campo de metadados se existir ou no final
+                                resp_json["flowMetrics"] = flow_metrics
                                 resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
                             current_data.update(resp_json)
