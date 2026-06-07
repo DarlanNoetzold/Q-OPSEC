@@ -527,13 +527,12 @@ async def predict(
 
         results: List[PredictionResult] = []
         for i, label in enumerate(labels):
-            probs = probabilities[i] if probabilities and i < len(probabilities) else None
-            conf = probs.get(label) if probs else None
+            conf = probabilities[i] if probabilities and i < len(probabilities) else None
             results.append(
                 PredictionResult(
                     label=str(label),
                     confidence=conf,
-                    probabilities=probs,
+                    probabilities=None,
                     input_hash=input_hashes[i] if i < len(input_hashes) else None,
                     rl_decision=rl_decisions[i],
                 )
