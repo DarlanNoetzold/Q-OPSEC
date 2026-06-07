@@ -1,0 +1,17 @@
+# Q-OPSEC Automated Requirements
+beanie
+contextlib
+fastapi
+motor
+numpy
+pandas
+passlib
+pydantic
+pydantic-settings
+python-jose
+requests
+scikit-learn
+secrets
+starlette
+structlog
+uvicorn
