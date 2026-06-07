@@ -1331,7 +1331,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
         {"name": "kms_service", "port": 8002, "endpoint": "/kms/create_key", "method": "POST"},
-        {"name": "crypto_module", "port": 8004, "endpoint": "/api/v1/encrypt", "method": "POST"},
+        {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
         {"name": "validation_send_api", "port": 8005, "endpoint": "/validation/send", "method": "POST"},
     ]
@@ -1379,6 +1379,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
                             if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
                                 resp_json["algorithm"] = resp_json["selected_algorithm"]
+                            
+                            # Normalização para o Crypto: forçar fetch_from_interceptor=False e converter dados
+                            if name == "kms_service":
+                                resp_json["fetch_from_interceptor"] = False
+                                if "data" in current_data and isinstance(current_data["data"], dict):
+                                    import base64
+                                    msg_str = json.dumps(current_data["data"])
+                                    resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
+                            
                             current_data.update(resp_json)
                     except:
                         step_result["response"] = response.text[:500]
