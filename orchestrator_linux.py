@@ -1150,8 +1150,10 @@ async def update_service_config(name: str, config: ServiceConfigUpdate = Body(..
 def get_api_key_for_service(svc):
     """Extract API key from service config"""
     if "env" in svc:
-        return svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
-    return None
+        key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
+        if key: return key
+    # Fallback para o valor padrão do projeto Q-OPSEC
+    return "your-api-key-for-authentication"
 
 async def proxy_get(url, headers=None):
     """Proxy GET request"""
