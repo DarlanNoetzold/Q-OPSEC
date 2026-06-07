@@ -1,0 +1,4 @@
+# Q-OPSEC Automated Requirements
+cryptography
+numpy
+quantum_gateway
