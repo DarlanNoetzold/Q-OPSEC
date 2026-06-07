@@ -1388,6 +1388,19 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
                             
+                            # Normalização para o Validation Send API (formato Java expectantes)
+                            if name == "context_api":
+                                resp_json["requestId"] = current_data.get("request_id")
+                                resp_json["sessionId"] = current_data.get("session_id")
+                                resp_json["selectedAlgorithm"] = current_data.get("selected_algorithm") or current_data.get("algorithm")
+                                resp_json["cryptoNonceB64"] = current_data.get("nonce_b64")
+                                resp_json["cryptoCiphertextB64"] = current_data.get("ciphertext_b64")
+                                resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
+                                resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
+                                resp_json["sourceId"] = current_data.get("source")
+                                # Origin URL é obrigatório no Java
+                                resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
+                            
                             current_data.update(resp_json)
                     except:
                         step_result["response"] = response.text[:500]
