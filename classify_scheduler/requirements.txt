@@ -1,0 +1,8 @@
+# Q-OPSEC Automated Requirements
+apscheduler
+dataclasses
+matplotlib
+numpy
+pandas
+scikit-learn
+seaborn
