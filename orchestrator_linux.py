@@ -1331,7 +1331,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
         {"name": "kms_service", "port": 8002, "endpoint": "/kms/create_key", "method": "POST"},
-        {"name": "crypto_module", "port": 8004, "endpoint": "/crypto/encrypt", "method": "POST"},
+        {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
         {"name": "validation_send_api", "port": 8005, "endpoint": "/validation/send", "method": "POST"},
     ]
@@ -1342,7 +1342,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             name = step["name"]
-            url = f"http://127.0.0.1:{step['port']}{step['endpoint']}"
+            # Usando o IP externo para garantir que os serviços se comuniquem corretamente no ambiente remoto
+            host_ip = "192.168.18.18"
+            url = f"http://{host_ip}:{step['port']}{step['endpoint']}"
             
             step_result = {
                 "service": name,
