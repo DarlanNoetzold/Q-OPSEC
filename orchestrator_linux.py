@@ -1007,7 +1007,7 @@ async def flow_status(request_id: str):
     pipeline = [
         {"service": "interceptor_api", "endpoint": "/intercept", "port": 8080},
         {"service": "context_api", "endpoint": "/context/enrich", "port": 65534},
-        {"service": "risk_service", "endpoint": "/assess", "port": 8082},
+        {"service": "risk_service", "endpoint": "/assess", "port": 8000},
         {"service": "confiability_service", "endpoint": "/classify", "port": 8083},
         {"service": "classification_agent", "endpoint": "/api/v1/predict", "port": 8088},
         {"service": "rl_engine", "endpoint": "/act", "port": 9009},
@@ -1344,7 +1344,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
-        {"name": "risk_service", "port": 8082, "endpoint": "/assess", "method": "POST"},
+        {"name": "risk_service", "port": 8000, "endpoint": "/assess", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
         {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
