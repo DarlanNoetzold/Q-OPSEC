@@ -1,0 +1,10 @@
+# Q-OPSEC Automated Requirements
+Flask
+api
+bootstrap_v2
+core
+dataclasses
+flask_smorest
+marshmallow
+pydantic
+traceback
