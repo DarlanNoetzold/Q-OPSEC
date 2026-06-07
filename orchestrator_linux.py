@@ -1370,11 +1370,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 
                 if response.status_code == 200:
                     step_result["status"] = "success"
-                    # Update data for next step if service returns new state
                     try:
                         resp_json = response.json()
                         step_result["response"] = resp_json
                         if isinstance(resp_json, dict):
+                            # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
+                            if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
+                                resp_json["algorithm"] = resp_json["selected_algorithm"]
                             current_data.update(resp_json)
                     except:
                         step_result["response"] = response.text[:500]
