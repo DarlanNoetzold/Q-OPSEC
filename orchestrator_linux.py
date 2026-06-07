@@ -1007,7 +1007,7 @@ async def flow_status(request_id: str):
     pipeline = [
         {"service": "interceptor_api", "endpoint": "/intercept", "port": 8080},
         {"service": "context_api", "endpoint": "/context/enrich", "port": 65534},
-        {"service": "risk_service", "endpoint": "/assess", "port": 8000},
+        {"service": "risk_service", "endpoint": "/predict/", "port": 8000},
         {"service": "confiability_service", "endpoint": "/classify", "port": 8083},
         {"service": "classification_agent", "endpoint": "/api/v1/predict", "port": 8088},
         {"service": "rl_engine", "endpoint": "/act", "port": 9009},
@@ -1344,7 +1344,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
-        {"name": "risk_service", "port": 8000, "endpoint": "/assess", "method": "POST"},
+        {"name": "risk_service", "port": 8000, "endpoint": "/predict/", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
         {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
@@ -1397,6 +1397,17 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     risk = current_data.get("risk_score")
                     conf = current_data.get("conf_score")
                     
+                    # Se o risk_service retornou o formato do V2 (um dicionário com predições)
+                    if isinstance(risk, dict):
+                         # Tenta pegar a predição média do Risk Service V2
+                         predictions = risk.get("predictions", {})
+                         if predictions:
+                             # Pega o primeiro valor de predição disponível (ex: 'random_forest')
+                             first_model_pred = list(predictions.values())[0]
+                             risk = first_model_pred.get("prediction", 0.5)
+                         else:
+                             risk = 0.5
+                    
                     if risk is None: risk = 0.5
                     if conf is None: conf = 0.5
                     
@@ -1405,6 +1416,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     
                     if not payload.get("security_level"):
                         payload["security_level"] = current_data.get("security_level") or "moderate"
+                
+                # Normalização para Risk Service V2
+                if name == "risk_service":
+                    payload = {
+                        "single": {
+                            "features": current_data.get("data", {})
+                        }
+                    }
                 
                 # Add Authentication Headers for Classification Agent
                 headers = {}
