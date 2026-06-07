@@ -1340,14 +1340,17 @@ async def callback(request: Request):
 @APP.post("/run-pipeline")
 async def run_pipeline(data: Dict[str, Any] = Body(...)):
     """Run sequential Q-OPSEC middleware pipeline"""
-    # Order: Handshake -> KMS (create_key) -> Crypto (encrypt) -> Context (enrich) -> Validation (send)
+    # Order: Full Q-OPSEC discovery/risk/classification pipeline
     pipeline = [
-        {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
+        {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
+        {"name": "context_api", "port": 8081, "endpoint": "/context/assemble", "method": "POST"},
+        {"name": "risk_service", "port": 8082, "endpoint": "/assess", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
+        {"name": "handshake_negotiator", "port": 8001, "endpoint": "/handshake", "method": "POST"},
         {"name": "kms_service", "port": 8002, "endpoint": "/kms/create_key", "method": "POST"},
+        {"name": "key_destination_engine", "port": 8003, "endpoint": "/deliver", "method": "POST"},
         {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
-        {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
         {"name": "validation_send_api", "port": 8005, "endpoint": "/validation/send", "method": "POST"},
     ]
     
