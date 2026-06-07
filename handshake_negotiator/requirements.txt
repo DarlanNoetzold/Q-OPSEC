@@ -1,0 +1,7 @@
+# Q-OPSEC Automated Requirements
+PyYAML
+fastapi
+httpx
+pydantic
+urllib
+uvicorn
