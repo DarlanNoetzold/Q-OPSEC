@@ -15,7 +15,7 @@ import shutil
 import httpx
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException, Body, Query
+from fastapi import FastAPI, HTTPException, Body, Query, Request
 from pydantic import BaseModel, Field
 import subprocess
 
@@ -1323,6 +1323,15 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
     return await proxy_get(url, headers=headers)
+
+@APP.post("/callback")
+async def callback(request: Request):
+    """Endpoint de destino final para o pipeline Q-OPSEC."""
+    try:
+        data = await request.json()
+        return {"status": "success", "message": "Data successfully received at origin", "received_data": data}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @APP.post("/run-pipeline")
 async def run_pipeline(data: Dict[str, Any] = Body(...)):
