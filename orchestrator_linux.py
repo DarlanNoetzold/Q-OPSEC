@@ -1569,7 +1569,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 current_data["risk_v2_details"] = resp_json
                                 if "results" in resp_json:
                                     current_data["results"] = resp_json["results"]
-                                    current_data["model_version"] = resp_json.get("model_version")
+                                    current_data["version"] = resp_json.get("version")
+                            
+                            if name == "classification_agent":
+                                if "results" in resp_json:
+                                    current_data["classification_results"] = resp_json["results"]
+                                    # Extrai o label do primeiro resultado para o risk_label do KDE
+                                    if len(resp_json["results"]) > 0:
+                                        current_data["risk_label"] = resp_json["results"][0].get("label")
                             
                             # Injeção automática de URL de destino para o KDE
                             if "destination" not in current_data or current_data["destination"] == "server-backend":
@@ -1616,7 +1623,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     except Exception as e:
                          # Log do erro para depuração interna sem quebrar o 200
                          print(f"Erro ao processar JSON no passo {name}: {str(e)}")
-                         step_result["response"] = response.text[:500]
+                         step_result["response"] = response.text[:500] if response.text else "Empty Response"
                 else:
                     step_result["status"] = "error"
                     step_result["error"] = response.text[:500]
