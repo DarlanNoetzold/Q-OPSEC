@@ -6,12 +6,12 @@ paths:
   risk_registry: ./risk_service/model_registry
 services:
   classification_agent:
-    base_url: http://127.0.0.1:8088
+    base_url: http://192.168.18.18:8088
     cwd: ./classification_agent
     env:
       CLASSIFY_API_KEY: your-api-key-for-authentication
-    health: http://127.0.0.1:8088/api/v1/health
-    log_file: ./logs/classification_agent.log
+    health: http://192.168.18.18:8088/api/v1/health
+
     metrics: http://127.0.0.1:9090/metrics
     pid_file: ./logs/classification_agent.pid
     port: 8088
@@ -37,7 +37,7 @@ services:
     - ./model_registry
     type: script
   confiability_service:
-    base_url: http://127.0.0.1:8083
+    base_url: http://192.168.18.18:8083
     cwd: ./confiability_service_v2
     env: {}
     health: http://127.0.0.1:8083/confidentiality/health
@@ -49,7 +49,7 @@ services:
     - app.py
     type: fastapi
   context_api:
-    base_url: http://127.0.0.1:65534
+    base_url: http://192.168.18.18:65534
     cwd: ./context_api
     env: {}
     health: http://127.0.0.1:65534/actuator/health
@@ -62,7 +62,7 @@ services:
     - -DskipTests
     type: spring
   crypto_module:
-    base_url: http://127.0.0.1:8004
+    base_url: http://192.168.18.18:8004
     cwd: ./crypto_module
     env: {}
     health: http://127.0.0.1:8004/health
@@ -88,7 +88,7 @@ services:
     - main.py
     type: script
   handshake_negotiator:
-    base_url: http://127.0.0.1:8001
+    base_url: http://192.168.18.18:8001
     cwd: ./handshake_negotiator
     env: {}
     health: http://127.0.0.1:8001/docs
@@ -135,7 +135,7 @@ services:
     - '8003'
     type: fastapi
   kms_service:
-    base_url: http://127.0.0.1:8002
+    base_url: http://192.168.18.18:8002
     cwd: ./kms_service_v2
     env: {}
     health: http://127.0.0.1:8002/health
@@ -168,7 +168,7 @@ services:
     - '8000'
     type: fastapi
   rl_engine:
-    base_url: http://127.0.0.1:9009
+    base_url: http://192.168.18.18:9009
     cwd: ./rl_engine
     env: {}
     health: http://127.0.0.1:9009/docs
@@ -184,7 +184,7 @@ services:
     - '9009'
     type: fastapi
   validation_send_api:
-    base_url: http://127.0.0.1:8005
+    base_url: http://192.168.18.18:8005
     cwd: ./validation_send_api
     env: {}
     health: http://127.0.0.1:8005/actuator/health

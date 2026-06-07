@@ -45,10 +45,25 @@ class ModelService:
         Carrega o modelo mais recente do registry.
         PRIORIZA as classes do registry (latest.json/metrics.json) sobre model.classes_
         """
-        latest_file = Path(settings.ml_registry_dir) / settings.ml_registry_latest_file
         try:
+            print(f"DEBUG: Registry DIR: {settings.ml_registry_dir}")
+            print(f"DEBUG: Latest File: {settings.ml_registry_latest_file}")
+            
+            # Forçar path absoluto no Linux
+            registry_dir = settings.ml_registry_dir
+            if "C:\\" in registry_dir:
+                registry_dir = registry_dir.replace("C:\\Projetos\\", "/mnt/c/Projetos/").replace("\\", "/")
+            
+            latest_file = Path(registry_dir) / settings.ml_registry_latest_file
+            print(f"DEBUG: Final Path: {latest_file}")
+            
             if not latest_file.exists():
-                raise ModelLoadError(f"Latest model file not found: {latest_file}")
+                # Tenta path relativo como fallback
+                alt_path = Path("/mnt/c/Projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json")
+                if alt_path.exists():
+                    latest_file = alt_path
+                else:
+                    raise ModelLoadError(f"Latest model file not found: {latest_file} (tried alt: {alt_path})")
 
             with open(latest_file, "r", encoding="utf-8") as f:
                 model_info = json.load(f)
