@@ -1,0 +1,7 @@
+# Q-OPSEC Automated Requirements
+dataclasses
+dateutil
+faker
+numpy
+pandas
+src
