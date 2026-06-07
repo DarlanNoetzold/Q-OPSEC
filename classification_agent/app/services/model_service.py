@@ -16,16 +16,12 @@ from ..models.database import ModelRecord, ModelStatus
 logger = structlog.get_logger()
 
 class ModelLoadError(Exception):
-    """Erro de carregamento de modelo."""
     pass
 
 class PredictionError(Exception):
-    """Erro de predição."""
     pass
 
 class ModelService:
-    """Serviço para gerenciar o modelo ML carregado na API."""
-
     def __init__(self):
         self.model = None
         self.preprocessor = None
@@ -36,7 +32,6 @@ class ModelService:
         self.loaded_at: Optional[datetime] = None
 
     async def load_latest_model(self, force: bool = False) -> bool:
-        """Carrega o modelo mais recente pesquisando dinamicamente."""
         try:
             current_file_path = Path(__file__).resolve()
             project_root = current_file_path.parents[3] 
@@ -79,7 +74,6 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
-            # Tenta extrair colunas do proprio modelo (Sklearn Pipeline)
             try:
                 if hasattr(self.model, "feature_names_in_"):
                     self.required_columns = self.model.feature_names_in_.tolist()
@@ -110,14 +104,14 @@ class ModelService:
             data = [data]
         df = pd.DataFrame(data)
         
-        # O Scikit-learn valida colunas exatas.
         if self.required_columns:
             for col in self.required_columns:
                 if col not in df.columns:
-                    df[col] = 0.0
+                    df[col] = "unknown" if "geo" in col or "device" in col or "policy" in col else 0.0
+            
             df = df[self.required_columns]
             
-        return df
+        return df.fillna("unknown")
 
     def predict(self, data: Union[Dict, List]):
         try:
@@ -126,7 +120,6 @@ class ModelService:
             
             df = self.validate_input(data)
             
-            # Predicao (self.model e o Pipeline completo)
             predictions = self.model.predict(df)
             probabilities = self.model.predict_proba(df)
             
