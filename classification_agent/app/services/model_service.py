@@ -80,14 +80,25 @@ class ModelService:
             
             # Ajuste de path para o artefato .pkl também
             if model_path:
-                if ":\\" in model_path or "\\" in model_path:
-                    # Se for Windows-style, tenta converter para WSL/Linux-style
-                    linux_path = model_path.replace("C:\\Projetos\\", "/mnt/c/Projetos/").replace("\\", "/")
+                # Normaliza barras invertidas para barras normais
+                model_path = model_path.replace("\\", "/")
+                
+                # Se contiver o padrão de driver do Windows, tenta converter para mount do WSL
+                if "C:/Projetos/" in model_path:
+                    linux_path = model_path.replace("C:/Projetos/", "/mnt/c/Projetos/")
+                    if os.path.exists(linux_path):
+                        model_path = linux_path
+                
+                # Segunda tentativa: se for um path absoluto do Windows mas não capturado acima
+                elif ":" in model_path and model_path.startswith("/"): # Caso de caminhos mistos
+                    pass 
+                elif model_path.startswith("C:/") or model_path.startswith("c:/"):
+                    linux_path = "/mnt/" + model_path[0].lower() + model_path[2:]
                     if os.path.exists(linux_path):
                         model_path = linux_path
                 
             if not model_path or not os.path.exists(model_path):
-                raise ModelLoadError(f"Model artifact file not found: {model_path}")
+                raise ModelLoadError(f"Model artifact file not found. Path transformado: {model_path}")
 
             new_name = model_info.get("saved_model_name") or model_info.get("model_name")
             new_version = model_info.get("tag") or model_info.get("version")
