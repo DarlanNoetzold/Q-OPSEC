@@ -1416,6 +1416,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "metadata": {
                             "original_destination": current_data.get("destination"),
                             "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
+                            "risk_score": current_data.get("risk_score"),
+                            "security_level": current_data.get("security_level"),
+                            "model_version": current_data.get("version") or "v20260107_202018",
+                            "pipeline_trace": [
+                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                for r in results
+                            ],
                             "pipeline_sync": True
                         }
                     }
@@ -1524,6 +1531,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "expires_at": int(current_data.get("expires_at") or 0),
                         "metadata": {
                             "source_ip": "192.168.18.18",
+                            "risk_score": current_data.get("risk_score"),
+                            "security_level": current_data.get("security_level"),
+                            "model_version": current_data.get("version") or "v20260107_202018",
+                            "pipeline_trace": [
+                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                for r in results
+                            ],
                             "pipeline_sync": True
                         }
                     }
