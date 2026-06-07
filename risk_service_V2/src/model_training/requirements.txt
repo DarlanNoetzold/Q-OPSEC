@@ -1,0 +1,13 @@
+# Q-OPSEC Automated Requirements
+catboost
+imblearn
+joblib
+lightgbm
+matplotlib
+numpy
+pandas
+scikit-learn
+seaborn
+src
+torch
+xgboost
