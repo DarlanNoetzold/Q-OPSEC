@@ -1410,6 +1410,10 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         resp_json = response.json()
                         step_result["response"] = resp_json
                         if isinstance(resp_json, dict):
+                            # Injeção automática de URL de destino para o KDE
+                            if "destination" not in current_data or current_data["destination"] == "server-backend":
+                                current_data["destination"] = "http://192.168.18.18:8090/callback"
+                            
                             # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
                             if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
                                 resp_json["algorithm"] = resp_json["selected_algorithm"]
