@@ -485,7 +485,15 @@
       const [pipelineRequestId, setPipelineRequestId] = useState('req-phd-' + Math.floor(Math.random()*1000));
       const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
       const [pipelineOriginUrl, setPipelineOriginUrl] = useState('http://192.168.18.18:8090/callback');
-      const [proposedAlgs, setProposedAlgs] = useState(['AES256_GCM']);
+      const [proposedAlgs, setProposedAlgs] = useState(['Kyber768', 'AES256_GCM']);
+      
+      const ALL_ALGS = {
+        classical: ['AES256_GCM', 'AES128_GCM', 'ChaCha20_Poly1305', 'RSA2048', 'RSA4096', 'ECDH_P256', 'ECDH_P384', 'ECDH_P521', '3DES', 'Blowfish'],
+        pqc_kem: ['Kyber512', 'Kyber768', 'Kyber1024', 'FrodoKEM-640-AES', 'FrodoKEM-976-AES', 'FrodoKEM-1344-AES', 'BIKE-L1', 'BIKE-L3', 'BIKE-L5', 'HQC-128', 'HQC-192', 'HQC-256', 'Saber', 'LightSaber', 'FireSaber'],
+        pqc_sig: ['Dilithium2', 'Dilithium3', 'Dilithium5', 'Falcon-512', 'Falcon-1024', 'SPHINCS+-SHA256-128s-simple'],
+        qkd: ['QKD_BB84', 'QKD_E91', 'QKD_MDI', 'QKD_CV', 'QKD_SARG04', 'QKD_DecoyState', 'QKD_DI']
+      };
+
       const [pipelineData, setPipelineData] = useState('{\n  "message": "Secure PhD Data Transmission",\n  "researcher": "Darlan Noetzold"\n}');
       const [pipelinePayload, setPipelinePayload] = useState('{}');
 
@@ -956,13 +964,37 @@
 
                     <div style={{marginBottom: '1rem'}}>
                       <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Algorithms to Propose</label>
-                      <div style={{display: 'flex', gap: '1rem', background: '#0f172a', padding: '10px', borderRadius: 6, border: '1px solid #1e293b'}}>
-                        <label style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', cursor: 'pointer'}}>
-                          <input type="checkbox" checked={proposedAlgs.includes('AES256_GCM')} onChange={() => setProposedAlgs(prev => prev.includes('AES256_GCM') ? prev.filter(a => a !== 'AES256_GCM') : [...prev, 'AES256_GCM'])} /> AES-256-GCM
-                        </label>
-                        <label style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', cursor: 'pointer'}}>
-                          <input type="checkbox" checked={proposedAlgs.includes('CHACHA20_POLY1305')} onChange={() => setProposedAlgs(prev => prev.includes('CHACHA20_POLY1305') ? prev.filter(a => a !== 'CHACHA20_POLY1305') : [...prev, 'CHACHA20_POLY1305'])} /> ChaCha20
-                        </label>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', background: '#0f172a', padding: '12px', borderRadius: 6, border: '1px solid #1e293b'}}>
+                        {Object.entries(ALL_ALGS).map(([cat, algs]) => (
+                          <div key={cat} style={{marginBottom: '0.5rem'}}>
+                            <div style={{fontSize: '0.65rem', fontWeight: 'bold', color: '#6366f1', marginBottom: '4px', textTransform: 'uppercase'}}>{cat.replace('_', ' ')}</div>
+                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px'}}>
+                              {algs.map(alg => (
+                                <label key={alg} style={{display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', cursor: 'pointer', padding: '2px 4px', borderRadius: 4, background: proposedAlgs.includes(alg) ? '#1e293b' : 'transparent'}}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={proposedAlgs.includes(alg)} 
+                                    onChange={() => setProposedAlgs(prev => prev.includes(alg) ? prev.filter(a => a !== alg) : [...prev, alg])} 
+                                  /> 
+                                  <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={alg}>{alg}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{marginTop: '8px', display: 'flex', gap: '8px'}}>
+                        <button className="btn-sm" style={{fontSize: '0.65rem', padding: '2px 8px'}} onClick={() => setProposedAlgs(['Kyber768', 'AES256_GCM'])}>Default Q-OPSEC</button>
+                        <button className="btn-sm" style={{fontSize: '0.65rem', padding: '2px 8px'}} onClick={() => setProposedAlgs([...ALL_ALGS.classical, ...ALL_ALGS.pqc_kem, ...ALL_ALGS.qkd])}>Select All</button>
+                      </div>
+                    </div>
+
+                    <div style={{marginBottom: '1rem'}}>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Selected Set Preview</label>
+                      <div style={{fontSize: '0.7rem', color: '#6ee7b7', background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', minHeight: '34px'}}>
+                        {proposedAlgs.length > 0 
+                          ? proposedAlgs.join(', ') 
+                          : 'No algorithms selected - Request will use system default'}
                       </div>
                     </div>
 
