@@ -1431,9 +1431,47 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     payload = {
                         "single": {
                             "features": current_data.get("data", {})
-                        }
+                        },
+                        "models": ["random_forest", "xgboost"],
+                        "version": "1.0.0"
                     }
                 
+                # Normalização para Confiability Service
+                if name == "confiability_service":
+                    payload = {
+                        "request_id": current_data.get("request_id"),
+                        "data": current_data.get("data", {}),
+                        "context": current_data.get("source", {}),
+                        "classification_level": current_data.get("confidentiality", {}).get("classification", "internal")
+                    }
+
+                # Normalização para KMS (Key Management Service)
+                if name == "kms":
+                    payload = {
+                        "request_id": current_data.get("request_id"),
+                        "session_id": current_data.get("session_id"),
+                        "source": payload.get("source", "unknown"),
+                        "destination": payload.get("destination", "unknown"),
+                        "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
+                        "security_level": current_data.get("security_level") or "moderate"
+                    }
+
+                # Normalização para KDE (Key Destination Engine)
+                if name == "key_destination_engine":
+                    payload = {
+                        "session_id": current_data.get("session_id") or "null-session",
+                        "request_id": current_data.get("request_id"),
+                        "destination": payload.get("destination") or "http://192.168.18.18:8005/validate",
+                        "delivery_method": "API",
+                        "key_material": current_data.get("key_material") or "",
+                        "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
+                        "expires_at": int(current_data.get("expires_at") or 0),
+                        "metadata": {
+                            "source_ip": "192.168.18.18",
+                            "pipeline_sync": True
+                        }
+                    }
+
                 # Add Authentication Headers for Classification Agent
                 headers = {}
                 if name == "classification_agent":
