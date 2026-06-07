@@ -1,0 +1,17 @@
+# Q-OPSEC Automated Requirements
+SQLAlchemy
+cryptography
+ctypes
+fastapi
+importlib
+oqs
+platform
+pprint
+pydantic
+redis
+ssl
+subprocess
+tempfile
+urllib
+uvicorn
+warnings
