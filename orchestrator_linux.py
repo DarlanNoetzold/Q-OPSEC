@@ -1393,6 +1393,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 
                 # Injeção de security_level para o RL Engine
                 if name == "rl_engine":
+                    # Normalização de source/destination para string (exigência do RL Engine Pydantic schema)
+                    src = current_data.get("source")
+                    dst = current_data.get("destination")
+                    
+                    if isinstance(src, dict):
+                        payload["source"] = src.get("ip") or "unknown"
+                    if isinstance(dst, dict):
+                        payload["destination"] = dst.get("ip") or "unknown"
+
                     # Força valores padrão ANTES de injetar no payload para evitar NoneType em cálculos internos
                     risk = current_data.get("risk_score")
                     conf = current_data.get("conf_score")
