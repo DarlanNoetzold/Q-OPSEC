@@ -1,0 +1,4 @@
+# Q-OPSEC Automated Requirements
+SQLAlchemy
+pandas
+psycopg2
