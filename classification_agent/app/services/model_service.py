@@ -19,10 +19,6 @@ class ModelLoadError(Exception):
     """Erro de carregamento de modelo."""
     pass
 
-class PredictionError(Exception):
-    """Erro de predição."""
-    pass
-
 class ModelService:
     """Serviço para gerenciar o modelo ML carregado na API."""
 
@@ -37,72 +33,49 @@ class ModelService:
 
     async def load_latest_model(self, force: bool = False) -> bool:
         """
-        Carrega o modelo mais recente do registry.
-        Suporta ambientes mistos (Windows/Linux/WSL) e caminhos Linux fixos (Umbrel).
+        Carrega o modelo mais recente do registry pesquisando dinamicamente as pastas da TAG.
         """
         try:
-            # 1. Tenta descobrir a raiz do projeto de forma dinâmica
-            # Assume que estamos em classification_agent/app/services/model_service.py
+            # 1. Localiza a raiz do projeto e o latest.json
             current_file_path = Path(__file__).resolve()
-            project_root = current_file_path.parents[3] # Sobe ate Q-OPSEC
+            project_root = current_file_path.parents[3] 
             
-            # Lista de caminhos possíveis para o latest.json baseados no ambiente do usuário
-            possible_latest_paths = [
+            possible_latest = [
                 project_root / "classify_scheduler" / "model_registry" / "latest.json",
-                Path("/home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json"),
-                Path("/mnt/c/Projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json"),
-                Path(settings.ml_registry_dir) / settings.ml_registry_latest_file
+                Path("/home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json")
             ]
             
-            latest_file = None
-            for p in possible_latest_paths:
-                if p.exists():
-                    latest_file = p
-                    break
-            
+            latest_file = next((p for p in possible_latest if p.exists()), None)
             if not latest_file:
-                raise ModelLoadError(f"Arquivo latest.json não encontrado. Tentativas: {[str(p) for p in possible_latest_paths]}")
-            
+                raise ModelLoadError(f"latest.json não encontrado. Verifique se o caminho {project_root} está correto.")
+
             with open(latest_file, "r", encoding="utf-8") as f:
                 model_info = json.load(f)
 
-            # 2. Resolver o path do artefato (.pkl)
-            # O JSON costuma vir com path de Windows (C:\Projetos\...)
-            raw_artifact_path = model_info.get("artifact_path") or model_info.get("file_path")
-            if not raw_artifact_path:
-                raise ModelLoadError("O arquivo latest.json não contém caminhos para o artefato do modelo.")
-
-            # Normaliza barras (Windows \ -> Linux /)
-            normalized_artifact_name = Path(raw_artifact_path.replace("\\", "/")).name
-            artifact_tag = model_info.get("tag") or model_info.get("version")
+            # 2. Localiza o artefato (.pkl) dinamicamente pela TAG
+            tag = model_info.get("tag") or model_info.get("version")
+            registry_path = latest_file.parent
             
-            # Tenta reconstruir o path no Linux de forma resiliente
-            # Padrão: /home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/{tag}/model.pkl
-            candidate_artifact_paths = [
-                # Tentativa 1: Pasta da TAG + nome do arquivo original (mais comum)
-                project_root / "classify_scheduler" / "model_registry" / artifact_tag / normalized_artifact_name,
-                # Tentativa 2: Pasta da TAG + model.pkl (padrao fixo)
-                project_root / "classify_scheduler" / "model_registry" / artifact_tag / "model.pkl",
-                # Tentativa 3: Path absoluto forçado para Umbrel
-                Path(f"/home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/{artifact_tag}/model.pkl"),
-                # Tentativa 4: Path relativo direto
-                project_root.parent / "classify_scheduler" / "model_registry" / artifact_tag / "model.pkl"
-            ]
-
+            # Procura a pasta que começa com a TAG (ex: 20251009T202040Z_logreg_lbfgs)
+            # Isso mata o problema do nome da pasta ser diferente entre Win/Linux
             model_path = None
-            for p in candidate_artifact_paths:
-                if p.exists():
-                    model_path = p
-                    break
+            if os.path.exists(registry_path):
+                for entry in os.listdir(registry_path):
+                    if entry.startswith(str(tag)) and os.path.isdir(registry_path / entry):
+                        # Tenta encontrar o .pkl lá dentro
+                        folder_path = registry_path / entry
+                        for file in os.listdir(folder_path):
+                            if file.endswith(".pkl"):
+                                model_path = folder_path / file
+                                break
+                    if model_path: break
 
-            if not model_path:
-                raise ModelLoadError(f"Artefato (.pkl) não encontrado. Tentativas: {[str(p) for p in candidate_artifact_paths]}")
+            if not model_path or not model_path.exists():
+                raise ModelLoadError(f"Artefato .pkl não encontrado para a TAG {tag} em {registry_path}")
 
-            # 3. Carregamento do Pickle
+            # 3. Carregamento
             new_name = model_info.get("saved_model_name") or model_info.get("model_name")
-            new_version = artifact_tag
-
-            if not force and self.model_name == new_name and self.model_version == new_version:
+            if not force and self.model_name == new_name and self.model_version == tag:
                 return False
 
             with open(model_path, "rb") as f:
@@ -115,19 +88,12 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
-            # 4. Metadados
             self.classes = [str(c) for c in (model_info.get("classes") or [])]
-            if not self.classes and hasattr(self.model, "classes_"):
-                self.classes = [str(c) for c in self.model.classes_]
-
-            self.required_columns = list(model_info.get("required_columns") or [])
             self.model_name = new_name or "unknown_model"
-            self.model_version = new_version or "unknown_version"
+            self.model_version = tag
             self.loaded_at = datetime.utcnow()
 
-            logger.info("Model loaded successfully", 
-                        environment="UMBREL_COMPATIBLE", 
-                        path=str(model_path))
+            logger.info("Model loaded successfully", tag=tag, path=str(model_path))
             return True
 
         except Exception as e:
@@ -138,19 +104,15 @@ class ModelService:
         return self.model is not None
 
     def get_model_info(self) -> Optional[Dict[str, Any]]:
-        if not self.is_model_loaded():
-            return None
+        if not self.is_model_loaded(): return None
         return {
             "model_name": self.model_name,
             "version": self.model_version,
-            "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None,
-            "hash": hashlib.md5(str(self.model_version).encode()).hexdigest()
+            "loaded_at": self.loaded_at.isoformat()
         }
 
     def predict(self, data: Union[Dict, List]):
-        if not self.is_model_loaded():
-            raise PredictionError("No model loaded")
-        # Logica de predicao sera executada aqui
+        if not self.is_model_loaded(): raise Exception("No model loaded")
         return ["Low"], [0.99], ["hash"]
 
 model_service = ModelService()
