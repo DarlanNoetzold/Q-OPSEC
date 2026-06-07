@@ -27,6 +27,8 @@ class ModelService:
         self.preprocessor = None
         self.classes: List[str] = []
         self.required_columns: List[str] = []
+        self.categorical_cols: List[str] = []
+        self.numeric_cols: List[str] = []
         self.model_name: Optional[str] = None
         self.model_version: Optional[str] = None
         self.loaded_at: Optional[datetime] = None
@@ -74,23 +76,43 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
+            # Inspecao profunda do Pipeline para separar tipos de colunas
+            self.categorical_cols = []
+            self.numeric_cols = []
+            self.required_columns = []
+
+            # Tenta pegar do ColumnTransformer se existir
             try:
-                if hasattr(self.model, "feature_names_in_"):
-                    self.required_columns = self.model.feature_names_in_.tolist()
-                elif hasattr(self.model, "steps") and hasattr(self.model.steps[0][1], "feature_names_in_"):
-                    self.required_columns = self.model.steps[0][1].feature_names_in_.tolist()
+                # O Pipeline do Q-OPSEC geralmente tem um preprocessor chamado 'preprocessor' ou no step 0
+                step0 = self.model.steps[0][1] if hasattr(self.model, "steps") else None
+                ct = step0 if step0 and hasattr(step0, "transformers_") else self.preprocessor
+
+                if ct and hasattr(ct, "transformers_"):
+                   for name, trans, cols in ct.transformers_:
+                       if name != 'remainder':
+                           self.required_columns.extend(cols)
+                           if any(keyword in name.lower() for keyword in ['cat', 'encoder', 'onehot']):
+                               self.categorical_cols.extend(cols)
+                           else:
+                               self.numeric_cols.extend(cols)
             except:
                 pass
 
             if not self.required_columns:
                 self.required_columns = list(model_info.get("required_columns") or [])
+                # Heuristica baseada em nomes se o CT falhar
+                for col in self.required_columns:
+                    if any(k in col.lower() for k in ['geo', 'device', 'policy', 'type', 'status', 'classification', 'level']):
+                        self.categorical_cols.append(col)
+                    else:
+                        self.numeric_cols.append(col)
             
             self.classes = [str(c) for c in (model_info.get("classes") or [])]
             self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
             self.model_version = tag
             self.loaded_at = datetime.utcnow()
 
-            logger.info("Model loaded successfully", tag=tag, cols=len(self.required_columns))
+            logger.info("Model loaded successfully", tag=tag, cats=len(self.categorical_cols), nums=len(self.numeric_cols))
             return True
         except Exception as e:
             logger.error("Failed to load model", error=str(e))
@@ -107,13 +129,21 @@ class ModelService:
         if self.required_columns:
             for col in self.required_columns:
                 if col not in df.columns:
-                    df[col] = "unknown"
+                    if col in self.categorical_cols:
+                        df[col] = "unknown"
+                    else:
+                        df[col] = 0.0
             
             df = df[self.required_columns]
+
+        # Tratamento individual por tipo para evitar o erro de casting
+        for col in self.categorical_cols:
+            df[col] = df[col].fillna("unknown").astype(str)
+        
+        for col in self.numeric_cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
             
-        # O pulo do gato: forca tudo para string antes do preprocessor
-        # O OneHotEncoder original do Sklearn odeia misturar float(0.0) com strings
-        return df.astype(str).replace({"0.0": "unknown", "0": "unknown", "nan": "unknown", "None": "unknown"})
+        return df
 
     def predict(self, data: Union[Dict, List]):
         try:
@@ -136,7 +166,7 @@ class ModelService:
             return results, probs, track_id
             
         except Exception as e:
-            logger.error("Prediction failed", error=str(e))
+            logger.error("Prediction failed Detailed", error=str(e))
             raise PredictionError(f"Prediction failed: {str(e)}")
 
 model_service = ModelService()
