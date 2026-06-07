@@ -954,20 +954,31 @@
                 {pipelineResults && (
                   <div className="panel">
                     <div style={{fontWeight: '700', marginBottom: 12}}>Pipeline Status: {pipelineResults.pipeline_status}</div>
-                    {(pipelineResults.steps || []).map((step, i) => (
+                    {(pipelineResults.pipeline_results || []).map((step, i) => (
                       <div key={i} className="flow-step" style={{padding: '0.75rem'}}>
                         <div className="ball" style={{width: 32, height: 32}}>{i+1}</div>
                         <div style={{flex: 1}}>
                           <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                            <span style={{fontWeight: '700'}}>{step.step.toUpperCase()}</span>
-                            <span className={`chip ${step.status === 'failed' ? 'err' : 'ok'}`}>
-                              {step.code ? `HTTP ${step.code}` : step.status}
+                            <span style={{fontWeight: '700'}}>{step.service.replace('_', ' ').toUpperCase()}</span>
+                            <span className={`chip ${step.status === 'error' ? 'err' : 'ok'}`}>
+                              {step.status_code ? `HTTP ${step.status_code}` : step.status}
                             </span>
                           </div>
                           {step.error && <div style={{color: '#ef4444', fontSize: '0.8rem', marginTop: 4}}>{step.error}</div>}
+                          {step.response && <div style={{color: '#94a3b8', fontSize: '0.75rem', marginTop: 4, fontFamily: 'monospace'}}>
+                            Result: {typeof step.response === 'object' ? JSON.stringify(step.response).substring(0, 80) + '...' : step.response}
+                          </div>}
                         </div>
                       </div>
                     ))}
+                    {pipelineResults.final_data && (
+                      <div style={{marginTop: '1rem'}}>
+                        <div style={{fontSize: '0.85rem', fontWeight: 'bold', color: '#8b5cf6'}}>FINAL CONSOLIDATED DATA:</div>
+                        <pre className="mono" style={{background: '#070912', padding: '0.5rem', borderRadius: '4px', marginTop: '0.5rem', maxHeight: '150px', overflowY: 'auto'}}>
+                          {JSON.stringify(pipelineResults.final_data, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 )}
               </section>
