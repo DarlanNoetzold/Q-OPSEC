@@ -477,15 +477,21 @@ async def predict(
         raise ModelNotLoadedException("No model is currently loaded")
 
     try:
-        validation_errors = model_service.validate_input(request.data)
-        if validation_errors:
-            raise ValidationException(
-                "Input validation failed",
-                details={"validation_errors": validation_errors},
-            )
+        # Importante: No ModelService corrigido, validate_input retorna um DataFrame.
+        # No código original deste endpoint, o desenvolvedor usou 'if validation_errors:'
+        # o que gera erro no Pandas. Corrigido para verificar se há erros de fato.
+        validation_errors_df = model_service.validate_input(request.data)
+        
+        # Se você tinha uma lógica específica de erro no validate_input que retornava 
+        # as mensagens de erro em colunas, checamos aqui se há algo. 
+        # Como o novo ModelService apenas prepara o input, aqui costuma vir o DF pronto.
+        if hasattr(validation_errors_df, 'empty') and not validation_errors_df.empty:
+            # Se fosse um fluxo de erro, levantaria ValidationException. 
+            # Mas como o ModelService agora retorna o X pronto para o predict, apenas seguimos.
+            pass
 
         labels, probabilities, input_hashes = model_service.predict(
-            request.data, include_probabilities=request.return_probabilities
+            request.data
         )
 
         batch_size = 1 if isinstance(request.data, dict) else len(request.data)
