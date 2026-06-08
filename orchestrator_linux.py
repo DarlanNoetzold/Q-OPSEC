@@ -1020,8 +1020,8 @@ async def flow_status(request_id: str):
     flow_state = []
     for step in pipeline:
             headers = {"Content-Type": "application/json"}
-            name = step["service"]
-        cfg = CONFIG.get("services", {}).get(name)
+        name = step["service"]
+            cfg = CONFIG.get("services", {}).get(name)
         if not cfg:
             continue
 
@@ -1034,15 +1034,15 @@ async def flow_status(request_id: str):
 
         if matches:
             status = "processed"
-            last_seen = matches[-1].get("timestamp")
+        last_seen = matches[-1].get("timestamp")
             # Detect errors
-            for m in matches:
-                if any(kw in m["line"].lower() for kw in ["error", "exception", "failed", "400", "500"]):
-                    status = "error"
-                    error = m["line"][:200]
-                    break
+        for m in matches:
+        if any(kw in m["line"].lower() for kw in ["error", "exception", "failed", "400", "500"]):
+            status = "error"
+        error = m["line"][:200]
+            break
 
-        flow_state.append({
+            flow_state.append({
             "step": len(flow_state) + 1,
             "service": name,
             "endpoint": step["endpoint"],
@@ -1050,28 +1050,28 @@ async def flow_status(request_id: str):
             "last_seen": last_seen,
             "error": error,
             "matches_count": len(matches)
-        })
+            })
 
-    # Determine current step
-    current_step = None
-    for i, step in enumerate(flow_state):
+            # Determine current step
+            current_step = None
+        for i, step in enumerate(flow_state):
         if step["status"] == "error":
             current_step = i + 1
             break
         if step["status"] == "pending":
             current_step = i + 1
             break
-    if current_step is None and flow_state:
-        current_step = len(flow_state)
+        if current_step is None and flow_state:
+            current_step = len(flow_state)
 
-    return {
-        "request_id": request_id,
-        "current_step": current_step,
-        "total_steps": len(flow_state),
-        "flow": flow_state
-    }
+            return {
+            "request_id": request_id,
+            "current_step": current_step,
+            "total_steps": len(flow_state),
+            "flow": flow_state
+            }
 
-@APP.get("/timeline/{request_id}")
+            @APP.get("/timeline/{request_id}")
 async def timeline(request_id: str):
     """Build chronological timeline of request"""
     events = []
@@ -1360,282 +1360,282 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             headers = {"Content-Type": "application/json"}
-            name = step["name"]
+        name = step["name"]
             # Usando o IP externo para garantir que os serviços se comuniquem corretamente no ambiente remoto
             host_ip = "192.168.18.18"
             url = f"http://{host_ip}:{step['port']}{step['endpoint']}"
-            
+
             step_result = {
-                "service": name,
-                "url": url,
-                "status": "pending",
-                "port": step["port"]
+            "service": name,
+            "url": url,
+            "status": "pending",
+            "port": step["port"]
             }
-            
+
             try:
-                # Check if service is running locally first
-                svc = CONFIG.get("services", {}).get(name, {})
-                port = svc.get("port", step["port"])
-                # Prepare sub-payload for RL/Classification if needed
-                payload = current_data
-                if name == "classification_agent":
-                    # Normalização para Classification Agent: extrair o conteúdo do JSON se enviado como data
-                    payload_data = current_data.get("data", {})
-                    if isinstance(payload_data, str):
-                        try: payload_data = json.loads(payload_data)
-                        except: pass
-                    payload = {"data": payload_data, "request_id": current_data.get("request_id")}
-                
-                # Normalização para KDE (Key Destination Engine)
-                if name == "key_destination_engine":
-                    negotiation = current_data.get("negotiation") or {}
-                    km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
-                    km_algo = negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
-                    km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
-                    km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
-                    
-                    # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
-                    if isinstance(km_expires, str):
-                        try:
-                            
-                            # Limpa o Z se houver e converte para timestamp
-                            clean_date = km_expires.replace("Z", "").split(".")[0]
-                            km_expires = int(datetime.fromisoformat(clean_date).timestamp())
-                        except:
-                            km_expires = int(time.time() + 3600)
-                    else:
-                        km_expires = int(km_expires)
+            # Check if service is running locally first
+            svc = CONFIG.get("services", {}).get(name, {})
+            port = svc.get("port", step["port"])
+            # Prepare sub-payload for RL/Classification if needed
+            payload = current_data
+        if name == "classification_agent":
+            # Normalização para Classification Agent: extrair o conteúdo do JSON se enviado como data
+            payload_data = current_data.get("data", {})
+        if isinstance(payload_data, str):
+            try: payload_data = json.loads(payload_data)
+            except: pass
+            payload = {"data": payload_data, "request_id": current_data.get("request_id")}
 
-                    payload = {
-                        "session_id": str(km_session),
-                        "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
-                        "destination": "http://192.168.18.18:8005/validation/receive",
-                        "delivery_method": "API",
-                        "key_material": str(km_material),
-                        "algorithm": str(km_algo),
-                        "expires_at": int(time.time() + 3600),
-                        "metadata": {
-                            "original_destination": current_data.get("destination"),
-                            "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
-                            "risk_score": current_data.get("risk_score"),
-                            "security_level": current_data.get("security_level"),
-                            "model_version": "v20260107_202018", "classification": "logreg_lbfgs_v2",
-                            "pipeline_trace": [
-                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                for r in results
-                            ],
-                            "pipeline_sync": True
-                        }
-                    }
+            # Normalização para KDE (Key Destination Engine)
+        if name == "key_destination_engine":
+            negotiation = current_data.get("negotiation") or {}
+            km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
+            km_algo = negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
+            km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
+            km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
 
-                # Enriquecimento de informações dos modelos no Risk Service V2
-                if name == "risk_service":
-                    # Força a limpeza de erros de 'model not loaded' injetando o contexto do que foi selecionado
-                    payload = {
-                        "single": {
-                            "features": current_data.get("data", {})
-                        },
-                        "models": ["random_forest", "logistic_regression", "lightgbm"],
-                        "version": "v20260107_202018",
-                        "include_prob": True
-                    }
+            # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
+        if isinstance(km_expires, str):
+            try:
 
-                # Injeção de security_level para o RL Engine
-                if name == "rl_engine":
-                    # Garante que as infos de Risk e Confiability passem completas para o RL
-                    src = current_data.get("source")
-                    dst = current_data.get("destination")
-                    
-                    if isinstance(src, dict):
-                        payload["source"] = src.get("ip") or "192.168.18.18"
-                    else:
-                        payload["source"] = str(src or "192.168.18.18")
-                        
-                    if isinstance(dst, dict):
-                        payload["destination"] = dst.get("ip") or "192.168.18.18"
-                    else:
-                        payload["destination"] = str(dst or "192.168.18.18")
+            # Limpa o Z se houver e converte para timestamp
+            clean_date = km_expires.replace("Z", "").split(".")[0]
+            km_expires = int(datetime.fromisoformat(clean_date).timestamp())
+            except:
+            km_expires = int(time.time() + 3600)
+            else:
+            km_expires = int(km_expires)
 
-                    risk_data = current_data.get("risk") or {}
-                    conf_data = current_data.get("confidentiality") or {}
-                    
-                    risk = risk_data.get("score") or current_data.get("risk_score")
-                    conf = conf_data.get("score") or current_data.get("conf_score")
-                    
-                    if not risk and current_data.get("results"):
-                        label = current_data["results"][0].get("label", "").lower()
-                        if "high" in label: risk = 0.8
-                        elif "low" in label: risk = 0.2
-                    
-                    payload["risk_score"] = float(risk or 0.5)
-                    payload["conf_score"] = float(conf or 0.5)
-                    
-                    security_lvl = current_data.get("security_level") or risk_data.get("level") or "moderate"
-                    payload["security_level"] = str(security_lvl).upper()
-                    
-                    # Adiciona metadados para auditoria do RL
-                    payload["metadata"] = {
-                        "risk_label": current_data.get("results", [{}])[0].get("label"),
-                        "context_version": current_data.get("version")
-                    }
-                
-                # Normalização para Crypto (Módulo Final)
-                if name == "crypto_module":
-                    negotiation = current_data.get("negotiation") or {}
-                    payload = {
-                        "request_id": current_data.get("request_id"),
-                        "plaintext_b64": current_data.get("plaintext_b64"),
-                        "key_material": negotiation.get("key_material") or current_data.get("key_material"),
-                        "algorithm": negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM",
-                        "nonce_b64": negotiation.get("crypto_nonce_b64") or current_data.get("crypto_nonce_b64")
-                    }
-                
-                # Normalização para Risk Service V2
-                if name == "risk_service":
-                    payload = {
-                        "single": {
-                            "features": current_data.get("data", {})
-                        },
-                        "models": ["random_forest", "logistic_regression", "lightgbm"],
-                        "version": "v20260107_202018"
-                    }
-                
-                # Normalização para Confiability Service
-                if name == "confiability_service":
-                    payload = {
-                        "request_id": current_data.get("request_id"),
-                        "data": current_data.get("data", {}),
-                        "context": current_data.get("source", {}),
-                        "classification_level": current_data.get("confidentiality", {}).get("classification", "internal")
-                    }
+            payload = {
+            "session_id": str(km_session),
+            "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
+            "destination": "http://192.168.18.18:8005/validation/receive",
+            "delivery_method": "API",
+            "key_material": str(km_material),
+            "algorithm": str(km_algo),
+            "expires_at": int(time.time() + 3600),
+            "metadata": {
+            "original_destination": current_data.get("destination"),
+            "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
+            "risk_score": current_data.get("risk_score"),
+            "security_level": current_data.get("security_level"),
+            "model_version": "v20260107_202018", "classification": "logreg_lbfgs_v2",
+            "pipeline_trace": [
+            {"service": r["service"], "status": r["status"], "port": r["port"]}
+        for r in results
+            ],
+            "pipeline_sync": True
+            }
+            }
 
-                # Normalização para KMS (Key Management Service)
-                if name == "kms":
-                    payload = {
-                        "request_id": current_data.get("request_id"),
-                        "session_id": current_data.get("session_id"),
-                        "source": payload.get("source", "unknown"),
-                        "destination": payload.get("destination", "unknown"),
-                        "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
-                        "security_level": current_data.get("security_level") or "moderate"
-                    }
+            # Enriquecimento de informações dos modelos no Risk Service V2
+        if name == "risk_service":
+            # Força a limpeza de erros de 'model not loaded' injetando o contexto do que foi selecionado
+            payload = {
+            "single": {
+            "features": current_data.get("data", {})
+            },
+            "models": ["random_forest", "logistic_regression", "lightgbm"],
+            "version": "v20260107_202018",
+            "include_prob": True
+            }
 
-                # Normalização para KDE (Key Destination Engine)
-                if name == "key_destination_engine":
-                    payload = {
-                        "session_id": str(current_data.get("session_id") or "null-session"),
-                        "request_id": str(current_data.get("request_id") or "req"),
-                        "destination": "http://192.168.18.18:8005/validation/receive",
-                        "delivery_method": "API",
-                        "key_material": str(current_data.get("key_material") or ""),
-                        "algorithm": str(current_data.get("selected_algorithm") or "AES256_GCM"),
-                        "expires_at": int(time.time() + 3600),
-                        "metadata": {
-                            "risk_model": "v20260107_202018",
-                            "classification": "logreg_lbfgs_v2",
-                            "rl_policy": "PPO Context-Aware",
-                            "source_ip": "192.168.18.18"
-                        }
-                    }
-                if name == "classification_agent":
-                    api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
-                    headers["X-API-Key"] = api_key
+            # Injeção de security_level para o RL Engine
+        if name == "rl_engine":
+            # Garante que as infos de Risk e Confiability passem completas para o RL
+            src = current_data.get("source")
+            dst = current_data.get("destination")
 
-                response = await client.request(
-                    step["method"],
-                    url,
-                    json=payload,
-                    headers=headers,
-                    follow_redirects=True
-                )
-                
-                step_result["status_code"] = response.status_code
-                
-                if response.status_code == 200:
-                    step_result["status"] = "success"
-                    try:
-                        resp_json = response.json()
-                        step_result["response"] = resp_json
-                        if isinstance(resp_json, dict):
-                            # Preserva metadados de modelos e versões para o dashboard
-                            if name == "risk_service":
-                                current_data["risk_v2_details"] = resp_json
-                                if "results" in resp_json:
-                                    current_data["results"] = resp_json["results"]
-                                    current_data["version"] = resp_json.get("version")
-                            
-                            if name == "classification_agent":
-                                if "results" in resp_json:
-                                    current_data["classification_results"] = resp_json["results"]
-                                    # Extrai o label do primeiro resultado para o risk_label do KDE
-                                    if len(resp_json["results"]) > 0:
-                                        current_data["risk_label"] = resp_json["results"][0].get("label")
-                            
-                            # Injeção automática de URL de destino para o KDE
-                            if "destination" not in current_data or current_data["destination"] == "server-backend":
-                                current_data["destination"] = "http://192.168.18.18:8090/callback"
-                            
-                            # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
-                            if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
-                                resp_json["algorithm"] = resp_json["selected_algorithm"]
-                            
-                            # Normalização para o Crypto: forçar fetch_from_interceptor=False e converter dados
-                            if name == "kms_service":
-                                resp_json["fetch_from_interceptor"] = False
-                                if "data" in current_data and isinstance(current_data["data"], dict):
-                                    import base64
-                                    msg_str = json.dumps(current_data["data"])
-                                    resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
-                            
-                            # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
-                            if name == "context_api":
-                                import datetime as dt_mod
-                                final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
-                                
-                                flow_metrics = {
-                                    "total_steps": len(pipeline),
-                                    "timestamp": dt_mod.datetime.now().isoformat(),
-                                    "negotiated_algorithm": final_alg,
-                                    "pipeline_trace": [
-                                        {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                        for r in results
-                                    ]
-                                }
-                                resp_json["requestId"] = current_data.get("request_id")
-                                resp_json["sessionId"] = current_data.get("session_id")
-                                resp_json["selectedAlgorithm"] = final_alg
-                                resp_json["cryptoNonceB64"] = current_data.get("nonce_b64")
-                                resp_json["cryptoCiphertextB64"] = current_data.get("ciphertext_b64")
-                                resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
-                                resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
-                                resp_json["sourceId"] = current_data.get("source")
-                                resp_json["flowMetrics"] = flow_metrics
-                                resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
-                            
-                            current_data.update(resp_json)
-                    except Exception as e:
-                         # Log do erro para depuração interna sem quebrar o 200
-                         print(f"Erro ao processar JSON no passo {name}: {str(e)}")
-                         step_result["response"] = response.text[:500] if response.text else "Empty Response"
-                else:
-                    step_result["status"] = "error"
-                    step_result["error"] = response.text[:500]
-                    results.append(step_result)
-                    break
-                    
+        if isinstance(src, dict):
+            payload["source"] = src.get("ip") or "192.168.18.18"
+            else:
+            payload["source"] = str(src or "192.168.18.18")
+
+        if isinstance(dst, dict):
+            payload["destination"] = dst.get("ip") or "192.168.18.18"
+            else:
+            payload["destination"] = str(dst or "192.168.18.18")
+
+            risk_data = current_data.get("risk") or {}
+            conf_data = current_data.get("confidentiality") or {}
+
+            risk = risk_data.get("score") or current_data.get("risk_score")
+            conf = conf_data.get("score") or current_data.get("conf_score")
+
+        if not risk and current_data.get("results"):
+            label = current_data["results"][0].get("label", "").lower()
+        if "high" in label: risk = 0.8
+            elif "low" in label: risk = 0.2
+
+            payload["risk_score"] = float(risk or 0.5)
+            payload["conf_score"] = float(conf or 0.5)
+
+            security_lvl = current_data.get("security_level") or risk_data.get("level") or "moderate"
+            payload["security_level"] = str(security_lvl).upper()
+
+            # Adiciona metadados para auditoria do RL
+            payload["metadata"] = {
+            "risk_label": current_data.get("results", [{}])[0].get("label"),
+            "context_version": current_data.get("version")
+            }
+
+            # Normalização para Crypto (Módulo Final)
+        if name == "crypto_module":
+            negotiation = current_data.get("negotiation") or {}
+            payload = {
+            "request_id": current_data.get("request_id"),
+            "plaintext_b64": current_data.get("plaintext_b64"),
+            "key_material": negotiation.get("key_material") or current_data.get("key_material"),
+            "algorithm": negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM",
+            "nonce_b64": negotiation.get("crypto_nonce_b64") or current_data.get("crypto_nonce_b64")
+            }
+
+            # Normalização para Risk Service V2
+        if name == "risk_service":
+            payload = {
+            "single": {
+            "features": current_data.get("data", {})
+            },
+            "models": ["random_forest", "logistic_regression", "lightgbm"],
+            "version": "v20260107_202018"
+            }
+
+            # Normalização para Confiability Service
+        if name == "confiability_service":
+            payload = {
+            "request_id": current_data.get("request_id"),
+            "data": current_data.get("data", {}),
+            "context": current_data.get("source", {}),
+            "classification_level": current_data.get("confidentiality", {}).get("classification", "internal")
+            }
+
+            # Normalização para KMS (Key Management Service)
+        if name == "kms":
+            payload = {
+            "request_id": current_data.get("request_id"),
+            "session_id": current_data.get("session_id"),
+            "source": payload.get("source", "unknown"),
+            "destination": payload.get("destination", "unknown"),
+            "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
+            "security_level": current_data.get("security_level") or "moderate"
+            }
+
+            # Normalização para KDE (Key Destination Engine)
+        if name == "key_destination_engine":
+            payload = {
+            "session_id": str(current_data.get("session_id") or "null-session"),
+            "request_id": str(current_data.get("request_id") or "req"),
+            "destination": "http://192.168.18.18:8005/validation/receive",
+            "delivery_method": "API",
+            "key_material": str(current_data.get("key_material") or ""),
+            "algorithm": str(current_data.get("selected_algorithm") or "AES256_GCM"),
+            "expires_at": int(time.time() + 3600),
+            "metadata": {
+            "risk_model": "v20260107_202018",
+            "classification": "logreg_lbfgs_v2",
+            "rl_policy": "PPO Context-Aware",
+            "source_ip": "192.168.18.18"
+            }
+            }
+        if name == "classification_agent":
+            api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
+            headers["X-API-Key"] = api_key
+
+            response = await client.request(
+            step["method"],
+            url,
+            json=payload,
+            headers=headers,
+            follow_redirects=True
+            )
+
+            step_result["status_code"] = response.status_code
+
+        if response.status_code == 200:
+            step_result["status"] = "success"
+            try:
+            resp_json = response.json()
+            step_result["response"] = resp_json
+        if isinstance(resp_json, dict):
+            # Preserva metadados de modelos e versões para o dashboard
+        if name == "risk_service":
+            current_data["risk_v2_details"] = resp_json
+        if "results" in resp_json:
+            current_data["results"] = resp_json["results"]
+            current_data["version"] = resp_json.get("version")
+
+        if name == "classification_agent":
+        if "results" in resp_json:
+            current_data["classification_results"] = resp_json["results"]
+            # Extrai o label do primeiro resultado para o risk_label do KDE
+        if len(resp_json["results"]) > 0:
+            current_data["risk_label"] = resp_json["results"][0].get("label")
+
+            # Injeção automática de URL de destino para o KDE
+        if "destination" not in current_data or current_data["destination"] == "server-backend":
+            current_data["destination"] = "http://192.168.18.18:8090/callback"
+
+            # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
+        if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
+            resp_json["algorithm"] = resp_json["selected_algorithm"]
+
+            # Normalização para o Crypto: forçar fetch_from_interceptor=False e converter dados
+        if name == "kms_service":
+            resp_json["fetch_from_interceptor"] = False
+        if "data" in current_data and isinstance(current_data["data"], dict):
+            import base64
+            msg_str = json.dumps(current_data["data"])
+            resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
+
+            # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
+        if name == "context_api":
+            import datetime as dt_mod
+            final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
+
+            flow_metrics = {
+            "total_steps": len(pipeline),
+            "timestamp": dt_mod.datetime.now().isoformat(),
+            "negotiated_algorithm": final_alg,
+            "pipeline_trace": [
+            {"service": r["service"], "status": r["status"], "port": r["port"]}
+        for r in results
+            ]
+            }
+            resp_json["requestId"] = current_data.get("request_id")
+            resp_json["sessionId"] = current_data.get("session_id")
+            resp_json["selectedAlgorithm"] = final_alg
+            resp_json["cryptoNonceB64"] = current_data.get("nonce_b64")
+            resp_json["cryptoCiphertextB64"] = current_data.get("ciphertext_b64")
+            resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
+            resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
+            resp_json["sourceId"] = current_data.get("source")
+            resp_json["flowMetrics"] = flow_metrics
+            resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
+
+            current_data.update(resp_json)
             except Exception as e:
-                step_result["status"] = "error"
-                step_result["error"] = str(e)
-                results.append(step_result)
-                break
-                
+            # Log do erro para depuração interna sem quebrar o 200
+            print(f"Erro ao processar JSON no passo {name}: {str(e)}")
+            step_result["response"] = response.text[:500] if response.text else "Empty Response"
+            else:
+            step_result["status"] = "error"
+            step_result["error"] = response.text[:500]
             results.append(step_result)
-            
-    return {
-        "timestamp": datetime.now().isoformat(),
-        "pipeline_results": results,
-        "final_data": current_data
-    }
+            break
 
-if __name__ == "__main__":
-    uvicorn.run("orchestrator_linux:APP", host="0.0.0.0", port=8090, reload=False)
+            except Exception as e:
+            step_result["status"] = "error"
+            step_result["error"] = str(e)
+            results.append(step_result)
+            break
+
+            results.append(step_result)
+
+            return {
+            "timestamp": datetime.now().isoformat(),
+            "pipeline_results": results,
+            "final_data": current_data
+            }
+
+        if __name__ == "__main__":
+            uvicorn.run("orchestrator_linux:APP", host="0.0.0.0", port=8090, reload=False)
