@@ -1412,6 +1412,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
                         "destination": "http://192.168.18.18:8005/validation/send",
                         "delivery_method": "API",
+                        "selected_algorithm": str(km_algo),
+                        "crypto_nonce_b64": str(negotiation.get("crypto_nonce_b64") or ""),
+                        "crypto_ciphertext_b64": str(negotiation.get("crypto_ciphertext_b64") or ""),
+                        "crypto_algorithm": str(negotiation.get("crypto_algorithm") or km_algo),
+                        "crypto_expires_at": km_expires,
+                        "origin_url": str(current_data.get("originUrl") or "http://192.168.18.18:8090/callback"),
+                        "source_id": str(current_data.get("sourceId") or "agent-wsl-01"),
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
                         "expires_at": km_expires, # Voltou para INT conforme erro 422/detail
