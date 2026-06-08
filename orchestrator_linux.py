@@ -1399,7 +1399,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
                     if isinstance(km_expires, str):
                         try:
-                            from datetime import datetime
                             # Limpa o Z se houver e converte para timestamp
                             clean_date = km_expires.replace("Z", "").split(".")[0]
                             km_expires = int(datetime.fromisoformat(clean_date).timestamp())
