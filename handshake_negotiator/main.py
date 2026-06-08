@@ -54,10 +54,10 @@ Cliente → Handshake → KMS → KDE → Crypto → Validation → Receptor
 )
 
 # URLs dos serviços integrados
-KMS_URL = "http://localhost:8002/kms/create_key"
-KDE_URL = "http://localhost:8003/deliver"
-CRYPTO_URL = "http://localhost:8004/encrypt/by-request-id"
-VALIDATION_URL = "http://localhost:8005/validation/send"
+KMS_URL = "http://192.168.18.18:8002/kms/create_key"
+KDE_URL = "http://192.168.18.18:8003/deliver"
+CRYPTO_URL = "http://192.168.18.18:8004/encrypt/by-request-id"
+VALIDATION_URL = "http://192.168.18.18:8005/validation/send"
 
 
 def normalize_destination(dest: str) -> str:
@@ -251,7 +251,10 @@ async def handshake(req: NegotiationRequest):
     )
 
     # 2) KDE - Entrega de chave
-    normalized_dest = normalize_destination(req.destination)
+    raw_dest = req.destination
+    if raw_dest and "10.0.0.5" in raw_dest:
+        raw_dest = raw_dest.replace("10.0.0.5", "192.168.18.18")
+    normalized_dest = normalize_destination(raw_dest)
     delivery_payload = {
         "session_id": key_data["session_id"],
         "request_id": request_id,
@@ -261,7 +264,7 @@ async def handshake(req: NegotiationRequest):
         "algorithm": actual_selected,
         "expires_at": key_data["expires_at"]
     }
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         kde_resp = await client.post(KDE_URL, json=delivery_payload)
     if kde_resp.status_code != 200:
         kde_data = {"error": f"HTTP {kde_resp.status_code}", "body": kde_resp.text}
