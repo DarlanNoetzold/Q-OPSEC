@@ -1019,40 +1019,40 @@ async def flow_status(request_id: str):
 
     flow_state = []
     for step in pipeline:
-            headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json"}
         name = step["service"]
-            cfg = CONFIG.get("services", {}).get(name)
+        cfg = CONFIG.get("services", {}).get(name)
         if not cfg:
-            continue
-
+        continue
+        
         log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
         matches = search_in_log(log_file, request_id, context_lines=0)
-
+        
         status = "pending"
         last_seen = None
         error = None
-
+        
         if matches:
-            status = "processed"
+        status = "processed"
         last_seen = matches[-1].get("timestamp")
-            # Detect errors
+        # Detect errors
         for m in matches:
-        if any(kw in m["line"].lower() for kw in ["error", "exception", "failed", "400", "500"]):
-            status = "error"
-        error = m["line"][:200]
-            break
-
-            flow_state.append({
-            "step": len(flow_state) + 1,
-            "service": name,
-            "endpoint": step["endpoint"],
-            "status": status,
-            "last_seen": last_seen,
-            "error": error,
-            "matches_count": len(matches)
-            })
-
-            # Determine current step
+            if any(kw in m['line'].lower() for kw in ['error', 'exception', 'failed', '400', '500']):
+                status = "error"
+                error = m['line'][:200]
+                break
+        
+        flow_state.append({
+        "step": len(flow_state) + 1,
+        "service": name,
+        "endpoint": step["endpoint"],
+        "status": status,
+        "last_seen": last_seen,
+        "error": error,
+        "matches_count": len(matches)
+        })
+        
+        # Determine current step
             current_step = None
         for i, step in enumerate(flow_state):
         if step["status"] == "error":
@@ -1064,7 +1064,7 @@ async def flow_status(request_id: str):
         if current_step is None and flow_state:
             current_step = len(flow_state)
 
-            return {
+        return {
             "request_id": request_id,
             "current_step": current_step,
             "total_steps": len(flow_state),
@@ -1359,7 +1359,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
-            headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json"}
         name = step["name"]
             # Usando o IP externo para garantir que os serviços se comuniquem corretamente no ambiente remoto
             host_ip = "192.168.18.18"
