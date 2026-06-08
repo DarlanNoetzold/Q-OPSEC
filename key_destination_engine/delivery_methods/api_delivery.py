@@ -30,6 +30,10 @@ def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], D
 async def deliver_via_api(req: DeliveryRequest, delivery_id: str):
     url = req.destination
 
+    # Proteção: Se o destino for apenas um IP ou host sem protocolo, adiciona http://
+    if isinstance(url, str) and not url.lower().startswith(("http://", "https://")):
+        url = f"http://{url}"
+
     if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
         return (
             "failed",
