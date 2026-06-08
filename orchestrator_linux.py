@@ -1437,6 +1437,38 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         }
                     }
 
+                # Normalização para Validation Send API (Java Spring Contract)
+                if name == "validation_send_api":
+                    negotiation = current_data.get("negotiation") or {}
+                    
+                    actual_nonce = current_data.get("nonce_b64") or current_data.get("crypto_nonce_b64") or negotiation.get("crypto_nonce_b64")
+                    actual_ciphertext = current_data.get("ciphertext_b64") or current_data.get("crypto_ciphertext_b64") or negotiation.get("crypto_ciphertext_b64")
+                    actual_algo = current_data.get("algorithm") or current_data.get("selected_algorithm") or negotiation.get("selected_algorithm") or current_data.get("selectedAlgorithm")
+                    actual_sess = current_data.get("session_id") or negotiation.get("session_id") or current_data.get("sessionId")
+                    actual_req = current_data.get("request_id") or current_data.get("requestId") or negotiation.get("request_id")
+                    actual_origin = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
+                    actual_expires = current_data.get("expires_at") or negotiation.get("expires_at") or 0
+
+                    # Converte expiração para Integer se for string ISO para evitar erro de tipo no Java
+                    if isinstance(actual_expires, str):
+                        try:
+                            clean_date = actual_expires.replace("Z", "").split(".")[0]
+                            actual_expires = int(datetime.fromisoformat(clean_date).timestamp())
+                        except: actual_expires = int(time.time() + 3600)
+
+                    payload = {
+                        "requestId": str(actual_req),
+                        "sessionId": str(actual_sess),
+                        "selectedAlgorithm": str(actual_algo),
+                        "cryptoNonceB64": str(actual_nonce) if actual_nonce else "",
+                        "cryptoCiphertextB64": str(actual_ciphertext) if actual_ciphertext else "",
+                        "cryptoAlgorithm": str(actual_algo),
+                        "cryptoExpiresAt": int(actual_expires),
+                        "originUrl": str(actual_origin),
+                        "sourceId": str(current_data.get("sourceId") or "agent-wsl-01"),
+                        "keyMaterial": str(current_data.get("key_material") or negotiation.get("key_material") or "")
+                    }
+
                 # Enriquecimento de informações dos modelos no Risk Service V2
                 if name == "risk_service":
                     # Força a limpeza de erros de 'model not loaded' injetando o contexto do que foi selecionado
