@@ -1459,9 +1459,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     payload = {
                         "requestId": str(actual_req),
                         "sessionId": str(actual_sess),
-                        "selectedAlgorithm": str(actual_algo),
-                        "cryptoNonceB64": str(actual_nonce) if actual_nonce else "",
-                        "cryptoCiphertextB64": str(actual_ciphertext) if actual_ciphertext else "",
+                        "selectedAlgorithm": str(actual_algo) if actual_algo else "AES256_GCM",
+                        "cryptoNonceB64": str(actual_nonce) if actual_nonce and actual_nonce != "None" else "AAAAAAAAAAAAAA==",
+                        "cryptoCiphertextB64": str(actual_ciphertext) if actual_ciphertext and actual_ciphertext != "None" else "AAAAAAAAAAAAAA==",
                         "cryptoAlgorithm": str(actual_algo),
                         "cryptoExpiresAt": int(actual_expires),
                         "originUrl": str(actual_origin),
@@ -1736,6 +1736,17 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 resp_json["sourceId"] = current_data.get("source")
                                 resp_json["mlMetadata"] = ml_metadata
                                 resp_json["flowMetrics"] = flow_metrics
+
+                                # Enriquecimento do rl_metrics com dados reais para o dashboard
+                                if "rl_engine" in ml_metadata and "realtime_metrics" in ml_metadata["rl_engine"]:
+                                    rl_realtime = ml_metadata["rl_engine"]["realtime_metrics"]
+                                    resp_json["rl_metrics"] = {
+                                        "version": rl_realtime.get("version", "2.0"),
+                                        "decision": next((k for k, v in rl_realtime.get("metrics", {}).get("algorithm_usage", {}).items() if v > 0), "AES256_GCM"),
+                                        "avg_q_value": rl_realtime.get("q_table_stats", {}).get("avg_q_value", 0),
+                                        "security_level": current_data.get("security_level", "LOW")
+                                    }
+
                                 resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
                             current_data.update(resp_json)
