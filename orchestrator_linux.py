@@ -1602,10 +1602,12 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             # Preserva metadados de modelos e versões para o dashboard
                             if name == "risk_service":
                                 current_data["risk_v2_details"] = resp_json
+                                if "models" in resp_json:
+                                    current_data["models"] = resp_json["models"]
                                 if "results" in resp_json:
                                     current_data["results"] = resp_json["results"]
-                                    current_data["version"] = resp_json.get("version")
-                            
+                                current_data["version"] = resp_json.get("version") or "v20260107_202018"
+
                             if name == "classification_agent":
                                 if "results" in resp_json:
                                     current_data["classification_results"] = resp_json["results"]
@@ -1617,6 +1619,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             if "destination" not in current_data or current_data["destination"] == "server-backend":
                                 current_data["destination"] = "http://192.168.18.18:8005/validation/send"
                             
+                            resp_json["destination"] = current_data["destination"]
+
                             # Sanitização agressiva de IP fantasma 10.0.0.5 em qualquer lugar do current_data
                             if isinstance(current_data.get("destination"), str) and "10.0.0.5" in current_data["destination"]:
                                 current_data["destination"] = current_data["destination"].replace("10.0.0.5", "192.168.18.18")
@@ -1628,8 +1632,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 resp_json["algorithm"] = resp_json["selected_algorithm"]
                             
                             # Normalização para o Crypto: forçar fetch_from_interceptor=False e converter dados
-                            if name == "kms_service":
+                            if name == "kms" or name == "kms_service":
                                 resp_json["fetch_from_interceptor"] = False
+                                current_data["selected_algorithm"] = resp_json.get("selected_algorithm") or resp_json.get("algorithm")
                                 if "data" in current_data and isinstance(current_data["data"], dict):
                                     import base64
                                     msg_str = json.dumps(current_data["data"])
@@ -1650,7 +1655,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     if class_results:
                                         current_data["classification_results"] = class_results
                                         current_data["model_name"] = resp_json.get("model_name")
-                                        current_data["conf_score"] = class_results[0].get("confidence", 0.4)
+                                        current_data["conf_score"] = class_results[0].get("confidence") or class_results[0].get("score", 0.0)
                                 except: pass
 
                             # Captura de detalhes de HANDSHAKE (Negociação PQC/Clássica)
