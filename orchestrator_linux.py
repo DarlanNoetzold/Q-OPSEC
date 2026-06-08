@@ -1698,27 +1698,38 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 # Injeção agressiva de métricas em tempo real dos serviços (Fetch dinâmico)
                                 try:
                                     import httpx as httpx_met
-                                    print(f"\n[DEBUG] Coletando métricas do servidor 192.168.18.18 para o Dashboard...")
-                                    for svc_name, svc_port, svc_endpoint in [("risk_v2", 8003, "/metrics/latest"), ("classification", 8088, "/metrics"), ("rl_engine", 9009, "/metrics")]:
+                                    print(f"\n[PHD-DEBUG] Sincronizando com 192.168.18.18...")
+                                    # Busca multi-endpoint para evitar 404 (Risk V2 e Classification)
+                                    for svc_name, svc_port, endpoints in [
+                                        ("risk_v2", 8003, ["/prediction/metrics", "/metrics/latest", "/metrics"]),
+                                        ("classification", 8088, ["/classification/metrics", "/stats", "/metrics"]),
+                                        ("rl_engine", 9009, ["/metrics"])
+                                    ]:
                                         try:
-                                            m_resp = httpx_met.get(f"http://192.168.18.18:{svc_port}{svc_endpoint}", timeout=1.5)
-                                            print(f" -> {svc_name} ({svc_port}): Status {m_resp.status_code}")
-                                            m_data = m_resp.json()
-                                            if svc_name == "risk_v2": 
-                                                risk_details["realtime_metrics"] = m_data
-                                                # Injeção forçada de modelos se vierem vazios do servidor
-                                                if "models" in m_data and m_data["models"]:
-                                                    current_data["risk_v2_details"] = m_data
-                                            if svc_name == "classification": 
-                                                class_results = [m_data] if isinstance(m_data, dict) else class_results
-                                            if svc_name == "rl_engine": 
-                                                rl_info["realtime_metrics"] = m_data
-                                                # Força o preenchimento do rl_metrics para o dashboard
-                                                current_data["rl_metrics"] = {
-                                                    "version": m_data.get("version", "2.0"),
-                                                    "avg_q_value": m_data.get("q_table_stats", {}).get("avg_q_value", 0),
-                                                    "decision": next((k for k, v in m_data.get("metrics", {}).get("algorithm_usage", {}).items() if v > 0), "AES256_GCM")
-                                                }
+                                            m_data = None
+                                            for svc_endpoint in endpoints:
+                                                m_resp = httpx_met.get(f"http://192.168.18.18:{svc_port}{svc_endpoint}", timeout=1.0)
+                                                if m_resp.status_code == 200:
+                                                    m_data = m_resp.json()
+                                                    print(f" -> {svc_name} OK via {svc_endpoint}")
+                                                    break
+                                            
+                                            if m_data:
+                                                if svc_name == "risk_v2":
+                                                    risk_details["realtime_metrics"] = m_data
+                                                    if "models" in m_data: current_data["risk_v2_details"] = m_data
+                                                if svc_name == "classification":
+                                                    class_results = [m_data]
+                                                if svc_name == "rl_engine":
+                                                    rl_info["realtime_metrics"] = m_data
+                                                    # Mapeamento do algoritmo RL real (ex: AES_192)
+                                                    usage = m_data.get("metrics", {}).get("algorithm_usage", {})
+                                                    actual_decision = next((k for k, v in usage.items() if v > 0), "AES256_GCM")
+                                                    current_data["rl_metrics"] = {
+                                                        "version": m_data.get("version", "2.0"),
+                                                        "avg_q_value": m_data.get("q_table_stats", {}).get("avg_q_value", 0),
+                                                        "decision": actual_decision
+                                                    }
                                         except Exception as e:
                                             print(f" -> {svc_name} ({svc_port}): ERRO - {str(e)}")
                                 except: pass
