@@ -1019,7 +1019,8 @@ async def flow_status(request_id: str):
 
     flow_state = []
     for step in pipeline:
-        name = step["service"]
+            headers = {"Content-Type": "application/json"}
+            name = step["service"]
         cfg = CONFIG.get("services", {}).get(name)
         if not cfg:
             continue
@@ -1358,6 +1359,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
+            headers = {"Content-Type": "application/json"}
             name = step["name"]
             # Usando o IP externo para garantir que os serviços se comuniquem corretamente no ambiente remoto
             host_ip = "192.168.18.18"
