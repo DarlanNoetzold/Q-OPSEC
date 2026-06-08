@@ -1354,7 +1354,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     
     results = []
     current_data = data
-    
+
+    # Higienização de IP: Garante que 10.0.0.5 nunca chegue aos submódulos
+    if isinstance(current_data, dict):
+        for k, v in current_data.items():
+            if isinstance(v, str) and "10.0.0.5" in v:
+                current_data[k] = v.replace("10.0.0.5", "192.168.18.18")
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             name = step["name"]
