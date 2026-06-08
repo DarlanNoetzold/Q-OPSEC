@@ -1091,16 +1091,33 @@
 
                         <div style={{marginTop: '0.5rem'}}>
                           <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px'}}>ML MODELS TELEMETRY:</div>
-                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px'}}>
+                          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px', marginBottom: '12px'}}>
+                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
+                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Risk V2 Models</div>
+                               <div style={{fontSize: '0.6rem', color: '#f87171'}}>RF: {pipelineResults.final_data?.risk_v2_details?.models?.random_forest?.status || 'Active'}</div>
+                               <div style={{fontSize: '0.6rem', color: '#4ade80'}}>Score: {pipelineResults.final_data?.risk_score || '0.0'}</div>
+                             </div>
                              <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
                                <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Classification Model</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.classification?.model_name || 'logreg_lbfgs_v2'}</div>
-                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Conf: {(pipelineResults.final_data?.mlMetadata?.classification?.confidence * 100 || 0).toFixed(1)}%</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.classification?.model || 'logreg_lbfgs_v2'}</div>
+                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Conf: {(parseFloat(pipelineResults.final_data?.classification_confidence || pipelineResults.final_data?.mlMetadata?.classification?.confidence || 0) * 100).toFixed(1)}%</div>
+                             </div>
+                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
+                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Confiability</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>conf-fb-0.0.1</div>
+                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Score: {pipelineResults.final_data?.mlMetadata?.confiability?.score || '0.4'}</div>
                              </div>
                              <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
                                <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Handshake/Negotiation</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.handshake?.selected_model || 'Classical'}</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.handshake?.model || 'Classical'}</div>
                                <div style={{fontSize: '0.65rem', color: '#4ade80'}}>PQC: {pipelineResults.final_data?.mlMetadata?.handshake?.pqc_enabled ? 'ENABLED' : 'DISABLED'}</div>
+                             </div>
+                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
+                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>RL Engine</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>V2.0</div>
+                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Level: {pipelineResults.final_data?.security_level || 'LOW'}</div>
+                             </div>
+                          </div>
                              </div>
                           </div>
                           <div style={{background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', fontSize: '0.65rem', color: '#94a3b8', marginBottom: '10px'}}>

@@ -1691,9 +1691,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     "algorithm": resp_json.get("selected_algorithm") or resp_json.get("algorithm")
                                 }
                                 current_data["handshake_metrics"] = h_metrics
-                                # Atualização imediata para evitar "Negotiating..."
-                                current_data["selectedAlgorithm"] = h_metrics["algorithm"]
-                                current_data["selected_algorithm"] = h_metrics["algorithm"]
+                                final_alg = h_metrics["algorithm"]
+                                current_data["selectedAlgorithm"] = final_alg
+                                current_data["selected_algorithm"] = final_alg
                                 if h_metrics["algorithm"]:
                                     current_data["selected_algorithm"] = h_metrics["algorithm"]
                                 # Preservar session_id do Handshake para os próximos passos
