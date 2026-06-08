@@ -1561,8 +1561,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             # Injeção automática de URL de destino para o KDE
                             if "destination" not in current_data or current_data["destination"] == "server-backend":
-                                current_data["destination"] = "http://192.168.18.18:8090/callback"
+                                current_data["destination"] = "http://192.168.18.18:8005/validation/receive"
                             
+                            # Sanitização agressiva de IP fantasma 10.0.0.5 em qualquer lugar do current_data
+                            if isinstance(current_data.get("destination"), str) and "10.0.0.5" in current_data["destination"]:
+                                current_data["destination"] = current_data["destination"].replace("10.0.0.5", "192.168.18.18")
+                            if current_data.get("destination") == "192.168.18.18":
+                                current_data["destination"] = "http://192.168.18.18:8005/validation/receive"
+
                             # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
                             if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
                                 resp_json["algorithm"] = resp_json["selected_algorithm"]
