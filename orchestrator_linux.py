@@ -1635,6 +1635,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             if name == "kms" or name == "kms_service":
                                 resp_json["fetch_from_interceptor"] = False
                                 current_data["selected_algorithm"] = resp_json.get("selected_algorithm") or resp_json.get("algorithm")
+                                current_data["selectedAlgorithm"] = current_data["selected_algorithm"]
                                 if "data" in current_data and isinstance(current_data["data"], dict):
                                     import base64
                                     msg_str = json.dumps(current_data["data"])
@@ -1646,6 +1647,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             if name == "risk_service":
                                 current_data["risk_v2_details"] = resp_json
                                 current_data["risk_score"] = resp_json.get("risk_score")
+                                # Injeta os modelos reais para o telemetry
+                                if "models" in resp_json:
+                                    current_data["models"] = resp_json["models"]
 
                             # Captura de detalhes de CLASSIFICATION
                             if name == "classification_agent":
@@ -1656,7 +1660,26 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                         current_data["classification_results"] = class_results
                                         current_data["model_name"] = resp_json.get("model_name")
                                         current_data["conf_score"] = class_results[0].get("confidence") or class_results[0].get("score", 0.0)
+                                        # Garante que a métrica de confiança suba para o telemetry
+                                        current_data["classification_confidence"] = current_data["conf_score"]
                                 except: pass
+
+                            # Captura de detalhes de CONFIABILITY
+                            if name == "confiability_service":
+                                current_data["confidentiality"] = resp_json
+                                if "score" in resp_json:
+                                    current_data["conf_score"] = resp_json["score"]
+
+                            # Captura de detalhes de CRYPTO (Passo Crítico para a Entrega)
+                            if name == "crypto_module":
+                                if "ciphertext_b64" in resp_json:
+                                    current_data["cryptoCiphertextB64"] = resp_json["ciphertext_b64"]
+                                    current_data["ciphertext_b64"] = resp_json["ciphertext_b64"]
+                                if "nonce_b64" in resp_json:
+                                    current_data["cryptoNonceB64"] = resp_json["nonce_b64"]
+                                    current_data["nonce_b64"] = resp_json["nonce_b64"]
+                                if "algorithm" in resp_json:
+                                    current_data["cryptoAlgorithm"] = resp_json["algorithm"]
 
                             # Captura de detalhes de HANDSHAKE (Negociação PQC/Clássica)
                             if name == "handshake_negotiator":
@@ -1740,13 +1763,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                                     }
                                         except Exception as e:
                                             print(f" -> {svc_name} ({svc_port}): ERRO - {str(e)}")
-                                except: pass
+                            if name == "context_api":
                                 ml_metadata = {
-                                    "risk_v2": risk_details.get("models", {}),
+                                    "risk_v2": current_data.get("models") or risk_details.get("models", {}),
                                     "classification": {
                                         "model": current_data.get("model_name", "logreg_lbfgs_v2"),
-                                        "confidence": current_data.get("conf_score", 0.0),
+                                        "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0),
                                         "results": class_results[0] if class_results else {}
+                                    },
+                                    "confiability": {
+                                        "model": "conf-fb-0.0.1",
+                                        "score": current_data.get("conf_score", 0.4),
+                                        "details": current_data.get("confidentiality", {})
                                     },
                                     "rl_engine": rl_info,
                                     "handshake": hand_info,
