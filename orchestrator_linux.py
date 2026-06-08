@@ -1412,6 +1412,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
                         "destination": "http://192.168.18.18:8005/validation/send",
                         "delivery_method": "API",
+                        "key_material": str(km_material),
+                        "algorithm": str(km_algo),
+                        "expires_at": km_expires,
                         "metadata": {
                            "body": {
                                 "requestId": str(current_data.get("requestId") or current_data.get("request_id") or "req-" + str(int(time.time()))),
@@ -1423,22 +1426,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 "cryptoExpiresAt": int(km_expires),
                                 "originUrl": str(current_data.get("originUrl") or "http://192.168.18.18:8090/callback"),
                                 "sourceId": str(current_data.get("sourceId") or "agent-wsl-01")
-                           }
-                        },
-                        "key_material": str(km_material),
-                        "algorithm": str(km_algo),
-                        "expires_at": km_expires,
-                        "metadata": {
-                            "original_destination": current_data.get("destination"),
-                            "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
-                            "risk_score": current_data.get("risk_score"),
-                            "security_level": current_data.get("security_level"),
-                            "model_version": "v20260107_202018", "classification": "logreg_lbfgs_v2",
-                            "pipeline_trace": [
+                           },
+                           "original_destination": current_data.get("destination"),
+                           "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
+                           "risk_score": current_data.get("risk_score"),
+                           "security_level": current_data.get("security_level"),
+                           "model_version": "v20260107_202018", 
+                           "classification": "logreg_lbfgs_v2",
+                           "pipeline_trace": [
                                 {"service": r["service"], "status": r["status"], "port": r["port"]} 
                                 for r in results
                             ],
-                            "pipeline_sync": True
+                           "pipeline_sync": True
                         }
                     }
 
