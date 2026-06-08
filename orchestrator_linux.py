@@ -1763,7 +1763,10 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                                     }
                                         except Exception as e:
                                             print(f" -> {svc_name} ({svc_port}): ERRO - {str(e)}")
-                            if name == "context_api":
+                                except:
+                                    pass
+                            
+                            if name == "validation_send_api" or name == "crypto_module":
                                 ml_metadata = {
                                     "risk_v2": current_data.get("models") or risk_details.get("models", {}),
                                     "classification": {
