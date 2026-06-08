@@ -935,7 +935,6 @@ async def demo_predict(api_key: Optional[str] = None):
 # ==== TRACE & FLOW ENDPOINTS ====
 
 import re
-from datetime import datetime
 from collections import defaultdict
 
 def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> List[Dict[str, Any]]:
