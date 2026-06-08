@@ -11,7 +11,6 @@ import base64
 import os
 import signal
 import sys
-import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 import shutil
@@ -1412,7 +1411,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "delivery_method": "API",
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
-                        "expires_at": km_expires, # Voltou para INT conforme erro 422/detail
+                        "expires_at": int(time.time() + 3600),
                         "metadata": {
                             "original_destination": current_data.get("destination"),
                             "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
