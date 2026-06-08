@@ -1391,62 +1391,49 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 # Normalização para KDE (Key Destination Engine)
                 if name == "key_destination_engine":
                     negotiation = current_data.get("negotiation") or {}
-
-                    km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
-
-                    # Recupera os dados REAIS gerados pelo passo CRYPTO anterior
-                    actual_nonce = current_data.get("nonce_b64") or negotiation.get("crypto_nonce_b64")
-                    actual_ciphertext = current_data.get("ciphertext_b64") or negotiation.get("crypto_ciphertext_b64")
-                    actual_algo = current_data.get("algorithm") or negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
-                    actual_sess = current_data.get("session_id") or negotiation.get("session_id") or km_session
-
-                    km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
-                    km_algo = negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
-                    km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
-                    km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
                     
-                    # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
+                    # Refresh forçado: Garante que os dados do passo CRYPTO cheguem ao KDE
+                    actual_nonce = current_data.get("nonce_b64") or negotiation.get("crypto_nonce_b64") or "none"
+                    actual_ciphertext = current_data.get("ciphertext_b64") or negotiation.get("crypto_ciphertext_b64") or "no-data"
+                    actual_algo = current_data.get("algorithm") or negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
+                    actual_sess = current_data.get("session_id") or negotiation.get("session_id") or "null-session"
+                    actual_req = current_data.get("request_id") or current_data.get("requestId") or "req-" + str(int(time.time()))
+                    
+                    km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
+                    km_algo = negotiation.get("selected_algorithm") or actual_algo
+                    km_expires = negotiation.get("expires_at") or current_data.get("expires_at") or 0
+
+                    # Timestamp normalization
                     if isinstance(km_expires, str):
                         try:
-                            # Limpa o Z se houver e converte para timestamp
                             clean_date = km_expires.replace("Z", "").split(".")[0]
                             km_expires = int(datetime.fromisoformat(clean_date).timestamp())
-                        except:
-                            km_expires = int(time.time() + 3600)
-                    else:
-                        km_expires = int(km_expires)
+                        except: km_expires = int(time.time() + 3600)
+                    else: km_expires = int(km_expires)
 
                     payload = {
-                        "session_id": str(km_session),
-                        "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
+                        "session_id": str(actual_sess),
+                        "request_id": str(actual_req),
                         "destination": "http://192.168.18.18:8005/validation/send",
                         "delivery_method": "API",
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
-                        "expires_at": km_expires,
+                        "expires_at": int(km_expires),
                         "metadata": {
                             "body": {
-                                "requestId": str(current_data.get("requestId") or current_data.get("request_id") or "req-" + str(int(time.time()))),
+                                "requestId": str(actual_req),
                                 "sessionId": str(actual_sess),
                                 "selectedAlgorithm": str(km_algo),
-                                "cryptoNonceB64": str(actual_nonce or "none"),
-                                "cryptoCiphertextB64": str(actual_ciphertext or "no-data"),
+                                "cryptoNonceB64": str(actual_nonce),
+                                "cryptoCiphertextB64": str(actual_ciphertext),
                                 "cryptoAlgorithm": str(actual_algo),
                                 "cryptoExpiresAt": int(km_expires),
                                 "originUrl": str(current_data.get("originUrl") or "http://192.168.18.18:8090/callback"),
                                 "sourceId": str(current_data.get("sourceId") or "agent-wsl-01")
-                           },
-                           "original_destination": current_data.get("destination"),
-                           "risk_label": current_data.get("results", [{}])[0].get("label", "Unknown"),
-                           "risk_score": current_data.get("risk_score"),
-                           "security_level": current_data.get("security_level"),
-                           "model_version": "v20260107_202018", 
-                           "classification": "logreg_lbfgs_v2",
-                           "pipeline_trace": [
-                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                for r in results
-                            ],
-                           "pipeline_sync": True
+                            },
+                            "original_destination": current_data.get("destination"),
+                            "risk_label": current_data.get("risk_label") or "Unknown",
+                            "pipeline_sync": True
                         }
                     }
 
