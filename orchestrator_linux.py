@@ -1410,7 +1410,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     payload = {
                         "session_id": str(km_session),
                         "request_id": str(current_data.get("request_id") or "req-" + str(int(time.time()))),
-                        "destination": "http://192.168.18.18:8005/validation/receive",
+                        "destination": "http://192.168.18.18:8005/validation/send",
                         "delivery_method": "API",
                         "key_material": str(km_material),
                         "algorithm": str(km_algo),
@@ -1561,13 +1561,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             # Injeção automática de URL de destino para o KDE
                             if "destination" not in current_data or current_data["destination"] == "server-backend":
-                                current_data["destination"] = "http://192.168.18.18:8005/validation/receive"
+                                current_data["destination"] = "http://192.168.18.18:8005/validation/send"
                             
                             # Sanitização agressiva de IP fantasma 10.0.0.5 em qualquer lugar do current_data
                             if isinstance(current_data.get("destination"), str) and "10.0.0.5" in current_data["destination"]:
                                 current_data["destination"] = current_data["destination"].replace("10.0.0.5", "192.168.18.18")
                             if current_data.get("destination") == "192.168.18.18":
-                                current_data["destination"] = "http://192.168.18.18:8005/validation/receive"
+                                current_data["destination"] = "http://192.168.18.18:8005/validation/send"
 
                             # Normalização para o KMS: se recebeu selected_algorithm, mapeia para algorithm
                             if "selected_algorithm" in resp_json and "algorithm" not in resp_json:
