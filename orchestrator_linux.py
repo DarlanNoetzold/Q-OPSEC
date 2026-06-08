@@ -1391,6 +1391,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 # Normalização para KDE (Key Destination Engine)
                 if name == "key_destination_engine":
                     negotiation = current_data.get("negotiation") or {}
+
+                    km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
+
+                    # Recupera os dados REAIS gerados pelo passo CRYPTO anterior
+                    actual_nonce = current_data.get("nonce_b64") or negotiation.get("crypto_nonce_b64")
+                    actual_ciphertext = current_data.get("ciphertext_b64") or negotiation.get("crypto_ciphertext_b64")
+                    actual_algo = current_data.get("algorithm") or negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
+                    actual_sess = current_data.get("session_id") or negotiation.get("session_id") or km_session
+
                     km_material = negotiation.get("key_material") or current_data.get("key_material") or ""
                     km_algo = negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
                     km_session = negotiation.get("session_id") or current_data.get("session_id") or "null-session"
@@ -1416,13 +1425,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "algorithm": str(km_algo),
                         "expires_at": km_expires,
                         "metadata": {
-                           "body": {
+                            "body": {
                                 "requestId": str(current_data.get("requestId") or current_data.get("request_id") or "req-" + str(int(time.time()))),
-                                "sessionId": str(km_session),
+                                "sessionId": str(actual_sess),
                                 "selectedAlgorithm": str(km_algo),
-                                "cryptoNonceB64": str(negotiation.get("crypto_nonce_b64") or "none"),
-                                "cryptoCiphertextB64": str(negotiation.get("crypto_ciphertext_b64") or "no-data"),
-                                "cryptoAlgorithm": str(negotiation.get("crypto_algorithm") or km_algo),
+                                "cryptoNonceB64": str(actual_nonce or "none"),
+                                "cryptoCiphertextB64": str(actual_ciphertext or "no-data"),
+                                "cryptoAlgorithm": str(actual_algo),
                                 "cryptoExpiresAt": int(km_expires),
                                 "originUrl": str(current_data.get("originUrl") or "http://192.168.18.18:8090/callback"),
                                 "sourceId": str(current_data.get("sourceId") or "agent-wsl-01")
