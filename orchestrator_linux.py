@@ -1495,9 +1495,23 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 # Normalização para Crypto (Módulo Final)
                 if name == "crypto_module":
                     negotiation = current_data.get("negotiation") or {}
+                    # Recupera identificadores essenciais para KMS
+                    sess_id = current_data.get("session_id") or negotiation.get("session_id")
+                    req_id = current_data.get("request_id") or negotiation.get("request_id")
+                    
+                    # Converte o payload de dados para Base64 se disponível localmente
+                    p_b64 = current_data.get("plaintext_b64")
+                    if not p_b64 and "data" in current_data:
+                        import base64
+                        msg_data = current_data.get("data")
+                        msg_str = json.dumps(msg_data) if isinstance(msg_data, (dict, list)) else str(msg_data)
+                        p_b64 = base64.b64encode(msg_str.encode()).decode()
+
                     payload = {
-                        "request_id": current_data.get("request_id"),
-                        "plaintext_b64": current_data.get("plaintext_b64"),
+                        "request_id": req_id,
+                        "session_id": sess_id,
+                        "plaintext_b64": p_b64,
+                        "fetch_from_interceptor": False,
                         "key_material": negotiation.get("key_material") or current_data.get("key_material"),
                         "algorithm": negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM",
                         "nonce_b64": negotiation.get("crypto_nonce_b64") or current_data.get("crypto_nonce_b64")
