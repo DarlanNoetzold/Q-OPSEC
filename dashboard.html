@@ -1064,7 +1064,18 @@
                                 )}
                                 {step.status === 'success' && step.response && (
                                   <div style={{fontSize: '0.65rem', color: '#6ee7b7', marginTop: '2px', padding: '2px 4px'}}>
-                                    {step.response.selected_model || step.response.classification || step.response.algorithm || ''}
+                                    {step.response.selected_model || step.response.model_name || step.response.classification || step.response.algorithm || step.response.selected_algorithm || ''}
+                                    {step.response.confidence && ` (Conf: ${(step.response.confidence * 100).toFixed(1)}%)`}
+                                  </div>
+                                )}
+                                {step.status === 'success' && step.service === 'rl_engine' && step.response && (
+                                  <div style={{fontSize: '0.6rem', color: '#fbbf24', marginLeft: '4px'}}>
+                                    Decision: {step.response.selected_algorithm} | Level: {step.response.security_level}
+                                  </div>
+                                )}
+                                {step.status === 'success' && step.service === 'risk_service' && step.response && step.response.models && (
+                                  <div style={{fontSize: '0.6rem', color: '#94a3b8', marginLeft: '4px'}}>
+                                    RF: {step.response.models.random_forest?.prediction || 'N/A'} | LG: {step.response.models.logistic_regression?.prediction || 'N/A'}
                                   </div>
                                 )}
                               </React.Fragment>
@@ -1073,6 +1084,23 @@
                         </div>
 
                         <div style={{marginTop: '0.5rem'}}>
+                          <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px'}}>ML MODELS TELEMETRY:</div>
+                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px'}}>
+                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
+                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Classification Model</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.classification?.model_name || 'logreg_lbfgs_v2'}</div>
+                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Conf: {(pipelineResults.final_data?.mlMetadata?.classification?.confidence * 100 || 0).toFixed(1)}%</div>
+                             </div>
+                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
+                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Handshake/Negotiation</div>
+                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.handshake?.selected_model || 'Classical'}</div>
+                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>PQC: {pipelineResults.final_data?.mlMetadata?.handshake?.pqc_enabled ? 'ENABLED' : 'DISABLED'}</div>
+                             </div>
+                          </div>
+                          <div style={{background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', fontSize: '0.65rem', color: '#94a3b8', marginBottom: '10px'}}>
+                            <strong>IA LINEAGE:</strong> {pipelineResults.final_data?.mlMetadata?.ia_version}
+                          </div>
+
                           <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '6px'}}>ENCRYPTED PAYLOAD EVIDENCE:</div>
                           <pre style={{fontSize: '0.75rem', background: '#000', padding: '12px', borderRadius: 8, maxHeight: '200px', overflow: 'auto', border: '1px solid #1e293b', color: '#d1d5db'}}>
                             {JSON.stringify(pipelineResults.final_data, null, 2)}

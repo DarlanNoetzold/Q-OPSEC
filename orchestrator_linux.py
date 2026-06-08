@@ -1635,6 +1635,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
                             
+                            # Captura de detalhes de handshake e negociação
+                            if name == "handshake_negotiator":
+                                current_data["handshake_metrics"] = {
+                                    "selected_model": resp_json.get("model_name") or resp_json.get("selected_model") or "Classical Negotiation",
+                                    "pqc_enabled": "kyber" in str(resp_json.get("algorithm", "")).lower(),
+                                    "latency_ms": resp_json.get("negotiation_time_ms")
+                                }
+
                             # Captura de métricas do RL Engine
                             if name == "rl_engine":
                                 current_data["rl_metrics"] = {
@@ -1652,11 +1660,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 risk_details = current_data.get("risk_v2_details") or {}
                                 class_results = current_data.get("classification_results", [])
                                 rl_info = current_data.get("rl_metrics") or {}
+                                hand_info = current_data.get("handshake_metrics") or {}
 
                                 ml_metadata = {
                                     "risk_v2": risk_details.get("models", {}),
                                     "classification": class_results[0] if class_results else {},
                                     "rl_engine": rl_info,
+                                    "handshake": hand_info,
                                     "ia_version": current_data.get("version", "v20260107_202018")
                                 }
                                 
