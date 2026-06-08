@@ -1635,10 +1635,30 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
                             
+                            # Captura de métricas do RL Engine
+                            if name == "rl_engine":
+                                current_data["rl_metrics"] = {
+                                    "version": resp_json.get("version", "2.0"),
+                                    "decision": resp_json.get("selected_algorithm"),
+                                    "security_level": resp_json.get("security_level")
+                                }
+
                             # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
                             if name == "context_api":
                                 import datetime as dt_mod
                                 final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
+                                
+                                # Extração de detalhes de modelos de ML para o trace
+                                risk_details = current_data.get("risk_v2_details") or {}
+                                class_results = current_data.get("classification_results", [])
+                                rl_info = current_data.get("rl_metrics") or {}
+
+                                ml_metadata = {
+                                    "risk_v2": risk_details.get("models", {}),
+                                    "classification": class_results[0] if class_results else {},
+                                    "rl_engine": rl_info,
+                                    "ia_version": current_data.get("version", "v20260107_202018")
+                                }
                                 
                                 flow_metrics = {
                                     "total_steps": len(pipeline),
@@ -1657,6 +1677,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
                                 resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
                                 resp_json["sourceId"] = current_data.get("source")
+                                resp_json["mlMetadata"] = ml_metadata
                                 resp_json["flowMetrics"] = flow_metrics
                                 resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
