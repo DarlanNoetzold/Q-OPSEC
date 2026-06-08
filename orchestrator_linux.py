@@ -1695,6 +1695,20 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 rl_info = current_data.get("rl_metrics") or {}
                                 hand_info = current_data.get("handshake_metrics") or {}
 
+                                # Injeção agressiva de métricas em tempo real dos serviços (Fetch dinâmico)
+                                try:
+                                    import httpx as httpx_met
+                                    for svc_name, svc_port, svc_endpoint in [("risk_v2", 8003, "/metrics/latest"), ("classification", 8088, "/metrics"), ("rl_engine", 9009, "/metrics")]:
+                                        try:
+                                            m_resp = httpx_met.get(f"http://192.168.18.18:{svc_port}{svc_endpoint}", timeout=1.0)
+                                            if m_resp.status_code == 200:
+                                                m_data = m_resp.json()
+                                                if svc_name == "risk_v2": risk_details["realtime_metrics"] = m_data
+                                                if svc_name == "classification": class_results = [m_data] if isinstance(m_data, dict) else class_results
+                                                if svc_name == "rl_engine": rl_info["realtime_metrics"] = m_data
+                                        except: pass
+                                except: pass
+
                                 ml_metadata = {
                                     "risk_v2": risk_details.get("models", {}),
                                     "classification": class_results[0] if class_results else {},
