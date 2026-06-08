@@ -1,9 +1,11 @@
+from datetime import datetime
+import time
 """
 Q-OPSEC Orchestrator - Linux Version with Docker Support
 Manages microservices lifecycle (processes + containers), health checks, logs and metrics
 """
 import asyncio
-from datetime import datetime
+
 import json
 import base64
 import os
@@ -935,7 +937,7 @@ async def demo_predict(api_key: Optional[str] = None):
 # ==== TRACE & FLOW ENDPOINTS ====
 
 import re
-from datetime import datetime
+
 from collections import defaultdict
 
 def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> List[Dict[str, Any]]:
@@ -1394,7 +1396,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     # O seu KDE V2 exige expires_at como INTEGER (timestamp) apesar do padrão ISO em alguns sub-módulos
                     if isinstance(km_expires, str):
                         try:
-                            from datetime import datetime
+                            
                             # Limpa o Z se houver e converte para timestamp
                             clean_date = km_expires.replace("Z", "").split(".")[0]
                             km_expires = int(datetime.fromisoformat(clean_date).timestamp())
