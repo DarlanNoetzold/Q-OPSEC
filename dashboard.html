@@ -1064,13 +1064,19 @@
                                 )}
                                 {step.status === 'success' && step.response && (
                                   <div style={{fontSize: '0.65rem', color: '#6ee7b7', marginTop: '2px', padding: '2px 4px'}}>
-                                    {step.response.selected_model || step.response.model_name || step.response.classification || step.response.algorithm || step.response.selected_algorithm || ''}
-                                    {step.response.confidence && ` (Conf: ${(step.response.confidence * 100).toFixed(1)}%)`}
+                                    {/* Fallback para pegar dados aninhados ou diretos */}
+                                    {(step.response.selected_model || step.response.model_name || 
+                                      (step.response.results && step.response.results[0]?.label) || 
+                                      step.response.classification || step.response.algorithm || 
+                                      step.response.selected_algorithm || step.response.decision || '')}
+                                    {(step.response.confidence || (step.response.results && step.response.results[0]?.confidence)) && 
+                                      ` (Conf: ${((step.response.confidence || step.response.results[0]?.confidence) * 100).toFixed(1)}%)`}
                                   </div>
                                 )}
                                 {step.status === 'success' && step.service === 'rl_engine' && step.response && (
+                                  /* Suporte a payload aninhado do RL Engine */
                                   <div style={{fontSize: '0.6rem', color: '#fbbf24', marginLeft: '4px'}}>
-                                    Decision: {step.response.selected_algorithm} | Level: {step.response.security_level}
+                                    Decision: {step.response.selected_algorithm || (step.response.payload && step.response.payload.selected_algorithm)} | Level: {step.response.security_level || (step.response.payload && step.response.payload.security_level)}
                                   </div>
                                 )}
                                 {step.status === 'success' && step.service === 'risk_service' && step.response && step.response.models && (

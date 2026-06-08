@@ -1635,26 +1635,41 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
                             
+                            # Captura de detalhes de RISK V2 (Deep Extraction)
+                            if name == "risk_service":
+                                current_data["risk_v2_details"] = resp_json
+                                current_data["risk_score"] = resp_json.get("risk_score")
+
+                            # Captura de detalhes de CLASSIFICATION
+                            if name == "classification_agent":
+                                current_data["classification_results"] = resp_json.get("results") or resp_json.get("classification_results")
+                                current_data["model_name"] = resp_json.get("model_name")
+
                             # Captura de detalhes de handshake e negociação
                             if name == "handshake_negotiator":
                                 current_data["handshake_metrics"] = {
-                                    "selected_model": resp_json.get("model_name") or resp_json.get("selected_model") or "Classical Negotiation",
-                                    "pqc_enabled": "kyber" in str(resp_json.get("algorithm", "")).lower(),
-                                    "latency_ms": resp_json.get("negotiation_time_ms")
+                                    "selected_model": resp_json.get("model_name") or resp_json.get("selected_model") or "KMS-Handshake-v1",
+                                    "pqc_enabled": any(x in str(resp_json.get("selected_algorithm", "")).lower() for x in ["kyber", "frodo", "dilithium"]),
+                                    "latency_ms": resp_json.get("prediction_time_ms") or resp_json.get("negotiation_time_ms")
                                 }
+                                if resp_json.get("selected_algorithm"):
+                                    current_data["selected_algorithm"] = resp_json.get("selected_algorithm")
 
                             # Captura de métricas do RL Engine
                             if name == "rl_engine":
+                                rl_final = resp_json.get("payload", {}) if "payload" in resp_json else resp_json
                                 current_data["rl_metrics"] = {
-                                    "version": resp_json.get("version", "2.0"),
-                                    "decision": resp_json.get("selected_algorithm"),
-                                    "security_level": resp_json.get("security_level")
+                                    "version": resp_json.get("version") or rl_final.get("rl_engine_version") or "2.0",
+                                    "decision": rl_final.get("selected_algorithm") or rl_final.get("decision"),
+                                    "security_level": rl_final.get("security_level") or resp_json.get("security_level")
                                 }
+                                if rl_final.get("security_level"):
+                                    current_data["security_level"] = rl_final.get("security_level")
 
                             # Sincronização de metadados para o dashboard (Re-adicionando o que foi perdido)
                             if name == "context_api":
                                 import datetime as dt_mod
-                                final_alg = current_data.get("algorithm") or current_data.get("selected_algorithm") or current_data.get("selectedAlgorithm")
+                                final_alg = current_data.get("selected_algorithm") or current_data.get("algorithm") or current_data.get("selectedAlgorithm")
                                 
                                 # Extração de detalhes de modelos de ML para o trace
                                 risk_details = current_data.get("risk_v2_details") or {}
