@@ -1393,8 +1393,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     negotiation = current_data.get("negotiation") or {}
                     
                     # Refresh forçado: Garante que os dados do passo CRYPTO cheguem ao KDE
-                    actual_nonce = current_data.get("nonce_b64") or negotiation.get("crypto_nonce_b64") or "none"
-                    actual_ciphertext = current_data.get("ciphertext_b64") or negotiation.get("crypto_ciphertext_b64") or "no-data"
+                    actual_nonce = current_data.get("nonce_b64") or current_data.get("crypto_nonce_b64") or negotiation.get("crypto_nonce_b64") or negotiation.get("nonce_b64")
+                    actual_ciphertext = current_data.get("ciphertext_b64") or current_data.get("crypto_ciphertext_b64") or negotiation.get("crypto_ciphertext_b64") or negotiation.get("ciphertext_b64")
                     actual_algo = current_data.get("algorithm") or negotiation.get("selected_algorithm") or current_data.get("selected_algorithm") or "AES256_GCM"
                     actual_sess = current_data.get("session_id") or negotiation.get("session_id") or "null-session"
                     actual_req = current_data.get("request_id") or current_data.get("requestId") or "req-" + str(int(time.time()))
@@ -1668,6 +1668,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     "algorithm": resp_json.get("selected_algorithm") or resp_json.get("algorithm")
                                 }
                                 current_data["handshake_metrics"] = h_metrics
+                                # Atualização imediata para evitar "Negotiating..."
+                                current_data["selectedAlgorithm"] = h_metrics["algorithm"]
+                                current_data["selected_algorithm"] = h_metrics["algorithm"]
                                 if h_metrics["algorithm"]:
                                     current_data["selected_algorithm"] = h_metrics["algorithm"]
                                 # Preservar session_id do Handshake para os próximos passos
@@ -1740,7 +1743,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 except: pass
                                 ml_metadata = {
                                     "risk_v2": risk_details.get("models", {}),
-                                    "classification": class_results[0] if class_results else {},
+                                    "classification": {
+                                        "model": current_data.get("model_name", "logreg_lbfgs_v2"),
+                                        "confidence": current_data.get("conf_score", 0.0),
+                                        "results": class_results[0] if class_results else {}
+                                    },
                                     "rl_engine": rl_info,
                                     "handshake": hand_info,
                                     "ia_version": current_data.get("version", "v20260107_202018")
