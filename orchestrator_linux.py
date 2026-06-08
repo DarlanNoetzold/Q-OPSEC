@@ -1520,20 +1520,28 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 # Normalização para KDE (Key Destination Engine)
                 if name == "key_destination_engine":
                     payload = {
-                        "session_id": str(current_data.get("session_id") or "null-session"),
-                        "request_id": str(current_data.get("request_id") or "req"),
-                        "destination": "http://192.168.18.18:8005/validation/receive",
+                        "session_id": current_data.get("session_id") or "null-session",
+                        "request_id": current_data.get("request_id"),
+                        "destination": payload.get("destination") or "http://192.168.18.18:8005/validation/receive",
                         "delivery_method": "API",
-                        "key_material": str(current_data.get("key_material") or ""),
-                        "algorithm": str(current_data.get("selected_algorithm") or "AES256_GCM"),
+                        "key_material": current_data.get("key_material") or "",
+                        "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
                         "expires_at": int(time.time() + 3600),
                         "metadata": {
-                            "risk_model": "v20260107_202018",
-                            "classification": "logreg_lbfgs_v2",
-                            "rl_policy": "PPO Context-Aware",
-                            "source_ip": "192.168.18.18"
+                            "source_ip": "192.168.18.18",
+                            "risk_score": current_data.get("risk_score"),
+                            "security_level": current_data.get("security_level"),
+                            "model_version": "v20260107_202018", "classification": "logreg_lbfgs_v2",
+                            "pipeline_trace": [
+                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                for r in results
+                            ],
+                            "pipeline_sync": True
                         }
                     }
+
+                # Add Authentication Headers for Classification Agent
+                headers = {}
                 if name == "classification_agent":
                     api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
                     headers["X-API-Key"] = api_key
