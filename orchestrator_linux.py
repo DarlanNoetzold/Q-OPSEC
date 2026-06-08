@@ -1634,6 +1634,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     import base64
                                     msg_str = json.dumps(current_data["data"])
                                     resp_json["plaintext_b64"] = base64.b64encode(msg_str.encode()).decode()
+                                    # Garantir que data original chegue na validation de forma consistente
+                                    resp_json["data"] = current_data["data"]
                             
                             # Captura de detalhes de RISK V2 (Deep Extraction)
                             if name == "risk_service":
@@ -1642,27 +1644,43 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
 
                             # Captura de detalhes de CLASSIFICATION
                             if name == "classification_agent":
-                                current_data["classification_results"] = resp_json.get("results") or resp_json.get("classification_results")
-                                current_data["model_name"] = resp_json.get("model_name")
+                                # Pegar métricas reais do endpoint de classificação
+                                try:
+                                    class_results = resp_json.get("results") or resp_json.get("classification_results") or []
+                                    if class_results:
+                                        current_data["classification_results"] = class_results
+                                        current_data["model_name"] = resp_json.get("model_name")
+                                        current_data["conf_score"] = class_results[0].get("confidence", 0.4)
+                                except: pass
 
-                            # Captura de detalhes de handshake e negociação
+                            # Captura de detalhes de HANDSHAKE (Negociação PQC/Clássica)
                             if name == "handshake_negotiator":
-                                current_data["handshake_metrics"] = {
+                                # KMS Negotiation V2 data extraction
+                                h_metrics = {
                                     "selected_model": resp_json.get("model_name") or resp_json.get("selected_model") or "KMS-Handshake-v1",
-                                    "pqc_enabled": any(x in str(resp_json.get("selected_algorithm", "")).lower() for x in ["kyber", "frodo", "dilithium"]),
-                                    "latency_ms": resp_json.get("prediction_time_ms") or resp_json.get("negotiation_time_ms")
+                                    "pqc_enabled": any(x in str(resp_json.get("selected_algorithm", "")).lower() for x in ["kyber", "frodo", "dilithium", "saber", "bike"]),
+                                    "latency_ms": resp_json.get("prediction_time_ms") or resp_json.get("negotiation_time_ms"),
+                                    "algorithm": resp_json.get("selected_algorithm") or resp_json.get("algorithm")
                                 }
-                                if resp_json.get("selected_algorithm"):
-                                    current_data["selected_algorithm"] = resp_json.get("selected_algorithm")
+                                current_data["handshake_metrics"] = h_metrics
+                                if h_metrics["algorithm"]:
+                                    current_data["selected_algorithm"] = h_metrics["algorithm"]
+                                # Preservar session_id do Handshake para os próximos passos
+                                if resp_json.get("session_id"):
+                                    current_data["session_id"] = resp_json.get("session_id")
+                                    resp_json["sessionId"] = resp_json.get("session_id")
+                                if resp_json.get("expires_at"):
+                                    current_data["expires_at"] = resp_json.get("expires_at")
 
                             # Captura de métricas do RL Engine
                             if name == "rl_engine":
                                 rl_final = resp_json.get("payload", {}) if "payload" in resp_json else resp_json
-                                current_data["rl_metrics"] = {
+                                rl_metrics = {
                                     "version": resp_json.get("version") or rl_final.get("rl_engine_version") or "2.0",
                                     "decision": rl_final.get("selected_algorithm") or rl_final.get("decision"),
                                     "security_level": rl_final.get("security_level") or resp_json.get("security_level")
                                 }
+                                current_data["rl_metrics"] = rl_metrics
                                 if rl_final.get("security_level"):
                                     current_data["security_level"] = rl_final.get("security_level")
 
