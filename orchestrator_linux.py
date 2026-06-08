@@ -1449,9 +1449,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         payload["source"] = str(src or "192.168.18.18")
                         
                     if isinstance(dst, dict):
-                        payload["destination"] = dst.get("ip") or "10.0.0.5"
+                        payload["destination"] = dst.get("ip") or "192.168.18.18"
                     else:
-                        payload["destination"] = str(dst or "10.0.0.5")
+                        payload["destination"] = str(dst or "192.168.18.18")
 
                     risk_data = current_data.get("risk") or {}
                     conf_data = current_data.get("confidentiality") or {}
