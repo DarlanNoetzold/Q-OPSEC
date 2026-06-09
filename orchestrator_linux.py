@@ -1817,6 +1817,39 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
                             current_data.update(resp_json)
+                        
+                        # ASSEGURAR QUE TODOS OS PASSOS APAREÇAM NO TRACE E TELEMETRIA
+                        # Injeta metadados atualizados em cada iteração do loop
+                        ml_metadata = {
+                            "risk_v2": current_data.get("models") or current_data.get("risk_v2_details", {}).get("models", {}),
+                            "classification": {
+                                "model": current_data.get("model_name", "logreg_lbfgs_v2"),
+                                "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0),
+                                "results": current_data.get("classification_results", [{}])[0]
+                            },
+                            "confiability": {
+                                "model": "conf-fb-0.0.1",
+                                "score": current_data.get("conf_score", 0.4),
+                                "details": current_data.get("confidentiality", {})
+                            },
+                            "rl_engine": current_data.get("rl_metrics") or {},
+                            "handshake": current_data.get("handshake_metrics") or {},
+                            "ia_version": current_data.get("version", "v20260107_202018")
+                        }
+                        
+                        flow_metrics = {
+                            "total_steps": len(pipeline),
+                            "timestamp": dt_mod.datetime.now().isoformat(),
+                            "negotiated_algorithm": current_data.get("selectedAlgorithm"),
+                            "pipeline_trace": [
+                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                for r in results + [step_result]
+                            ]
+                        }
+                        
+                        current_data["mlMetadata"] = ml_metadata
+                        current_data["flowMetrics"] = flow_metrics
+
                     except Exception as e:
                          # Log do erro para depuração interna sem quebrar o 200
                          print(f"Erro ao processar JSON no passo {name}: {str(e)}")
