@@ -1766,23 +1766,29 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                 except:
                                     pass
                             
+                            # [FIX] Metadados unificados para todos os módulos (Trace & Flow)
+                            ml_metadata = {
+                                "risk_v2": current_data.get("models") or risk_details.get("models", {}),
+                                "classification": {
+                                    "model": current_data.get("model_name", "logreg_lbfgs_v2"),
+                                    "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0),
+                                    "results": class_results[0] if class_results else {}
+                                },
+                                "confiability": {
+                                    "model": "conf-fb-0.0.1",
+                                    "score": current_data.get("conf_score", 0.4),
+                                    "details": current_data.get("confidentiality", {})
+                                },
+                                "rl_engine": rl_info,
+                                "handshake": hand_info,
+                                "ia_version": current_data.get("version", "v20260107_202018")
+                            }
+                            
+                            current_data["mlMetadata"] = ml_metadata
+                            
                             if name == "validation_send_api" or name == "crypto_module":
-                                ml_metadata = {
-                                    "risk_v2": current_data.get("models") or risk_details.get("models", {}),
-                                    "classification": {
-                                        "model": current_data.get("model_name", "logreg_lbfgs_v2"),
-                                        "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0),
-                                        "results": class_results[0] if class_results else {}
-                                    },
-                                    "confiability": {
-                                        "model": "conf-fb-0.0.1",
-                                        "score": current_data.get("conf_score", 0.4),
-                                        "details": current_data.get("confidentiality", {})
-                                    },
-                                    "rl_engine": rl_info,
-                                    "handshake": hand_info,
-                                    "ia_version": current_data.get("version", "v20260107_202018")
-                                }
+                                # Conserva contrato específico de resposta para o Java
+                                resp_json["requestId"] = current_data.get("request_id")
                                 
                                 flow_metrics = {
                                     "total_steps": len(pipeline),
