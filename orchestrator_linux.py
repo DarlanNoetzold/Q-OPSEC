@@ -1874,6 +1874,25 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 
             results.append(step_result)
             
+    # [FIX] Forçar sincronização final do trace com os resultados reais obtidos
+    # Isso garante que mesmo módulos em erro apareçam no Dashboard corretamente
+    current_data["flowMetrics"] = {
+        "total_steps": len(pipeline),
+        "timestamp": datetime.now().isoformat(),
+        "pipeline_trace": [
+            {"service": r["service"], "status": r["status"], "port": r["port"]} 
+            for r in results
+        ]
+    }
+    
+    # Garantia de que mlMetadata esteja no root para o Dashboard
+    if "mlMetadata" not in current_data:
+        current_data["mlMetadata"] = {
+            "ia_version": current_data.get("version", "v20260107_202018"),
+            "risk_v2": current_data.get("models", []),
+            "classification": {"model": current_data.get("model_name", "logreg_lbfgs_v2")}
+        }
+
     return {
         "timestamp": datetime.now().isoformat(),
         "pipeline_results": results,
