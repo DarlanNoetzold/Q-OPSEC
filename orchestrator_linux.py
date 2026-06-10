@@ -1370,9 +1370,10 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             step_result = {
                 "service": name,
                 "url": url,
-                "status": "pending",
+                "status": "in_progress",
                 "port": step["port"]
             }
+            results.append(step_result) # [PHD-FIX] Registrar imediatamente para visibilidade no Dashboard
             
             try:
                 # Check if service is running locally first
