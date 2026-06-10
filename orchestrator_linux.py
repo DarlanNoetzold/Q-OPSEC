@@ -1848,11 +1848,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             "total_steps": len(pipeline),
                             "timestamp": dt_mod.datetime.now().isoformat(),
                             "negotiated_algorithm": current_data.get("selectedAlgorithm"),
-                            "pipeline_trace": [
-                                {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                for r in results + [step_result]
-                            ]
-                        }
+                                    "pipeline_trace": [
+                                        {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                                        for r in results
+                                    ]
+                                }
                         
                         current_data["mlMetadata"] = ml_metadata
                         current_data["flowMetrics"] = flow_metrics
