@@ -1373,7 +1373,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 "status": "in_progress",
                 "port": step["port"]
             }
-            results.append(step_result) # [PHD-FIX] Registrar imediatamente para visibilidade no Dashboard
+
             
             try:
                 # Check if service is running locally first
@@ -1787,41 +1787,16 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             current_data["mlMetadata"] = ml_metadata
                             
-                            if name == "validation_send_api" or name == "crypto_module":
-                                # Conserva contrato específico de resposta para o Java
-                                resp_json["requestId"] = current_data.get("request_id")
-                                
-                                flow_metrics = {
-                                    "total_steps": len(pipeline),
-                                    "timestamp": dt_mod.datetime.now().isoformat(),
-                                    "negotiated_algorithm": final_alg,
-                                    "pipeline_trace": [
-                                        {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                        for r in results
-                                    ]
+                            # Enriquecimento do rl_metrics com dados reais para o dashboard
+                            if "rl_engine" in ml_metadata and "realtime_metrics" in ml_metadata["rl_engine"]:
+                                rl_realtime = ml_metadata["rl_engine"]["realtime_metrics"]
+                                resp_json["rl_metrics"] = {
+                                    "version": rl_realtime.get("version", "2.0"),
+                                    "decision": next((k for k, v in rl_realtime.get("metrics", {}).get("algorithm_usage", {}).items() if v > 0), "AES256_GCM"),
+                                    "avg_q_value": rl_realtime.get("q_table_stats", {}).get("avg_q_value", 0),
+                                    "security_level": current_data.get("security_level", "LOW")
                                 }
-                                resp_json["requestId"] = current_data.get("request_id")
-                                resp_json["sessionId"] = current_data.get("session_id")
-                                resp_json["selectedAlgorithm"] = final_alg
-                                resp_json["cryptoNonceB64"] = current_data.get("nonce_b64")
-                                resp_json["cryptoCiphertextB64"] = current_data.get("ciphertext_b64")
-                                resp_json["cryptoAlgorithm"] = current_data.get("algorithm")
-                                resp_json["cryptoExpiresAt"] = current_data.get("expires_at")
-                                resp_json["sourceId"] = current_data.get("source")
-                                resp_json["mlMetadata"] = ml_metadata
-                                resp_json["flowMetrics"] = flow_metrics
-
-                                # Enriquecimento do rl_metrics com dados reais para o dashboard
-                                if "rl_engine" in ml_metadata and "realtime_metrics" in ml_metadata["rl_engine"]:
-                                    rl_realtime = ml_metadata["rl_engine"]["realtime_metrics"]
-                                    resp_json["rl_metrics"] = {
-                                        "version": rl_realtime.get("version", "2.0"),
-                                        "decision": next((k for k, v in rl_realtime.get("metrics", {}).get("algorithm_usage", {}).items() if v > 0), "AES256_GCM"),
-                                        "avg_q_value": rl_realtime.get("q_table_stats", {}).get("avg_q_value", 0),
-                                        "security_level": current_data.get("security_level", "LOW")
-                                    }
-
-                                resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
+                            resp_json["originUrl"] = current_data.get("originUrl") or "http://192.168.18.18:8090/callback"
                             
                             current_data.update(resp_json)
                         
@@ -1874,18 +1849,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 break
                 
             results.append(step_result)
-            
-    # [FIX] Forçar sincronização final do trace com os resultados reais obtidos
-    # Isso garante que mesmo módulos em erro apareçam no Dashboard corretamente
-    current_data["flowMetrics"] = {
-        "total_steps": len(pipeline),
-        "timestamp": datetime.now().isoformat(),
-        "pipeline_trace": [
-            {"service": r["service"], "status": r["status"], "port": r["port"]} 
-            for r in results
-        ]
-    }
-    
+
     # Garantia de que mlMetadata esteja no root para o Dashboard
     if "mlMetadata" not in current_data:
         current_data["mlMetadata"] = {
