@@ -1363,7 +1363,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             name = step["name"]
-            # Usando o IP externo para garantir que os serviços se comuniquem corretamente no ambiente remoto
+            # Usando o IP externo para garantir que los serviços se comuniquem corretamente no ambiente remoto
             host_ip = "192.168.18.18"
             url = f"http://{host_ip}:{step['port']}{step['endpoint']}"
             
@@ -1374,7 +1374,20 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 "port": step["port"]
             }
 
+            # PHD-FIX: Injeção imediata no results para visibilidade em tempo real (passagem por referência)
+            results.append(step_result)
             
+            # PHD-FIX: Atualização atômica do flowMetrics para o Dashboard em cada iteração
+            import datetime as dt_at
+            current_data["flowMetrics"] = {
+                "total_steps": len(pipeline),
+                "timestamp": dt_at.datetime.now().isoformat(),
+                "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
+                "pipeline_trace": [
+                    {"service": r["service"], "status": r["status"], "port": r["port"]} 
+                    for r in results
+                ]
+            }
             try:
                 # Check if service is running locally first
                 svc = CONFIG.get("services", {}).get(name, {})
@@ -1829,9 +1842,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     ]
                                 }
                         
-                        current_data["mlMetadata"] = ml_metadata
-                        current_data["flowMetrics"] = flow_metrics
-
                     except Exception as e:
                          # Log do erro para depuração interna sem quebrar o 200
                          print(f"Erro ao processar JSON no passo {name}: {str(e)}")
@@ -1839,17 +1849,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 else:
                     step_result["status"] = "error"
                     step_result["error"] = response.text[:500]
-                    results.append(step_result)
                     break
                     
             except Exception as e:
                 step_result["status"] = "error"
                 step_result["error"] = str(e)
-                results.append(step_result)
                 break
                 
-            results.append(step_result)
-
     # Garantia de que mlMetadata esteja no root para o Dashboard
     if "mlMetadata" not in current_data:
         current_data["mlMetadata"] = {
