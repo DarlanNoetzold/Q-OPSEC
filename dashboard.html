@@ -121,7 +121,6 @@
       margin: 1.5rem auto;
       padding: 0 1.5rem;
       flex-grow: 1;
-      overflow-y: auto;
     }
     .grid {
       display: grid;
@@ -209,7 +208,6 @@
       border-radius: 0.75rem;
       padding: 1rem;
       margin-top: 1rem;
-      overflow-x: auto;
     }
     .search {
       display: flex;
@@ -234,14 +232,12 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px #3b82f633;
     }
-    .trace-service {
       margin-top: 1rem;
       padding: 0.75rem;
       border-radius: 0.5rem;
       background: #0d0f1a;
       border: 1px solid #242847;
     }
-    .trace-match {
       margin-top: 0.75rem;
       padding: 0.5rem;
       border-left: 3px solid #3b82f6;
@@ -260,7 +256,6 @@
       font-size: 0.875rem;
       color: #d1d5db;
     }
-    .flow-step {
       display: flex;
       gap: 1rem;
       padding: 1rem;
@@ -269,7 +264,6 @@
       border-radius: 0.5rem;
       align-items: center;
     }
-    .flow-step + .flow-step {
       margin-top: 1rem;
     }
     .chip {
@@ -309,7 +303,6 @@
       font-weight: 800;
       user-select: none;
     }
-    .timeline-item {
       display: grid;
       grid-template-columns: 180px 200px 1fr;
       gap: 1rem;
@@ -322,12 +315,10 @@
       color: #d1d5db;
       word-break: break-word;
     }
-    .timeline-item + .timeline-item {
       margin-top: 0.5rem;
     }
     .logs {
       max-height: 60vh;
-      overflow-y: auto;
       background: #0b0e1f;
       border: 1px solid #242847;
       border-radius: 0.5rem;
@@ -457,9 +448,6 @@
       const [logs, setLogs] = useState([]);
 
       const [requestId, setRequestId] = useState('');
-      const [traceData, setTraceData] = useState(null);
-      const [flowData, setFlowData] = useState(null);
-      const [timelineData, setTimelineData] = useState(null);
       const [activeRequests, setActiveRequests] = useState([]);
 
       const [metricsService, setMetricsService] = useState(SERVICES_WITH_METRICS[0]);
@@ -634,31 +622,16 @@
         }
       };
 
-      const doTrace = async () => {
         if (!requestId) return;
-        setActiveTab('trace');
         try {
-          const r = await fetch(`${API}/trace/${requestId}`);
-          setTraceData(await r.json());
-        } catch { toast('Trace error', 'err'); }
       };
 
-      const loadFlow = async () => {
         if (!requestId) return;
-        setActiveTab('flow');
         try {
-          const r = await fetch(`${API}/flow/${requestId}`);
-          setFlowData(await r.json());
-        } catch { toast('Flow load error', 'err'); }
       };
 
-      const loadTimeline = async () => {
         if (!requestId) return;
-        setActiveTab('timeline');
         try {
-          const r = await fetch(`${API}/timeline/${requestId}`);
-          setTimelineData(await r.json());
-        } catch { toast('Timeline load error', 'err'); }
       };
 
       const loadActiveReqs = async () => {
@@ -778,7 +751,7 @@
       };
 
       const getSwaggerUrl = (service) => {
-        // Use swagger_url directly from API response if available
+
         return service.swagger_url || null;
       };
 
@@ -880,28 +853,16 @@
               Pipeline
             </button>
             <button
-              className={`tab ${activeTab === 'trace' ? 'active' : ''}`}
-              onClick={() => setActiveTab('trace')}
               role="tab"
-              aria-selected={activeTab === 'trace'}
             >
-              Trace
             </button>
             <button
-              className={`tab ${activeTab === 'flow' ? 'active' : ''}`}
-              onClick={() => setActiveTab('flow')}
               role="tab"
-              aria-selected={activeTab === 'flow'}
             >
-              Flow
             </button>
             <button
-              className={`tab ${activeTab === 'timeline' ? 'active' : ''}`}
-              onClick={() => setActiveTab('timeline')}
               role="tab"
-              aria-selected={activeTab === 'timeline'}
             >
-              Timeline
             </button>
             <button
               className={`tab ${activeTab === 'active' ? 'active' : ''}`}
@@ -964,7 +925,6 @@
 
                     <div style={{marginBottom: '1rem'}}>
                       <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Algorithms to Propose</label>
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', background: '#0f172a', padding: '12px', borderRadius: 6, border: '1px solid #1e293b'}}>
                         {Object.entries(ALL_ALGS).map(([cat, algs]) => (
                           <div key={cat} style={{marginBottom: '0.5rem'}}>
                             <div style={{fontSize: '0.65rem', fontWeight: 'bold', color: '#6366f1', marginBottom: '4px', textTransform: 'uppercase'}}>{cat.replace('_', ' ')}</div>
@@ -976,7 +936,6 @@
                                     checked={proposedAlgs.includes(alg)} 
                                     onChange={() => setProposedAlgs(prev => prev.includes(alg) ? prev.filter(a => a !== alg) : [...prev, alg])} 
                                   /> 
-                                  <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={alg}>{alg}</span>
                                 </label>
                               ))}
                             </div>
@@ -1018,7 +977,6 @@
                       };
                       runPipeline(payload);
                     }} disabled={loading}>
-                      {loading ? '⚙ PROCESSING FLOW...' : '🚀 DEPLOY SEQUENTIAL ENCRYPTION'}
                     </button>
                   </div>
 
@@ -1042,14 +1000,12 @@
                           </div>
                           <div style={{background: '#1e293b', padding: '12px', borderRadius: 8, border: '1px solid #334155'}}>
                             <div style={{fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700'}}>Session Key</div>
-                            <div style={{color: '#60a5fa', fontSize: '0.8rem', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis'}}>
                               {pipelineResults.final_data?.sessionId ? String(pipelineResults.final_data.sessionId).substring(0, 15) + '...' : 'Pending'}
                             </div>
                           </div>
                         </div>
 
                         <div style={{background: '#020617', borderRadius: 8, padding: '1rem', border: '1px solid #1e293b'}}>
-                          <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#8b5cf6', marginBottom: '10px'}}>INTER-SERVICE TRACE:</div>
                           <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
                             {(pipelineResults.pipeline_results || []).map((step, i) => (
                               <React.Fragment key={i}>
@@ -1064,7 +1020,7 @@
                                 )}
                                 {step.status === 'success' && step.response && (
                                   <div style={{fontSize: '0.65rem', color: '#6ee7b7', marginTop: '2px', padding: '2px 4px'}}>
-                                    {/* Fallback para pegar dados aninhados ou diretos */}
+                                    {}
                                     {(step.response.selected_model || step.response.model_name || 
                                       (step.response.results && step.response.results[0]?.label) || 
                                       step.response.classification || step.response.algorithm || 
@@ -1074,7 +1030,7 @@
                                   </div>
                                 )}
                                 {step.status === 'success' && step.service === 'rl_engine' && step.response && (
-                                  /* Suporte a payload aninhado do RL Engine */
+                                  
                                   <div style={{fontSize: '0.6rem', color: '#fbbf24', marginLeft: '4px'}}>
                                     Decision: {step.response.selected_algorithm || (step.response.payload && step.response.payload.selected_algorithm)} | Level: {step.response.security_level || (step.response.payload && step.response.payload.security_level)}
                                   </div>
@@ -1123,7 +1079,6 @@
                           </div>
 
                           <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '6px'}}>ENCRYPTED PAYLOAD EVIDENCE:</div>
-                          <pre style={{fontSize: '0.75rem', background: '#000', padding: '12px', borderRadius: 8, maxHeight: '200px', overflow: 'auto', border: '1px solid #1e293b', color: '#d1d5db'}}>
                             {JSON.stringify(pipelineResults.final_data, null, 2)}
                           </pre>
                         </div>
@@ -1215,7 +1170,6 @@
                     Files: {ds.files ? ds.files.length : 1}
                     </div>
                     {ds.files && ds.files.length > 0 && (
-                    <ul style={{listStyleType: 'disc', paddingLeft: '1.25rem', marginTop: 8, maxHeight: 160, overflowY: 'auto'}}>
                     {ds.files.map(f => (
                     <li
                     key={f}
@@ -1241,7 +1195,6 @@
                     {selectedDataset.datasetName} / {selectedDataset.fileName}
                     </h3>
                     {datasetPreview && datasetPreview.rows && datasetPreview.rows.length > 0 ? (
-                    <div style={{overflowX: 'auto', maxHeight: 400, border: '1px solid #444', borderRadius: 6}}>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem'}}>
                     <thead style={{backgroundColor: '#1e293b', position: 'sticky', top: 0}}>
                     <tr>
@@ -1289,7 +1242,6 @@
               </section>
             )}
 
-            {activeTab === 'trace' && (
               <section>
                 <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
                   <input
@@ -1297,21 +1249,13 @@
                     placeholder="Enter request_id (e.g. req_123)"
                     value={requestId}
                     onChange={e => setRequestId(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && doTrace()}
                     aria-label="Input for request_id"
                     style={{flexGrow: 1, minWidth: 200}}
                   />
-                  <button className="btn btn-ghost" onClick={doTrace}>🔍 Trace</button>
                 </div>
-                {traceData && (
                   <div className="panel" style={{marginTop:12}}>
-                    <div style={{fontWeight: '700', marginBottom: 8}}>Trace for: {traceData.request_id}</div>
-                    <div style={{color: '#9ca3af', marginBottom: 16}}>Status: {traceData.status} | Total matches: {traceData.total_matches || 0}</div>
-                    {Object.entries(traceData.services || {}).map(([svc, data]) => (
-                    <div key={svc} className="trace-service" tabIndex={0} aria-label={`Logs for service ${svc}`}>
                     <div style={{fontWeight: '700', color: '#3b82f6', marginBottom: 8}}>{svc} ({data.count} matches)</div>
                     {(data.matches || []).map((m, i) => (
-                    <div key={i} className="trace-match">
                     <div style={{color: '#9ca3af'}}>Line {m.line_number} | {m.timestamp || 'No timestamp'}</div>
                     <div style={{marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>{m.line}</div>
                     {m.context && m.context.length > 0 && (
@@ -1329,7 +1273,6 @@
               </section>
             )}
 
-            {activeTab === 'flow' && (
               <section>
                 <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
                   <input
@@ -1337,19 +1280,11 @@
                     placeholder="Enter request_id"
                     value={requestId}
                     onChange={e => setRequestId(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && loadFlow()}
-                    aria-label="Input for flow request_id"
                     style={{flexGrow: 1, minWidth: 200}}
                   />
-                  <button className="btn btn-ghost" onClick={loadFlow}>📊 View Flow</button>
                 </div>
-                {flowData && (
                   <div className="panel">
-                    <div style={{fontWeight: '700', marginBottom: 8}}>Flow for: {flowData.request_id}</div>
-                    <div style={{color: '#9ca3af', marginBottom: 16}}>Current step: {flowData.current_step}/{flowData.total_steps}</div>
                     <div>
-                    {(flowData.flow || []).map(step => (
-                    <div key={step.step} className="flow-step" tabIndex={0} aria-label={`Step ${step.step} of service ${step.service}`}>
                     <div className="ball">{step.step}</div>
                     <div style={{flex: 1}}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1373,7 +1308,6 @@
               </section>
             )}
 
-            {activeTab === 'timeline' && (
               <section>
                 <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
                   <input
@@ -1381,19 +1315,11 @@
                     placeholder="Enter request_id"
                     value={requestId}
                     onChange={e => setRequestId(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && loadTimeline()}
-                    aria-label="Input for timeline request_id"
                     style={{flexGrow: 1, minWidth: 200}}
                   />
-                  <button className="btn btn-ghost" onClick={loadTimeline}>⏱ View Timeline</button>
                 </div>
-                {timelineData && (
                   <div className="panel">
-                    <div style={{fontWeight: '700', marginBottom: 8}}>Timeline for: {timelineData.request_id}</div>
-                    <div style={{color: '#9ca3af', marginBottom: 16}}>Events: {timelineData.total_events}</div>
                     <div>
-                    {(timelineData.timeline || []).map((ev, i) => (
-                    <div key={i} className="timeline-item" tabIndex={0} aria-label={`Event ${i + 1} of service ${ev.service}`}>
                     <div style={{color: '#9ca3af', fontFamily: 'monospace'}}>{ev.timestamp}</div>
                     <div style={{color: '#3b82f6', fontWeight: '700'}}>{ev.service}</div>
                     <div style={{fontFamily: 'monospace'}}>{ev.line}</div>
@@ -1414,7 +1340,6 @@
                     <button
                     key={id}
                     className="card cursor-pointer"
-                    onClick={() => { setRequestId(id); setActiveTab('trace'); doTrace(); }}
                     tabIndex={0}
                     aria-label={`Active request ${id}`}
                     >
