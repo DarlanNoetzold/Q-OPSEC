@@ -232,90 +232,12 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px #3b82f633;
     }
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      background: #0d0f1a;
-      border: 1px solid #242847;
-    }
-      margin-top: 0.75rem;
-      padding: 0.5rem;
-      border-left: 3px solid #3b82f6;
-      background: #0b0e1f;
-      border-radius: 0.375rem;
-      font-family: monospace;
-      font-size: 0.875rem;
-      color: #d1d5db;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
     .mono {
       font-family: monospace;
       white-space: pre-wrap;
       word-break: break-word;
       font-size: 0.875rem;
       color: #d1d5db;
-    }
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      background: #0b0e1f;
-      border: 1px solid #242847;
-      border-radius: 0.5rem;
-      align-items: center;
-    }
-      margin-top: 1rem;
-    }
-    .chip {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      user-select: none;
-      white-space: nowrap;
-    }
-    .chip.ok {
-      color: #10b981;
-      background: #10b98133;
-      border: 1px solid #10b98155;
-    }
-    .chip.wait {
-      color: #f59e0b;
-      background: #f59e0b33;
-      border: 1px solid #f59e0b55;
-    }
-    .chip.err {
-      color: #ef4444;
-      background: #ef444433;
-      border: 1px solid #ef444455;
-    }
-    .ball {
-      width: 40px;
-      height: 40px;
-      border-radius: 9999px;
-      display: grid;
-      place-items: center;
-      background: #0d1022;
-      border: 1px solid #242847;
-      color: #9aa0b4;
-      font-weight: 800;
-      user-select: none;
-    }
-      display: grid;
-      grid-template-columns: 180px 200px 1fr;
-      gap: 1rem;
-      padding: 0.75rem;
-      border-left: 3px solid #3b82f6;
-      background: #0b0e1f;
-      border: 1px solid #242847;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      color: #d1d5db;
-      word-break: break-word;
-    }
-      margin-top: 0.5rem;
     }
     .logs {
       max-height: 60vh;
@@ -403,36 +325,23 @@
 
     function ImageCarousel({ images, basePath }) {
       const [currentIndex, setCurrentIndex] = React.useState(0);
-
-      if (!images || images.length === 0) {
-        return <p>No images available.</p>;
-      }
-
-      const prev = () => {
-        setCurrentIndex((currentIndex - 1 + images.length) % images.length);
-      };
-
-      const next = () => {
-        setCurrentIndex((currentIndex + 1) % images.length);
-      };
-
+      if (!images || images.length === 0) return <p>No images available.</p>;
+      const prev = () => setCurrentIndex((currentIndex - 1 + images.length) % images.length);
+      const next = () => setCurrentIndex((currentIndex + 1) % images.length);
       const currentImage = images[currentIndex];
       const imageUrl = `${basePath}/${currentImage}`;
-
       return (
         <div style={{ textAlign: 'center' }}>
           <div style={{ marginBottom: '0.5rem' }}>
-            <button className="btn btn-ghost" onClick={prev} aria-label="Previous image">←</button>
+            <button className="btn btn-ghost" onClick={prev}>←</button>
             <span style={{ margin: '0 1rem' }}>{currentIndex + 1} / {images.length}</span>
-            <button className="btn btn-ghost" onClick={next} aria-label="Next image">→</button>
+            <button className="btn btn-ghost" onClick={next}>→</button>
           </div>
           <img
             src={imageUrl}
             alt={currentImage}
             style={{ maxHeight: '400px', maxWidth: '100%', borderRadius: '0.5rem', cursor: 'pointer' }}
             onClick={() => window.open(imageUrl, '_blank')}
-            tabIndex={0}
-            onKeyDown={e => e.key === 'Enter' && window.open(imageUrl, '_blank')}
           />
         </div>
       );
@@ -443,24 +352,32 @@
       const [activeTab, setActiveTab] = useState('services');
       const [loading, setLoading] = useState(false);
       const [notif, setNotif] = useState(null);
-
       const [selectedService, setSelectedService] = useState(null);
       const [logs, setLogs] = useState([]);
-
       const [requestId, setRequestId] = useState('');
       const [activeRequests, setActiveRequests] = useState([]);
-
       const [metricsService, setMetricsService] = useState(SERVICES_WITH_METRICS[0]);
       const [metricsSessions, setMetricsSessions] = useState([]);
       const [selectedSession, setSelectedSession] = useState(null);
       const [sessionImages, setSessionImages] = useState([]);
-
-      const [datasetsService, setDatasetsService] = useState(SERVICES_WITH_METRICS[0]);
       const [datasets, setDatasets] = useState([]);
       const [selectedDataset, setSelectedDataset] = useState(null);
       const [datasetPreview, setDatasetPreview] = useState(null);
-
+      const [datasetsService, setDatasetsService] = useState(SERVICES_WITH_METRICS[0]);
       const [serviceConfigs, setServiceConfigs] = useState({});
+      const [pipelineResults, setPipelineResults] = useState(null);
+      const [pipelineRequestId, setPipelineRequestId] = useState('req-phd-' + Math.floor(Math.random()*1000));
+      const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
+      const [pipelineOriginUrl, setPipelineOriginUrl] = useState('http://192.168.18.18:8090/callback');
+      const [proposedAlgs, setProposedAlgs] = useState(['Kyber768', 'AES256_GCM']);
+      const [pipelineData, setPipelineData] = useState('{\n  "message": "Secure PhD Data Transmission",\n  "researcher": "Darlan Noetzold"\n}');
+
+      const ALL_ALGS = {
+        classical: ['AES256_GCM', 'AES128_GCM', 'ChaCha20_Poly1305', 'RSA2048', 'RSA4096', 'ECDH_P256', 'ECDH_P384', 'ECDH_P521', '3DES', 'Blowfish'],
+        pqc_kem: ['Kyber512', 'Kyber768', 'Kyber1024', 'FrodoKEM-640-AES', 'FrodoKEM-976-AES', 'FrodoKEM-1344-AES', 'BIKE-L1', 'BIKE-L3', 'BIKE-L5', 'HQC-128', 'HQC-192', 'HQC-256', 'Saber', 'LightSaber', 'FireSaber'],
+        pqc_sig: ['Dilithium2', 'Dilithium3', 'Dilithium5', 'Falcon-512', 'Falcon-1024', 'SPHINCS+-SHA256-128s-simple'],
+        qkd: ['QKD_BB84', 'QKD_E91', 'QKD_MDI', 'QKD_CV', 'QKD_SARG04', 'QKD_DecoyState', 'QKD_DI']
+      };
 
       const API = window.location.origin;
 
@@ -469,46 +386,11 @@
         setTimeout(() => setNotif(null), 3000);
       };
 
-      const [pipelineResults, setPipelineResults] = useState(null);
-      const [pipelineRequestId, setPipelineRequestId] = useState('req-phd-' + Math.floor(Math.random()*1000));
-      const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
-      const [pipelineOriginUrl, setPipelineOriginUrl] = useState('http://192.168.18.18:8090/callback');
-      const [proposedAlgs, setProposedAlgs] = useState(['Kyber768', 'AES256_GCM']);
-      
-      const ALL_ALGS = {
-        classical: ['AES256_GCM', 'AES128_GCM', 'ChaCha20_Poly1305', 'RSA2048', 'RSA4096', 'ECDH_P256', 'ECDH_P384', 'ECDH_P521', '3DES', 'Blowfish'],
-        pqc_kem: ['Kyber512', 'Kyber768', 'Kyber1024', 'FrodoKEM-640-AES', 'FrodoKEM-976-AES', 'FrodoKEM-1344-AES', 'BIKE-L1', 'BIKE-L3', 'BIKE-L5', 'HQC-128', 'HQC-192', 'HQC-256', 'Saber', 'LightSaber', 'FireSaber'],
-        pqc_sig: ['Dilithium2', 'Dilithium3', 'Dilithium5', 'Falcon-512', 'Falcon-1024', 'SPHINCS+-SHA256-128s-simple'],
-        qkd: ['QKD_BB84', 'QKD_E91', 'QKD_MDI', 'QKD_CV', 'QKD_SARG04', 'QKD_DecoyState', 'QKD_DI']
-      };
-
-      const [pipelineData, setPipelineData] = useState('{\n  "message": "Secure PhD Data Transmission",\n  "researcher": "Darlan Noetzold"\n}');
-      const [pipelinePayload, setPipelinePayload] = useState('{}');
-
-    const runPipeline = async (bodyOverride) => {
-      setLoading(true);
-      try {
-        const body = bodyOverride || JSON.parse(pipelinePayload);
-        const r = await fetch(API + '/run-pipeline', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const data = await r.json();
-        setPipelineResults(data);
-        toast("Pipeline executed", "ok");
-      } catch (err) {
-        toast("Pipeline failed: " + err.message, "err");
-      }
-      setLoading(false);
-    };
-
-    const fetchServices = async () => {
+      const fetchServices = async () => {
         try {
           const r = await fetch(API + '/services');
           const data = await r.json();
           setServices(data);
-
           setServiceConfigs(prev => {
             const newConfigs = {...prev};
             for (const s of data) {
@@ -517,20 +399,11 @@
                   start: s.start ? JSON.stringify(s.start, null, 2) : '[]',
                   cwd: s.cwd || ''
                 };
-              } else {
-                if (!newConfigs[s.name].start || newConfigs[s.name].start === '[]') {
-                  newConfigs[s.name].start = s.start ? JSON.stringify(s.start, null, 2) : '[]';
-                }
-                if (!newConfigs[s.name].cwd) {
-                  newConfigs[s.name].cwd = s.cwd || '';
-                }
               }
             }
             return newConfigs;
           });
-        } catch (e) {
-          toast('Failed to load services', 'err');
-        }
+        } catch (e) { toast('Failed to load services', 'err'); }
       };
 
       useEffect(() => {
@@ -538,6 +411,29 @@
         const t = setInterval(fetchServices, 5000);
         return () => clearInterval(t);
       }, []);
+
+      const runPipeline = async (bodyOverride) => {
+        setLoading(true);
+        try {
+          const body = bodyOverride || {
+            request_id: pipelineRequestId,
+            source: pipelineSource,
+            destination: 'server-backend',
+            proposed: proposedAlgs,
+            originUrl: pipelineOriginUrl,
+            data: JSON.parse(pipelineData)
+          };
+          const r = await fetch(API + '/run-pipeline', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const data = await r.json();
+          setPipelineResults(data);
+          toast("Pipeline executed", "ok");
+        } catch (err) { toast("Pipeline failed: " + err.message, "err"); }
+        setLoading(false);
+      };
 
       const startAll = async () => {
         setLoading(true);
@@ -581,19 +477,7 @@
           const r = await fetch(`${API}/services/${name}/logs?lines=600`);
           const data = await r.json();
           setLogs(data.tail || []);
-        } catch {
-          toast(`Error loading logs for ${name}`, 'err');
-        }
-      };
-
-      const onConfigChange = (serviceName, field, value) => {
-        setServiceConfigs(prev => ({
-          ...prev,
-          [serviceName]: {
-            ...prev[serviceName],
-            [field]: value
-          }
-        }));
+        } catch { toast(`Error loading logs for ${name}`, 'err'); }
       };
 
       const saveServiceConfig = async (serviceName) => {
@@ -602,27 +486,17 @@
         try {
           startCmd = JSON.parse(serviceConfigs[serviceName].start);
           if (!Array.isArray(startCmd)) throw new Error('Start command must be a JSON array');
-        } catch (err) {
-          return toast(`Invalid JSON in start command: ${err.message}`, 'err');
-        }
-        const payload = {
-          start: startCmd,
-          cwd: serviceConfigs[serviceName].cwd || undefined
-        };
+        } catch (err) { return toast(`Invalid JSON: ${err.message}`, 'err'); }
         try {
           const r = await fetch(`${API}/services/${serviceName}/config`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ start: startCmd, cwd: serviceConfigs[serviceName].cwd || undefined }),
           });
           if (r.ok) toast(`Config saved for ${serviceName}`);
           else toast(`Failed to save config for ${serviceName}`, 'err');
-        } catch {
-          toast(`Error saving config for ${serviceName}`, 'err');
-        }
+        } catch { toast(`Error saving config for ${serviceName}`, 'err'); }
       };
-
-
 
       const loadActiveReqs = async () => {
         setActiveTab('active');
@@ -633,181 +507,76 @@
         } catch { toast('Error listing requests', 'err'); }
       };
 
-      useEffect(() => {
-        if (activeTab === 'metrics' && metricsService) {
-          loadMetricsSessions(metricsService);
-        }
-      }, [activeTab, metricsService]);
-
       const loadMetricsSessions = async (service) => {
         setSelectedSession(null);
         setSessionImages([]);
         try {
           const r = await fetch(`${API}/metrics/${service}/sessions`);
-          if (!r.ok) throw new Error('Failed to fetch sessions');
           const data = await r.json();
-
-          let sessions = [];
-          if (service === 'classification_agent') {
-            sessions = (data.sessions || []).map(s => ({ session_id: s }));
-          } else {
-            sessions = data.sessions || [];
-          }
-
+          let sessions = service === 'classification_agent' ? (data.sessions || []).map(s => ({ session_id: s })) : (data.sessions || []);
           setMetricsSessions(sessions);
-        } catch {
-          toast('Error loading metrics sessions', 'err');
-          setMetricsSessions([]);
-        }
+        } catch { toast('Error loading sessions', 'err'); }
       };
 
       const loadSessionDetail = async (service, session) => {
         const sessionId = typeof session === 'string' ? session : session.session_id;
-        if (!sessionId || sessionId === 'undefined') {
-          toast('Invalid session selected', 'err');
-          return;
-        }
         setSelectedSession(session);
-        setSessionImages([]);
-
         try {
-          const rSummary = await fetch(`${API}/metrics/${service}/sessions/${sessionId}`);
-          if (!rSummary.ok) throw new Error('Failed to fetch session summary');
-          const summaryData = await rSummary.json();
-
+          const r = await fetch(`${API}/metrics/${service}/sessions/${sessionId}`);
+          const data = await r.json();
           if (service === 'classification_agent') {
-            const rImages = await fetch(`${API}/metrics/${service}/images`);
-            if (!rImages.ok) throw new Error('Failed to fetch available images');
-            const imagesData = await rImages.json();
-            setSessionImages(imagesData.available_images || []);
+            const rImg = await fetch(`${API}/metrics/${service}/images`);
+            const dImg = await rImg.json();
+            setSessionImages(dImg.available_images || []);
           } else {
-            setSessionImages(summaryData.available_images || []);
+            setSessionImages(data.available_images || []);
           }
-        } catch (e) {
-          toast('Error loading session details or images', 'err');
-          setSessionImages([]);
-        }
+        } catch { toast('Error loading details', 'err'); }
       };
-
-      useEffect(() => {
-        if (activeTab === 'datasets' && datasetsService) {
-          loadDatasets(datasetsService);
-        }
-      }, [activeTab, datasetsService]);
 
       const loadDatasets = async (service) => {
         setSelectedDataset(null);
         setDatasetPreview(null);
         try {
           const r = await fetch(`${API}/datasets/${service}`);
-          if (!r.ok) throw new Error('Failed to fetch datasets');
           const data = await r.json();
-
-          let datasetsList = [];
-          if (service === 'classification_agent') {
-            datasetsList = data || [];
-          } else {
-            datasetsList = data.datasets || [];
-          }
-
-          setDatasets(datasetsList);
-        } catch {
-          toast('Error loading datasets', 'err');
-          setDatasets([]);
-        }
+          setDatasets(service === 'classification_agent' ? (data || []) : (data.datasets || []));
+        } catch { toast('Error loading datasets', 'err'); }
       };
 
-      const loadDatasetPreview = async (service, datasetName, fileName) => {
-        setSelectedDataset({ datasetName, fileName });
+      const loadDatasetPreview = async (service, dsName, fName) => {
+        setSelectedDataset({ dsName, fName });
         try {
-          const r = await fetch(`${API}/datasets/${service}/${datasetName}/preview?file=${encodeURIComponent(fileName)}&n=20`);
-          if (!r.ok) throw new Error('Failed to fetch dataset preview');
+          const r = await fetch(`${API}/datasets/${service}/${dsName}/preview?file=${fName}&n=20`);
           const data = await r.json();
           setDatasetPreview(data);
-        } catch {
-          toast('Error loading dataset preview', 'err');
-          setDatasetPreview(null);
-        }
-      };
-
-      const backToDatasets = () => {
-        setSelectedDataset(null);
-        setDatasetPreview(null);
-      };
-
-      const backToSessions = () => {
-        setSelectedSession(null);
-        setSessionImages([]);
-      };
-
-      const getSwaggerUrl = (service) => {
-
-        return service.swagger_url || null;
+        } catch { toast('Error loading preview', 'err'); }
       };
 
       const ServiceCard = ({ s }) => {
         const config = serviceConfigs[s.name] || { start: '[]', cwd: '' };
-        const swaggerUrl = getSwaggerUrl(s);
-
         return (
-          <div className="card" role="group" aria-label={`Service ${s.name}`}>
+          <div className="card">
             <div className="service-header">
               <div>
                 <div className="service-name">{s.name}</div>
-                <span className={`badge ${s.running ? 'ok' : 'off'}`}>
-                  {s.running ? 'RUNNING' : 'STOPPED'}
-                </span>
+                <span className={`badge ${s.running ? 'ok' : 'off'}`}>{s.running ? 'RUNNING' : 'STOPPED'}</span>
               </div>
-              <div className="meta" aria-label="Service info">
+              <div className="meta">
                 <div>Port: {s.port || '-'}</div>
                 <div>PID: {s.pid || '-'}</div>
-                <div>Type: {s.type || '-'}</div>
               </div>
             </div>
-
             <div>
-              <label htmlFor={`start-${s.name}`} style={{fontWeight: '600', fontSize: '0.9rem'}}>Start Command (JSON Array):</label>
-              <textarea
-                id={`start-${s.name}`}
-                rows={3}
-                className="input"
-                value={config.start}
-                onChange={e => onConfigChange(s.name, 'start', e.target.value)}
-                spellCheck={false}
-                aria-label={`Start command for ${s.name}`}
-              />
+              <textarea className="input" rows={2} value={config.start} onChange={e => setServiceConfigs({...serviceConfigs, [s.name]: {...config, start: e.target.value}})} />
+              <input type="text" className="input" style={{marginTop:4}} value={config.cwd} onChange={e => setServiceConfigs({...serviceConfigs, [s.name]: {...config, cwd: e.target.value}})} placeholder="cwd" />
             </div>
-
-            <div style={{marginTop: '0.5rem'}}>
-              <label htmlFor={`cwd-${s.name}`} style={{fontWeight: '600', fontSize: '0.9rem'}}>Working Directory (cwd):</label>
-              <input
-                id={`cwd-${s.name}`}
-                type="text"
-                className="input"
-                value={config.cwd}
-                onChange={e => onConfigChange(s.name, 'cwd', e.target.value)}
-                placeholder="Optional"
-                aria-label={`Working directory for ${s.name}`}
-              />
-            </div>
-
-            <div className="service-footer">
-              {swaggerUrl && (
-                <a href={swaggerUrl} target="_blank" className="footer-link">
-                  📖 Swagger: {swaggerUrl}
-                </a>
-              )}
-              {s.log_file && (
-                <span className="footer-text">📄 Log: {s.log_file}</span>
-              )}
-            </div>
-
-            <div className="row" style={{marginTop: '0.75rem'}}>
-              <button className="btn-sm" onClick={() => startService(s.name)} disabled={s.running || loading}>Start</button>
-              <button className="btn-sm" onClick={() => stopService(s.name)} disabled={!s.running || loading}>Stop</button>
-              <button className="btn-sm" onClick={() => restartService(s.name)} disabled={loading}>Restart</button>
+            <div className="row">
+              <button className="btn-sm" onClick={() => startService(s.name)} disabled={s.running}>Start</button>
+              <button className="btn-sm" onClick={() => stopService(s.name)} disabled={!s.running}>Stop</button>
+              <button className="btn-sm" onClick={() => restartService(s.name)}>Restart</button>
               <button className="btn-sm" onClick={() => viewLogs(s.name)}>Logs</button>
-              <button className="btn-sm" onClick={() => saveServiceConfig(s.name)}>Save Config</button>
+              <button className="btn-sm" onClick={() => saveServiceConfig(s.name)}>Save</button>
             </div>
           </div>
         );
@@ -818,262 +587,71 @@
           <header className="header">
             <div className="brand"><h1>🔐 Q-OPSEC Orchestrator</h1></div>
             <div className="actions">
-              <button className="btn btn-green" onClick={startAll} disabled={loading}>▶ Start All</button>
-              <button className="btn btn-red" onClick={stopAll} disabled={loading}>■ Stop All</button>
+              <button className="btn btn-green" onClick={startAll}>▶ Start All</button>
+              <button className="btn btn-red" onClick={stopAll}>■ Stop All</button>
               <button className="btn btn-ghost" onClick={fetchServices}>↻ Refresh</button>
-              <button className="btn btn-ghost" onClick={() => window.open(API + '/docs', '_blank')}>📖 Swagger</button>
             </div>
           </header>
 
-          <nav className="tabs" role="tablist" aria-label="Tabs">
-            <button
-              className={`tab ${activeTab === 'services' ? 'active' : ''}`}
-              onClick={() => setActiveTab('services')}
-              role="tab"
-              aria-selected={activeTab === 'services'}
-            >
-              Services
-            </button>
-            <button
-              className={`tab ${activeTab === 'pipeline' ? 'active' : ''}`}
-              onClick={() => setActiveTab('pipeline')}
-              role="tab"
-              aria-selected={activeTab === 'pipeline'}
-            >
-              Pipeline
-            </button>
-            <button
-              role="tab"
-            >
-            </button>
-            <button
-              role="tab"
-            >
-            </button>
-            <button
-              role="tab"
-            >
-            </button>
-            <button
-              className={`tab ${activeTab === 'active' ? 'active' : ''}`}
-              onClick={loadActiveReqs}
-              role="tab"
-              aria-selected={activeTab === 'active'}
-            >
-              Active Requests
-            </button>
-            <button
-              className={`tab ${activeTab === 'logs' ? 'active' : ''}`}
-              onClick={() => setActiveTab('logs')}
-              role="tab"
-              aria-selected={activeTab === 'logs'}
-            >
-              Logs
-            </button>
-            <button
-              className={`tab ${activeTab === 'metrics' ? 'active' : ''}`}
-              onClick={() => setActiveTab('metrics')}
-              role="tab"
-              aria-selected={activeTab === 'metrics'}
-            >
-              Metrics
-            </button>
-            <button
-              className={`tab ${activeTab === 'datasets' ? 'active' : ''}`}
-              onClick={() => setActiveTab('datasets')}
-              role="tab"
-              aria-selected={activeTab === 'datasets'}
-            >
-              Datasets
-            </button>
+          <nav className="tabs">
+            {['services', 'pipeline', 'active', 'logs', 'metrics', 'datasets'].map(t => (
+              <button key={t} className={`tab ${activeTab === t ? 'active' : ''}`} onClick={() => {
+                setActiveTab(t);
+                if(t === 'metrics') loadMetricsSessions(metricsService);
+                if(t === 'datasets') loadDatasets(datasetsService);
+              }}>{t.toUpperCase()}</button>
+            ))}
           </nav>
 
-          <main className="container" role="tabpanel" aria-live="polite">
+          <main className="container">
             {activeTab === 'services' && (
-              <div className="grid" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem'}}>
-                {services.map(s => <ServiceCard key={s.name} s={s} />)}
-              </div>
+              <div className="grid">{services.map(s => <ServiceCard key={s.name} s={s} />)}</div>
             )}
 
             {activeTab === 'pipeline' && (
               <section>
                 <div style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1.5rem'}}>
-                  <div className="panel" style={{margin: 0, padding: '1.5rem'}}>
-                    <h2 style={{fontWeight: '700', fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center'}}>
-                      <span style={{background: '#3b82f6', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
-                      Pipeline Architect
-                    </h2>
-                    
-                    <div style={{marginBottom: '1rem'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Request Context</label>
-                      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem'}}>
-                        <input type="text" placeholder="Request ID" value={pipelineRequestId || 'req-auto-1'} onChange={e => setPipelineRequestId(e.target.value)} style={{background: '#070912', border: '1px solid #1e293b', padding: '10px 12px', borderRadius: 6, color: '#fff', fontSize: '0.85rem'}} />
-                        <input type="text" placeholder="Source System" value={pipelineSource || 'client-terminal'} onChange={e => setPipelineSource(e.target.value)} style={{background: '#070912', border: '1px solid #1e293b', padding: '10px 12px', borderRadius: 6, color: '#fff', fontSize: '0.85rem'}} />
-                      </div>
-                      <input type="text" placeholder="Origin URL" value={pipelineOriginUrl || 'http://192.168.18.18:8090/callback'} onChange={e => setPipelineOriginUrl(e.target.value)} style={{width: '100%', background: '#070912', border: '1px solid #1e293b', padding: '10px 12px', borderRadius: 6, color: '#fff', fontSize: '0.85rem', marginBottom: '0.75rem'}} />
-                    </div>
-
-                    <div style={{marginBottom: '1rem'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Algorithms to Propose</label>
-                        {Object.entries(ALL_ALGS).map(([cat, algs]) => (
-                          <div key={cat} style={{marginBottom: '0.5rem'}}>
-                            <div style={{fontSize: '0.65rem', fontWeight: 'bold', color: '#6366f1', marginBottom: '4px', textTransform: 'uppercase'}}>{cat.replace('_', ' ')}</div>
-                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px'}}>
-                              {algs.map(alg => (
-                                <label key={alg} style={{display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', cursor: 'pointer', padding: '2px 4px', borderRadius: 4, background: proposedAlgs.includes(alg) ? '#1e293b' : 'transparent'}}>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={proposedAlgs.includes(alg)} 
-                                    onChange={() => setProposedAlgs(prev => prev.includes(alg) ? prev.filter(a => a !== alg) : [...prev, alg])} 
-                                  /> 
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{marginTop: '8px', display: 'flex', gap: '8px'}}>
-                        <button className="btn-sm" style={{fontSize: '0.65rem', padding: '2px 8px'}} onClick={() => setProposedAlgs(['Kyber768', 'AES256_GCM'])}>Default Q-OPSEC</button>
-                        <button className="btn-sm" style={{fontSize: '0.65rem', padding: '2px 8px'}} onClick={() => setProposedAlgs([...ALL_ALGS.classical, ...ALL_ALGS.pqc_kem, ...ALL_ALGS.qkd])}>Select All</button>
-                      </div>
-                    </div>
-
-                    <div style={{marginBottom: '1rem'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Selected Set Preview</label>
-                      <div style={{fontSize: '0.7rem', color: '#6ee7b7', background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', minHeight: '34px'}}>
-                        {proposedAlgs.length > 0 
-                          ? proposedAlgs.join(', ') 
-                          : 'No algorithms selected - Request will use system default'}
-                      </div>
-                    </div>
-
-                    <div style={{marginBottom: '1.5rem'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Payload Data</label>
-                      <textarea 
-                        style={{width: '100%', height: 80, background: '#070912', border: '1px solid #1e293b', padding: '10px', borderRadius: 6, color: '#6ee7b7', fontFamily: 'monospace', fontSize: '0.8rem'}}
-                        value={pipelineData || '{\\n  \"message\": \"Secure PhD Transmission\"\\n}'}
-                        onChange={e => setPipelineData(e.target.value)}
-                      />
-                    </div>
-
-                    <button className="btn btn-green" style={{width: '100%', padding: '12px', fontWeight: 'bold', fontSize: '0.9rem', borderRadius: 8, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} onClick={() => {
-                      const payload = {
-                        request_id: pipelineRequestId || 'req-auto-1',
-                        source: pipelineSource || 'client-terminal',
-                        destination: 'server-backend',
-                        proposed: proposedAlgs.length > 0 ? proposedAlgs : ['AES256_GCM'],
-                        originUrl: pipelineOriginUrl || 'http://192.168.18.18:8090/callback',
-                        data: JSON.parse(pipelineData)
-                      };
-                      runPipeline(payload);
-                    }} disabled={loading}>
-                    </button>
-                  </div>
-
-                  <div className="panel" style={{margin: 0, padding: '1.5rem', background: '#0f172a'}}>
-                    <h2 style={{fontWeight: '700', fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', color: '#f43f5e'}}>
-                      <span style={{background: '#f43f5e', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
-                      Execution Evidence & Metrics
-                    </h2>
-
-                    {!pipelineResults ? (
-                      <div style={{height: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#475569'}}>
-                        <i className="bi bi-cpu" style={{fontSize: '3rem', marginBottom: '1rem'}}></i>
-                        <p>Waiting for pipeline execution trigger...</p>
-                      </div>
-                    ) : (
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem'}}>
-                          <div style={{background: '#1e293b', padding: '12px', borderRadius: 8, border: '1px solid #334155'}}>
-                            <div style={{fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700'}}>Algorithm</div>
-                            <div style={{color: '#34d399', fontWeight: 'bold'}}>{pipelineResults.final_data?.selectedAlgorithm || 'Negotiating...'}</div>
-                          </div>
-                          <div style={{background: '#1e293b', padding: '12px', borderRadius: 8, border: '1px solid #334155'}}>
-                            <div style={{fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700'}}>Session Key</div>
-                            <div>
-                              {pipelineResults.final_data?.sessionId ? String(pipelineResults.final_data.sessionId).substring(0, 15) + '...' : 'Pending'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div style={{background: '#020617', borderRadius: 8, padding: '1rem', border: '1px solid #1e293b'}}>
-                          <div style={{display: 'flex', flexDirection: 'column', gap: '6px'}}>
-                            {(pipelineResults.pipeline_results || []).map((step, i) => (
-                              <React.Fragment key={i}>
-                                <div style={{fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #1e293b'}}>
-                                  <span>{i+1}. {step.service.split('_')[0].toUpperCase()}</span>
-                                  <span style={{color: step.status === 'success' ? '#10b981' : '#f43f5e'}}>{step.status.toUpperCase()}</span>
-                                </div>
-                                {step.status === 'error' && (
-                                  <div style={{fontSize: '0.7rem', color: '#fca5a5', background: '#450a0a', padding: '6px', borderRadius: 4, marginTop: '2px', borderLeft: '2px solid #ef4444'}}>
-                                    <strong>Error:</strong> {typeof step.error === 'object' ? JSON.stringify(step.error) : step.error}
-                                  </div>
-                                )}
-                                {step.status === 'success' && step.response && (
-                                  <div style={{fontSize: '0.65rem', color: '#6ee7b7', marginTop: '2px', padding: '2px 4px'}}>
-                                    {}
-                                    {(step.response.selected_model || step.response.model_name || 
-                                      (step.response.results && step.response.results[0]?.label) || 
-                                      step.response.classification || step.response.algorithm || 
-                                      step.response.selected_algorithm || step.response.decision || '')}
-                                    {(step.response.confidence || (step.response.results && step.response.results[0]?.confidence)) && 
-                                      ` (Conf: ${((step.response.confidence || step.response.results[0]?.confidence) * 100).toFixed(1)}%)`}
-                                  </div>
-                                )}
-                                {step.status === 'success' && step.service === 'rl_engine' && step.response && (
-                                  
-                                  <div style={{fontSize: '0.6rem', color: '#fbbf24', marginLeft: '4px'}}>
-                                    Decision: {step.response.selected_algorithm || (step.response.payload && step.response.payload.selected_algorithm)} | Level: {step.response.security_level || (step.response.payload && step.response.payload.security_level)}
-                                  </div>
-                                )}
-                                {step.status === 'success' && step.service === 'risk_service' && step.response && step.response.models && (
-                                  <div style={{fontSize: '0.6rem', color: '#94a3b8', marginLeft: '4px'}}>
-                                    RF: {step.response.models.random_forest?.prediction || 'N/A'} | LG: {step.response.models.logistic_regression?.prediction || 'N/A'}
-                                  </div>
-                                )}
-                              </React.Fragment>
+                  <div className="panel">
+                    <h2 style={{fontSize:'1.1rem', marginBottom:'1rem'}}>Pipeline Architect</h2>
+                    <input type="text" className="input" value={pipelineRequestId} onChange={e => setPipelineRequestId(e.target.value)} placeholder="Req ID" style={{marginBottom:8}} />
+                    <textarea className="input" style={{height: 100}} value={pipelineData} onChange={e => setPipelineData(e.target.value)} />
+                    <div style={{marginTop:10}}>
+                      {Object.entries(ALL_ALGS).map(([cat, algs]) => (
+                        <div key={cat} style={{marginBottom:10}}>
+                          <div style={{fontSize:'0.7rem', color:'#6366f1'}}>{cat.toUpperCase()}</div>
+                          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:4}}>
+                            {algs.map(alg => (
+                              <label key={alg} style={{fontSize:'0.75rem'}}>
+                                <input type="checkbox" checked={proposedAlgs.includes(alg)} onChange={() => setProposedAlgs(prev => prev.includes(alg) ? prev.filter(a => a !== alg) : [...prev, alg])} /> {alg}
+                              </label>
                             ))}
                           </div>
                         </div>
+                      ))}
+                    </div>
+                    <button className="btn btn-green" style={{width:'100%', marginTop:15}} onClick={() => runPipeline()} disabled={loading}>EXECUTE PIPELINE</button>
+                  </div>
 
-                        <div style={{marginTop: '0.5rem'}}>
-                          <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px'}}>ML MODELS TELEMETRY:</div>
-                          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px', marginBottom: '12px'}}>
-                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
-                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Risk V2 Models</div>
-                               <div style={{fontSize: '0.6rem', color: '#f87171'}}>RF: {pipelineResults.final_data?.risk_v2_details?.models?.random_forest?.status || 'Active'}</div>
-                               <div style={{fontSize: '0.6rem', color: '#4ade80'}}>Score: {pipelineResults.final_data?.risk_score || '0.0'}</div>
-                             </div>
-                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
-                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Classification Model</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.classification?.model || 'logreg_lbfgs_v2'}</div>
-                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Conf: {(parseFloat(pipelineResults.final_data?.classification_confidence || pipelineResults.final_data?.mlMetadata?.classification?.confidence || 0) * 100).toFixed(1)}%</div>
-                             </div>
-                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
-                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Confiability</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>conf-fb-0.0.1</div>
-                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Score: {pipelineResults.final_data?.mlMetadata?.confiability?.score || '0.4'}</div>
-                             </div>
-                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
-                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>Handshake/Negotiation</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>{pipelineResults.final_data?.mlMetadata?.handshake?.model || 'Classical'}</div>
-                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>PQC: {pipelineResults.final_data?.mlMetadata?.handshake?.pqc_enabled ? 'ENABLED' : 'DISABLED'}</div>
-                             </div>
-                             <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
-                               <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>RL Engine</div>
-                               <div style={{fontSize: '0.75rem', color: '#818cf8'}}>V2.0</div>
-                               <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Level: {pipelineResults.final_data?.security_level || 'LOW'}</div>
-                             </div>
+                  <div className="panel">
+                    <h2 style={{fontSize:'1.1rem', marginBottom:'1rem'}}>Execution Evidence</h2>
+                    {!pipelineResults ? <p>Waiting for trigger...</p> : (
+                      <div>
+                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:15}}>
+                          <div style={{background:'#1e293b', padding:10, borderRadius:8}}>
+                            <div style={{fontSize:'0.6rem'}}>ALGO</div>
+                            <div style={{color:'#34d399'}}>{pipelineResults.final_data?.selectedAlgorithm || 'N/A'}</div>
                           </div>
-                          <div style={{background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', fontSize: '0.65rem', color: '#94a3b8', marginBottom: '10px', marginTop: '10px'}}>
-                            <strong>IA LINEAGE:</strong> {pipelineResults.final_data?.mlMetadata?.ia_version}
-                          </div>
-
-                          <div style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '6px'}}>ENCRYPTED PAYLOAD EVIDENCE:</div>
-                          <pre style={{background: '#0d0f1a', padding: '10px', borderRadius: 4, maxHeight: 150, overflowY: 'auto', fontSize: '0.65rem', border: '1px solid #1e293b'}}>
-                            {JSON.stringify(pipelineResults.final_data, null, 2)}
-                          </pre>
                         </div>
+                        <div style={{background:'#020617', padding:10, borderRadius:8}}>
+                          {(pipelineResults.pipeline_results || []).map((step, i) => (
+                            <div key={i} style={{fontSize:'0.8rem', borderBottom:'1px solid #1e293b', padding:'5px 0'}}>
+                              <span>{i+1}. {step.service.toUpperCase()}</span> - <span style={{color: step.status === 'success' ? '#10b981' : '#f43f5e'}}>{step.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <pre style={{marginTop:15, fontSize:'0.65rem', background:'#070912', padding:10, borderRadius:6, maxHeight:200, overflow:'auto'}}>
+                          {JSON.stringify(pipelineResults.final_data, null, 2)}
+                        </pre>
                       </div>
                     )}
                   </div>
@@ -1083,271 +661,51 @@
 
             {activeTab === 'metrics' && (
               <section>
-                <div style={{marginBottom: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center'}}>
-                  <label htmlFor="metrics-service-select" style={{fontWeight: '600'}}>Select Service:</label>
-                  <select
-                    id="metrics-service-select"
-                    value={metricsService}
-                    onChange={e => setMetricsService(e.target.value)}
-                    style={{padding: '0.25rem 0.5rem', borderRadius: 6, borderColor: '#444', backgroundColor: '#111425', color: '#e5e7eb'}}
-                  >
-                    {SERVICES_WITH_METRICS.map(svc => (
-                    <option key={svc} value={svc}>{svc}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {!selectedSession && (
-                  <>
-                    <h2 style={{fontWeight: '700', fontSize: '1.25rem', marginBottom: '1rem'}}>Metric Sessions - {metricsService}</h2>
-                    <div className="grid" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem'}}>
-                    {metricsSessions.length === 0 && <p>No sessions found.</p>}
-                    {metricsSessions.map(session => (
-                    <div
-                    key={session.session_id}
-                    className="card cursor-pointer hover:border-blue-500"
-                    onClick={() => loadSessionDetail(metricsService, session)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => e.key === 'Enter' && loadSessionDetail(metricsService, session)}
-                    >
-                    <div style={{fontWeight: '600'}}>{session.session_id}</div>
-                    <div style={{fontSize: '0.85rem', color: '#9ca3af'}}>{new Date(session.timestamp).toLocaleString()}</div>
-                    <div style={{fontSize: '0.85rem', marginTop: 4}}>Best model: {session.best_model_name}</div>
-                    </div>
-                    ))}
-                    </div>
-                  </>
-                )}
-                {selectedSession && (
-                  <>
-                    <button className="btn btn-ghost" style={{marginBottom: '1rem'}} onClick={backToSessions}>← Back to Sessions</button>
-                    <h3 style={{fontWeight: '700', fontSize: '1.125rem', marginBottom: '1rem'}}>{selectedSession.session_id}</h3>
-                    <ImageCarousel
-                    images={sessionImages}
-                    basePath={`/metrics/${metricsService}/sessions/${selectedSession.session_id}`}
-                    />
-                  </>
+                <select value={metricsService} onChange={e => {setMetricsService(e.target.value); loadMetricsSessions(e.target.value);}}>
+                  {SERVICES_WITH_METRICS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                {!selectedSession ? (
+                  <div className="grid" style={{marginTop:15}}>
+                    {metricsSessions.map(s => <div key={s.session_id} className="card" onClick={() => loadSessionDetail(metricsService, s)} style={{cursor:'pointer'}}>{s.session_id}</div>)}
+                  </div>
+                ) : (
+                  <div>
+                    <button onClick={() => setSelectedSession(null)}>Back</button>
+                    <ImageCarousel images={sessionImages} basePath={`/metrics/${metricsService}/sessions/${selectedSession.session_id}`} />
+                  </div>
                 )}
               </section>
             )}
 
             {activeTab === 'datasets' && (
               <section>
-                <div style={{marginBottom: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center'}}>
-                  <label htmlFor="datasets-service-select" style={{fontWeight: '600'}}>Select Service:</label>
-                  <select
-                    id="datasets-service-select"
-                    value={datasetsService}
-                    onChange={e => setDatasetsService(e.target.value)}
-                    style={{padding: '0.25rem 0.5rem', borderRadius: 6, borderColor: '#444', backgroundColor: '#111425', color: '#e5e7eb'}}
-                  >
-                    {SERVICES_WITH_METRICS.map(svc => (
-                    <option key={svc} value={svc}>{svc}</option>
-                    ))}
-                  </select>
+                <select value={datasetsService} onChange={e => {setDatasetsService(e.target.value); loadDatasets(e.target.value);}}>
+                  {SERVICES_WITH_METRICS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <div className="grid" style={{marginTop:15}}>
+                  {datasets.map(ds => <div key={ds.name} className="card">{ds.name}</div>)}
                 </div>
-
-                {!selectedDataset && (
-                  <>
-                    <h2 style={{fontWeight: '700', fontSize: '1.25rem', marginBottom: '1rem'}}>Datasets - {datasetsService}</h2>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                    {datasets.length === 0 && <p>No datasets found.</p>}
-                    {datasets.map(ds => (
-                    <div key={ds.name} className="card">
-                    <div style={{fontWeight: '600'}}>
-                    {ds.name} {ds.type && <span style={{fontSize: '0.85rem', color: '#9ca3af'}}>({ds.type})</span>}
-                    </div>
-                    <div style={{fontSize: '0.85rem', marginTop: 4}}>
-                    Files: {ds.files ? ds.files.length : 1}
-                    </div>
-                    {ds.files && ds.files.length > 0 && (
-                    {ds.files.map(f => (
-                    <li
-                    key={f}
-                    style={{cursor: 'pointer', color: '#3b82f6'}}
-                    onClick={() => loadDatasetPreview(datasetsService, ds.name, f)}
-                    tabIndex={0}
-                    onKeyDown={e => e.key === 'Enter' && loadDatasetPreview(datasetsService, ds.name, f)}
-                    >
-                    {f}
-                    </li>
-                    ))}
-                    </ul>
-                    )}
-                    </div>
-                    ))}
-                    </div>
-                  </>
-                )}
-                {selectedDataset && (
-                  <>
-                    <button className="btn btn-ghost" style={{marginBottom: '1rem'}} onClick={backToDatasets}>← Back to Datasets</button>
-                    <h3 style={{fontWeight: '700', fontSize: '1.125rem', marginBottom: '1rem'}}>
-                    {selectedDataset.datasetName} / {selectedDataset.fileName}
-                    </h3>
-                    {datasetPreview && datasetPreview.rows && datasetPreview.rows.length > 0 ? (
-                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem'}}>
-                    <thead style={{backgroundColor: '#1e293b', position: 'sticky', top: 0}}>
-                    <tr>
-                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>#</th>
-                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>Column</th>
-                    <th style={{padding: '0.5rem', border: '1px solid #444'}}>Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {datasetPreview.rows.map((row, idx) =>
-                    Object.entries(row).map(([col, val], i) => (
-                    <tr key={`${idx}-${i}`} style={{backgroundColor: idx % 2 === 0 ? '#111827' : '#1f2937'}}>
-                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{idx + 1}</td>
-                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', fontFamily: 'monospace', verticalAlign: 'top'}}>{col}</td>
-                    <td style={{padding: '0.25rem 0.5rem', border: '1px solid #444', verticalAlign: 'top'}}>{String(val)}</td>
-                    </tr>
-                    ))
-                    )}
-                    </tbody>
-                    </table>
-                    </div>
-                    ) : (
-                    <p>No data to display.</p>
-                    )}
-                  </>
-                )}
               </section>
             )}
 
             {activeTab === 'logs' && (
               <section>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
-                  <h2 style={{fontWeight: '700', fontSize: '1.25rem'}}>Logs: {selectedService || 'Select a service'}</h2>
-                  {selectedService && <button className="btn btn-ghost" onClick={() => viewLogs(selectedService)}>↻ Refresh</button>}
+                <div style={{display:'flex', justifyContent:'space-between', marginBottom:10}}>
+                  <h2>{selectedService || 'Select Service'}</h2>
+                  <button onClick={() => viewLogs(selectedService)}>Refresh</button>
                 </div>
-                <div className="logs" role="log" aria-live="polite" tabIndex={0}>
-                  {logs.length === 0 ? (
-                    <p style={{color: '#9ca3af'}}>No lines to show.</p>
-                  ) : logs.map((ln, i) => (
-                    <div key={i} style={{whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.85rem', borderBottom: '1px dashed #1d2240', padding: '0.25rem 0'}}>
-                    {ln}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-              <section>
-                <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
-                  <input
-                    className="input"
-                    placeholder="Enter request_id (e.g. req_123)"
-                    value={requestId}
-                    onChange={e => setRequestId(e.target.value)}
-                    aria-label="Input for request_id"
-                    style={{flexGrow: 1, minWidth: 200}}
-                  />
-                </div>
-                  <div className="panel" style={{marginTop:12}}>
-                    <div style={{fontWeight: '700', color: '#3b82f6', marginBottom: 8}}>{svc} ({data.count} matches)</div>
-                    {(data.matches || []).map((m, i) => (
-                    <div style={{color: '#9ca3af'}}>Line {m.line_number} | {m.timestamp || 'No timestamp'}</div>
-                    <div style={{marginTop: 6, fontFamily: 'monospace', whiteSpace: 'pre-wrap'}}>{m.line}</div>
-                    {m.context && m.context.length > 0 && (
-                    <details style={{marginTop: 6}}>
-                    <summary>Show context</summary>
-                    <div style={{fontFamily: 'monospace', whiteSpace: 'pre-wrap', marginTop: 6}}>{m.context.join('\n')}</div>
-                    </details>
-                    )}
-                    </div>
-                    ))}
-                    </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
-
-              <section>
-                <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
-                  <input
-                    className="input"
-                    placeholder="Enter request_id"
-                    value={requestId}
-                    onChange={e => setRequestId(e.target.value)}
-                    style={{flexGrow: 1, minWidth: 200}}
-                  />
-                </div>
-                  <div className="panel">
-                    <div>
-                    <div className="ball">{step.step}</div>
-                    <div style={{flex: 1}}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <div style={{fontWeight: '700'}}>{step.service}</div>
-                    <span className={`chip ${
-                    step.status === 'processed' ? 'ok' :
-                    step.status === 'error' ? 'err' : 'wait'
-                    }`}>
-                    {step.status === 'processed' ? 'Processed' : step.status === 'error' ? 'Error' : 'Pending'}
-                    </span>
-                    </div>
-                    <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>{step.endpoint}</div>
-                    {step.last_seen && <div style={{marginTop: 4, fontSize: '0.85rem', color: '#9ca3af'}}>Last seen: {step.last_seen}</div>}
-                    {step.error && <div style={{marginTop: 6, fontFamily: 'monospace', color: '#ef4444'}}>{step.error}</div>}
-                    </div>
-                    </div>
-                    ))}
-                    </div>
-                  </div>
-                )}
-              </section>
-            )}
-
-              <section>
-                <div style={{display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap'}}>
-                  <input
-                    className="input"
-                    placeholder="Enter request_id"
-                    value={requestId}
-                    onChange={e => setRequestId(e.target.value)}
-                    style={{flexGrow: 1, minWidth: 200}}
-                  />
-                </div>
-                  <div className="panel">
-                    <div>
-                    <div style={{color: '#9ca3af', fontFamily: 'monospace'}}>{ev.timestamp}</div>
-                    <div style={{color: '#3b82f6', fontWeight: '700'}}>{ev.service}</div>
-                    <div style={{fontFamily: 'monospace'}}>{ev.line}</div>
-                    </div>
-                    ))}
-                    </div>
-                  </div>
-                )}
+                <div className="logs">{logs.map((l, i) => <div key={i}>{l}</div>)}</div>
               </section>
             )}
 
             {activeTab === 'active' && (
               <section>
-                <h2 style={{fontWeight: '700', fontSize: '1.25rem', marginBottom: '1rem'}}>Active Request IDs ({activeRequests.length})</h2>
-                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem'}}>
-                  {activeRequests.length === 0 && <p>No active requests found.</p>}
-                  {activeRequests.map(id => (
-                    <button
-                    key={id}
-                    className="card cursor-pointer"
-                    tabIndex={0}
-                    aria-label={`Active request ${id}`}
-                    >
-                    <div style={{fontFamily: 'monospace'}}>{id}</div>
-                    </button>
-                  ))}
-                </div>
+                <div className="grid">{activeRequests.map(id => <div key={id} className="card">{id}</div>)}</div>
               </section>
             )}
           </main>
 
-          {notif && (
-            <div className={`notif ${notif.type === 'ok' ? 'ok' : 'err'}`} role="alert" aria-live="assertive">
-              {notif.msg}
-            </div>
-          )}
+          {notif && <div className={`notif ${notif.type}`}>{notif.msg}</div>}
         </div>
       );
     }
