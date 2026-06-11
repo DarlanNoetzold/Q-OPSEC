@@ -1354,6 +1354,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     results = []
     current_data = data
 
+    import datetime as dt_root
+    current_data["flowMetrics"] = {
+        "total_steps": len(pipeline),
+        "timestamp": dt_root.datetime.now().isoformat(),
+        "pipeline_trace": [{"service": s["name"], "status": "pending", "port": s["port"]} for s in pipeline]
+    }
+
     # Higienização de IP: Garante que 10.0.0.5 nunca chegue aos submódulos
     if isinstance(current_data, dict):
         for k, v in current_data.items():
@@ -1813,39 +1820,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             
                             current_data.update(resp_json)
                         
-                        # ASSEGURAR QUE TODOS OS PASSOS APAREÇAM NO TRACE E TELEMETRIA
-                        # Injeta metadados atualizados em cada iteração do loop
-                        ml_metadata = {
-                            "risk_v2": current_data.get("models") or current_data.get("risk_v2_details", {}).get("models", {}),
-                            "classification": {
-                                "model": current_data.get("model_name", "logreg_lbfgs_v2"),
-                                "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0),
-                                "results": current_data.get("classification_results", [{}])[0]
-                            },
-                            "confiability": {
-                                "model": "conf-fb-0.0.1",
-                                "score": current_data.get("conf_score", 0.4),
-                                "details": current_data.get("confidentiality", {})
-                            },
-                            "rl_engine": current_data.get("rl_metrics") or {},
-                            "handshake": current_data.get("handshake_metrics") or {},
-                            "ia_version": current_data.get("version", "v20260107_202018")
-                        }
-                        
-                        flow_metrics = {
-                            "total_steps": len(pipeline),
-                            "timestamp": dt_mod.datetime.now().isoformat(),
-                            "negotiated_algorithm": current_data.get("selectedAlgorithm"),
-                                    "pipeline_trace": [
-                                        {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                                        for r in results
-                                    ]
-                                }
-                        
                     except Exception as e:
-                         # Log do erro para depuração interna sem quebrar o 200
-                         print(f"Erro ao processar JSON no passo {name}: {str(e)}")
-                         step_result["response"] = response.text[:500] if response.text else "Empty Response"
+                        pass
                 else:
                     step_result["status"] = "error"
                     step_result["error"] = response.text[:500]
@@ -1856,13 +1832,30 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 step_result["error"] = str(e)
                 break
                 
-    # Garantia de que mlMetadata esteja no root para o Dashboard
-    if "mlMetadata" not in current_data:
-        current_data["mlMetadata"] = {
-            "ia_version": current_data.get("version", "v20260107_202018"),
-            "risk_v2": current_data.get("models", []),
-            "classification": {"model": current_data.get("model_name", "logreg_lbfgs_v2")}
-        }
+    import datetime as dt_final
+    trace = []
+    completed_services = {r["service"]: r["status"] for r in results}
+    for s in pipeline:
+        status = completed_services.get(s["name"], "pending")
+        trace.append({"service": s["name"], "status": status, "port": s["port"]})
+
+    current_data["flowMetrics"] = {
+        "total_steps": len(pipeline),
+        "timestamp": dt_final.datetime.now().isoformat(),
+        "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
+        "pipeline_trace": trace
+    }
+
+    current_data["mlMetadata"] = {
+        "risk_v2": current_data.get("models") or [],
+        "classification": {
+            "model": current_data.get("model_name", "logreg_lbfgs_v2"),
+            "confidence": current_data.get("classification_confidence") or current_data.get("conf_score", 0.0)
+        },
+        "rl_engine": current_data.get("rl_metrics") or {},
+        "handshake": current_data.get("handshake_metrics") or {},
+        "ia_version": current_data.get("version", "v20260107_202018")
+    }
 
     return {
         "timestamp": datetime.now().isoformat(),
