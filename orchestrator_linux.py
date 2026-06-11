@@ -973,6 +973,52 @@ def extract_timestamp(line: str) -> Optional[str]:
                     error = m["line"][:200]
                     break
 
+            "service": name,
+            "endpoint": step["endpoint"],
+            "status": status,
+            "last_seen": last_seen,
+            "error": error,
+            "matches_count": len(matches)
+        })
+
+    current_step = None
+        if step["status"] == "error":
+            current_step = i + 1
+            break
+        if step["status"] == "pending":
+            current_step = i + 1
+            break
+
+    return {
+        "request_id": request_id,
+        "current_step": current_step,
+    }
+
+    events = []
+
+    for name, cfg in CONFIG.get("services", {}).items():
+        log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
+        matches = search_in_log(log_file, request_id, context_lines=0)
+
+        for m in matches:
+            ts = m.get("timestamp")
+            events.append({
+                "timestamp": ts,
+                "service": name,
+                "line": m["line"],
+                "line_number": m["line_number"]
+            })
+
+    events_sorted = sorted(
+        [e for e in events if e["timestamp"]],
+        key=lambda x: x["timestamp"]
+    )
+
+    return {
+        "request_id": request_id,
+        "total_events": len(events_sorted),
+    }
+
 @APP.get("/requests/active")
 async def active_requests():
 
@@ -1226,6 +1272,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     results = []
     current_data = data
 
+    import datetime as dt_root
+        "total_steps": len(pipeline),
+        "timestamp": dt_root.datetime.now().isoformat(),
+    }
+
     if isinstance(current_data, dict):
         for k, v in current_data.items():
             if isinstance(v, str) and "10.0.0.5" in v:
@@ -1246,7 +1297,16 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
 
             results.append(step_result)
 
+            import datetime as dt_at
+                "total_steps": len(pipeline),
+                "timestamp": dt_at.datetime.now().isoformat(),
+                "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
+                    {"service": r["service"], "status": r["status"], "port": r["port"]}
+                    for r in results
+                ]
+            }
             try:
+                svc = CONFIG.get("services", {}).get(name, {})
                 port = svc.get("port", step["port"])
                 payload = current_data
                 if name == "classification_agent":
@@ -1641,6 +1701,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     completed_services = {r["service"]: r["status"] for r in results}
     for s in pipeline:
         status = completed_services.get(s["name"], "pending")
+
+        "total_steps": len(pipeline),
+        "timestamp": dt_final.datetime.now().isoformat(),
+        "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
+    }
 
     current_data["mlMetadata"] = {
         "risk_v2": current_data.get("models") or [],
