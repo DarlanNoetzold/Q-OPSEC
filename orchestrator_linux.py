@@ -1276,14 +1276,24 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             results.append(step_result)
             
             import datetime as dt_at
+            # Professional Fix: Always show FULL pipeline in trace, update status of current step
+            trace = []
+            for s in pipeline:
+                status = "pending"
+                # If service already processed, get its real status
+                past_match = next((r for r in results if r["service"] == s["name"]), None)
+                if past_match:
+                    status = past_match["status"]
+                elif s["name"] == name:
+                    status = "in_progress"
+                
+                trace.append({"service": s["name"], "status": status, "port": s["port"]})
+
             current_data["flowMetrics"] = {
                 "total_steps": len(pipeline),
                 "timestamp": dt_at.datetime.now().isoformat(),
                 "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
-                "pipeline_trace": [
-                    {"service": r["service"], "status": r["status"], "port": r["port"]} 
-                    for r in results
-                ],
+                "pipeline_trace": trace,
                 "mlMetadata": current_data.get("mlMetadata", {})
             }
 
@@ -1483,7 +1493,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 )
                 
                 step_result["status_code"] = response.status_code
-                
+
+                # Update atomic flow metrics for dashboard sync
+                import datetime as dt_iter
+                full_trace = []
+                for s in pipeline:
+                    status = "pending"
+                    past_match = next((r for r in results if r["service"] == s["name"]), None)
+                    if past_match: status = past_match["status"]
+                    full_trace.append({"service": s["name"], "status": status, "port": s["port"]})
+
+                current_data["flowMetrics"]["pipeline_trace"] = full_trace
+
                 if response.status_code == 200:
                     step_result["status"] = "success"
                     try:
