@@ -101,10 +101,10 @@ def assess():
     payload = request.get_json(silent=True) or {}
 
     signals = payload.get("signals") if isinstance(payload, dict) else None
-    request_id = payload.get("request_id") if isinstance(payload, dict) else None
+    request_id = (payload.get("request_id") or payload.get("requestId")) if isinstance(payload, dict) else None
     logger.info(
         "POST /risk/assess from %s | headers=%s | request_id=%s | signals_type=%s len=%s keys=%s | raw=%s",
-        client_ip,
+
         _json_preview(headers_preview, 800),
         request_id,
         type(signals).__name__ if signals is not None else "None",
