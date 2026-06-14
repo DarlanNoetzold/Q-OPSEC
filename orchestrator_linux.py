@@ -1265,7 +1265,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             name = step["name"]
             
             # Professional URL & IP Sanitization
-            host_ip = "192.168.18.18"
+            host_ip = "192.168.18.18" # PhD IP Enforcement
             if isinstance(current_data, dict):
                 for k, v in current_data.items():
                     if isinstance(v, str) and ("10.0.0.5" in v or "localhost" in v or "127.0.0.1" in v):
@@ -1308,9 +1308,12 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             }
 
             try:
+                # [PhD Professional Step Execution]
+                print(f"[{request_id}] {name.upper()} | CALLING | url={url}", flush=True)
+
                 svc = CONFIG.get("services", {}).get(name, {})
                 port = svc.get("port", step["port"])
-                
+
                 # [PhD Sincronização de IDs]
                 # Garante que todos os payloads, independente da customização, carreguem os IDs vitais
                 current_data["request_id"] = request_id
@@ -1519,12 +1522,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     headers["X-API-Key"] = api_key
 
                 response = await client.request(
-                    step["method"],
-                    url,
-                    json=payload,
-                    headers=headers,
-                    follow_redirects=True
+                    method=step["method"],
+                    url=url,
+                    json=payload
                 )
+
+                # [PhD Force Visibility - SUCCESS LOG]
+                if response.status_code < 300:
+                    print(f"[{request_id}] {name.upper()} | SUCCESS | status={response.status_code}", flush=True)
+                else:
                 
                 step_result["status_code"] = response.status_code
 

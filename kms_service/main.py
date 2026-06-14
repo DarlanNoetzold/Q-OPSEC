@@ -170,7 +170,7 @@ async def create_key(req: CreateKeyRequest):
         source_of_key,
     )
 
-    print(f"[{request_id}] KMS: Session created", flush=True)
+    print(f"[{request_id}] KMS_SERVICE | SUCCESS | Session created for {selected_alg}", flush=True)
     return CreateKeyResponse(
         session_id=session_id,
         request_id=request_id,
