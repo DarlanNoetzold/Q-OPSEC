@@ -9,12 +9,12 @@ import traceback
 
 
 class Settings:
-    host: str = "localhost"
+    host: str = "0.0.0.0"
     port: int = 9009
     debug: bool = False
     log_level: str = "info"
     registry_path: str = "./rl_registry.json"
-    handshake_url: str = "http://localhost:8001/handshake"
+    handshake_url: str = "http://192.168.18.18:8001/handshake"
 
     use_dqn: bool = False
     policy_type: str = "context_aware"
@@ -84,13 +84,21 @@ def act(req: ContextRequest):
         print(f"  risk_score: {req.risk_score}")
         print(f"{'=' * 60}\n")
 
+        # Sincronização PhD para o orquestrador capturar o retorno
         req_dict = req.model_dump()
-        print(f"DEBUG: req.model_dump() = {req_dict}")
-        print(f"  risk_score in dict: {req_dict.get('risk_score')} (type: {type(req_dict.get('risk_score'))})")
-        print(f"  conf_score in dict: {req_dict.get('conf_score')} (type: {type(req_dict.get('conf_score'))})")
+        req_dict["request_id"] = request_id
+        req_dict["requestId"] = request_id
 
-        payload = rl_service.build_negotiation_payload(req_dict)
+        print(f"[{request_id}] RL DEBUG: Building payload...")
+        try:
+            payload = rl_service.build_negotiation_payload(req_dict)
+            payload["request_id"] = request_id
+            payload["requestId"] = request_id
+        except Exception as e_build:
+            print(f"[{request_id}] RL ERROR during build_payload: {str(e_build)}")
+            raise HTTPException(status_code=500, detail=f"RL Payload build failed: {str(e_build)}")
 
+        print(f"[{request_id}] RL DEBUG: Sending to Handshake: {settings.handshake_url}")
         result = send_to_handshake(settings.handshake_url, payload)
 
         if "success" in result:
