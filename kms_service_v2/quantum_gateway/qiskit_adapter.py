@@ -1,3 +1,4 @@
+from qiskit_aer.noise import NoiseModel
 """
 QiskitQuantumSimulator: Adaptador Qiskit para simulação de protocolos QKD.
 
