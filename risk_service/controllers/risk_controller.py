@@ -142,6 +142,8 @@ def assess():
                     _json_preview(assessed_dump, 1200),
                     int((time.time() - t0) * 1000))
 
+        assessed_dump["requestId"] = request_id
+        print(f"[{request_id}] Risk Service: Assessment complete", flush=True)
         return jsonify(assessed_dump)
 
     except Exception as e:

@@ -145,6 +145,8 @@ def classify():
                     _json_preview(classified_dump, 1200),
                     int((time.time() - t0) * 1000))
 
+        classified_dump["requestId"] = request_id
+        print(f"[{request_id}] Confiability Service: Classification complete", flush=True)
         return jsonify(classified_dump)
 
     except Exception as e:
