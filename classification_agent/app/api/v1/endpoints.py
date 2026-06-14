@@ -69,6 +69,7 @@ class PredictionRequest(BaseModel):
     data: Any = Field(..., description="Objeto ou lista de objetos com os dados para predição")
     return_probabilities: bool = Field(True, description="Se deve retornar probabilidades por classe")
     send_to_rl: bool = Field(False, description="Se deve enviar resultado para RL Engine")
+    request_id: Optional[str] = Field(None, description="ID único da requisição para rastreamento")
     model_config = {
         "protected_namespaces": (),
         "json_schema_extra": {
@@ -471,6 +472,9 @@ async def predict(
     Returns:
         Resultados da predição com labels, probabilidades e metadados
     """
+    request_id = request.request_id or "req-unknown"
+    logger.info(f"[{request_id}] Classify predict called", batch_size=1 if isinstance(request.data, dict) else len(request.data))
+    
     start_time = time.time()
 
     if not model_service.is_model_loaded():

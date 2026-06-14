@@ -15,6 +15,7 @@ class PredictRequest(BaseModel):
     batch: Optional[Dict[str, List[Dict[str, Any]]]] = None
     models: Optional[List[str]] = None
     version: Optional[str] = None
+    request_id: Optional[str] = None
 
 _manager: Optional[ModelManager] = None
 
@@ -66,10 +67,14 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
             except Exception:
                 manager.feature_names = []
 
-        logger.info(f"Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
+        logger.info(f"[{req.request_id}] Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
         result = manager.predict(normalized_records, model_names=req.models)
+        
+        if isinstance(result, dict):
+            result["request_id"] = req.request_id
+            
         return result
-    except HTTPException:
+
         raise
     except Exception as e:
         logger.exception("Unhandled exception in predict endpoint")

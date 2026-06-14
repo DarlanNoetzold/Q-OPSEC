@@ -1,8 +1,9 @@
 import httpx
 import uvicorn
+import logging
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
-from typing import Optional
+
 from urllib.parse import urlsplit, urlunsplit
 
 from models import NegotiationRequest, NegotiationResponse
@@ -219,9 +220,11 @@ async def handshake(req: NegotiationRequest):
         HTTPException: Se algum serviço integrado falhar
     """
     request_id = req.request_id or f"req_{uuid4()}"
+    logging.info(f"[{request_id}] Handshake started: proposed={req.proposed}")
 
     requested_alg = req.proposed[0] if req.proposed else "UNKNOWN"
     chosen_alg, session_id, _, _ = negotiate_algorithms(req)
+
 
     # 1) KMS - Criação de chave
     kms_payload = {
