@@ -6,6 +6,7 @@ import os
 import signal
 import sys
 import time
+from uuid import uuid4
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 import shutil
@@ -1222,6 +1223,14 @@ async def callback(request: Request):
 
 @APP.post("/run-pipeline")
 async def run_pipeline(data: Dict[str, Any] = Body(...)):
+    # 1. Identidade Única Profissional (PhD Traceability)
+    request_id = data.get("request_id") or data.get("requestId") or f"req-{int(time.time())}-{uuid4().hex[:6]}"
+    
+    # 2. Inicialização do Payload com IDs Sincronizados
+    current_data = data
+    current_data["request_id"] = request_id
+    current_data["requestId"] = request_id
+
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
@@ -1236,10 +1245,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     ]
     
     results = []
-    current_data = data
-
+    
     import datetime as dt_root
     current_data["flowMetrics"] = {
+        "request_id": request_id,
+        "requestId": request_id,
         "total_steps": len(pipeline),
         "timestamp": dt_root.datetime.now().isoformat(),
         "pipeline_trace": [{"service": s["name"], "status": "pending", "port": s["port"]} for s in pipeline]
