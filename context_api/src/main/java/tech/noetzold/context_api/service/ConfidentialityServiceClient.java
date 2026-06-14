@@ -61,42 +61,23 @@ public class ConfidentialityServiceClient {
                                                      Map<String, Object> contentPointer,
                                                      SourceContext src,
                                                      DestinationContext dst) {
-        Map<String, Object> payload = new HashMap<>();
-
-        payload.put("request_id", (requestId != null && !requestId.isBlank())
-                ? requestId
-                : "req_" + System.currentTimeMillis());
-
-        Map<String, Object> cp = new HashMap<>();
-        if (contentPointer != null && !contentPointer.isEmpty()) {
-            if (contentPointer.get("ref") != null) cp.put("ref", contentPointer.get("ref"));
-            if (contentPointer.get("sample_text") != null) cp.put("sample_text", contentPointer.get("sample_text"));
-            if (contentPointer.get("metadata") != null) cp.put("metadata", contentPointer.get("metadata"));
-        }
-        payload.put("content_pointer", cp);
-
-        if (src != null) {
-            Map<String, Object> sourceData = new HashMap<>();
-            if (src.ip() != null) sourceData.put("ip", src.ip());
-            if (src.user_id() != null) sourceData.put("user_id", src.user_id());
-            if (!sourceData.isEmpty()) {
-                payload.put("source", sourceData);
-            }
-        }
-
-        if (dst != null && dst.service_id() != null) {
-            Map<String, Object> destData = new HashMap<>();
-            destData.put("service_id", dst.service_id());
-            payload.put("destination", destData);
-        }
-
-        return payload;
+        Map<String, Object> body = new HashMap<>();
+        body.put("payload", contentPointer != null ? contentPointer : new HashMap<>());
+        
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("request_id", requestId);
+        metadata.put("source_id", "context_api_phd");
+        metadata.put("entity_id", src != null ? src.ip() : "unknown");
+        metadata.put("app", "Q-OPSEC-JAVA-V2");
+        
+        body.put("metadata", metadata);
+        return body;
     }
 
     private ClassifyOutcome doClassify(Map<String, Object> payload) {
         try {
             return webClient.post()
-                    .uri("/confidentiality/classify")
+                    .uri("/api/v2/trust/evaluate")
                     .bodyValue(payload)
                     .exchangeToMono(resp -> {
                         HttpStatusCode status = resp.statusCode();

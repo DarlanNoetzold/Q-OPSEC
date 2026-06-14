@@ -1428,7 +1428,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # Align with the successful V2 CURL structure
+                    # PhD V2 Strict Alignment: Only 'payload' and 'metadata' are allowed
                     payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
