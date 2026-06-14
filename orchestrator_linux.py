@@ -1410,16 +1410,19 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     }
 
                 if name == "risk_service":
+                    # Profissional V2 Payload Alignment
                     payload = {
                         "single": {
                             "features": current_data.get("data", {})
                         },
                         "models": ["random_forest", "logistic_regression", "lightgbm"],
                         "version": "v20260107_202018",
-                        "include_prob": True,
                         "request_id": request_id,
                         "requestId": request_id
                     }
+                    # Ensure the endpoint has the trailing slash for FastAPI routes
+                    if not url.endswith("/"):
+                        url += "/"
 
                 if name == "confiability_service":
                     payload["request_id"] = request_id
