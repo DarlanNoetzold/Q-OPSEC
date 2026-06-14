@@ -38,13 +38,17 @@ rl_service.set_training_mode(settings.training_mode)
 
 
 class ContextRequest(BaseModel):
-    request_id: str = Field(..., description="Unique request identifier")
+    request_id: Optional[str] = Field(None, description="Unique request identifier")
     source: str = Field(..., description="Source node identifier")
     destination: str = Field(..., description="Destination node identifier")
     security_level: str = Field(..., description="Security level classification")
     risk_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Risk score (0-1)")
     conf_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Confidentiality score (0-1)")
     dst_props: Dict[str, Any] = Field(default_factory=dict, description="Destination properties")
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
 
     # Optional enhanced fields
     source_reputation: Optional[float] = Field(None, ge=0.0, le=1.0)
@@ -72,13 +76,13 @@ class FeedbackRequest(BaseModel):
           summary="Select cryptographic algorithm",
           description="Main endpoint - selects optimal algorithm and initiates handshake")
 def act(req: ContextRequest):
+    request_id = req.request_id or "req-unknown"
     try:
-        print(f"\\n{'=' * 60}")
-        print(f"DEBUG: Received request")
-        print(f"  request_id: {req.request_id}")
-        print(f"  risk_score: {req.risk_score} (type: {type(req.risk_score)})")
-        print(f"  conf_score: {req.conf_score} (type: {type(req.conf_score)})")
-        print(f"{'=' * 60}\\n")
+        print(f"\n{'=' * 60}")
+        print(f"[{request_id}] RL Agent: Received request")
+        print(f"  source: {req.source} -> destination: {req.destination}")
+        print(f"  risk_score: {req.risk_score}")
+        print(f"{'=' * 60}\n")
 
         req_dict = req.model_dump()
         print(f"DEBUG: req.model_dump() = {req_dict}")
