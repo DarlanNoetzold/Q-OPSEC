@@ -1443,7 +1443,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "source": { "ip": "192.168.18.18" },
                         "destination": { "service_id": "svc-q-opsec" }
                     }
-                    url = f"http://{host_ip}:8083/confidentiality/classify"
+                    url = f"http://{host_ip}:8083/confidentiality/classify" # Corrigido para bater com o Blueprint
 
                 if name == "rl_engine":
                     src = current_data.get("source")

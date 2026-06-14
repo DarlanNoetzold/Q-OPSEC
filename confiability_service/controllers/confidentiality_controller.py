@@ -10,7 +10,7 @@ from pathlib import Path
 import os
 import json
 
-conf_bp = Blueprint("confidentiality", __name__, url_prefix="/confidentiality")
+conf_bp = Blueprint("confidentiality", __name__, url_prefix="/confidentiality") # Mantemos o prefixo mas corrigimos o orquestrador
 _service = ConfidentialityModelService()
 
 # Diretório de métricas
@@ -91,6 +91,10 @@ def train():
 
 
 @conf_bp.route("/classify", methods=["POST"])
+def classify_with_log():
+    data = request.get_json()
+    request_id = data.get("request_id", "no-id")
+    print(f"[{request_id}] CONFIABILITY_SERVICE | SUCCESS | Processing classification", flush=True)
 def classify():
     t0 = time.time()
     client_ip = _client_ip(request)

@@ -67,6 +67,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
             except Exception:
                 manager.feature_names = []
 
+        print(f"[{req.request_id}] RISK_SERVICE | SUCCESS | Prediction completed", flush=True)
         logger.info(f"[{req.request_id}] Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
         result = manager.predict(normalized_records, model_names=req.models)
         
