@@ -1310,6 +1310,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             try:
                 svc = CONFIG.get("services", {}).get(name, {})
                 port = svc.get("port", step["port"])
+                
+                # [PhD Sincronização de IDs]
+                # Garante que todos os payloads, independente da customização, carreguem os IDs vitais
+                current_data["request_id"] = request_id
+                current_data["requestId"] = request_id
+                current_data.setdefault("session_id", current_data.get("sessionId", "pending-session"))
+                current_data.setdefault("sessionId", current_data.get("session_id"))
+
                 payload = current_data
                 if name == "classification_agent":
                     payload_data = current_data.get("data", {})
@@ -1317,6 +1325,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         try: payload_data = json.loads(payload_data)
                         except: pass
                     payload = {"data": payload_data, "request_id": current_data.get("request_id")}
+                    payload["requestId"] = request_id
+                
                 
                 if name == "key_destination_engine":
                     negotiation = current_data.get("negotiation") or {}
@@ -1363,6 +1373,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             "pipeline_sync": True
                         }
                     }
+                    
+                # Injeção final de segurança para garantir agrupamento no Dashboard
+                if isinstance(payload, dict):
+                    payload["request_id"] = request_id
+                    payload["requestId"] = request_id
 
                 if name == "validation_send_api":
                     negotiation = current_data.get("negotiation") or {}
