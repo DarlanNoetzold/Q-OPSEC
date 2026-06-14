@@ -200,6 +200,8 @@ Retorna objeto completo com:
     },
 )
 async def handshake(req: NegotiationRequest):
+    req_id = req.request_id or "req-unknown"
+    print(f"[{req_id}] Handshake: Processing request from {req.source}")
     """
     Executa o handshake completo de negociação criptográfica.
 

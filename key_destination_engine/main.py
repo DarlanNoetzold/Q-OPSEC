@@ -25,6 +25,8 @@ async def root():
 
 @app.post("/deliver", response_model=DeliveryResponse)
 async def deliver(req: DeliveryRequest):
+    req_id = req.request_id or "req-unknown"
+    print(f"[{req_id}] KDE: Delivering key to {req.destination}")
     result = await deliver_key(req)
 
     if result.status == "failed":
