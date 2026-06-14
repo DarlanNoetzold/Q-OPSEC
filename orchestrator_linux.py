@@ -1428,15 +1428,12 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # PhD V2 Final Enforcement: No extra fields allowed in root
+                    # PhD V2 Ultra-Strict: Only source_id and entity_id allowed in metadata
                     v2_final_payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
-                            "request_id": request_id,
-                            "requestId": request_id,
                             "source_id": "q_opsec_orchestrator",
-                            "entity_id": str(current_data.get("session_id", "sess_default")),
-                            "app": "Q-OPSEC-PHD"
+                            "entity_id": str(current_data.get("session_id", "sess_default"))
                         }
                     }
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior

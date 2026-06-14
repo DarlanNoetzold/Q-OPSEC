@@ -68,9 +68,7 @@ public class ConfidentialityServiceClient {
         
         // V2 exige 'metadata' com campos específicos
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put("request_id", requestId);
-        metadata.put("requestId", requestId); // Multi-naming support
-        metadata.put("source_id", "context_api_v2");
+        metadata.put("source_id", "context_api_phd_v2");
         metadata.put("entity_id", src != null ? src.ip() : "192.168.18.18");
         
         body.put("metadata", metadata);
