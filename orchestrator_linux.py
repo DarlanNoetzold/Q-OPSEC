@@ -1234,7 +1234,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
-        {"name": "confiability_service", "port": 8083, "endpoint": "/confidentiality/classify", "method": "POST"},
+        {"name": "confiability_service", "port": 8083, "endpoint": "/api/v2/trust/evaluate", "method": "POST"},
         {"name": "risk_service", "port": 8000, "endpoint": "/predict/", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
@@ -1428,22 +1428,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # Align with the successful CURL structure
+                    # Align with the successful V2 CURL structure
                     payload = {
-                        "request_id": request_id,
-                        "content_pointer": {
-                            "ref": current_data.get("session_id", "ref-default"),
-                            "sample_text": str(current_data.get("data", "No content")),
-                            "metadata": {
-                                "doc_type": "finance",
-                                "app": "q-opsec-orchestrator",
-                                "user_label": "confidential"
-                            }
-                        },
-                        "source": { "ip": "192.168.18.18" },
-                        "destination": { "service_id": "svc-q-opsec" }
+                        "payload": current_data.get("data", {}),
+                        "metadata": {
+                            "request_id": request_id,
+                            "requestId": request_id,
+                            "source_id": "q_opsec_orchestrator",
+                            "entity_id": current_data.get("session_id", "default_session"),
+                            "app": "Q-OPSEC-PHD"
+                        }
                     }
-                    url = f"http://{host_ip}:8083/confidentiality/classify" # Corrigido para bater com o Blueprint
+                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate" # Corrigido para bater com o Blueprint
 
                 if name == "rl_engine":
                     src = current_data.get("source")
