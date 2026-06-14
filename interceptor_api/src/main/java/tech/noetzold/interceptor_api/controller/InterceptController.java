@@ -14,7 +14,7 @@ public class InterceptController {
 
     @PostMapping
     public ResponseEntity<InterceptResponse> intercept(@RequestBody InterceptRequest req) {
-        System.out.println("[" + req.getRequestId() + "] Interceptor: Received request");
+        System.out.println("[" + req.getAnyRequestId() + "] Interceptor: Received request");
         return ResponseEntity.ok(interceptService.intercept(req));
     }
 
