@@ -1424,13 +1424,26 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "request_id": request_id,
                         "requestId": request_id
                     }
-                    # Ensure the endpoint has the trailing slash for FastAPI routes
-                    if not url.endswith("/"):
-                        url += "/"
+                    # Force EXACT URL for V2
+                    url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    payload["request_id"] = request_id
-                    payload["requestId"] = request_id
+                    # Align with the successful CURL structure
+                    payload = {
+                        "request_id": request_id,
+                        "content_pointer": {
+                            "ref": current_data.get("session_id", "ref-default"),
+                            "sample_text": str(current_data.get("data", "No content")),
+                            "metadata": {
+                                "doc_type": "finance",
+                                "app": "q-opsec-orchestrator",
+                                "user_label": "confidential"
+                            }
+                        },
+                        "source": { "ip": "192.168.18.18" },
+                        "destination": { "service_id": "svc-q-opsec" }
+                    }
+                    url = f"http://{host_ip}:8083/confidentiality/classify"
 
                 if name == "rl_engine":
                     src = current_data.get("source")
