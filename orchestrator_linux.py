@@ -1428,17 +1428,18 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # PhD V2 Strict Alignment: Only 'payload' and 'metadata' are allowed
-                    payload = {
+                    # PhD V2 Final Enforcement: No extra fields allowed in root
+                    v2_final_payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
                             "request_id": request_id,
                             "requestId": request_id,
                             "source_id": "q_opsec_orchestrator",
-                            "entity_id": current_data.get("session_id", "default_session"),
+                            "entity_id": str(current_data.get("session_id", "sess_default")),
                             "app": "Q-OPSEC-PHD"
                         }
                     }
+                    payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate" # Corrigido para bater com o Blueprint
 
                 if name == "rl_engine":
@@ -1499,32 +1500,11 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "nonce_b64": negotiation.get("crypto_nonce_b64") or current_data.get("crypto_nonce_b64")
                     }
                 
-                if name == "risk_service":
-                    payload = {
-                        "single": {
-                            "features": current_data.get("data", {})
-                        },
-                        "models": ["random_forest", "logistic_regression", "lightgbm"],
-                        "version": "v20260107_202018"
-                    }
-                
-                if name == "confiability_service":
-                    payload = {
-                        "request_id": current_data.get("request_id"),
-                        "data": current_data.get("data", {}),
-                        "context": current_data.get("source", {}),
-                        "classification_level": current_data.get("confidentiality", {}).get("classification", "internal")
-                    }
 
-                if name == "kms":
-                    payload = {
-                        "request_id": current_data.get("request_id"),
-                        "session_id": current_data.get("session_id"),
-                        "source": payload.get("source", "unknown"),
-                        "destination": payload.get("destination", "unknown"),
-                        "algorithm": current_data.get("selected_algorithm") or "AES256_GCM",
-                        "security_level": current_data.get("security_level") or "moderate"
-                    }
+                
+
+
+
 
                 headers = {}
                 if name == "classification_agent":
