@@ -1237,6 +1237,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     
     results = []
     current_data = data
+    request_id = current_data.get("request_id") or current_data.get("requestId") or f"req-{int(time.time())}"
+    current_data["request_id"] = request_id
+    current_data["requestId"] = request_id
 
     import datetime as dt_root
     current_data["flowMetrics"] = {
@@ -1272,30 +1275,19 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 "raw_response": None
             }
 
-            # Atomic update for real-time dashboard visibility
+            # Update results list and generate FULL trace for dashboard
             results.append(step_result)
-            
-            import datetime as dt_at
-            # Professional Fix: Always show FULL pipeline in trace, update status of current step
-            trace = []
-            for s in pipeline:
-                status = "pending"
-                # If service already processed, get its real status
-                past_match = next((r for r in results if r["service"] == s["name"]), None)
-                if past_match:
-                    status = past_match["status"]
-                elif s["name"] == name:
-                    status = "in_progress"
-                
-                trace.append({"service": s["name"], "status": status, "port": s["port"]})
 
-            current_data["flowMetrics"] = {
-                "total_steps": len(pipeline),
-                "timestamp": dt_at.datetime.now().isoformat(),
-                "negotiated_algorithm": current_data.get("selectedAlgorithm") or current_data.get("selected_algorithm"),
-                "pipeline_trace": trace,
-                "mlMetadata": current_data.get("mlMetadata", {})
-            }
+            import datetime as dt_at
+            full_trace = []
+            for s in pipeline:
+                s_status = "pending"
+                match = next((r for r in results if r["service"] == s["name"]), None)
+                if match: s_status = match["status"]
+                full_trace.append({"service": s["name"], "status": s_status, "port": s["port"]})
+            
+            current_data["flowMetrics"]["pipeline_trace"] = full_trace
+            current_data["flowMetrics"]["timestamp"] = dt_at.datetime.now().isoformat()
 
             try:
                 svc = CONFIG.get("services", {}).get(name, {})
