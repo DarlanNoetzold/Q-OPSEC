@@ -1253,16 +1253,26 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             name = step["name"]
-            host_ip = "192.168.18.18"
-            url = f"http://{host_ip}:{step['port']}{step['endpoint']}"
             
+            # Professional URL & IP Sanitization
+            host_ip = "192.168.18.18"
+            if isinstance(current_data, dict):
+                for k, v in current_data.items():
+                    if isinstance(v, str) and ("10.0.0.5" in v or "localhost" in v or "127.0.0.1" in v):
+                        current_data[k] = v.replace("10.0.0.5", host_ip).replace("localhost", host_ip).replace("127.0.0.1", host_ip)
+            
+            url = f"http://{host_ip}:{step['port']}{step['endpoint']}"
+
             step_result = {
                 "service": name,
                 "url": url,
                 "status": "in_progress",
-                "port": step["port"]
+                "port": step["port"],
+                "start_time": datetime.now().isoformat(),
+                "raw_response": None
             }
 
+            # Atomic update for real-time dashboard visibility
             results.append(step_result)
             
             import datetime as dt_at
@@ -1273,8 +1283,10 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 "pipeline_trace": [
                     {"service": r["service"], "status": r["status"], "port": r["port"]} 
                     for r in results
-                ]
+                ],
+                "mlMetadata": current_data.get("mlMetadata", {})
             }
+
             try:
                 svc = CONFIG.get("services", {}).get(name, {})
                 port = svc.get("port", step["port"])
@@ -1477,15 +1489,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     try:
                         resp_json = response.json()
                         step_result["response"] = resp_json
+                        step_result["raw_response"] = resp_json  # PhD Monitoring
+                        step_result["end_time"] = datetime.now().isoformat()
+
                         if isinstance(resp_json, dict):
                             if name == "risk_service":
                                 current_data["risk_v2_details"] = resp_json
-                                if "models" in resp_json:
-                                    current_data["models"] = resp_json["models"]
-                                if "results" in resp_json:
-                                    current_data["results"] = resp_json["results"]
-                                current_data["version"] = resp_json.get("version") or "v20260107_202018"
-
+                            
                             if name == "classification_agent":
                                 if "results" in resp_json:
                                     current_data["classification_results"] = resp_json["results"]
