@@ -1,6 +1,5 @@
 package tech.noetzold.validation_send_api.controller;
 
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,13 @@ public class SendController {
     public ResponseEntity<?> receiveAndForward(@Valid @RequestBody NegotiationPayload payload) {
         System.out.println("[" + payload.getRequestId() + "] Validation Send API: Received forward request");
         EncryptedDelivery saved = forwardService.receiveAndPersist(payload);
-
+        try {
             forwardService.forwardToOriginOrThrow(payload);
             forwardService.markDelivered(saved);
             return ResponseEntity.ok().body("{\"status\":\"delivered\"}");
         } catch (Exception e) {
             forwardService.markFailed(saved, e.getMessage());
-            return ResponseEntity.status(502).body("{\"status\":\"failed\",\"error\":\"" + e.getMessage().replace("\"","'") + "\"}");
+            return ResponseEntity.status(502).body("{\"status\":\"failed\",\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}");
         }
     }
 }
