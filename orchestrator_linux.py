@@ -1531,7 +1531,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 if response.status_code < 300:
                     print(f"[{request_id}] {name.upper()} | SUCCESS | status={response.status_code}", flush=True)
                 else:
-                
+                    print(f"[{request_id}] {name.upper()} | ERROR | status={response.status_code}", flush=True)
+
                 step_result["status_code"] = response.status_code
 
                 # Update atomic flow metrics for dashboard sync
