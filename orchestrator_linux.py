@@ -1524,7 +1524,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 response = await client.request(
                     method=step["method"],
                     url=url,
-                    json=payload
+                    json=payload,
+                    headers=headers
                 )
 
                 # [PhD Force Visibility - SUCCESS LOG]
