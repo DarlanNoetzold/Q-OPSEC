@@ -63,10 +63,8 @@ public class ConfidentialityServiceClient {
                                                      DestinationContext dst) {
         Map<String, Object> body = new HashMap<>();
         
-        // V2 exige que os dados de entrada fiquem dentro de 'payload'
         body.put("payload", contentPointer != null ? contentPointer : new HashMap<>());
         
-        // V2 exige 'metadata' com campos específicos
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("source_id", "context_api_phd_v2");
         metadata.put("entity_id", src != null ? src.ip() : "192.168.18.18");

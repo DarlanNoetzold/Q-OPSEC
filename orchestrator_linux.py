@@ -1437,7 +1437,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         }
                     }
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
-                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate" # Corrigido para bater com o Blueprint
+                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
+                    print(f"[{request_id}] CONFIABILITY_SERVICE | TRACE | Protocol V2 Identified", flush=True) # Corrigido para bater com o Blueprint
 
                 if name == "rl_engine":
                     src = current_data.get("source")
@@ -1516,7 +1517,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 )
 
                 # [PhD Force Visibility - SUCCESS LOG]
-                if response.status_code < 300:
+                if response.status_code == 200:
+                    print(f"[{request_id}] {name.upper()} | SUCCESS | status=200", flush=True)
+                elif response.status_code < 300:
                     print(f"[{request_id}] {name.upper()} | SUCCESS | status={response.status_code}", flush=True)
                 else:
                     print(f"[{request_id}] {name.upper()} | ERROR | status={response.status_code}", flush=True)
