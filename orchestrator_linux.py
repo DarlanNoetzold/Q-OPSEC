@@ -1234,6 +1234,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     pipeline = [
         {"name": "interceptor_api", "port": 8080, "endpoint": "/intercept", "method": "POST"},
         {"name": "context_api", "port": 65534, "endpoint": "/context/enrich", "method": "POST"},
+        {"name": "confiability_service", "port": 8083, "endpoint": "/confidentiality/classify", "method": "POST"},
         {"name": "risk_service", "port": 8000, "endpoint": "/predict/", "method": "POST"},
         {"name": "classification_agent", "port": 8088, "endpoint": "/api/v1/predict", "method": "POST"},
         {"name": "rl_engine", "port": 9009, "endpoint": "/act", "method": "POST"},
@@ -1243,7 +1244,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
         {"name": "crypto_module", "port": 8004, "endpoint": "/encrypt", "method": "POST"},
         {"name": "validation_send_api", "port": 8005, "endpoint": "/validation/send", "method": "POST"},
     ]
-    
+
     results = []
     
     import datetime as dt_root
