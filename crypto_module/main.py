@@ -139,6 +139,8 @@ def _default_aad(session_id: str, request_id: str, algorithm: str) -> bytes:
     """,
 )
 async def encrypt(req: EncryptRequest):
+    rid = req.request_id or "req-unknown"
+    print(f"[{rid}] Crypto Module: Encrypting payload...")
     """
     Encrypt plaintext data using session key from KMS.
 

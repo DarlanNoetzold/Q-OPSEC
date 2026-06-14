@@ -18,8 +18,9 @@ public class SendController {
 
     @PostMapping("/send")
     public ResponseEntity<?> receiveAndForward(@Valid @RequestBody NegotiationPayload payload) {
+        System.out.println("[" + payload.getRequestId() + "] Validation Send API: Received forward request");
         EncryptedDelivery saved = forwardService.receiveAndPersist(payload);
-        try {
+
             forwardService.forwardToOriginOrThrow(payload);
             forwardService.markDelivered(saved);
             return ResponseEntity.ok().body("{\"status\":\"delivered\"}");

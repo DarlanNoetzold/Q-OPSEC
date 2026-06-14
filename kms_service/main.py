@@ -146,6 +146,8 @@ Pode aplicar fallback de algoritmo, dependendo da disponibilidade.
     },
 )
 async def create_key(req: CreateKeyRequest):
+    rid = req.request_id or "req-unknown"
+    print(f"[{rid}] KMS Service: Creating key...")
     req_id = req.request_id or "req-unknown"
     print(f"[{req_id}] KMS: Creating key for algorithm {req.algorithm}")
     (
