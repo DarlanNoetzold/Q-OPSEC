@@ -4,13 +4,17 @@ from datetime import datetime
 
 class DeliveryRequest(BaseModel):
     session_id: str
-    request_id: str
+    request_id: Optional[str] = None
     destination: str
     delivery_method: str  # "API", "MQTT", "HSM", "FILE"
     key_material: str
     algorithm: str
     expires_at: int = Field(..., description="Unix epoch (seconds)")
     metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
 
 class DeliveryResponse(BaseModel):
     session_id: str

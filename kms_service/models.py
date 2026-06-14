@@ -22,10 +22,14 @@ class KeyResponse(BaseModel):
 
 class CreateKeyRequest(BaseModel):
     session_id: Optional[str] = None
-    request_id: str
+    request_id: Optional[str] = None
     algorithm: str
     ttl_seconds: int = 3600
     strict: bool = False
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
 
 class CreateKeyResponse(BaseModel):
     session_id: str

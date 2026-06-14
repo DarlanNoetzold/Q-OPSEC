@@ -196,11 +196,10 @@ async def encrypt(req: EncryptRequest):
 class EncryptByRequestId(BaseModel):
     """Request model for simplified encryption using request_id."""
 
-    request_id: str = Field(
-        ...,
+    request_id: Optional[str] = Field(
+        None,
         description="Request ID used to fetch message from Interceptor API",
         example="req_xyz789abc",
-        min_length=1,
     )
     session_id: str = Field(
         ...,
@@ -221,6 +220,8 @@ class EncryptByRequestId(BaseModel):
     )
 
     class Config:
+        populate_by_name = True
+        extra = "allow"
         json_schema_extra = {
             "example": {
                 "request_id": "req_xyz789abc",
@@ -379,9 +380,9 @@ async def decrypt(req: DecryptRequest):
 
         ctx = await fetch_key_context(session_id=req.session_id, request_id=None)
         session_id = ctx["session_id"]
-        req_id = req.request_id or ctx.get("request_id") or ""
+        req_id = getattr(req, "request_id", None) or ctx.get("request_id") or ""
 
-        aad = b64d(req.aad_b64) if req.aad_b64 else _default_aad(session_id, req_id, req.algorithm)
+        aad = b64d(req.aad_b64) if hasattr(req, "aad_b64") and req.aad_b64 else _default_aad(session_id, req_id, req.algorithm)
 
         plaintext = aead_decrypt(ctx, req.algorithm, req.nonce_b64, req.ciphertext_b64, aad)
         return DecryptResponse(

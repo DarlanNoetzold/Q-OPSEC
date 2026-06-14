@@ -3,11 +3,15 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class NegotiationRequest(BaseModel):
-    request_id: str
+    request_id: Optional[str] = None
     source: str
     destination: str
     proposed: List[str]
     dst_props: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
 
 class NegotiationResponse(BaseModel):
     request_id: str
