@@ -1416,8 +1416,14 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         },
                         "models": ["random_forest", "logistic_regression", "lightgbm"],
                         "version": "v20260107_202018",
-                        "include_prob": True
+                        "include_prob": True,
+                        "request_id": request_id,
+                        "requestId": request_id
                     }
+
+                if name == "confiability_service":
+                    payload["request_id"] = request_id
+                    payload["requestId"] = request_id
 
                 if name == "rl_engine":
                     src = current_data.get("source")
