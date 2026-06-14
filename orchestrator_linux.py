@@ -1244,6 +1244,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
         "timestamp": dt_root.datetime.now().isoformat(),
         "pipeline_trace": [{"service": s["name"], "status": "pending", "port": s["port"]} for s in pipeline]
     }
+    current_data["request_id"] = current_data.get("request_id") or current_data.get("requestId") or f"req-{int(time.time())}"
 
     if isinstance(current_data, dict):
         for k, v in current_data.items():
@@ -1504,6 +1505,17 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     full_trace.append({"service": s["name"], "status": status, "port": s["port"]})
 
                 current_data["flowMetrics"]["pipeline_trace"] = full_trace
+                
+                # Critical Fix: Expose request_id and Ensure Dashboard visibility
+                current_data["requestId"] = current_data["request_id"]
+                current_data["originUrl"] = f"http://192.168.18.18:8090/callback"
+                
+                # Professional Update: Global State Sync
+                from __main__ import app as global_app
+                try:
+                    if hasattr(global_app, "state") and hasattr(global_app.state, "active_requests"):
+                        global_app.state.active_requests[current_data["request_id"]] = current_data
+                except: pass
 
                 if response.status_code == 200:
                     step_result["status"] = "success"
