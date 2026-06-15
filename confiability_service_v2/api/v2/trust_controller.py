@@ -221,19 +221,24 @@ class TrustEvaluate(MethodView):
                 elapsed_ms
             )
 
-            # [PhD Force Visibility - MULTI-CHANNEL ID CAPTURE]
+            # [PhD Force Visibility - AGGRESSIVE ARGS CAPTURE]
             from flask import request as fr
-            # 1. Tenta Query String (?request_id=)
-            # 2. Tenta Headers (X-Request-ID)
-            # 3. Tenta Metadata do JSON (se não der 422 antes)
-            rid = fr.args.get("request_id") or fr.headers.get("X-Request-ID")
+            # Pega de request_id ou requestId ou qualquer coisa na query string
+            rid = fr.args.get("request_id") or fr.args.get("requestId")
+            
+            # Se vier do Java ou Orquestrador via Headers
+            if not rid: rid = fr.headers.get("X-Request-ID")
+            
+            # Se falhar tudo, tenta o JSON bruto (risco de 422 se não for cuidadoso, mas aqui é apenas leitura)
             if not rid:
                 try:
-                    js = fr.get_json() or {}
-                    rid = js.get("metadata", {}).get("request_id")
+                    raw_j = fr.get_json(silent=True) or {}
+                    rid = raw_j.get("metadata", {}).get("request_id")
                 except: pass
-            
-            rid = rid or "v2-trace-pending"
+
+            rid = rid or "trace-pending"
+            print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | score={result.trust_score}", flush=True)
+            return result.to_dict()
             print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)
             return result.to_dict()
 

@@ -1436,7 +1436,8 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             "entity_id": str(current_data.get("session_id", "sess_default"))
                         }
                     }
-                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate?request_id={request_id}"
+                    # PhD: Encode total do request_id na URL para o Flask capturar via args
+                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate?request_id={str(request_id)}"
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
                     print(f"[{request_id}] CONFIABILITY_SERVICE | TRACE | Protocol V2 Identified", flush=True) # Corrigido para bater com o Blueprint
