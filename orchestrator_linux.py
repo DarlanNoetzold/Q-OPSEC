@@ -1283,15 +1283,12 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 "raw_response": None
             }
 
-            # Atomic update for real-time dashboard visibility
             results.append(step_result)
             
             import datetime as dt_at
-            # Professional Fix: Always show FULL pipeline in trace, update status of current step
             trace = []
             for s in pipeline:
                 status = "pending"
-                # If service already processed, get its real status
                 past_match = next((r for r in results if r["service"] == s["name"]), None)
                 if past_match:
                     status = past_match["status"]
@@ -1309,7 +1306,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
             }
 
             try:
-                # [PhD Professional Step Execution]
                 print(f"[{request_id}] {name.upper()} | CALLING | url={url}", flush=True)
 
                 svc = CONFIG.get("services", {}).get(name, {})
@@ -1378,7 +1374,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         }
                     }
                     
-                # Injeção final de segurança para garantir agrupamento no Dashboard
                 if isinstance(payload, dict):
                     payload["request_id"] = request_id
                     payload["requestId"] = request_id
@@ -1414,7 +1409,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     }
 
                 if name == "risk_service":
-                    # Profissional V2 Payload Alignment
                     payload = {
                         "single": {
                             "features": current_data.get("data", {})
@@ -1438,9 +1432,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     }
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate?request_id={str(request_id)}"
-                    payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
+                    payload = v2_final_payload 
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
-                    print(f"[{request_id}] CONFIABILITY_SERVICE | TRACE | Protocol V2 Identified", flush=True) # Corrigido para bater com o Blueprint
+                    print(f"[{request_id}] CONFIABILITY_SERVICE | TRACE | Protocol V2 Identified", flush=True)
 
                 if name == "rl_engine":
                     src = current_data.get("source")
@@ -1500,12 +1494,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         "nonce_b64": negotiation.get("crypto_nonce_b64") or current_data.get("crypto_nonce_b64")
                     }
                 
-
-                
-
-
-
-
                 headers = {}
                 if name == "classification_agent":
                     api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
@@ -1518,7 +1506,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     headers=headers
                 )
 
-                # [PhD Force Visibility - SUCCESS LOG]
                 if response.status_code == 200:
                     print(f"[{request_id}] {name.upper()} | SUCCESS | status=200", flush=True)
                 elif response.status_code < 300:
@@ -1528,7 +1515,6 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
 
                 step_result["status_code"] = response.status_code
 
-                # Update atomic flow metrics for dashboard sync
                 import datetime as dt_iter
                 full_trace = []
                 for s in pipeline:
@@ -1544,7 +1530,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     try:
                         resp_json = response.json()
                         step_result["response"] = resp_json
-                        step_result["raw_response"] = resp_json  # PhD Monitoring
+                        step_result["raw_response"] = resp_json
                         step_result["end_time"] = datetime.now().isoformat()
 
                         if isinstance(resp_json, dict):
