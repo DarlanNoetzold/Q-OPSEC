@@ -1428,12 +1428,13 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # PhD V2 Ultra-Strict: Only source_id and entity_id allowed in metadata
+                    # PhD V2 Re-aligned: Include request_id for logging, keep metadata clean
                     v2_final_payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
                             "source_id": "q_opsec_orchestrator",
-                            "entity_id": str(current_data.get("session_id", "sess_default"))
+                            "entity_id": str(current_data.get("session_id", "sess_default")),
+                            "request_id": str(request_id)
                         }
                     }
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior

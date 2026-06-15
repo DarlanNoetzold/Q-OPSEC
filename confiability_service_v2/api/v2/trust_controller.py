@@ -221,21 +221,13 @@ class TrustEvaluate(MethodView):
                 elapsed_ms
             )
 
-            # [PhD Force Visibility - FIXED REQUEST ID]
-            # Tenta pegar de metadata (vindo do orquestrador ou java)
-            metadata_obj = data.get("metadata", {})
-            rid = metadata_obj.get("request_id") or metadata_obj.get("requestId")
+            # [PhD Force Visibility - ULTIMATE REQUEST ID CAPTURE]
+            from flask import request as fr
+            raw = fr.get_json() or {}
+            meta = raw.get("metadata", {})
+            rid = meta.get("request_id") or meta.get("requestId") or data.get("metadata", {}).get("request_id")
             
-            # Se ainda estiver vazio (porque o Marshmallow pode ter mapeado para objeto), tenta o request bruto
-            if not rid:
-                try:
-                    from flask import request as flask_req
-                    raw_json = flask_req.get_json()
-                    rid = raw_json.get("metadata", {}).get("request_id") or raw_json.get("metadata", {}).get("requestId")
-                except:
-                    pass
-            
-            rid = rid or "v2-unknown"
+            rid = rid or "req-missing-id"
             print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)
             return result.to_dict()
 
