@@ -50,9 +50,10 @@ def _json_preview(obj, limit: int = 1000) -> str:
 # ========== SCHEMAS PARA DOCUMENTAÇÃO ==========
 
 class MetadataSchema(Schema):
-    """Metadados contextuais da avaliação"""
-    source_id = fields.Str(required=True, metadata={"description": "ID da fonte de dados", "example": "security_system_1"})
-    entity_id = fields.Str(metadata={"description": "ID da entidade avaliada", "example": "user_12345"})
+    source_id = fields.Str(required=True)
+    entity_id = fields.Str()
+    request_id = fields.Str()
+    requestId = fields.Str()
     timestamp = fields.Str(metadata={"description": "Timestamp ISO 8601", "example": "2024-01-15T10:30:00Z"})
     data_type = fields.Str(metadata={"description": "Tipo de dado", "example": "security_event"})
     environment = fields.Str(metadata={"description": "Ambiente de execução", "example": "production"})
@@ -221,22 +222,10 @@ class TrustEvaluate(MethodView):
                 elapsed_ms
             )
 
-            # [PhD Force Visibility - AGGRESSIVE ARGS CAPTURE]
             from flask import request as fr
-            # Pega de request_id ou requestId ou qualquer coisa na query string
-            rid = fr.args.get("request_id") or fr.args.get("requestId")
-            
-            # Se vier do Java ou Orquestrador via Headers
-            if not rid: rid = fr.headers.get("X-Request-ID")
-            
-            # Se falhar tudo, tenta o JSON bruto (risco de 422 se não for cuidadoso, mas aqui é apenas leitura)
-            if not rid:
-                try:
-                    raw_j = fr.get_json(silent=True) or {}
-                    rid = raw_j.get("metadata", {}).get("request_id")
-                except: pass
-
-            rid = rid or "trace-pending"
+            raw_j = fr.get_json(silent=True) or {}
+            rid = raw_j.get("metadata", {}).get("request_id") or raw_j.get("metadata", {}).get("requestId") or data.get("metadata", {}).get("request_id")
+            rid = rid or fr.args.get("request_id") or "pending-id"
             print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | score={result.trust_score}", flush=True)
             return result.to_dict()
             print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)

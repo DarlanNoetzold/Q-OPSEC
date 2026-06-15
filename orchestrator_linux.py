@@ -1428,15 +1428,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # PhD V2 Ghost-ID: request_id passed in URL to bypass strict JSON schema (prevents 422)
                     v2_final_payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
                             "source_id": "q_opsec_orchestrator",
-                            "entity_id": str(current_data.get("session_id", "sess_default"))
+                            "entity_id": str(current_data.get("session_id", "sess_default")),
+                            "request_id": str(request_id)
                         }
                     }
-                    # PhD: Encode total do request_id na URL para o Flask capturar via args
+                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate?request_id={str(request_id)}"
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate"

@@ -68,6 +68,7 @@ public class ConfidentialityServiceClient {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("source_id", "context_api_phd_v2");
         metadata.put("entity_id", src != null ? src.ip() : "192.168.18.18");
+        metadata.put("request_id", requestId);
         
         body.put("metadata", metadata);
         return body;
