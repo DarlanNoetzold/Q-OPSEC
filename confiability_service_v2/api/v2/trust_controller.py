@@ -221,13 +221,10 @@ class TrustEvaluate(MethodView):
                 elapsed_ms
             )
 
-            # [PhD Force Visibility - ULTIMATE REQUEST ID CAPTURE]
+            # [PhD Force Visibility - REMOTE QUERY CAPTURE]
             from flask import request as fr
-            raw = fr.get_json() or {}
-            meta = raw.get("metadata", {})
-            rid = meta.get("request_id") or meta.get("requestId") or data.get("metadata", {}).get("request_id")
-            
-            rid = rid or "req-missing-id"
+            # Puxa o ID da URL (?request_id=...) para não quebrar o Schema do JSON
+            rid = fr.args.get("request_id") or "req-ghost-id"
             print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)
             return result.to_dict()
 

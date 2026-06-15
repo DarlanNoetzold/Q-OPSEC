@@ -1428,15 +1428,15 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     url = f"http://{host_ip}:8000/predict/"
 
                 if name == "confiability_service":
-                    # PhD V2 Re-aligned: Include request_id for logging, keep metadata clean
+                    # PhD V2 Ghost-ID: request_id passed in URL to bypass strict JSON schema (prevents 422)
                     v2_final_payload = {
                         "payload": current_data.get("data", {}),
                         "metadata": {
                             "source_id": "q_opsec_orchestrator",
-                            "entity_id": str(current_data.get("session_id", "sess_default")),
-                            "request_id": str(request_id)
+                            "entity_id": str(current_data.get("session_id", "sess_default"))
                         }
                     }
+                    url = f"http://{host_ip}:8083/api/v2/trust/evaluate?request_id={request_id}"
                     payload = v2_final_payload # Sobrescreve QUALQUER lixo anterior
                     url = f"http://{host_ip}:8083/api/v2/trust/evaluate"
                     print(f"[{request_id}] CONFIABILITY_SERVICE | TRACE | Protocol V2 Identified", flush=True) # Corrigido para bater com o Blueprint
