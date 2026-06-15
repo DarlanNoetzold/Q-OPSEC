@@ -89,6 +89,8 @@ def create_key(req: CreateKeyRequest):
             source=source,
         )
 
+        # [PhD Force Visibility - V2 Sovereign]
+        print(f"[{req.request_id}] KMS_SERVICE | SUCCESS | Key generated V2/V3", flush=True)
         return CreateKeyResponse(
             session_id=session_id,
             request_id=request_id,

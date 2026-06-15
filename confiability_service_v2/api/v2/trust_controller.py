@@ -221,6 +221,9 @@ class TrustEvaluate(MethodView):
                 elapsed_ms
             )
 
+            # [PhD Force Visibility]
+            rid = data.get("metadata", {}).get("request_id") or data.get("metadata", {}).get("requestId") or "v2-id"
+            print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)
             return result.to_dict()
 
         except Exception as e:
