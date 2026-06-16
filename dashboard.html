@@ -1439,10 +1439,13 @@
                     <h2>Stack de Observabilidade</h2>
                     <button 
                       className="btn btn-green" 
-                      onClick={async () => {
-                        const res = await fetch(API + "/monitoring/start", {method: "POST"});
-                        const data = await res.json();
-                        toast("Stack de monitoria iniciada com sucesso!");
+                      onClick={() => {
+                        fetch(API + "/monitoring/start", {method: "POST"})
+                          .then(res => res.json())
+                          .then(data => {
+                            toast("Stack de monitoria iniciada com sucesso!");
+                          })
+                          .catch(err => toast("Erro ao iniciar monitoria", "err"));
                       }}
                     >
                       Subir Grafana e Prometheus
