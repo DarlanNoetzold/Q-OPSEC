@@ -1750,6 +1750,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
 
 
 
+
 @APP.post("/monitoring/start")
 async def start_monitoring():
     import subprocess
@@ -1759,38 +1760,28 @@ async def start_monitoring():
         prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
         graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
         
-        # 1. Matar containers antigos para evitar conflito de nome/porta
-        subprocess.run("docker rm -f qopsec-prom qopsec-graf", shell=True, capture_output=True)
-        
-        # 2. Subir Prometheus com seu prometheus.yml
-        prom_cmd = (
-            f"docker run -d --name qopsec-prom "
-            f"-p 9091:9090 "
-            f"-v {prom_config}:/etc/prometheus/prometheus.yml "
-            f"prom/prometheus"
+        # Comando unificado: limpa, garante imagem e sobe
+        # Usando nohup para garantir que continue mesmo se a requisição HTTP fechar
+        cmd = (
+            f"docker rm -f qopsec-prom qopsec-graf || true && "
+            f"docker run -d --name qopsec-prom -p 9091:9090 -v {prom_config}:/etc/prometheus/prometheus.yml prom/prometheus && "
+            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning "
+            f"-e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin grafana/grafana"
         )
         
-        # 3. Subir Grafana com sua pasta de provisioning (Datasources e Dashboard providers)
-        graf_cmd = (
-            f"docker run -d --name qopsec-graf "
-            f"-p 3001:3000 "
-            f"-v {graf_prov}:/etc/grafana/provisioning "
-            f"-e GF_AUTH_ANONYMOUS_ENABLED=true "
-            f"-e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin "
-            f"grafana/grafana"
-        )
-        
-        subprocess.Popen(prom_cmd, shell=True)
-        subprocess.Popen(graf_cmd, shell=True)
+        # Rodar em background mas logar no stdout do servidor
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"[MONITORING] Startup command triggered: {cmd}", flush=True)
         
         return {
             "status": "success", 
-            "message": "Stack iniciada com provisioning completo!",
-            "prometheus": "http://192.168.18.18:9091",
-            "grafana": "http://192.168.18.18:3001"
+            "message": "Comando de inicializacao enviado. Verifique o log do Docker (docker ps).",
+            "ports": {"prometheus": 9091, "grafana": 3001}
         }
     except Exception as e:
+        print(f"[MONITORING] CRITICAL ERROR: {str(e)}", flush=True)
         return {"status": "error", "message": str(e)}
+
 
 
 
