@@ -282,42 +282,6 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-@APP.post("/monitoring/start")
-async def start_monitoring():
-    """Sobe a stack de monitoria (Prometheus + Grafana) via Docker"""
-    if not docker_running():
-        raise HTTPException(status_code=500, detail="Docker daemon não está rodando")
-
-    monitoring_dir = BASE_DIR / "monitoring"
-    
-    # Prometheus Config
-    prometheus_cfg = {
-        "name": "qopsec-prometheus",
-        "image": "prom/prometheus:latest",
-        "ports": ["9090:9090"],
-        "volumes": [f"{monitoring_dir}/prometheus.yml:/etc/prometheus/prometheus.yml:ro"],
-        "restart": "always"
-    }
-    
-    # Grafana Config
-    grafana_cfg = {
-        "name": "qopsec-grafana",
-        "image": "grafana/grafana:latest",
-        "ports": ["3000:3000"],
-        "volumes": [f"{monitoring_dir}/grafana/provisioning:/etc/grafana/provisioning:ro"],
-        "env": {
-            "GF_AUTH_ANONYMOUS_ENABLED": "true",
-            "GF_AUTH_ANONYMOUS_ORG_ROLE": "Admin"
-        },
-        "restart": "always"
-    }
-
-    results = []
-    results.append(await docker_start_container(prometheus_cfg))
-    results.append(await docker_start_container(grafana_cfg))
-
-    return {"status": "monitoring_stack_started", "results": results, "urls": {"grafana": "http://192.168.18.18:3000", "prometheus": "http://192.168.18.18:9090"}}
-
 @APP.get("/", response_class=HTMLResponse)
 async def dashboard():
     html_path = BASE_DIR / "dashboard.html"
