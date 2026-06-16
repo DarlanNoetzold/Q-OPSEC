@@ -1179,9 +1179,9 @@ async def get_datasets(service_name: str):
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/datasets"
     elif service_name == "confiability_service":
-        url = f"{base_url}/datasets"
+        url = f"{base_url}/datasets/"
     elif service_name == "risk_service":
-        url = f"{base_url}/datasets"
+        url = f"{base_url}/datasets/"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
@@ -1759,7 +1759,7 @@ async def start_monitoring():
     import threading
     
     def run_docker_sync():
-        proj_dir = "/mnt/c/Projetos/Q-OPSEC"
+        proj_dir = os.path.dirname(os.path.abspath(__file__))
         prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
         graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
         
