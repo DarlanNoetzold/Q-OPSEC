@@ -1070,9 +1070,9 @@ async def get_metrics_sessions(service_name: str):
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/sessions"
     elif service_name == "confiability_service":
-        url = f"{base_url}/confidentiality/metrics/sessions"
+        url = f"{base_url}/metrics/sessions"
     elif service_name == "risk_service":
-        url = f"{base_url}/risk/metrics/sessions"
+        url = f"{base_url}/metrics/sessions"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
 

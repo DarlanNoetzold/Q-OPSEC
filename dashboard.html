@@ -935,6 +935,14 @@
             >
               Datasets
             </button>
+            <button
+              className={`tab ${activeTab === 'monitoring' ? 'active' : ''}`}
+              onClick={() => setActiveTab('monitoring')}
+              role="tab"
+              aria-selected={activeTab === 'monitoring'}
+            >
+              Monitoria
+            </button>
           </nav>
 
           <main className="container" role="tabpanel" aria-live="polite">
