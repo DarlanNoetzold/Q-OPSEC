@@ -407,7 +407,7 @@
   <script type="text/babel" data-presets="react">
     const { useState, useEffect } = React;
 
-    const SERVICES_WITH_METRICS = ['risk', 'confidentiality', 'classification_agent'];
+    const SERVICES_WITH_METRICS = ['risk_service', 'confiability_service', 'classification_agent'];
     const SWAGGER_IP = '192.168.18.18';
 
     function ImageCarousel({ images, basePath }) {
@@ -474,7 +474,7 @@
 
       const [serviceConfigs, setServiceConfigs] = useState({});
 
-      const API = 'http://192.168.18.18:8000';
+      const API = window.location.origin;
 
       const toast = (msg, type='ok') => {
         setNotif({ msg, type });
