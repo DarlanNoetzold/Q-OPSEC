@@ -935,6 +935,14 @@
             >
               Datasets
             </button>
+            <button
+              className={`tab ${activeTab === 'monitoring' ? 'active' : ''}`}
+              onClick={() => setActiveTab('monitoring')}
+              role="tab"
+              aria-selected={activeTab === 'monitoring'}
+            >
+              Observabilidade
+            </button>
           </nav>
 
           <main className="container" role="tabpanel" aria-live="polite">
@@ -1421,6 +1429,41 @@
                     <div style={{fontFamily: 'monospace'}}>{id}</div>
                     </button>
                   ))}
+                </div>
+              </section>
+            )}
+            {activeTab === 'monitoring' && (
+              <section>
+                <div className="panel" style={{padding: '1.5rem', minHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <h2>Stack de Observabilidade</h2>
+                    <button 
+                      className="btn btn-green" 
+                      onClick={async () => {
+                        const res = await fetch(`${API}/monitoring/start`, {method: 'POST'});
+                        const data = await res.json();
+                        toast("Stack de monitoria iniciada com sucesso!");
+                      }}
+                    >
+                      🚀 Subir Grafana & Prometheus
+                    </button>
+                  </div>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', flexGrow: 1}}>
+                    <div className="card" style={{padding: 0, overflow: 'hidden', minHeight: '600px'}}>
+                      <div style={{padding: '0.5rem', background: '#1f233a', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between'}}>
+                        <span>Grafana (Dashboard)</span>
+                        <a href="http://192.168.18.18:3000" target="_blank" style={{color: '#93c5fd', fontSize: '0.8rem'}}>Abrir em nova aba</a>
+                      </div>
+                      <iframe src="http://192.168.18.18:3000" style={{width: '100%', height: '100%', border: 'none'}}></iframe>
+                    </div>
+                    <div className="card" style={{padding: 0, overflow: 'hidden', minHeight: '600px'}}>
+                      <div style={{padding: '0.5rem', background: '#1f233a', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between'}}>
+                        <span>Prometheus (Métricas)</span>
+                        <a href="http://192.168.18.18:9090" target="_blank" style={{color: '#93c5fd', fontSize: '0.8rem'}}>Abrir em nova aba</a>
+                      </div>
+                      <iframe src="http://192.168.18.18:9090" style={{width: '100%', height: '100%', border: 'none'}}></iframe>
+                    </div>
+                  </div>
                 </div>
               </section>
             )}
