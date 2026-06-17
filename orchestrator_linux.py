@@ -1640,9 +1640,10 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                                     import httpx as httpx_met
                                     print(f"\n[PHD-DEBUG] Sincronizando com 192.168.18.18...")
                                     for svc_name, svc_port, endpoints in [
-                                        ("risk_v2", 8003, ["/prediction/metrics", "/metrics/latest", "/metrics"]),
+                                        ("risk_v2", 8000, ["/predict/metrics", "/metrics/latest", "/metrics"]),
                                         ("classification", 8088, ["/classification/metrics", "/stats", "/metrics"]),
-                                        ("rl_engine", 9009, ["/metrics"])
+                                        ("rl_engine", 9009, ["/metrics"]),
+                                        ("confiability", 8083, ["/metrics/sessions", "/metrics"])
                                     ]:
                                         try:
                                             m_data = None
@@ -1762,6 +1763,7 @@ async def start_monitoring():
         proj_dir = os.path.dirname(os.path.abspath(__file__))
         prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
         graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
+        graf_ini = os.path.join(proj_dir, "monitoring", "grafana", "grafana.ini")
         
         print("[MONITORING] Starting pull and run sequence...", flush=True)
         
@@ -1769,7 +1771,7 @@ async def start_monitoring():
         commands = [
             "docker rm -f qopsec-prom qopsec-graf || true",
             f"docker run -d --name qopsec-prom -p 9091:9090 -v {prom_config}:/etc/prometheus/prometheus.yml prom/prometheus",
-            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin grafana/grafana"
+            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -v {graf_ini}:/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true grafana/grafana"
         ]
         
         for cmd in commands:
