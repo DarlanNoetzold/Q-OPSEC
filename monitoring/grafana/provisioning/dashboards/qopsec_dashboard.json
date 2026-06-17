@@ -10,88 +10,62 @@
     "liveNow": false,
     "panels": [
         {
-            "title": "Status dos M\u00f3dulos Q-OPSEC (Up/Down)",
+            "title": "Módulos UP/DOWN",
             "type": "stat",
-            "gridPos": {
-                "h": 8,
-                "w": 24,
-                "x": 0,
-                "y": 0
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "up",
-                    "refId": "A"
-                }
-            ],
+            "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "targets": [ { "expr": "up", "refId": "A" } ],
             "options": {
                 "colorMode": "background",
-                "graphMode": "area",
+                "graphMode": "none",
                 "justifyMode": "auto",
-                "orientation": "horizontal",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
+                "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
                 "textMode": "auto"
             }
         },
         {
-            "title": "Requisi\u00e7\u00f5es por Segundo (Risk & Confiability)",
+            "title": "Requisições por Segundo",
             "type": "timeseries",
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 8
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
             "targets": [
                 {
-                    "expr": "rate(http_requests_total[5m])",
-                    "legendFormat": "{{service}} - {{path}}",
+                    "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (service)",
+                    "legendFormat": "{{service}}",
                     "refId": "A"
                 }
             ],
             "options": {
-                "legend": {
-                    "displayMode": "table",
-                    "placement": "bottom"
-                }
+                "legend": { "displayMode": "table", "placement": "bottom" }
             }
         },
         {
-            "title": "Lat\u00eancia de Processamento (ms)",
+            "title": "Latência Média (ms)",
             "type": "gauge",
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 8
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
             "targets": [
                 {
-                    "expr": "avg_over_time(http_request_duration_seconds[5m]) * 1000",
+                    "expr": "avg(rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])) * 1000",
                     "refId": "A"
                 }
-            ]
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            { "color": "green", "value": null },
+                            { "color": "yellow", "value": 200 },
+                            { "color": "red", "value": 500 }
+                        ]
+                    }
+                }
+            }
         }
     ],
-    "refresh": "5s",
+
     "schemaVersion": 36,
     "style": "dark",
     "tags": [
