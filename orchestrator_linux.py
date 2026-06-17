@@ -1760,26 +1760,18 @@ async def start_monitoring():
     import threading
     
     def run_docker_sync():
-        proj_dir = "/mnt/c/Projetos/Q-OPSEC"
+        proj_dir = os.path.dirname(os.path.abspath(__file__))
         prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
         graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
         graf_ini = os.path.join(proj_dir, "monitoring", "grafana", "grafana.ini")
         
-        def to_win(path):
-            return path.replace("/mnt/c/", "C:/").replace("/", "\\\\")
-            
-        win_prom_config = to_win(prom_config)
-        win_graf_prov = to_win(graf_prov)
-        win_graf_ini = to_win(graf_ini)
-        
         print("[MONITORING] Starting pull and run sequence...", flush=True)
-        print(f"[MONITORING] Windows Paths Mapping: {win_prom_config}", flush=True)
         
         # Sequência de comandos em um único bloco para logar tudo
         commands = [
             "docker rm -f qopsec-prom qopsec-graf || true",
-            f"docker run -d --name qopsec-prom -p 9091:9090 -v \"{win_prom_config}:/etc/prometheus/prometheus.yml\" prom/prometheus",
-            f"docker run -d --name qopsec-graf -p 3001:3000 -v \"{win_graf_prov}:/etc/grafana/provisioning\" -v \"{win_graf_ini}:/etc/grafana/grafana.ini\" -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
+            f"docker run -d --name qopsec-prom -p 9091:9090 -v {prom_config}:/etc/prometheus/prometheus.yml prom/prometheus",
+            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -v {graf_ini}:/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
         ]
         
         for cmd in commands:
