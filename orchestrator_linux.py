@@ -1070,9 +1070,9 @@ async def get_metrics_sessions(service_name: str):
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/training/sessions"
     elif service_name == "confiability_service":
-        url = f"{base_url}/metrics/sessions"
+        url = f"{base_url}/api/v1/metrics/sessions"
     elif service_name == "risk_service":
-        url = f"{base_url}/metrics/sessions"
+        url = f"{base_url}/predict/metrics/sessions"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
 
@@ -1179,9 +1179,9 @@ async def get_datasets(service_name: str):
     if service_name == "classification_agent":
         url = f"{base_url}/api/v1/datasets"
     elif service_name == "confiability_service":
-        url = f"{base_url}/datasets/"
+        url = f"{base_url}/api/v2/datasets"
     elif service_name == "risk_service":
-        url = f"{base_url}/datasets/"
+        url = f"{base_url}/predict/datasets"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
@@ -1771,7 +1771,7 @@ async def start_monitoring():
         commands = [
             "docker rm -f qopsec-prom qopsec-graf || true",
             f"docker run -d --name qopsec-prom -p 9091:9090 -v {prom_config}:/etc/prometheus/prometheus.yml prom/prometheus",
-            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -v {graf_ini}:/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true grafana/grafana"
+            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -v {graf_ini}:/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
         ]
         
         for cmd in commands:
