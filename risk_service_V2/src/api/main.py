@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from src.api.routes import prediction, metrics, dataset_info, models
 from src.common.logger import logger
 
@@ -31,6 +32,9 @@ API para servir modelos de detecção de fraude, incluindo:
         {"name": "Health", "description": "Health checks e endpoints operacionais"},
     ],
 )
+
+# Instrumentação para o Prometheus
+Instrumentator().instrument(app).expose(app)
 
 try:
     from src.api.utils.logger import setup_logging
