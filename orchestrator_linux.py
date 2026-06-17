@@ -1760,7 +1760,7 @@ async def start_monitoring():
     import threading
     
     def run_docker_sync():
-        proj_dir = "/mnt/c/Projetos/Q-OPSEC"
+        proj_dir = os.path.dirname(os.path.abspath(__file__))
         prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
         graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
         graf_ini = os.path.join(proj_dir, "monitoring", "grafana", "grafana.ini")
