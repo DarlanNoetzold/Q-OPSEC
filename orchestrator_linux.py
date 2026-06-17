@@ -1770,8 +1770,8 @@ async def start_monitoring():
         # Sequência de comandos em um único bloco para logar tudo
         commands = [
             "docker rm -f qopsec-prom qopsec-graf || true",
-            f"docker run -d --name qopsec-prom -p 9091:9090 -v {prom_config}:/etc/prometheus/prometheus.yml prom/prometheus",
-            f"docker run -d --name qopsec-graf -p 3001:3000 -v {graf_prov}:/etc/grafana/provisioning -v {graf_ini}:/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
+            f"docker run -d --name qopsec-prom -p 9091:9090 -v '{prom_config}':/etc/prometheus/prometheus.yml prom/prometheus",
+            f"docker run -d --name qopsec-graf -p 3001:3000 -v '{graf_prov}':/etc/grafana/provisioning -v '{graf_ini}':/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
         ]
         
         for cmd in commands:
