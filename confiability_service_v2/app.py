@@ -1,4 +1,3 @@
-from prometheus_fastapi_instrumentator import Instrumentator
 """
 Confiability Service V2 - Trust Engine Only
 """
