@@ -8,6 +8,7 @@ from destination_engine import deliver_key, get_delivery_status, list_deliveries
 from config import HOST, PORT, SUPPORTED_METHODS
 
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="OraculumPrisec Key Destination Engine",
     description="Secure key delivery system supporting multiple transport methods",
     version="1.1.0",

@@ -19,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger("qopsec.main")
 
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="Q-OPSEC Key Management Service",
     version="3.0.0",
     description="Adaptive cryptographic key management supporting Classical, Post-Quantum (PQC), and Quantum Key Distribution (QKD) algorithms.",
