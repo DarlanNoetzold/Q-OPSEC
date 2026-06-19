@@ -181,6 +181,8 @@ if __name__ == "__main__":
 
 # AUTO-GENERATED MONITORING
 try:
-    Instrumentator().instrument(app).expose(app)
 except Exception as e:
     print(f'Monitoring Error: {e}')
+
+# MONITORING FIX
+Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
