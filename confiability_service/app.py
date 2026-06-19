@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from prometheus_flask_exporter import PrometheusMetrics
 from controllers.confidentiality_controller import conf_bp
 from controllers.dataset_controller import dataset_bp
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -18,6 +19,8 @@ conf_service = ConfidentialityModelService()
 def create_app():
     ensure_dirs()
     app = Flask(__name__)
+    metrics = PrometheusMetrics(app)
+    metrics.info('app_info', 'Application info', version='1.0.0')
     app.register_blueprint(conf_bp)
     app.register_blueprint(dataset_bp)
 

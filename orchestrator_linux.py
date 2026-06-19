@@ -15,10 +15,12 @@ import httpx
 import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, Body, Query, Request
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 import subprocess
 
 APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.6.0-linux-docker")
+Instrumentator().instrument(APP).expose(APP)
 
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = BASE_DIR / "services.yaml"

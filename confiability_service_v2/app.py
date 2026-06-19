@@ -169,6 +169,12 @@ if __name__ == "__main__":
     print('     -d "{\\"payload\\": {\\"test\\": \\"data\\"}, \\"metadata\\": {\\"source_id\\": \\"test\\"}}"')
     print("=" * 70)
 
+    try:
+        # MONITORING FIX
+        Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
+    except Exception as e:
+        print(f'Monitoring Error: {e}')
+
     app.run(
         host="0.0.0.0",
         port=8083,
@@ -176,14 +182,6 @@ if __name__ == "__main__":
         threaded=True
     )
 
-# Monitoring
 
-
-# AUTO-GENERATED MONITORING
-try:
-    # MONITORING FIX
-    Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
 
 
