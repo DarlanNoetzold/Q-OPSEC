@@ -1,5 +1,5 @@
-import httpx
 from prometheus_fastapi_instrumentator import Instrumentator
+import httpx
 import uvicorn
 import logging
 from uuid import uuid4
@@ -11,7 +11,6 @@ from models import NegotiationRequest, NegotiationResponse
 from negotiator import negotiate_algorithms
 
 app = FastAPI(
-Instrumentator().instrument(app).expose(app)
     title="Handshake Negotiator",
     version="2.3.0",
     description="""
@@ -178,7 +177,7 @@ Retorna objeto completo com:
                         "session_id": "sess_xyz789abc",
                         "requested_algorithm": "KYBER1024",
                         "selected_algorithm": "AES256_GCM",
-                        "key_material": "base64-encoded-key",
+                        "key_material": "base64...-key",
                         "expires_at": 1708012800,
                         "fallback_applied": True,
                         "fallback_reason": "KYBER1024 not available",
@@ -422,3 +421,6 @@ if __name__ == "__main__":
     print("=" * 70)
 
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)

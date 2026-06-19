@@ -1,5 +1,5 @@
-import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import Dict, Any
 
@@ -8,7 +8,6 @@ from destination_engine import deliver_key, get_delivery_status, list_deliveries
 from config import HOST, PORT, SUPPORTED_METHODS
 
 app = FastAPI(
-Instrumentator().instrument(app).expose(app)
     title="OraculumPrisec Key Destination Engine",
     description="Secure key delivery system supporting multiple transport methods",
     version="1.1.0",
@@ -64,3 +63,6 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)

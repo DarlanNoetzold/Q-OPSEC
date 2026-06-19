@@ -1,5 +1,5 @@
-import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -36,7 +36,6 @@ def _to_unix_ts(value) -> int:
 
 # Enhanced FastAPI app with comprehensive Swagger documentation
 app = FastAPI(
-Instrumentator().instrument(app).expose(app)
     title="OraculumPrisec Crypto Module",
     description="""
     ## 🔐 Encryption/Decryption Service
@@ -470,3 +469,6 @@ if __name__ == "__main__":
     print("=" * 60)
 
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)

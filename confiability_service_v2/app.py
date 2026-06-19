@@ -1,5 +1,5 @@
-"""
 from prometheus_fastapi_instrumentator import Instrumentator
+"""
 Confiability Service V2 - Trust Engine Only
 """
 from flask import Flask, jsonify
@@ -175,3 +175,6 @@ if __name__ == "__main__":
         debug=False,
         threaded=True
     )
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)

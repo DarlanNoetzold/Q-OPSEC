@@ -1,11 +1,9 @@
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI
-from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_fastapi_instrumentator import Instrumentator
 from src.api.routes import prediction, metrics, dataset_info, models
 from src.common.logger import logger
 
 app = FastAPI(
-Instrumentator().instrument(app).expose(app)
     title="Fraud Detection Model API",
     description="""
 ## 🕵️ Fraud Detection Model API
@@ -36,7 +34,6 @@ API para servir modelos de detecção de fraude, incluindo:
 )
 
 # Instrumentação para o Prometheus
-Instrumentator().instrument(app).expose(app)
 
 try:
     from src.api.utils.logger import setup_logging
@@ -96,3 +93,6 @@ app.include_router(models.router, prefix="/models", tags=["Models"])
 )
 async def health_check():
     return {"status": "ok"}
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)
