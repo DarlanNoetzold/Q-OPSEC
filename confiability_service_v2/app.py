@@ -177,4 +177,5 @@ if __name__ == "__main__":
     )
 
 # Monitoring
-Instrumentator().instrument(app).expose(app)
+
+Instrumentator().instrument(app).expose(app, endpoint='/metrics')
