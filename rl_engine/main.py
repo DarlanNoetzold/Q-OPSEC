@@ -295,6 +295,12 @@ if __name__ == "__main__":
     print(f"Handshake URL: {settings.handshake_url}")
     print("=" * 60)
 
+    try:
+        Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
+
+    except Exception as e:
+        print(f'Monitoring Error: {e}')
+
     uvicorn.run(
         app,
         host=settings.host,
@@ -302,13 +308,6 @@ if __name__ == "__main__":
         log_level=settings.log_level.lower()
     )
 
-# Monitoring
 
 
-# AUTO-GENERATED MONITORING
-try:
-except Exception as e:
-    print(f'Monitoring Error: {e}')
 
-# MONITORING FIX
-Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
