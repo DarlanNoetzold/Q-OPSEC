@@ -1,9 +1,8 @@
-from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_fastapi_instrumentator import Instrumentator
 """
 Confiability Service V2 - Trust Engine Only
 """
-from flask import Flask, jsonify, Response
-import prometheus_client
+from flask import Flask, jsonify
 from flask_smorest import Api
 import os
 import sys
@@ -91,15 +90,6 @@ API completa para avaliação contextual de confiança em informações.
     # Inicializa a API com Swagger
     api = Api(app)
     
-    @app.route('/metrics')
-    def metrics_endpoint():
-        # Gerar métricas do cliente global
-        return Response(prometheus_client.generate_latest(), mimetype='text/plain')
-    
-    @app.route('/metrics')
-    def metrics_endpoint():
-        return Response(prometheus_client.generate_latest(), mimetype='text/plain')
-    
     # Instrumentação Prometheus
     try:
         from prometheus_flask_exporter import PrometheusMetrics
@@ -179,7 +169,11 @@ if __name__ == "__main__":
     print('     -d "{\\"payload\\": {\\"test\\": \\"data\\"}, \\"metadata\\": {\\"source_id\\": \\"test\\"}}"')
     print("=" * 70)
 
-    # O Flask-Exporter já registrou o /metrics automaticamente no app
+    try:
+        # MONITORING FIX
+        Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
+    except Exception as e:
+        print(f'Monitoring Error: {e}')
 
     app.run(
         host="0.0.0.0",

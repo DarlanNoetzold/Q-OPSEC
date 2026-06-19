@@ -3,7 +3,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
@@ -114,7 +113,6 @@ API para classificação/predição com:
 
 
 app = create_app()
-Instrumentator().instrument(app).expose(app)
 
 if __name__ == "__main__":
     uvicorn.run(
