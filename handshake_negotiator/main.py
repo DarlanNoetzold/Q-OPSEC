@@ -177,7 +177,7 @@ Retorna objeto completo com:
                         "session_id": "sess_xyz789abc",
                         "requested_algorithm": "KYBER1024",
                         "selected_algorithm": "AES256_GCM",
-                        "key_material": "base64...-key",
+                        "key_material": "***",
                         "expires_at": 1708012800,
                         "fallback_applied": True,
                         "fallback_reason": "KYBER1024 not available",
@@ -423,4 +423,9 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
 
 # Monitoring
-Instrumentator().instrument(app).expose(app)
+
+# AUTO-GENERATED MONITORING
+try:
+    Instrumentator().instrument(app).expose(app)
+except Exception as e:
+    print(f'Monitoring Error: {e}')

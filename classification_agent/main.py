@@ -124,4 +124,9 @@ if __name__ == "__main__":
     )
 
 # Monitoring
-Instrumentator().instrument(app).expose(app)
+
+# AUTO-GENERATED MONITORING
+try:
+    Instrumentator().instrument(app).expose(app)
+except Exception as e:
+    print(f'Monitoring Error: {e}')
