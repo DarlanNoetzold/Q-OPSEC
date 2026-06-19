@@ -1,28 +1,41 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 10s
+  evaluation_interval: 10s
 
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'q-opsec-modules'
+  - job_name: 'risk_service_v2'
+    metrics_path: '/predict/metrics'
+    static_configs:
+      - targets: ['192.168.18.18:8000']
+
+  - job_name: 'confiability_service_v2'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['192.168.18.18:8083']
+
+  - job_name: 'rl_engine'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['192.168.18.18:9009']
+
+  - job_name: 'spring_actuator'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets:
-          - '192.168.18.18:8088'  # classification_agent
-          - '192.168.18.18:8000'  # risk_service
-          - '192.168.18.18:8004'  # crypto_module
+          - '192.168.18.18:8080'  # interceptor
           - '192.168.18.18:65534' # context_api
-          - '192.168.18.18:8083'  # confiability_service
-          - '192.168.18.18:8001'  # handshake_negotiator
-          - '192.168.18.18:8002'  # kms_service
-          - '192.168.18.18:9009'  # rl_engine
-          - '192.168.18.18:8003'  # key_destination_engine
-          - '192.168.18.18:8005'  # validation_send_api
-          - '192.168.18.18:8080'  # interceptor_api
-          - '192.168.18.18:8090'  # orchestrator_linux
-    metrics_path: /metrics
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
+          - '192.168.18.18:8005'  # validation
+
+  - job_name: 'q-opsec-others'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - '192.168.18.18:8088'  # classification
+          - '192.168.18.18:8004'  # crypto
+          - '192.168.18.18:8001'  # handshake
+          - '192.168.18.18:8002'  # kms
+          - '192.168.18.18:8090'  # orchestrator

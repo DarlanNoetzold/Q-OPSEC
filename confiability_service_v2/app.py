@@ -88,6 +88,15 @@ API completa para avaliação contextual de confiança em informações.
 
     # Inicializa a API com Swagger
     api = Api(app)
+    
+    # Instrumentação Prometheus
+    try:
+        from prometheus_flask_exporter import PrometheusMetrics
+        metrics = PrometheusMetrics(app, path='/api/v1/metrics')
+        metrics.info('app_info', 'Confiability Service V2', version='2.0.0')
+    except Exception as e:
+        print(f"Metrics instrumentation failed: {e}")
+
 
     # Registrar blueprint do Confiability Sevice V2
     api.register_blueprint(trust_v2_bp)       # /api/v2/trust/*

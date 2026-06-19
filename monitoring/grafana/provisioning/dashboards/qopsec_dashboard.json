@@ -4,49 +4,98 @@
     },
     "editable": true,
     "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
+    "graphTooltip": 1,
     "id": null,
     "links": [],
     "liveNow": false,
     "panels": [
         {
-            "title": "Módulos UP/DOWN",
+            "title": "Module Health Status",
             "type": "stat",
-            "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "targets": [ { "expr": "up", "refId": "A" } ],
-            "options": {
-                "colorMode": "background",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
-                "textMode": "auto"
-            }
-        },
-        {
-            "title": "Requisições por Segundo",
-            "type": "timeseries",
-            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "gridPos": {
+                "h": 6,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
             "targets": [
                 {
-                    "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (service)",
-                    "legendFormat": "{{service}}",
+                    "expr": "up",
+                    "legendFormat": "{{job}}",
                     "refId": "A"
                 }
             ],
             "options": {
-                "legend": { "displayMode": "table", "placement": "bottom" }
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "textMode": "auto"
             }
         },
         {
-            "title": "Latência Média (ms)",
-            "type": "gauge",
-            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "title": "Request Rate by Service",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 6
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
             "targets": [
                 {
-                    "expr": "avg(rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])) * 1000",
+                    "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (job)",
+                    "legendFormat": "{{job}}",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (job)",
+                    "legendFormat": "Spring: {{job}}",
+                    "refId": "B"
+                }
+            ],
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "calcs": [
+                        "mean",
+                        "max"
+                    ]
+                }
+            }
+        },
+        {
+            "title": "Avg Latency (ms) - Intelligence Layer",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 6
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "avg(rate(http_request_duration_seconds_sum{job=~\"risk.*|confiab.*|rl.*\"}[5m]) / rate(http_request_duration_seconds_count{job=~\"risk.*|confiab.*|rl.*\"}[5m])) * 1000",
                     "refId": "A"
                 }
             ],
@@ -56,30 +105,71 @@
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
-                            { "color": "green", "value": null },
-                            { "color": "yellow", "value": 200 },
-                            { "color": "red", "value": 500 }
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 150
+                            },
+                            {
+                                "color": "red",
+                                "value": 400
+                            }
                         ]
                     }
                 }
             }
+        },
+        {
+            "title": "Risk & Trust Correlation",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 14
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "avg(risk_score_gauge) by (job)",
+                    "legendFormat": "Risk Score",
+                    "refId": "A"
+                },
+                {
+                    "expr": "avg(trust_score_gauge) by (job)",
+                    "legendFormat": "Trust Score",
+                    "refId": "B"
+                }
+            ],
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right"
+                }
+            }
         }
     ],
-
     "schemaVersion": 36,
     "style": "dark",
     "tags": [
         "qopsec",
-        "phd"
+        "phd",
+        "total-dark"
     ],
     "templating": {
         "list": []
     },
     "time": {
-        "from": "now-30m",
+        "from": "now-1h",
         "to": "now"
     },
-    "title": "Q-OPSEC Main Engine",
-    "uid": "qopsec-main",
-    "version": 1
+    "title": "Q-OPSEC Intelligence Dashboard v2",
+    "uid": "qopsec-v2-main",
+    "version": 2
 }

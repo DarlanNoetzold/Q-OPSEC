@@ -23,6 +23,7 @@ class Settings:
 
 settings = Settings()
 
+from prometheus_fastapi_instrumentator import Instrumentator
 app = FastAPI(
     title="Enhanced RL Engine Service",
     description="Adaptive cryptographic algorithm selection using Reinforcement Learning",
@@ -35,7 +36,7 @@ rl_service = ImprovedRLEngineService(
     policy_type=settings.policy_type
 )
 rl_service.set_training_mode(settings.training_mode)
-
+Instrumentator().instrument(app).expose(app)
 
 class ContextRequest(BaseModel):
     request_id: Optional[str] = Field(None, description="Unique request identifier")
