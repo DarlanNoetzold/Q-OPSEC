@@ -2,7 +2,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 """
 Confiability Service V2 - Trust Engine Only
 """
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
+import prometheus_client
 from flask_smorest import Api
 import os
 import sys
@@ -89,6 +90,16 @@ API completa para avaliação contextual de confiança em informações.
 
     # Inicializa a API com Swagger
     api = Api(app)
+    
+    @app.route('/metrics', endpoint='prometheus_metrics_final')
+    def metrics_final_func():
+        import prometheus_client
+        from flask import Response
+        return Response(prometheus_client.generate_latest(), mimetype='text/plain')
+    
+    @app.route('/metrics', endpoint='prometheus_metrics_unique')
+    def metrics_unique_func():
+        return Response(prometheus_client.generate_latest(), mimetype='text/plain')
     
     # Instrumentação Prometheus
     try:
