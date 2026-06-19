@@ -1,4 +1,5 @@
 # main.py
+from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -44,6 +45,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
+Instrumentator().instrument(app).expose(app)
         title=settings.api_title,
         version=settings.api_version,
         debug=settings.debug,

@@ -1,4 +1,5 @@
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from pathlib import Path
@@ -25,6 +26,7 @@ settings = Settings()
 
 from prometheus_fastapi_instrumentator import Instrumentator
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="Enhanced RL Engine Service",
     description="Adaptive cryptographic algorithm selection using Reinforcement Learning",
     version="2.0.0"

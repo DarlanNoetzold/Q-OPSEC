@@ -1,4 +1,5 @@
 import httpx
+from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 import logging
 from uuid import uuid4
@@ -10,6 +11,7 @@ from models import NegotiationRequest, NegotiationResponse
 from negotiator import negotiate_algorithms
 
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="Handshake Negotiator",
     version="2.3.0",
     description="""

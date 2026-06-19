@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator
 from src.api.routes import prediction, metrics, dataset_info, models
 from src.common.logger import logger
 
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="Fraud Detection Model API",
     description="""
 ## 🕵️ Fraud Detection Model API

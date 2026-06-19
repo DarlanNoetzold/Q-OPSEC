@@ -1,4 +1,5 @@
 import logging
+from prometheus_fastapi_instrumentator import Instrumentator
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -18,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger("qopsec.main")
 
 app = FastAPI(
+Instrumentator().instrument(app).expose(app)
     title="Q-OPSEC Key Management Service",
     version="3.0.0",
     description="Adaptive cryptographic key management supporting Classical, Post-Quantum (PQC), and Quantum Key Distribution (QKD) algorithms.",
