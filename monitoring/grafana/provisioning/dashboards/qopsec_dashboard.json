@@ -10,18 +10,32 @@
     "liveNow": false,
     "panels": [
         {
-            "title": "Module Health Status",
-            "type": "stat",
+            "collapsed": false,
             "gridPos": {
-                "h": 6,
+                "h": 1,
                 "w": 24,
                 "x": 0,
                 "y": 0
+            },
+            "id": 100,
+            "panels": [],
+            "title": "GLOBAL HEALTH STATUS (12 MODULES)",
+            "type": "row"
+        },
+        {
+            "title": "Modules Up/Down",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 24,
+                "x": 0,
+                "y": 1
             },
             "datasource": {
                 "type": "prometheus",
                 "uid": "prometheus"
             },
+            "pluginVersion": "9.3.6",
             "targets": [
                 {
                     "expr": "up",
@@ -31,9 +45,9 @@
             ],
             "options": {
                 "colorMode": "background",
-                "graphMode": "area",
+                "graphMode": "none",
                 "justifyMode": "auto",
-                "orientation": "auto",
+                "orientation": "horizontal",
                 "reduceOptions": {
                     "calcs": [
                         "lastNotNull"
@@ -41,11 +55,41 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "auto"
+                "textMode": "name"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": null
+                            },
+                            {
+                                "color": "green",
+                                "value": 1
+                            }
+                        ]
+                    }
+                }
             }
         },
         {
-            "title": "Request Rate by Service",
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 5
+            },
+            "id": 101,
+            "panels": [],
+            "title": "PIPELINE THROUGHPUT & LATENCY",
+            "type": "row"
+        },
+        {
+            "title": "Requests per Second (Python & Java)",
             "type": "timeseries",
             "gridPos": {
                 "h": 8,
@@ -59,13 +103,13 @@
             },
             "targets": [
                 {
-                    "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (job)",
-                    "legendFormat": "{{job}}",
+                    "expr": "sum(rate(http_requests_total[1m])) by (job)",
+                    "legendFormat": "Python: {{job}}",
                     "refId": "A"
                 },
                 {
                     "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (job)",
-                    "legendFormat": "Spring: {{job}}",
+                    "legendFormat": "Java: {{job}}",
                     "refId": "B"
                 }
             ],
@@ -81,8 +125,8 @@
             }
         },
         {
-            "title": "Avg Latency (ms) - Intelligence Layer",
-            "type": "gauge",
+            "title": "Service Latency (p95)",
+            "type": "timeseries",
             "gridPos": {
                 "h": 8,
                 "w": 12,
@@ -95,13 +139,54 @@
             },
             "targets": [
                 {
-                    "expr": "avg(rate(http_request_duration_seconds_sum{job=~\"risk.*|confiab.*|rl.*\"}[5m]) / rate(http_request_duration_seconds_count{job=~\"risk.*|confiab.*|rl.*\"}[5m])) * 1000",
+                    "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) * 1000",
+                    "legendFormat": "{{job}}",
                     "refId": "A"
                 }
             ],
             "fieldConfig": {
                 "defaults": {
-                    "unit": "ms",
+                    "unit": "ms"
+                }
+            }
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 14
+            },
+            "id": 102,
+            "panels": [],
+            "title": "INTELLIGENCE LAYER (RL, RISK, CONFIABILITY)",
+            "type": "row"
+        },
+        {
+            "title": "Average Risk Score Tendency",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 0,
+                "y": 15
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "avg(risk_score_gauge) or avg(risk_score_predicted)",
+                    "legendFormat": "Risk Level",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "min": 0,
+                    "max": 1,
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
@@ -111,11 +196,11 @@
                             },
                             {
                                 "color": "yellow",
-                                "value": 150
+                                "value": 0.4
                             },
                             {
                                 "color": "red",
-                                "value": 400
+                                "value": 0.7
                             }
                         ]
                     }
@@ -123,13 +208,13 @@
             }
         },
         {
-            "title": "Risk & Trust Correlation",
-            "type": "timeseries",
+            "title": "Algorithm Selections (RL Engine)",
+            "type": "piechart",
             "gridPos": {
-                "h": 10,
-                "w": 24,
-                "x": 0,
-                "y": 14
+                "h": 8,
+                "w": 8,
+                "x": 8,
+                "y": 15
             },
             "datasource": {
                 "type": "prometheus",
@@ -137,22 +222,32 @@
             },
             "targets": [
                 {
-                    "expr": "avg(risk_score_gauge) by (job)",
-                    "legendFormat": "Risk Score",
+                    "expr": "sum(rl_algorithm_selection_total) by (algorithm)",
+                    "legendFormat": "{{algorithm}}",
                     "refId": "A"
-                },
+                }
+            ]
+        },
+        {
+            "title": "Confiability vs Security Levels",
+            "type": "barchart",
+            "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 16,
+                "y": 15
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
                 {
-                    "expr": "avg(trust_score_gauge) by (job)",
-                    "legendFormat": "Trust Score",
-                    "refId": "B"
+                    "expr": "avg(trust_score_gauge) by (security_level)",
+                    "legendFormat": "Level: {{security_level}}",
+                    "refId": "A"
                 }
-            ],
-            "options": {
-                "legend": {
-                    "displayMode": "table",
-                    "placement": "right"
-                }
-            }
+            ]
         }
     ],
     "schemaVersion": 36,
@@ -160,16 +255,30 @@
     "tags": [
         "qopsec",
         "phd",
-        "total-dark"
+        "full-system"
     ],
     "templating": {
-        "list": []
+        "list": [
+            {
+                "name": "module",
+                "type": "query",
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "prometheus"
+                },
+                "definition": "label_values(up, job)",
+                "includeAll": true,
+                "multi": true,
+                "query": "label_values(up, job)",
+                "refresh": 1
+            }
+        ]
     },
     "time": {
-        "from": "now-1h",
+        "from": "now-3h",
         "to": "now"
     },
-    "title": "Q-OPSEC Intelligence Dashboard v2",
-    "uid": "qopsec-v2-main",
-    "version": 2
+    "title": "Q-OPSEC MASTER DASHBOARD (PhD DARLAN)",
+    "uid": "qopsec-master-phd",
+    "version": 1
 }
