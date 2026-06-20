@@ -5,7 +5,12 @@ management:
   endpoints:
     web:
       exposure:
-        include=*:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
 
 spring:
   datasource:
