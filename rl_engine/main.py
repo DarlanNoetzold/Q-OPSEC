@@ -30,6 +30,9 @@ app = FastAPI(
     version="2.0.0"
 )
 
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app, endpoint='/metrics')
+
 rl_service = ImprovedRLEngineService(
     registry_path=Path(settings.registry_path),
     use_dqn=settings.use_dqn,
