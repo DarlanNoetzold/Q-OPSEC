@@ -177,9 +177,9 @@ def end_episode():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/metrics",
+@app.get("/metrics_json",
          summary="Get performance metrics",
-         description="Retrieve current performance metrics")
+         description="Retrieve current performance metrics (JSON format)")
 def get_metrics():
     try:
         metrics = rl_service.get_metrics()
