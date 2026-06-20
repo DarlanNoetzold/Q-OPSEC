@@ -25,6 +25,6 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets:
-          - '192.168.18.18:8080'  # Interceptor
-          - '192.168.18.18:65534' # Context API
-          - '192.168.18.18:8005'  # Validation Send
+          - '192.168.18.18:8080'
+          - '192.168.18.18:65534'
+          - '192.168.18.18:8005'
