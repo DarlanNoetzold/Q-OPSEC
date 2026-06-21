@@ -1,5 +1,0 @@
-                # [PhD Force Visibility - SUCCESS LOG]
-                if response.status_code < 300:
-                    print(f"[{request_id}] {name.upper()} | SUCCESS | status={response.status_code}", flush=True)
-                else:
-                    print(f"[{request_id}] {name.upper()} | ERROR | status={response.status_code}", flush=True)

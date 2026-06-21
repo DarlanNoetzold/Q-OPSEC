@@ -1,284 +1,572 @@
 {
-    "annotations": {
-        "list": []
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 1,
-    "id": null,
-    "links": [],
-    "liveNow": false,
-    "panels": [
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Service Status",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": "Prometheus",
+      "targets": [
         {
-            "collapsed": false,
-            "gridPos": {
-                "h": 1,
-                "w": 24,
-                "x": 0,
-                "y": 0
-            },
-            "id": 100,
-            "panels": [],
-            "title": "GLOBAL HEALTH STATUS (12 MODULES)",
-            "type": "row"
-        },
-        {
-            "title": "Modules Up/Down",
-            "type": "stat",
-            "gridPos": {
-                "h": 4,
-                "w": 24,
-                "x": 0,
-                "y": 1
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "pluginVersion": "9.3.6",
-            "targets": [
-                {
-                    "expr": "up",
-                    "legendFormat": "{{job}}",
-                    "refId": "A"
-                }
-            ],
-            "options": {
-                "colorMode": "background",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "orientation": "horizontal",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "textMode": "name"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "red",
-                                "value": null
-                            },
-                            {
-                                "color": "green",
-                                "value": 1
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "collapsed": false,
-            "gridPos": {
-                "h": 1,
-                "w": 24,
-                "x": 0,
-                "y": 5
-            },
-            "id": 101,
-            "panels": [],
-            "title": "PIPELINE THROUGHPUT & LATENCY",
-            "type": "row"
-        },
-        {
-            "title": "Requests per Second (Python & Java)",
-            "type": "timeseries",
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 6
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "sum(rate(http_requests_total[1m])) by (job)",
-                    "legendFormat": "Python: {{job}}",
-                    "refId": "A"
-                },
-                {
-                    "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (job)",
-                    "legendFormat": "Java: {{job}}",
-                    "refId": "B"
-                }
-            ],
-            "options": {
-                "legend": {
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "calcs": [
-                        "mean",
-                        "max"
-                    ]
-                }
-            }
-        },
-        {
-            "title": "Service Latency (p95)",
-            "type": "timeseries",
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 6
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) * 1000",
-                    "legendFormat": "{{job}}",
-                    "refId": "A"
-                }
-            ],
-            "fieldConfig": {
-                "defaults": {
-                    "unit": "ms"
-                }
-            }
-        },
-        {
-            "collapsed": false,
-            "gridPos": {
-                "h": 1,
-                "w": 24,
-                "x": 0,
-                "y": 14
-            },
-            "id": 102,
-            "panels": [],
-            "title": "INTELLIGENCE LAYER (RL, RISK, CONFIABILITY)",
-            "type": "row"
-        },
-        {
-            "title": "Average Risk Score Tendency",
-            "type": "timeseries",
-            "gridPos": {
-                "h": 8,
-                "w": 8,
-                "x": 0,
-                "y": 15
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "avg(risk_score_gauge) or avg(risk_score_predicted)",
-                    "legendFormat": "Risk Level",
-                    "refId": "A"
-                }
-            ],
-            "fieldConfig": {
-                "defaults": {
-                    "min": 0,
-                    "max": 1,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "yellow",
-                                "value": 0.4
-                            },
-                            {
-                                "color": "red",
-                                "value": 0.7
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "title": "Algorithm Selections (RL Engine)",
-            "type": "piechart",
-            "gridPos": {
-                "h": 8,
-                "w": 8,
-                "x": 8,
-                "y": 15
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "sum(rl_algorithm_selection_total) by (algorithm)",
-                    "legendFormat": "{{algorithm}}",
-                    "refId": "A"
-                }
-            ]
-        },
-        {
-            "title": "Confiability vs Security Levels",
-            "type": "barchart",
-            "gridPos": {
-                "h": 8,
-                "w": 8,
-                "x": 16,
-                "y": 15
-            },
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "targets": [
-                {
-                    "expr": "avg(trust_score_gauge) by (security_level)",
-                    "legendFormat": "Level: {{security_level}}",
-                    "refId": "A"
-                }
-            ]
+          "expr": "up",
+          "refId": "A"
         }
-    ],
-    "schemaVersion": 36,
-    "style": "dark",
-    "tags": [
-        "qopsec",
-        "phd",
-        "full-system"
-    ],
-    "templating": {
-        "list": [
-            {
-                "name": "module",
-                "type": "query",
-                "datasource": {
-                    "type": "prometheus",
-                    "uid": "prometheus"
-                },
-                "definition": "label_values(up, job)",
-                "includeAll": true,
-                "multi": true,
-                "query": "label_values(up, job)",
-                "refresh": 1
-            }
-        ]
+      ]
     },
-    "time": {
-        "from": "now-3h",
-        "to": "now"
+    {
+      "id": 2,
+      "title": "Targets UP",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(up)",
+          "refId": "A"
+        }
+      ]
     },
-    "title": "Q-OPSEC MASTER DASHBOARD (PhD DARLAN)",
-    "uid": "qopsec-master-phd",
-    "version": 1
+    {
+      "id": 3,
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m])) by (instance)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "HTTP 5xx",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (instance)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "HTTP 4xx",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=~\"4..\"}[5m])) by (instance)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Latency Avg",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(http_request_duration_seconds_sum[5m])/rate(http_request_duration_seconds_count[5m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Latency P95",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95,sum(rate(http_request_duration_seconds_bucket[5m])) by (le,instance))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "CPU Python",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total[1m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Memory RSS",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Virtual Memory",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_virtual_memory_bytes",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "GC Collections",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(python_gc_collections_total[5m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "GC Objects",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(python_gc_objects_collected_total[5m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "JVM Memory Used",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 32
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "JVM Memory Max",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 32
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_memory_max_bytes",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "JVM Threads",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 32
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "JVM GC",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_count[5m])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "JVM CPU",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_cpu_usage",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "System CPU",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "system_cpu_usage",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Tomcat Sessions",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 48
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "tomcat_sessions_active_current_sessions",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Executor Active Threads",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 48
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "executor_active_threads",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Executor Pool Size",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 48
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "executor_pool_size_threads",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Spring Requests",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 56
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (instance)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Spring P95",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 56
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95,sum(rate(http_server_requests_seconds_bucket[5m])) by (le,instance))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Network Receive",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 56
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_open_fds",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Python Info",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 64
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "python_info",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Total Memory",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 64
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(process_resident_memory_bytes)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Total CPU",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 64
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(process_cpu_seconds_total[1m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "title": "Top Traffic",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 72
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "topk(10,sum(rate(http_requests_total[5m])) by (instance))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Instances",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 72
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(up)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Prometheus Targets",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 72
+      },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=~\"q-opsec.*\"}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "q-opsec",
+    "prometheus"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(up,instance)",
+        "multi": true,
+        "includeAll": true
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "title": "Q-OPSEC Complete Observability Dashboard",
+  "version": 1
 }
