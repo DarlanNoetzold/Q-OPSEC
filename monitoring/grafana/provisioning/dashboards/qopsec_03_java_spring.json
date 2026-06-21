@@ -1,5 +1,5 @@
 {
-  "title": "Q-OPSEC | Java / Spring Boot Services",
+  "title": "Q-OPSEC | Java & Spring Boot Services",
   "uid": "qopsec-java",
   "schemaVersion": 39,
   "version": 1,
@@ -14,6 +14,7 @@
     "from": "now-3h",
     "to": "now"
   },
+  "timepicker": {},
   "refresh": "30s",
   "annotations": {
     "list": []
@@ -44,24 +45,40 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "up{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "up{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -70,17 +87,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 3,
-      "title": "Uptime (s)",
+      "title": "Uptime",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -90,24 +110,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_uptime_seconds{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "avg(process_uptime_seconds{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Uptime",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -116,12 +148,15 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
@@ -136,24 +171,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "application_ready_time_seconds{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "avg(application_ready_time_seconds{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Ready",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -162,17 +209,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 5,
-      "title": "App Started Time",
+      "title": "Disk Free",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -182,24 +232,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "application_started_time_seconds{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "min(disk_free_bytes{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Free",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -208,17 +270,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 6,
-      "title": "Disk Free",
+      "title": "Disk Total",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -228,24 +293,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "disk_free_bytes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "min(disk_total_bytes{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -254,17 +331,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 7,
-      "title": "Disk Total",
+      "title": "CPU Cores",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -274,24 +354,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "disk_total_bytes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "avg(system_cpu_count{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Cores",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -300,17 +392,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 8,
-      "title": "📡 HTTP Spring",
+      "title": "📡 HTTP Spring Boot",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -333,17 +428,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\",instance=~\"$instance\"}[1m])) by (instance)",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[1m])) by (instance)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -351,17 +449,28 @@
           "unit": "reqps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -377,17 +486,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\",instance=~\"$instance\"}[1m])) by (uri)",
-          "legendFormat": "{{uri}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[1m])) by (uri)",
+          "legendFormat": "{{uri}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -395,23 +507,34 @@
           "unit": "reqps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 11,
-      "title": "Latência Média",
+      "title": "Latência Média por Instância",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -421,17 +544,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(http_server_requests_seconds_sum{job=\"q-opsec-java\",instance=~\"$instance\"}[5m]) / rate(http_server_requests_seconds_count{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "Avg {{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(http_server_requests_seconds_sum{job=\"q-opsec-java\", instance=~\"$instance\"}[5m]) / rate(http_server_requests_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Avg {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -439,23 +565,34 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 12,
-      "title": "Latência Máxima",
+      "title": "Latência Máxima por URI",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -465,17 +602,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "http_server_requests_seconds_max{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "Max {{instance}} {{uri}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "http_server_requests_seconds_max{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "Max {{instance}} {{uri}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -483,17 +623,28 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -509,17 +660,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "http_server_requests_active_seconds_active_count{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "http_server_requests_active_seconds_active_count{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -527,22 +681,149 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 14,
+      "title": "Req/s por Status HTTP",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[1m])) by (status)",
+          "legendFormat": "{{status}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 15,
+      "title": "Req/s por Método HTTP",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 16,
       "title": "☕ JVM – Memória",
       "type": "row",
       "collapsed": false,
@@ -550,42 +831,48 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 30
       },
       "panels": []
     },
     {
-      "id": 15,
+      "id": 17,
       "title": "Heap Used vs Max",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{job=\"q-opsec-java\",area=\"heap\",instance=~\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_memory_used_bytes{job=\"q-opsec-java\", area=\"heap\", instance=~\"$instance\"}",
           "legendFormat": "Used {{instance}} {{id}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         },
         {
-          "expr": "jvm_memory_max_bytes{job=\"q-opsec-java\",area=\"heap\",instance=~\"$instance\"}",
-          "legendFormat": "Max {{instance}} {{id}}",
-          "refId": "B",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_memory_max_bytes{job=\"q-opsec-java\", area=\"heap\", instance=~\"$instance\"}",
+          "legendFormat": "Max {{instance}} {{id}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -593,43 +880,57 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 16,
+      "id": 18,
       "title": "Non-Heap Used",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 31
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{job=\"q-opsec-java\",area=\"nonheap\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{id}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_memory_used_bytes{job=\"q-opsec-java\", area=\"nonheap\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{id}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -637,43 +938,57 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 17,
+      "id": 19,
       "title": "Heap Committed",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_memory_committed_bytes{job=\"q-opsec-java\",area=\"heap\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{id}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_memory_committed_bytes{job=\"q-opsec-java\", area=\"heap\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{id}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -681,50 +996,83 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 18,
+      "id": 20,
       "title": "Uso Heap após GC (%)",
       "type": "gauge",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 31
+        "y": 39
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_memory_usage_after_gc_percent{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{area}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_memory_usage_after_gc_percent{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -741,28 +1089,31 @@
       }
     },
     {
-      "id": 19,
+      "id": 21,
       "title": "Buffer Memory Used",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 31
+        "y": 39
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_buffer_memory_used_bytes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{id}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_buffer_memory_used_bytes{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{id}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -770,56 +1121,57 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 20,
-      "title": "☕ JVM – GC",
-      "type": "row",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 39
-      },
-      "panels": []
-    },
-    {
-      "id": 21,
-      "title": "GC Pause Count/s",
+      "id": 22,
+      "title": "Buffer Count",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 40
+        "y": 47
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(jvm_gc_pause_seconds_count{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} {{action}} {{cause}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_buffer_count_buffers{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{id}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -827,105 +1179,86 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 22,
-      "title": "GC Pause Max",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 40
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "jvm_gc_pause_seconds_max{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{action}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 23,
-      "title": "GC Overhead (%)",
+      "title": "Buffer Total Capacity",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
-        "x": 16,
-        "y": 40
+        "x": 8,
+        "y": 47
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_gc_overhead_percent{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_buffer_total_capacity_bytes{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{id}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
+          "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -936,22 +1269,25 @@
       "gridPos": {
         "h": 8,
         "w": 8,
-        "x": 0,
-        "y": 48
+        "x": 16,
+        "y": 47
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_gc_live_data_size_bytes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_gc_live_data_size_bytes{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -959,43 +1295,302 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 25,
+      "title": "☕ JVM – Garbage Collection",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "panels": []
+    },
+    {
+      "id": 26,
+      "title": "GC Pause Count/s",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 56
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_gc_pause_seconds_count{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} {{action}} {{cause}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 27,
+      "title": "GC Pause Max",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 56
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_gc_pause_seconds_max{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{action}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 28,
+      "title": "GC Pause Soma/s",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 56
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_gc_pause_seconds_sum{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 29,
+      "title": "GC Overhead (%)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 64
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_gc_overhead_percent{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 30,
       "title": "GC Max Data Size",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 48
+        "y": 64
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_gc_max_data_size_bytes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_gc_max_data_size_bytes{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1003,43 +1598,57 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 26,
+      "id": 31,
       "title": "GC Alocado/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 48
+        "y": 64
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(jvm_gc_memory_allocated_bytes_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_gc_memory_allocated_bytes_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1047,320 +1656,115 @@
           "unit": "Bps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 27,
-      "title": "☕ JVM – Threads & Classes",
-      "type": "row",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 56
-      },
-      "panels": []
-    },
-    {
-      "id": 28,
-      "title": "Threads Live",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 57
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "jvm_threads_live_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 29,
-      "title": "Threads Daemon",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 6,
-        "y": 57
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "jvm_threads_daemon_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 30,
-      "title": "Threads Peak",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 12,
-        "y": 57
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "jvm_threads_peak_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 31,
-      "title": "Threads por Estado",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 57
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "jvm_threads_states_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{state}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 32,
-      "title": "Classes Carregadas",
+      "title": "GC Promovido/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 65
+        "y": 72
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "jvm_classes_loaded_classes{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_gc_memory_promoted_bytes_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "Bps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 33,
-      "title": "Classes Descarregadas/s",
+      "title": "GC Compilation Time/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 65
+        "w": 12,
+        "x": 12,
+        "y": 72
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(jvm_classes_unloaded_classes_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 34,
-      "title": "Tempo de Compilação JIT (ms)",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 65
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "rate(jvm_compilation_time_ms_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_compilation_time_ms_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
           "legendFormat": "{{instance}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1368,144 +1772,70 @@
           "unit": "ms",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 35,
-      "title": "💻 CPU & Sistema",
+      "id": 34,
+      "title": "☕ JVM – Threads & Classes",
       "type": "row",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 73
+        "y": 80
       },
       "panels": []
     },
     {
-      "id": 36,
-      "title": "CPU Process Usage",
+      "id": 35,
+      "title": "Threads Live",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 6,
         "x": 0,
-        "y": 74
+        "y": 81
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_cpu_usage{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 37,
-      "title": "CPU System Usage",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 74
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "system_cpu_usage{job=\"q-opsec-java\",instance=~\"$instance\"}",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_threads_live_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 38,
-      "title": "Load Average 1m",
-      "type": "timeseries",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 74
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "system_load_average_1m{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1513,43 +1843,418 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 36,
+      "title": "Threads Daemon",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 81
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_threads_daemon_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 37,
+      "title": "Threads Peak",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 81
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_threads_peak_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 38,
+      "title": "Threads por Estado",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 81
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_threads_states_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{state}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 39,
-      "title": "CPU Gauge",
-      "type": "gauge",
+      "title": "Classes Carregadas",
+      "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
-        "y": 82
+        "y": 89
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_cpu_usage{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
+          },
+          "expr": "jvm_classes_loaded_classes{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 40,
+      "title": "Classes Descarregadas/s",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 89
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_classes_unloaded_classes_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 41,
+      "title": "Threads Iniciadas/s",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 89
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(jvm_threads_started_threads_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 42,
+      "title": "💻 CPU & Sistema",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 97
+      },
+      "panels": []
+    },
+    {
+      "id": 43,
+      "title": "CPU Process Usage",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 98
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "process_cpu_usage{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1557,6 +2262,199 @@
           "unit": "percentunit",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 44,
+      "title": "CPU System Usage",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 98
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "system_cpu_usage{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 45,
+      "title": "Load Average 1m",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 98
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "system_load_average_1m{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 46,
+      "title": "CPU Process Gauge",
+      "type": "gauge",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 106
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "process_cpu_usage{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -1573,37 +2471,43 @@
       }
     },
     {
-      "id": 40,
+      "id": 47,
       "title": "Open Files",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 106
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_files_open_files{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_files_open_files{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "Open {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         },
         {
-          "expr": "process_files_max_files{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "Max {{instance}}",
-          "refId": "B",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_files_max_files{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "Max {{instance}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1611,22 +2515,33 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 41,
+      "id": 48,
       "title": "🗄️ Executor & Thread Pool",
       "type": "row",
       "collapsed": false,
@@ -1634,33 +2549,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 114
       },
       "panels": []
     },
     {
-      "id": 42,
+      "id": 49,
       "title": "Executor Active Threads",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 91
+        "y": 115
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "executor_active_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{name}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "executor_active_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{name}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1668,43 +2586,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 43,
+      "id": 50,
       "title": "Executor Pool Size",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 91
+        "y": 115
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "executor_pool_size_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} {{name}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "executor_pool_size_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} {{name}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1712,52 +2644,69 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 44,
+      "id": 51,
       "title": "Executor Queue",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 91
+        "y": 115
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "executor_queued_tasks{job=\"q-opsec-java\",instance=~\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "executor_queued_tasks{job=\"q-opsec-java\", instance=~\"$instance\"}",
           "legendFormat": "Queued {{instance}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         },
         {
-          "expr": "executor_queue_remaining_tasks{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "Remaining {{instance}}",
-          "refId": "B",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "executor_queue_remaining_tasks{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "Remaining {{instance}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1765,43 +2714,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 45,
+      "id": 52,
       "title": "Executor Completed/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 99
+        "y": 123
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(executor_completed_tasks_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} {{name}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(executor_completed_tasks_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} {{name}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1809,52 +2772,69 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 46,
-      "title": "Executor Core/Max Threads",
+      "id": 53,
+      "title": "Core vs Max Threads",
       "type": "bargauge",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 99
+        "y": 123
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "executor_pool_core_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "executor_pool_core_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
           "legendFormat": "Core {{instance}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         },
         {
-          "expr": "executor_pool_max_threads{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "Max {{instance}}",
-          "refId": "B",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "executor_pool_max_threads{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "Max {{instance}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1873,11 +2853,12 @@
           ]
         },
         "orientation": "horizontal",
-        "displayMode": "gradient"
+        "displayMode": "gradient",
+        "valueMode": "color"
       }
     },
     {
-      "id": 47,
+      "id": 54,
       "title": "🌐 Tomcat Sessions",
       "type": "row",
       "collapsed": false,
@@ -1885,33 +2866,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 107
+        "y": 131
       },
       "panels": []
     },
     {
-      "id": 48,
+      "id": 55,
       "title": "Sessions Ativas",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 108
+        "y": 132
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "tomcat_sessions_active_current_sessions{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "tomcat_sessions_active_current_sessions{job=\"q-opsec-java\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1919,43 +2903,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 49,
+      "id": 56,
       "title": "Sessions Criadas/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 108
+        "y": 132
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(tomcat_sessions_created_sessions_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(tomcat_sessions_created_sessions_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1963,43 +2961,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 50,
+      "id": 57,
       "title": "Sessions Expiradas/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 108
+        "y": 132
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(tomcat_sessions_expired_sessions_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(tomcat_sessions_expired_sessions_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2007,43 +3019,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 51,
+      "id": 58,
       "title": "Sessions Rejeitadas/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 116
+        "y": 140
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(tomcat_sessions_rejected_sessions_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(tomcat_sessions_rejected_sessions_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2051,50 +3077,73 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 52,
+      "id": 59,
       "title": "Max Sessions Ativas",
       "type": "stat",
       "gridPos": {
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 116
+        "y": 140
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "tomcat_sessions_active_max_sessions{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "max(tomcat_sessions_active_max_sessions{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Max",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -2103,44 +3152,59 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
-      "id": 53,
+      "id": 60,
       "title": "Max Alive (s)",
       "type": "stat",
       "gridPos": {
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 116
+        "y": 140
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "tomcat_sessions_alive_max_seconds{job=\"q-opsec-java\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "max(tomcat_sessions_alive_max_seconds{job=\"q-opsec-java\", instance=~\"$instance\"})",
+          "legendFormat": "Max",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -2149,16 +3213,19 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
-      "id": 54,
+      "id": 61,
       "title": "📝 Logback",
       "type": "row",
       "collapsed": false,
@@ -2166,33 +3233,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 124
+        "y": 148
       },
       "panels": []
     },
     {
-      "id": 55,
+      "id": 62,
       "title": "Log Events/s por Nível",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 125
+        "y": 149
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(logback_events_total{job=\"q-opsec-java\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} {{level}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(logback_events_total{job=\"q-opsec-java\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} {{level}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2200,17 +3270,28 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     }
@@ -2218,18 +3299,33 @@
   "templating": {
     "list": [
       {
+        "name": "datasource",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "label": "Datasource",
+        "hide": 0,
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false
+      },
+      {
         "name": "instance",
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "${datasource}"
         },
-        "query": "label_values(up{job=\"q-opsec-java\"}, instance)",
+        "query": {
+          "query": "label_values(up{job=\"q-opsec-java\"}, instance)",
+          "refId": "A"
+        },
+        "label": "Instância",
         "multi": true,
         "includeAll": true,
-        "label": "Instância",
+        "allValue": ".*",
         "refresh": 2,
-        "sort": 1
+        "sort": 1,
+        "hide": 0
       }
     ]
   },

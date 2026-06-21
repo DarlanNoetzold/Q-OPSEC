@@ -1,5 +1,5 @@
 {
-  "title": "Q-OPSEC | Python / FastAPI Services",
+  "title": "Q-OPSEC | Python & FastAPI Services",
   "uid": "qopsec-python",
   "schemaVersion": 39,
   "version": 1,
@@ -14,6 +14,7 @@
     "from": "now-3h",
     "to": "now"
   },
+  "timepicker": {},
   "refresh": "30s",
   "annotations": {
     "list": []
@@ -44,24 +45,40 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "up{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "up{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -70,17 +87,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 3,
-      "title": "Total Req (acumulado)",
+      "title": "Total Requisições",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -90,24 +110,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "sum(http_requests_total{job=\"q-opsec-python\",instance=~\"$instance\"})",
-          "legendFormat": "Total",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "sum(http_requests_total{job=\"q-opsec-python\", instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -116,12 +148,15 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
@@ -136,24 +171,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_open_fds{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "sum(process_open_fds{job=\"q-opsec-python\", instance=~\"$instance\"})",
+          "legendFormat": "FDs",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -162,17 +209,20 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
       "id": 5,
-      "title": "Max FDs",
+      "title": "Memória RSS Total",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -182,24 +232,36 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_max_fds{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "sum(process_resident_memory_bytes{job=\"q-opsec-python\", instance=~\"$instance\"})",
+          "legendFormat": "RSS",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -208,12 +270,15 @@
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
+          ],
+          "fields": "",
+          "values": false
         },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "textMode": "auto"
       }
     },
     {
@@ -241,17 +306,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(http_requests_total{job=\"q-opsec-python\",instance=~\"$instance\"}[1m])",
-          "legendFormat": "{{instance}} {{handler}} {{method}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(http_requests_total{job=\"q-opsec-python\", instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} {{handler}} {{method}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -259,17 +327,28 @@
           "unit": "reqps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -285,17 +364,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(http_request_duration_seconds_sum{job=\"q-opsec-python\",instance=~\"$instance\"}[5m]) / rate(http_request_duration_seconds_count{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "Avg {{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(http_request_duration_seconds_sum{job=\"q-opsec-python\", instance=~\"$instance\"}[5m]) / rate(http_request_duration_seconds_count{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "Avg {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -303,17 +385,28 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -329,17 +422,20 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])) by (le,instance))",
-          "legendFormat": "P50 {{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])) by (le, instance))",
+          "legendFormat": "P50 {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -347,17 +443,28 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
@@ -373,26 +480,32 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])) by (le,instance))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])) by (le, instance))",
           "legendFormat": "P95 {{instance}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         },
         {
-          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])) by (le,instance))",
-          "legendFormat": "P99 {{instance}}",
-          "refId": "B",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])) by (le, instance))",
+          "legendFormat": "P99 {{instance}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -400,23 +513,34 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 11,
-      "title": "Tamanho Médio Request (bytes)",
+      "title": "Latência High-Res P95 (highr bucket)",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -426,41 +550,55 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(http_request_size_bytes_sum{job=\"q-opsec-python\",instance=~\"$instance\"}[5m]) / rate(http_request_size_bytes_count{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_highr_seconds_bucket{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])) by (le, instance))",
+          "legendFormat": "P95-highr {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
+          "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
       "id": 12,
-      "title": "Tamanho Médio Response (bytes)",
+      "title": "Latência High-Res P99",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -470,17 +608,78 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(http_response_size_bytes_sum{job=\"q-opsec-python\",instance=~\"$instance\"}[5m]) / rate(http_response_size_bytes_count{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_highr_seconds_bucket{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])) by (le, instance))",
+          "legendFormat": "P99-highr {{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 13,
+      "title": "Tamanho Médio Request",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(http_request_size_bytes_sum{job=\"q-opsec-python\", instance=~\"$instance\"}[5m]) / rate(http_request_size_bytes_count{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -488,22 +687,91 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 13,
+      "id": 14,
+      "title": "Tamanho Médio Response",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(http_response_size_bytes_sum{job=\"q-opsec-python\", instance=~\"$instance\"}[5m]) / rate(http_response_size_bytes_count{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 15,
       "title": "🌶️ Flask KMS (:8083)",
       "type": "row",
       "collapsed": false,
@@ -511,33 +779,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 38
       },
       "panels": []
     },
     {
-      "id": 14,
-      "title": "Flask Req/s",
+      "id": 16,
+      "title": "Flask Req/s por Método/Status",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(flask_http_request_total{instance=\"192.168.18.18:8083\"}[1m])",
           "legendFormat": "{{method}} {{status}}",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -545,43 +816,57 @@
           "unit": "reqps",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 15,
-      "title": "Flask Latência P95",
+      "id": 17,
+      "title": "Flask Latência P95 por Path",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 39
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(flask_http_request_duration_seconds_bucket{instance=\"192.168.18.18:8083\"}[5m])) by (le,path))",
-          "legendFormat": "P95 {{path}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(flask_http_request_duration_seconds_bucket{instance=\"192.168.18.18:8083\"}[5m])) by (le, path))",
+          "legendFormat": "P95 {{path}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -589,22 +874,33 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 16,
+      "id": 18,
       "title": "💻 CPU & Memória",
       "type": "row",
       "collapsed": false,
@@ -612,33 +908,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 47
       },
       "panels": []
     },
     {
-      "id": 17,
-      "title": "CPU Rate",
+      "id": 19,
+      "title": "CPU Rate por Instância",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 40
+        "y": 48
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(process_cpu_seconds_total{job=\"q-opsec-python\",instance=~\"$instance\"}[1m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(process_cpu_seconds_total{job=\"q-opsec-python\", instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -646,43 +945,57 @@
           "unit": "percentunit",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 18,
+      "id": 20,
       "title": "Memória RSS",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 40
+        "y": 48
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_resident_memory_bytes{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_resident_memory_bytes{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -690,43 +1003,57 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 19,
+      "id": 21,
       "title": "Memória Virtual",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 40
+        "y": 48
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_virtual_memory_bytes{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_virtual_memory_bytes{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -734,50 +1061,83 @@
           "unit": "bytes",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 20,
+      "id": 22,
       "title": "CPU Gauge por Instância",
       "type": "gauge",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 48
+        "y": 56
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(process_cpu_seconds_total{job=\"q-opsec-python\",instance=~\"$instance\"}[1m])",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(process_cpu_seconds_total{job=\"q-opsec-python\", instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -794,35 +1154,57 @@
       }
     },
     {
-      "id": 21,
+      "id": 23,
       "title": "Memória RSS Gauge",
       "type": "gauge",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 56
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_resident_memory_bytes{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_resident_memory_bytes{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
+          "min": 0,
+          "max": 1073741824,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -839,7 +1221,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 24,
       "title": "♻️ Garbage Collector Python",
       "type": "row",
       "collapsed": false,
@@ -847,33 +1229,36 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 64
       },
       "panels": []
     },
     {
-      "id": 23,
+      "id": 25,
       "title": "GC Coletas/s por Geração",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 57
+        "y": 65
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(python_gc_collections_total{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} gen{{generation}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(python_gc_collections_total{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} gen{{generation}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -881,43 +1266,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 24,
+      "id": 26,
       "title": "GC Objetos Coletados/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 57
+        "y": 65
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(python_gc_objects_collected_total{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} gen{{generation}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(python_gc_objects_collected_total{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} gen{{generation}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -925,43 +1324,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 25,
+      "id": 27,
       "title": "GC Objetos Incoletáveis/s",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 57
+        "y": 65
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "rate(python_gc_objects_uncollectable_total{job=\"q-opsec-python\",instance=~\"$instance\"}[5m])",
-          "legendFormat": "{{instance}} gen{{generation}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "rate(python_gc_objects_uncollectable_total{job=\"q-opsec-python\", instance=~\"$instance\"}[5m])",
+          "legendFormat": "{{instance}} gen{{generation}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -969,22 +1382,33 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 26,
+      "id": 28,
       "title": "🔍 File Descriptors & Scrape",
       "type": "row",
       "collapsed": false,
@@ -992,33 +1416,48 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 73
       },
       "panels": []
     },
     {
-      "id": 27,
+      "id": 29,
       "title": "Open FDs ao longo do tempo",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 66
+        "y": 74
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "process_open_fds{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "process_open_fds{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "process_max_fds{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "Max {{instance}}",
+          "refId": "B",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1026,43 +1465,57 @@
           "unit": "short",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     },
     {
-      "id": 28,
+      "id": 30,
       "title": "Duração do Scrape",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 6,
         "x": 12,
-        "y": 66
+        "y": 74
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "targets": [
         {
-          "expr": "scrape_duration_seconds{job=\"q-opsec-python\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          }
+            "uid": "${datasource}"
+          },
+          "expr": "scrape_duration_seconds{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1070,17 +1523,86 @@
           "unit": "s",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
       "options": {
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 31,
+      "title": "Samples Scraped",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 74
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "scrape_samples_scraped{job=\"q-opsec-python\", instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "instant": false,
+          "range": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ]
         }
       }
     }
@@ -1088,18 +1610,33 @@
   "templating": {
     "list": [
       {
+        "name": "datasource",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "label": "Datasource",
+        "hide": 0,
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false
+      },
+      {
         "name": "instance",
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "${datasource}"
         },
-        "query": "label_values(up{job=\"q-opsec-python\"}, instance)",
+        "query": {
+          "query": "label_values(up{job=\"q-opsec-python\"}, instance)",
+          "refId": "A"
+        },
+        "label": "Instância",
         "multi": true,
         "includeAll": true,
-        "label": "Instância",
+        "allValue": ".*",
         "refresh": 2,
-        "sort": 1
+        "sort": 1,
+        "hide": 0
       }
     ]
   },
