@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'Q-OPSEC Dashboards'
+    orgId: 1
+    folder: 'Q-OPSEC'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /home/umbrel/projetos/Q-OPSEC/monitoring/grafana/provisioning/dashboards
