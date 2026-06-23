@@ -39,7 +39,6 @@ def main():
     logger.info(f"Using config: {config_path}")
     logger.info(f"Output directory: {output_dir}")
 
-    # ✅ CORRIGIDO: usar config_path em vez de dataset_config_path
     orchestrator = DatasetOrchestrator(
         config_path=config_path,
         output_dir=output_dir
