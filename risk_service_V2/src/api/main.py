@@ -94,9 +94,6 @@ app.include_router(models.router, prefix="/models", tags=["Models"])
 async def health_check():
     return {"status": "ok"}
 
-# Monitoring
-
-# AUTO-GENERATED MONITORING
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:
