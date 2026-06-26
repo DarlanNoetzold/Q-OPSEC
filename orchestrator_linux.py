@@ -1452,6 +1452,7 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     else:
                         payload["destination"] = str(dst or "192.168.18.18")
 
+
                     risk_data = current_data.get("risk") or {}
                     conf_data = current_data.get("confidentiality") or {}
                     
@@ -1460,14 +1461,29 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     
                     if not risk and current_data.get("results"):
                         label = current_data["results"][0].get("label", "").lower()
-                        if "high" in label: risk = 0.8
-                        elif "low" in label: risk = 0.2
+                        # [PHD-FIX] Melhoria na detecção de criticidade para evitar Level LOW constante
+                        if any(x in label for x in ["crit", "very high", "high", "alto"]): 
+                            risk = 0.85
+                        elif any(x in label for x in ["medium", "mod", "medio"]): 
+                            risk = 0.5
+                        elif any(x in label for x in ["low", "very low", "baixo"]): 
+                            risk = 0.15
+
+                    # [PHD-FIX] Recalcula security_level baseado no score real da IA se o contexto estiver enviesado
+                    risk_val = float(risk or 0.5)
+                    if risk_val >= 0.7:
+                         calculated_lvl = "HIGH"
+                    elif risk_val >= 0.4:
+                         calculated_lvl = "MODERATE"
+                    else:
+                         calculated_lvl = "LOW"
                     
-                    payload["risk_score"] = float(risk or 0.5)
+                    payload["risk_score"] = risk_val
                     payload["conf_score"] = float(conf or 0.5)
                     
-                    security_lvl = current_data.get("security_level") or risk_data.get("level") or "moderate"
-                    payload["security_level"] = str(security_lvl).upper()
+                    # Prioriza o cálculo dinâmico da IA sobre o valor estático do contexto
+                    payload["security_level"] = calculated_lvl
+                    print(f"[{request_id}] RL_ENGINE | AI_SCORE: {risk_val} | DYNAMIC_LEVEL: {calculated_lvl}", flush=True)
                     
                     payload["metadata"] = {
                         "risk_label": current_data.get("results", [{}])[0].get("label"),
