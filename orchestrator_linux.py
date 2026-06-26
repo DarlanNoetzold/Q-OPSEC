@@ -1648,15 +1648,40 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                             if name == "context_api":
                                 import datetime as dt_mod
                                 final_alg = current_data.get("selected_algorithm") or current_data.get("algorithm") or current_data.get("selectedAlgorithm")
-                                
                                 risk_details = current_data.get("risk_v2_details") or {}
                                 class_results = current_data.get("classification_results", [])
                                 rl_info = current_data.get("rl_metrics") or {}
                                 hand_info = current_data.get("handshake_metrics") or {}
-
+                                conf_details = current_data.get("confidentiality") or {}
                                 try:
-                                    import httpx as httpx_met
-                                    print(f"\n[PHD-DEBUG] Sincronizando com 192.168.18.18...")
+                                    ml_metadata = {
+                                        "risk_service": {
+                                            "decision": current_data.get("risk_label") or risk_details.get("level") or "N/A",
+                                            "score": current_data.get("risk_score") or risk_details.get("score"),
+                                            "model": "Risk-V2-Ensemble"
+                                        },
+                                        "classification_agent": {
+                                            "decision": class_results[0].get("label") if class_results else "N/A",
+                                            "confidence": class_results[0].get("confidence") if class_results else 0.0,
+                                            "model": current_data.get("model_name", "BERT-Global")
+                                        },
+                                        "confiability_service": {
+                                            "decision": conf_details.get("classification") or "N/A",
+                                            "score": current_data.get("conf_score") or conf_details.get("score"),
+                                            "model": "Trust-Evaluator-V2"
+                                        },
+                                        "rl_engine": {
+                                            "decision": rl_info.get("security_level") or "N/A",
+                                            "suggested_algorithm": rl_info.get("decision") or "N/A",
+                                            "avg_q_value": rl_info.get("avg_q_value", 0.0),
+                                            "model": "DQN-Context-Policy"
+                                        },
+                                       "handshake": {
+                                           "selected_algorithm": final_alg,
+                                           "pqc_status": "Enabled" if hand_info.get("pqc_enabled") else "Classical Only"
+                                       },
+                                       "risk_v2": risk_details,
+                                   }
                                     for svc_name, svc_port, endpoints in [
                                         ("risk_v2", 8000, ["/predict/metrics", "/metrics/latest", "/metrics"]),
                                         ("classification", 8088, ["/classification/metrics", "/stats", "/metrics"]),
