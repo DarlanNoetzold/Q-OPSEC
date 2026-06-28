@@ -44,7 +44,7 @@ class TrustConfig:
     max_concurrent_evaluations: int = 100
 
     # Configurações de aggregation
-    scoring_strategy: str = "confidence_weighted"  # weighted_average, geometric_mean, etc.
+    scoring_strategy: str = "geometric_mean"  # Mais reativo: um sinal baixo puxa o score para baixo
     normalization_strategy: str = "sigmoid"  # clamp, min_max, z_score, etc.
 
     # Configurações de weighting
@@ -99,7 +99,7 @@ def create_default_config() -> TrustConfig:
         "temporal": SignalConfig(
             name="temporal",
             enabled=True,
-            weight=1.2,
+            weight=1.0,
             params={
                 "decay_lambda": 0.0001,
                 "half_life_hours": 168.0  # 7 dias
@@ -108,7 +108,7 @@ def create_default_config() -> TrustConfig:
         "temporal_drift": SignalConfig(
             name="temporal_drift",
             enabled=True,
-            weight=1.5,
+            weight=2.0,
             params={}
         ),
         "source_reliability": SignalConfig(
@@ -144,7 +144,7 @@ def create_default_config() -> TrustConfig:
         "anomaly_detection": SignalConfig(
             name="anomaly_detection",
             enabled=True,
-            weight=1.4,
+            weight=2.5,
             params={
                 "entropy_threshold": 4.5,
                 "max_payload_size": 10000,
