@@ -307,31 +307,6 @@ class ModelManager:
             df = df[self.feature_names]
         return df
 
-    def _preprocess_random_forest(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info("Preprocessing for Random Forest")
-        df = df.replace('', np.nan)
-        for col, encoder in self.label_encoders.items():
-            if col in df.columns:
-                vals = df[col].astype(str).fillna("__NA__").values
-                try:
-                    transformed = encoder.transform(vals)
-                    df[col] = transformed
-                except Exception:
-                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
-                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
-        for col in self.label_encoders.keys():
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(int)
-        for col in df.columns:
-            if col not in self.label_encoders:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        if self.feature_names:
-            for col in self.feature_names:
-                if col not in df.columns:
-                    df[col] = 0
-            df = df[self.feature_names]
-        return df
-
     def _preprocess_xgboost(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace('', np.nan)
 
@@ -346,16 +321,45 @@ class ModelManager:
                     mapping = {c: i for i, c in enumerate(encoder.classes_)}
                     df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
 
-        # Converter todas as colunas para numérico e preencher NaNs com zero
-        df = df.apply(pd.to_numeric, errors='coerce').fillna(0)
+        # Converter para numerico mantendo NaNs para o XGBoost tratar nativamente
+        # Isso evita o vies de "tudo zero" em dados ausentes
+        df = df.apply(pd.to_numeric, errors='coerce')
 
         # Garantir ordem das colunas
         if self.feature_names:
             for col in self.feature_names:
                 if col not in df.columns:
-                    df[col] = 0
+                    df[col] = np.nan
             df = df[self.feature_names]
 
+        return df
+
+    def _preprocess_random_forest(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Preprocessing for Random Forest - Improved handling")
+        df = df.replace('', np.nan)
+        for col, encoder in self.label_encoders.items():
+            if col in df.columns:
+                vals = df[col].astype(str).fillna("__NA__").values
+                try:
+                    transformed = encoder.transform(vals)
+                    df[col] = transformed
+                except Exception:
+                    mapping = {c: i for i, c in enumerate(encoder.classes_)}
+                    df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
+        
+        for col in df.columns:
+            if col not in self.label_encoders:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        if self.feature_names:
+            for col in self.feature_names:
+                if col not in df.columns:
+                    df[col] = np.nan
+            df = df[self.feature_names]
+            
+        # Random Forest do Scikit-Learn nao gosta de NaN. 
+        # Usamos -999 como valor sentinela em vez de 0 para distinguir de valores reais zerados.
+        df = df.fillna(-999)
         return df
 
     def _preprocess_pytorch_mlp(self, df: pd.DataFrame) -> pd.DataFrame:
