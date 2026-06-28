@@ -1,0 +1,112 @@
+{
+	"info": {
+		"_postman_id": "q-opsec-risk-v2-training",
+		"name": "Q-OPSEC Risk Service V2 - Training & Debug",
+		"description": "Collection para testes, treinamento e debug dos modelos de risco do Q-OPSEC (192.168.18.18)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8000/health",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8000",
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Root Info (Routes)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8000/",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8000",
+							"path": [""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Predictions",
+			"item": [
+				{
+					"name": "Predict Single (Risk Analysis)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"single\": {\n        \"features\": {\n            \"amount\": 5000.0,\n            \"transaction_type\": \"transfer\",\n            \"source_ip\": \"192.168.1.50\",\n            \"destination_ip\": \"10.0.0.1\",\n            \"auth_method\": \"password\",\n            \"is_new_device\": true,\n            \"classification_agent_label\": \"top secret\"\n        }\n    },\n    \"models\": [\"random_forest\", \"xgboost\"],\n    \"request_id\": \"test-123\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": "http://192.168.18.18:8000/predict/"
+					}
+				},
+				{
+					"name": "Predict Batch",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batch\": {\n        \"records\": [\n            { \"amount\": 10.0, \"transaction_type\": \"payment\" },\n            { \"amount\": 99999.0, \"transaction_type\": \"withdrawal\" }\n        ]\n    },\n    \"models\": [\"xgboost\"],\n    \"request_id\": \"batch-test-456\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": "http://192.168.18.18:8000/predict/"
+					}
+				}
+			]
+		},
+		{
+			"name": "Models & Metadata",
+			"item": [
+				{
+					"name": "List Versions",
+					"request": {
+						"method": "GET",
+						"url": "http://192.168.18.18:8000/metrics/versions"
+					}
+				},
+				{
+					"name": "Latest Metrics",
+					"request": {
+						"method": "GET",
+						"url": "http://192.168.18.18:8000/metrics/latest"
+					}
+				},
+				{
+					"name": "Get Feature Names",
+					"request": {
+						"method": "GET",
+						"url": "http://192.168.18.18:8000/models/feature_names"
+					}
+				}
+			]
+		},
+		{
+			"name": "Dataset",
+			"item": [
+				{
+					"name": "Summary",
+					"request": {
+						"method": "GET",
+						"url": "http://192.168.18.18:8000/dataset/summary"
+					}
+				}
+			]
+		}
+	]
+}
