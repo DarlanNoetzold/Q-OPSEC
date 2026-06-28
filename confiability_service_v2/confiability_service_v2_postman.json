@@ -1,0 +1,163 @@
+{
+	"info": {
+		"_postman_id": "7d9a8e2b-f1c5-4a5d-b8d2-9c9e8f7a6b5c",
+		"name": "Q-OPSEC Confiability Service V2",
+		"description": "Collection para teste e análise do Trust Engine V2 - 192.168.18.18",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Stats",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/health",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "health"]
+						}
+					}
+				},
+				{
+					"name": "Get Config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/config",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "config"]
+						}
+					}
+				},
+				{
+					"name": "Get Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/stats",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "stats"]
+						}
+					}
+				},
+				{
+					"name": "List Signals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/signals",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "signals"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Trust Evaluation",
+			"item": [
+				{
+					"name": "Evaluate Normal Case",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"payload\": {\n        \"claim\": \"User login attempt\",\n        \"details\": {\n            \"ip\": \"192.168.18.50\",\n            \"method\": \"JWT\",\n            \"service\": \"auth_gate\"\n        }\n    },\n    \"metadata\": {\n        \"source_id\": \"internal_gateway\",\n        \"entity_id\": \"user_admin_01\",\n        \"request_id\": \"req-norm-001\",\n        \"timestamp\": \"2026-06-28T10:00:00Z\",\n        \"data_type\": \"security_event\",\n        \"environment\": \"production\"\n    }\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/evaluate",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "evaluate"]
+						}
+					}
+				},
+				{
+					"name": "Evaluate Suspicious IP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"payload\": {\n        \"claim\": \"High volume data transfer\",\n        \"details\": {\n            \"ip\": \"203.0.113.1\",\n            \"volume_mb\": 5000\n        }\n    },\n    \"metadata\": {\n        \"source_id\": \"edge_firewall\",\n        \"entity_id\": \"unknown_external_host\",\n        \"request_id\": \"req-susp-002\",\n        \"timestamp\": \"2026-06-28T10:05:00Z\",\n        \"data_type\": \"network_traffic\",\n        \"environment\": \"production\"\n    }\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/evaluate",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "evaluate"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "History",
+			"item": [
+				{
+					"name": "Entity History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/history/user_admin_01?limit=10&offset=0",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "history", "user_admin_01"],
+							"query": [
+								{ "key": "limit", "value": "10" },
+								{ "key": "offset", "value": "0" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Source History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8083/api/v2/trust/history/source/internal_gateway?limit=10&offset=0",
+							"protocol": "http",
+							"host": ["192", "168", "18", "18"],
+							"port": "8083",
+							"path": ["api", "v2", "trust", "history", "source", "internal_gateway"],
+							"query": [
+								{ "key": "limit", "value": "10" },
+								{ "key": "offset", "value": "0" }
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
