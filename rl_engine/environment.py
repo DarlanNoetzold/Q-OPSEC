@@ -282,15 +282,17 @@ class EnhancedEnvironment:
         return state_vector
 
     def compute_state_hash(self, features: ContextFeatures) -> str:
-        risk_level = self._discretize(features.current_threat_level, bins=5)
-        conf_level = self._discretize(features.data_sensitivity, bins=5)
-        resource_level = self._discretize(features.available_resources, bins=3)
+        # Aumentada a resolução dos bins para evitar "stalling" no mesmo estado
+        risk_level = self._discretize(features.current_threat_level, bins=10)
+        conf_level = self._discretize(features.data_sensitivity, bins=10)
+        resource_level = self._discretize(features.available_resources, bins=5)
 
+        # Adicionando flags de contexto específicas para forçar hashes diferentes
         quantum_status = "Q" if features.qkd_available else "C"
-
+        criticality = "CRIT" if features.service_criticality > 0.7 else "NORM"
         time_risk = "PEAK" if features.is_peak_attack_time else "NORMAL"
 
-        state_hash = f"R{risk_level}|C{conf_level}|Res{resource_level}|{quantum_status}|{time_risk}"
+        state_hash = f"R{risk_level}|C{conf_level}|Res{resource_level}|{quantum_status}|{criticality}|{time_risk}"
 
         return state_hash
 
