@@ -61,7 +61,7 @@
 						"header": [{ "key": "Content-Type", "value": "application/json" }],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"test-high-{{$guid}}\",\n    \"source\": \"node-alpha\",\n    \"destination\": \"node-omega\",\n    \"risk_score\": 0.85,\n    \"conf_score\": 0.90,\n    \"dst_props\": {\n        \"hardware\": [\"TPM\", \"AES-NI\"],\n        \"location_risk\": 0.2\n    }\n}"
+							"raw": "{\n    \"request_id\": \"test-high-{{$guid}}\",\n    \"source\": \"node-alpha\",\n    \"destination\": \"node-omega\",\n    \"security_level\": \"HIGH\",\n    \"risk_score\": 0.85,\n    \"conf_score\": 0.90,\n    \"dst_props\": {\n        \"hardware\": [\"TPM\", \"AES-NI\"],\n        \"location_risk\": 0.2\n    }\n}"
 						},
 						"url": {
 							"raw": "http://192.168.18.18:9009/act",
@@ -79,7 +79,7 @@
 						"header": [{ "key": "Content-Type", "value": "application/json" }],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"test-quantum-{{$guid}}\",\n    \"source\": \"datacenter-1\",\n    \"destination\": \"datacenter-2\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 0.95,\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"QUANTUM\"],\n        \"available_resources\": 0.9\n    }\n}"
+							"raw": "{\n    \"request_id\": \"test-quantum-{{$guid}}\",\n    \"source\": \"datacenter-1\",\n    \"destination\": \"datacenter-2\",\n    \"security_level\": \"ULTRA\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 0.95,\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"QUANTUM\"],\n        \"available_resources\": 0.9\n    }\n}"
 						},
 						"url": {
 							"raw": "http://192.168.18.18:9009/act",
@@ -97,7 +97,7 @@
 						"header": [{ "key": "Content-Type", "value": "application/json" }],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request_id\": \"test-low-{{$guid}}\",\n    \"source\": \"iot-sensor\",\n    \"destination\": \"gateway\",\n    \"risk_score\": 0.1,\n    \"conf_score\": 0.1,\n    \"dst_props\": {\n        \"hardware\": [],\n        \"available_resources\": 0.2\n    }\n}"
+							"raw": "{\n    \"request_id\": \"test-low-{{$guid}}\",\n    \"source\": \"iot-sensor\",\n    \"destination\": \"gateway\",\n    \"security_level\": \"LOW\",\n    \"risk_score\": 0.1,\n    \"conf_score\": 0.1,\n    \"dst_props\": {\n        \"hardware\": [],\n        \"available_resources\": 0.2\n    }\n}"
 						},
 						"url": {
 							"raw": "http://192.168.18.18:9009/act",
