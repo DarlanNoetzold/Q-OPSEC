@@ -1,0 +1,165 @@
+{
+	"info": {
+		"_postman_id": "rl-engine-v2-collection",
+		"name": "Q-OPSEC RL Engine",
+		"description": "Collection para teste e treinamento do motor de Reinforcement Learning - PhD Darlan",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/health",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Metrics JSON",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/metrics_json",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["metrics_json"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Core Actions",
+			"item": [
+				{
+					"name": "Act - High Risk (Should trigger PQC/Hybrid)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+									"pm.test('Proposed algorithms present', function () { pm.expect(pm.response.json().payload.proposed.length).to.be.above(0); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test-high-{{$guid}}\",\n    \"source\": \"node-alpha\",\n    \"destination\": \"node-omega\",\n    \"risk_score\": 0.85,\n    \"conf_score\": 0.90,\n    \"dst_props\": {\n        \"hardware\": [\"TPM\", \"AES-NI\"],\n        \"location_risk\": 0.2\n    }\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/act",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["act"]
+						}
+					}
+				},
+				{
+					"name": "Act - Quantum Enabled (Should trigger QKD)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test-quantum-{{$guid}}\",\n    \"source\": \"datacenter-1\",\n    \"destination\": \"datacenter-2\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 0.95,\n    \"dst_props\": {\n        \"hardware\": [\"QKD\", \"QUANTUM\"],\n        \"available_resources\": 0.9\n    }\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/act",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["act"]
+						}
+					}
+				},
+				{
+					"name": "Act - Low Security (Should trigger AES/Classical)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test-low-{{$guid}}\",\n    \"source\": \"iot-sensor\",\n    \"destination\": \"gateway\",\n    \"risk_score\": 0.1,\n    \"conf_score\": 0.1,\n    \"dst_props\": {\n        \"hardware\": [],\n        \"available_resources\": 0.2\n    }\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/act",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["act"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Training",
+			"item": [
+				{
+					"name": "Enable Training",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/training/enable",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["training", "enable"]
+						}
+					}
+				},
+				{
+					"name": "Feedback - Success",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"insira-id-aqui\",\n    \"success\": true,\n    \"latency\": 120.5,\n    \"resource_usage\": 0.3\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/feedback",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["feedback"]
+						}
+					}
+				},
+				{
+					"name": "End Episode (Save Policy)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/episode/end",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "9009",
+							"path": ["episode", "end"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
