@@ -1,0 +1,251 @@
+{
+	"info": {
+		"_postman_id": "rl-engine-collection-v2",
+		"name": "Q-OPSEC RL Engine Suite",
+		"description": "Collection para testes detalhados do RL Engine, incluindo cenários de variação de risco e feedback para aprendizado.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "RL Engine Core",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/health",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Act - Low Risk Scenario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"Returns negotiation info\", function () { pm.expect(pm.response.json()).to.have.property('negotiation'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test_low_{{$timestamp}}\",\n    \"source\": \"node_a\",\n    \"destination\": \"node_b\",\n    \"security_level\": \"Low\",\n    \"risk_score\": 0.15,\n    \"conf_score\": 0.20,\n    \"service_criticality\": 0.1\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/act",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"act"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Act - Ultra High Risk Scenario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"RL selected high security payload\", function () { ",
+									"    pm.expect(jsonData.payload.security_level).to.be.oneOf(['ULTRA', 'HIGH']); ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test_ultra_{{$timestamp}}\",\n    \"source\": \"malicious_zone\",\n    \"destination\": \"critical_vault\",\n    \"security_level\": \"Ultra\",\n    \"risk_score\": 0.95,\n    \"conf_score\": 0.95,\n    \"service_criticality\": 1.0,\n    \"current_threat_level\": 0.9\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/act",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"act"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Provide Feedback (Learning)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"test_ultra_{{$timestamp}}\",\n    \"success\": true,\n    \"latency\": 45.5,\n    \"resource_usage\": 0.3\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:9009/feedback",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"feedback"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orchestrator Integration (Dynamic Demo)",
+			"item": [
+				{
+					"name": "Demo Predict - High Risk Trigger",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9091/demo/predict?risk=0.85&conf=0.90",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9091",
+							"path": [
+								"demo",
+								"predict"
+							],
+							"query": [
+								{
+									"key": "risk",
+									"value": "0.85"
+								},
+								{
+									"key": "conf",
+									"value": "0.90"
+								}
+							]
+						},
+						"description": "Testa o orquestrador injetando alto risco para observar se o RL Engine muda o comportamento do pipeline para ULTRA/HIGH."
+					},
+					"response": []
+				},
+				{
+					"name": "Demo Predict - Low Risk Default",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9091/demo/predict?risk=0.10",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9091",
+							"path": [
+								"demo",
+								"predict"
+							],
+							"query": [
+								{
+									"key": "risk",
+									"value": "0.10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Training & Metrics",
+			"item": [
+				{
+					"name": "Get RL Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/metrics_json",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"metrics_json"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "End Episode (Force Save)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:9009/episode/end",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "9009",
+							"path": [
+								"episode",
+								"end"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
