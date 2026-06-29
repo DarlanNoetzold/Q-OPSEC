@@ -807,22 +807,22 @@ async def stop_all():
     return results
 
 @APP.post("/demo/predict")
-async def demo_predict(api_key: Optional[str] = None):
+async def demo_predict(risk: float = 0.11, conf: float = 0.085, api_key: Optional[str] = None):
     payload = {
         "send_to_rl": True,
         "data": {
-            "request_id_resolved": "req_123",
-            "created_at": "2025-09-24T09:44:40.438788",
-            "risk_score": 0.11,
-            "conf_score": 0.085,
-            "combined_score": 0.117,
-            "risk_level": "Low",
-            "conf_classification": "confidential",
-            "src_geo": "EU",
-            "src_device_type": "iot",
-            "dst_service_type": "web",
-            "dst_security_policy": "high",
-            "src_mfa_status_norm": "disabled"
+            "request_id_resolved": f"req_{int(time.time())}",
+            "created_at": datetime.now().isoformat(),
+            "risk_score": risk,
+            "conf_score": conf,
+            "combined_score": (risk + conf) / 2.0,
+            "risk_level": "High" if risk > 0.7 else "Medium" if risk > 0.4 else "Low",
+            "conf_classification": "critical" if conf > 0.7 else "confidential",
+            "src_geo": "US" if risk > 0.5 else "EU",
+            "src_device_type": "mobile" if risk > 0.5 else "iot",
+            "dst_service_type": "auth" if risk > 0.5 else "web",
+            "dst_security_policy": "critical" if risk > 0.8 else "high",
+            "src_mfa_status_norm": "enabled" if risk < 0.5 else "disabled"
         }
     }
     headers = {
