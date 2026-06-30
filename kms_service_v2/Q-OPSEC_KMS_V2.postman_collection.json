@@ -1,0 +1,179 @@
+{
+	"info": {
+		"_postman_id": "c6a23b12-4fb3-4f9e-a0e5-7d8b9c0d1234",
+		"name": "Q-OPSEC KMS Service V2",
+		"description": "API Collection para o KMS Service V2 (Key Management Service) do projeto Q-OPSEC. Gerenciamento de chaves Clássicas, PQC e QKD.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Discovery",
+			"item": [
+				{
+					"name": "Service Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8002/health",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Supported Algorithms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8002/kms/supported_algorithms",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"supported_algorithms"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Key Operations",
+			"item": [
+				{
+					"name": "Create Key (QKD BB84)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_{{$guid}}\",\n    \"algorithm\": \"QKD_BB84\",\n    \"ttl_seconds\": 3600\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8002/kms/create_key",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Key (PQC Kyber512)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_{{$guid}}\",\n    \"algorithm\": \"Kyber512\",\n    \"ttl_seconds\": 3600\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8002/kms/create_key",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Key (Classical AES256)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_{{$guid}}\",\n    \"algorithm\": \"AES256_GCM\",\n    \"ttl_seconds\": 3600\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8002/kms/create_key",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"create_key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Key by Request ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8002/kms/get_key?request_id=SUA_REQ_ID",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8002",
+							"path": [
+								"kms",
+								"get_key"
+							],
+							"query": [
+								{
+									"key": "request_id",
+									"value": "SUA_REQ_ID"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://192.168.18.18:8002",
+			"type": "string"
+		}
+	]
+}
