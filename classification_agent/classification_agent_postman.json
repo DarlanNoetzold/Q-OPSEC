@@ -1,0 +1,409 @@
+{
+	"info": {
+		"_postman_id": "classification-agent-collection",
+		"name": "Q-OPSEC Classification Agent",
+		"description": "Collection de testes para o Classification Agent do projeto Q-OPSEC.\nContém cenários de predição, gerenciamento de modelos e monitoramento.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica se o serviço está operante e se o modelo está carregado."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Metrics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/metrics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"metrics"
+							]
+						},
+						"description": "Retorna estatísticas de uso, latência e erros do agente."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Model Management",
+			"item": [
+				{
+					"name": "Model Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/model",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"model"
+							]
+						},
+						"description": "Detalhes sobre o modelo atual (features, classes, versao)."
+					},
+					"response": []
+				},
+				{
+					"name": "Model Manifest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/model/manifest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"model",
+								"manifest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Force Reload Model",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"force\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/model/reload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"model",
+								"reload"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Prediction Scenarios",
+			"item": [
+				{
+					"name": "Single Prediction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"feature1\": 0.85,\n        \"feature2\": 10,\n        \"risk_score\": 0.4,\n        \"conf_score\": 0.9\n    },\n    \"return_probabilities\": true,\n    \"send_to_rl\": false,\n    \"request_id\": \"req-test-single-001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prediction with RL Integration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"feature1\": 0.12,\n        \"request_id_resolved\": \"session-999\",\n        \"risk_score\": 0.1,\n        \"conf_score\": 0.95\n    },\n    \"return_probabilities\": true,\n    \"send_to_rl\": true,\n    \"request_id\": \"req-rl-flow-001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Cenário onde o agente classifica o tráfego e consulta o RL Engine para tomar uma decisão (Allow/Deny)."
+					},
+					"response": []
+				},
+				{
+					"name": "Batch Prediction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": [\n        {\"f1\": 0.1, \"f2\": 0.2},\n        {\"f1\": 0.9, \"f2\": 0.8}\n    ],\n    \"return_probabilities\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Training Metrics & Assets",
+			"item": [
+				{
+					"name": "List Training Sessions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/training/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"training",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Latest Training Summary",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/training/latest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"training",
+								"latest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Available Metric Images",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/training/images",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"training",
+								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Latest Accuracy Plot",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/training/latest/images/all_models_accuracy.png",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"training",
+								"latest",
+								"images",
+								"all_models_accuracy.png"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://192.168.18.18:8001",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "your-standard-token",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "your-admin-token",
+			"type": "string"
+		}
+	]
+}
