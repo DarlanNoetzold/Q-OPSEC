@@ -1,0 +1,204 @@
+{
+	"info": {
+		"_postman_id": "8b5a7a7a-0a1b-4c2d-8e3f-9g0h1i2j3k4l",
+		"name": "Q-OPSEC Validation Send API",
+		"description": "Collection para o serviço de validação e encaminhamento final (8005) seguindo o PhD Protocol (Darlan). Realiza a persistência final e devolução do payload criptografado ao originUrl.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Actuator Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8005/actuator/health",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8005",
+							"path": [
+								"actuator",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8005/actuator/prometheus",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8005",
+							"path": [
+								"actuator",
+								"prometheus"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validation & Forwarding",
+			"item": [
+				{
+					"name": "Send Payload (Normal Flow)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Status is delivered\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"delivered\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requestId\": \"req-{{$guid}}\",\n    \"sessionId\": \"sess-phd-darlan-v2\",\n    \"selectedAlgorithm\": \"CRYSTALS-Kyber\",\n    \"cryptoNonceB64\": \"YWFhYWFhYWFhYWFh\",\n    \"cryptoCiphertextB64\": \"YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJi\",\n    \"cryptoAlgorithm\": \"AES-256-GCM\",\n    \"cryptoExpiresAt\": 1720000000,\n    \"sourceId\": \"Q-OPSEC-AGENT-01\",\n    \"originUrl\": \"http://192.168.18.18:3001/webhook-test\"\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8005/validation/send",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8005",
+							"path": [
+								"validation",
+								"send"
+							]
+						},
+						"description": "Cenário de sucesso: O serviço persiste os dados no Postgres e tenta encaminhar para o originUrl."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Payload (Invalid Origin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 502\", function () {",
+									"    pm.response.to.have.status(502);",
+									"});",
+									"pm.test(\"Error contains connection failure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"failed\");",
+									"    pm.expect(jsonData.error).to.include(\"Connection\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requestId\": \"err-{{$guid}}\",\n    \"sessionId\": \"sess-fail-node-88\",\n    \"cryptoNonceB64\": \"ZmFpbHVyZV9ub25jZQ==\",\n    \"cryptoCiphertextB64\": \"ZGF0YV93aWxsX2JlX3BlcnNpc3RlZF9idXRfZGVsaXZlcnlfZmFpbHM=\",\n    \"cryptoAlgorithm\": \"AES-GCM\",\n    \"originUrl\": \"http://invalido.local:9999/void\"\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8005/validation/send",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8005",
+							"path": [
+								"validation",
+								"send"
+							]
+						},
+						"description": "Cenário de erro: Valida que o serviço persiste o erro quando a URL de destino está inacessível (502 Bad Gateway)."
+					},
+					"response": []
+				},
+				{
+					"name": "Validation Error (Missing Fields)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"requestId\": \"\",\n    \"sessionId\": \"missing-data\"\n}"
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8005/validation/send",
+							"protocol": "http",
+							"host": [
+								"192.168.18.18"
+							],
+							"port": "8005",
+							"path": [
+								"validation",
+								"send"
+							]
+						},
+						"description": "Cenário de validação: Campos @NotBlank vazios devem retornar 400 Bad Request."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://192.168.18.18:8005"
+		}
+	]
+}
