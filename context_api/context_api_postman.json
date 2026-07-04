@@ -1,0 +1,202 @@
+{
+  "info": {
+    "_postman_id": "context-api-collection-v2",
+    "name": "Q-OPSEC Context API",
+    "description": "Collection para gerenciamento de contexto na pipeline Q-OPSEC. Host: 192.168.18.18. Porta: 8081 (FastAPI/Python)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health / Monitoring",
+      "item": [
+        {
+          "name": "Root Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Verify Module Name\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.module).to.eql(\"Context API\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://192.168.18.18:8081/",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://192.168.18.18:8081/metrics",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": ["metrics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Context Operations",
+      "item": [
+        {
+          "name": "Save Context - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.globals.set(\"last_context_req_id\", jsonData.request_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"request_id\": \"REQ-{{$timestamp}}\",\n    \"source_ip\": \"192.168.18.50\",\n    \"destination_ip\": \"192.168.18.18\",\n    \"payload\": \"Q29udGV4dCBEYXRhIFRlc3QgLSBQaEQgRGFybGFu\",\n    \"classification\": \"normal\",\n    \"risk_score\": 0.15,\n    \"rl_action\": \"allow\"\n}"
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8081/context",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": ["context"]
+            }
+          }
+        },
+        {
+          "name": "Get Context by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Verify Request ID Match\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.request_id).to.eql(pm.globals.get(\"last_context_req_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://192.168.18.18:8081/context/{{last_context_req_id}}",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": ["context", "{{last_context_req_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative Scenarios",
+      "item": [
+        {
+          "name": "Get Context - Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://192.168.18.18:8081/context/INVALID_ID_999",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": ["context", "INVALID_ID_999"]
+            }
+          }
+        },
+        {
+          "name": "Save Context - Invalid Schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"invalid_field\": \"data\"\n}"
+            },
+            "url": {
+              "raw": "http://192.168.18.18:8081/context",
+              "protocol": "http",
+              "host": ["192.168.18.18"],
+              "port": "8081",
+              "path": ["context"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
