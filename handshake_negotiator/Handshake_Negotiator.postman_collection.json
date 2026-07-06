@@ -1,0 +1,105 @@
+{
+	"info": {
+		"_postman_id": "b1a2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+		"name": "Q-OPSEC - Handshake Negotiator",
+		"description": "Serviço de Negociação de Algoritmos e Orquestração (Porta 8001).\nFluxo: Handshake -> KMS -> KDE -> Crypto -> Validation -> Receptor.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Negotiation",
+			"item": [
+				{
+					"name": "Execute Handshake",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"proposed\": [\"KYBER1024\", \"AES256_GCM\"],\n    \"destination\": \"http://192.168.18.18:8006/receiver\",\n    \"request_id\": \"req_{{$guid}}\",\n    \"source\": \"Postman-Tester\",\n    \"source_id\": \"origin-alpha\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8001/handshake",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8001",
+							"path": ["handshake"]
+						},
+						"description": "Executa o fluxo completo de negociação, criação de chave no KMS, entrega via KDE, criptografia no Crypto Module e envio para Validation."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Service Info (Root)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8001/",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8001",
+							"path": [""]
+						},
+						"description": "Retorna metadados do serviço e URLs de integração."
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8001/health",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8001",
+							"path": ["health"]
+						},
+						"description": "Verifica status de saúde do Negotiator."
+					},
+					"response": []
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8001/metrics",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8001",
+							"path": ["metrics"]
+						},
+						"description": "Exposição de métricas para o Prometheus (scrape port 8001)."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://192.168.18.18:8001",
+			"type": "string"
+		}
+	]
+}
