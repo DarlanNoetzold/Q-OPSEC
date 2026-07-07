@@ -1,0 +1,141 @@
+{
+	"info": {
+		"_postman_id": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
+		"name": "Q-OPSEC - KDE (Key Destination Engine)",
+		"description": "Serviço de Entrega de Chaves (Porta 8003).\nResponsável por transportar o material de chave para o receptor final via API, SSH ou outros métodos.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Delivery",
+			"item": [
+				{
+					"name": "Deliver Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"sess_{{$guid}}\",\n    \"request_id\": \"req_{{$guid}}\",\n    \"destination\": \"http://192.168.18.18:8006/receiver\",\n    \"delivery_method\": \"API\",\n    \"key_material\": \"base64_material_here\",\n    \"algorithm\": \"AES256_GCM\",\n    \"expires_at\": {{$timestamp}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8003/deliver",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": ["deliver"]
+						},
+						"description": "Inicia o processo de entrega de material de chave para um destino específico."
+					},
+					"response": []
+				},
+				{
+					"name": "List All Deliveries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8003/deliveries",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": ["deliveries"]
+						},
+						"description": "Lista histórico de todas as entregas processadas pelo motor."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delivery Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8003/delivery/:delivery_id",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": ["delivery", ":delivery_id"],
+							"variable": [
+								{
+									"key": "delivery_id",
+									"value": "del_123"
+								}
+							]
+						},
+						"description": "Consulta o status detalhado de uma entrega específica por ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Service Info (Root)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8003/",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": [""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8003/health",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": ["health"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:8003/metrics",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8003",
+							"path": ["metrics"]
+						},
+						"description": "Métricas para monitoria Prometheus."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://192.168.18.18:8003",
+			"type": "string"
+		}
+	]
+}
