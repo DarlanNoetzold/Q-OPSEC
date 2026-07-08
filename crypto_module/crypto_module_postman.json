@@ -1,0 +1,188 @@
+{
+	"info": {
+		"_postman_id": "crypto-module-collection",
+		"name": "Q-OPSEC Crypto Module",
+		"description": "Collection for encryption and decryption services within the Q-OPSEC stack. Standardized for IP 192.168.18.18 and port 8004.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Service Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port}}/health",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"health"
+							]
+						},
+						"description": "Returns the current health status of the crypto module service."
+					},
+					"response": []
+				},
+				{
+					"name": "Root Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port}}/",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								""
+							]
+						},
+						"description": "Provides links to API documentation and endpoint list."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Encryption",
+			"item": [
+				{
+					"name": "Encrypt Payload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"sess_abc123xyz\",\n    \"request_id\": \"req_xyz789abc\",\n    \"plaintext_b64\": \"SGVsbG8gUUNPUFNFQyE=\",\n    \"algorithm\": \"AES256_GCM\",\n    \"fetch_from_interceptor\": false\n}"
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port}}/encrypt",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"encrypt"
+							]
+						},
+						"description": "Encrypts plaintext data using AEAD. If plaintext_b64 is not provided, it attempts to fetch from Interceptor unless fetch_from_interceptor is false."
+					},
+					"response": []
+				},
+				{
+					"name": "Encrypt By Request ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": \"req_xyz789abc\",\n    \"session_id\": \"sess_abc123xyz\",\n    \"algorithm\": \"AES256_GCM\"\n}"
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port}}/encrypt/by-request-id",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"encrypt",
+								"by-request-id"
+							]
+						},
+						"description": "Simplified encryption endpoint that automatically fetches the message from Interceptor using request_id."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Decryption",
+			"item": [
+				{
+					"name": "Decrypt Ciphertext",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"sess_abc123xyz\",\n    \"request_id\": \"req_xyz789abc\",\n    \"nonce_b64\": \"MTIzNDU2Nzg5MDEy\",\n    \"ciphertext_b64\": \"ZW5jcnlwdGVkX2RhdGFfaGVyZQ==\",\n    \"algorithm\": \"AES256_GCM\"\n}"
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port}}/decrypt",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"decrypt"
+							]
+						},
+						"description": "Decrypts ciphertext using AEAD. Requires matching nonce and AAD (generated from session/request IDs if not provided)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Monitoring",
+			"item": [
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port}}/metrics",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"metrics"
+							]
+						},
+						"description": "Exposes Prometheus metrics for service monitoring."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "192.168.18.18"
+		},
+		{
+			"key": "port",
+			"value": "8004"
+		}
+	]
+}
