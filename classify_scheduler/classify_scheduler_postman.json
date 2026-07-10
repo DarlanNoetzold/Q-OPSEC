@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "classify-scheduler-collection-id",
+		"name": "Classify Scheduler Suite",
+		"description": "API e Operações do Classify Scheduler (Treinamento Periódico de Modelos de Risco)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Metrics",
+			"item": [
+				{
+					"name": "Get Training Summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port_metrics}}/training_summary.json",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port_metrics}}",
+							"path": [
+								"training_summary.json"
+							]
+						},
+						"description": "Obtém o resumo do último treinamento realizado (se servido via static server)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Latest Model Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port_registry}}/latest.json",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port_registry}}",
+							"path": [
+								"latest.json"
+							]
+						},
+						"description": "Verifica qual o modelo mais recente registrado no Model Registry"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Operational (Manual Execution)",
+			"item": [
+				{
+					"name": "Trigger Manual Training",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_path\": \"/mnt/c/Projetos/Q-OPSEC/classify_scheduler/datasets/training_data.csv\",\n    \"mode\": \"train-once\",\n    \"target_col\": \"security_level_label\",\n    \"seed\": 42\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port_api}}/train",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port_api}}",
+							"path": [
+								"train"
+							]
+						},
+						"description": "Executa um ciclo de treinamento manual (Exige que o scheduler.py ou main.py esteja exposto via API)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Internal Files (Reference)",
+			"item": [
+				{
+					"name": "Read Metrics JSON",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "file:///mnt/c/Projetos/Q-OPSEC/classify_scheduler/models/metrics/{{last_session_id}}/training_summary.json",
+							"protocol": "file",
+							"host": [],
+							"path": [
+								"mnt",
+								"c",
+								"Projetos",
+								"Q-OPSEC",
+								"classify_scheduler",
+								"models",
+								"metrics",
+								"{{last_session_id}}",
+								"training_summary.json"
+							]
+						},
+						"description": "Referência ao arquivo local de métricas gerado pelo scheduler"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "192.168.18.18"
+		},
+		{
+			"key": "port_metrics",
+			"value": "8084",
+			"description": "Porta onde as métricas são expostas (ex: via python -m http.server)"
+		},
+		{
+			"key": "port_registry",
+			"value": "8085",
+			"description": "Porta onde o model_registry é exposto"
+		},
+		{
+			"key": "port_api",
+			"value": "8086",
+			"description": "Porta caso o scheduler seja exposto via FastAPI"
+		},
+		{
+			"key": "last_session_id",
+			"value": "training_20251009_172039"
+		}
+	]
+}
