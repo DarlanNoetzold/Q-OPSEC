@@ -1,0 +1,874 @@
+{
+  "info": {
+    "name": "Q-OPSEC Classification Agent (Ultimate v6)",
+    "description": "Complete collection for CLASSIFICATION_AGENT based on exhaustive source scan.\nIP: 192.168.18.18:8088",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "ENDPOINTS",
+      "item": [
+        {
+          "name": "Health check do servi\u00e7o",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/health",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Informa\u00e7\u00f5es do modelo carregado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/model",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "model"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "/model/reload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/model/reload",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "model",
+                "reload"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"force\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "Manifest do modelo (schema de entrada/sa\u00edda)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/model/manifest",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "model",
+                "manifest"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "/predict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/predict",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "predict"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": 0,\n  \"return_probabilities\": 0,\n  \"send_to_rl\": 0,\n  \"request_id\": \"string\"\n}"
+            }
+          }
+        },
+        {
+          "name": "M\u00e9tricas do servi\u00e7o",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/metrics",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "metrics"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Lista sess\u00f5es de treinamento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/sessions",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "sessions"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Summary da sess\u00e3o de treinamento mais recente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/latest",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "latest"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Summary de uma sess\u00e3o espec\u00edfica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/{session_id}/summary",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "{session_id}",
+                "summary"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Lista imagens dispon\u00edveis",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/images",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "images"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Download de imagem de uma sess\u00e3o",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/{session_id}/images/{image_name}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "{session_id}",
+                "images",
+                "{image_name}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        },
+        {
+          "name": "Download de imagem da sess\u00e3o mais recente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/training/latest/images/{image_name}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "training",
+                "latest",
+                "images",
+                "{image_name}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints.py"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ENDPOINTS_DATASETS",
+      "item": [
+        {
+          "name": "Lista todos os datasets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Cria um novo dataset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": 0,\n  \"datasets\": 0,\n  \"payload\": 0,\n  \"user\": 0,\n  \"file\": 0,\n  \"override\": 0,\n  \"filename\": 0,\n  \"metadata\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "/datasets/{name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Deleta um dataset",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Upload de arquivo para um dataset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/files",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "files"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Payload description not found in source\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Lista arquivos de um dataset",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/files",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "files"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Download de arquivo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/files/{filename}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "files",
+                "{filename}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Deleta um arquivo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/files/{filename}",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "files",
+                "{filename}"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Define metadados do dataset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/metadata",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "metadata"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Payload description not found in source\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Obt\u00e9m metadados do dataset",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/metadata",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "metadata"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Preview de dados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/preview",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "preview"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Infer\u00eancia de schema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/schema",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "schema"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Estat\u00edsticas descritivas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/stats",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "stats"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py"
+          }
+        },
+        {
+          "name": "Valida dataset contra modelo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "http://{{host}}:{{port}}/api/v1/datasets/{name}/validate",
+              "protocol": "http",
+              "host": [
+                "{{host}}"
+              ],
+              "port": "{{port}}",
+              "path": [
+                "api",
+                "v1",
+                "datasets",
+                "{name}",
+                "validate"
+              ]
+            },
+            "description": "Source: app/api/v1/endpoints_datasets.py",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Payload description not found in source\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "192.168.18.18"
+    },
+    {
+      "key": "port",
+      "value": "8088"
+    },
+    {
+      "key": "api_key",
+      "value": "your-api-key-for-authentication"
+    }
+  ]
+}
