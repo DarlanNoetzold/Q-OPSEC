@@ -1,0 +1,79 @@
+{
+	"info": {
+		"_postman_id": "8d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a",
+		"name": "Q-OPSEC Operations",
+		"description": "Collection para módulos de suporte, extração de dados e lifecycle de ML (Q-OPSEC)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Dataset Extractor",
+			"item": [
+				{
+					"name": "Generate Context Dataset",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.18.18:local/dataset-extractor/generate",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "local",
+							"path": ["dataset-extractor", "generate"]
+						},
+						"description": "Trigger manual para execução do main.py via wrapper (se aplicável) ou apenas documentação dos parâmetros de banco."
+					}
+				}
+			],
+			"description": "Extração de dados do Postgres para CSVs de treinamento."
+		},
+		{
+			"name": "Classify Scheduler (ML)",
+			"item": [
+				{
+					"name": "Run Training Once",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mode\": \"train-once\",\n    \"data\": \"./datasets/v1/context_dataset_advanced.csv\",\n    \"target_col\": \"security_level_label\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "http://192.168.18.18:local/train",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "local",
+							"path": ["train"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Load Intercept (Stress Test)",
+			"item": [
+				{
+					"name": "Trigger Load Generator",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"total\": 500,\n    \"rps\": 50,\n    \"invalid_rate\": 0.1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "http://192.168.18.18:8080/intercept",
+							"protocol": "http",
+							"host": ["192.168.18.18"],
+							"port": "8080",
+							"path": ["intercept"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
