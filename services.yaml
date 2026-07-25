@@ -11,7 +11,6 @@ services:
     env:
       CLASSIFY_API_KEY: your-api-key-for-authentication
     health: http://192.168.18.18:8088/api/v1/health
-
     metrics: http://127.0.0.1:9090/metrics
     pid_file: ./logs/classification_agent.pid
     port: 8088

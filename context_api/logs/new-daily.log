@@ -1,5 +1,70 @@
-2026-07-18 11:48:56.400 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
-2026-07-18 11:48:56.450 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
-2026-07-18 11:48:56.555 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-07-18 11:48:56.590 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2026-07-18 11:48:56.609 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-07-25 21:41:40.260 [main] INFO  t.n.c.ContextApiApplication - Starting ContextApiApplication using Java 21.0.11 with PID 65315 (/home/umbrel/projetos/Q-OPSEC/context_api/target/classes started by root in /home/umbrel/projetos/Q-OPSEC/context_api)
+2026-07-25 21:41:40.265 [main] INFO  t.n.c.ContextApiApplication - No active profile set, falling back to 1 default profile: "default"
+2026-07-25 21:41:41.407 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-25 21:41:41.527 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 111 ms. Found 1 JPA repository interface.
+2026-07-25 21:41:41.980 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 65534 (http)
+2026-07-25 21:41:41.991 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-65534"]
+2026-07-25 21:41:41.992 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-07-25 21:41:41.993 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.43]
+2026-07-25 21:41:42.039 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-07-25 21:41:42.039 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1729 ms
+2026-07-25 21:41:42.333 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-25 21:41:42.376 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.22.Final
+2026-07-25 21:41:42.398 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-07-25 21:41:42.586 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-25 21:41:42.607 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-07-25 21:41:42.727 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7c5d36c3
+2026-07-25 21:41:42.728 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-07-25 21:41:42.748 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-25 21:41:42.761 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.3
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-25 21:41:43.328 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-25 21:41:43.369 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-25 21:41:44.052 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-25 21:41:44.094 [main] INFO  o.s.v.b.OptionalValidatorFactoryBean - Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2026-07-25 21:41:44.728 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 14 endpoints beneath base path '/actuator'
+2026-07-25 21:41:44.798 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-65534"]
+2026-07-25 21:41:44.825 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 65534 (http) with context path '/'
+2026-07-25 21:41:44.843 [main] INFO  t.n.c.ContextApiApplication - Started ContextApiApplication in 5.058 seconds (process running for 5.362)
+2026-07-25 21:48:52.972 [http-nio-65534-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-25 21:48:52.973 [http-nio-65534-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-07-25 21:48:52.976 [http-nio-65534-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2026-07-25 21:53:38.067 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785016418067_3e717b78
+2026-07-25 21:53:38.370 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785016418067_3e717b78
+2026-07-25 21:53:38.467 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req-phd-479
+2026-07-25 21:53:38.483 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req-phd-479
+2026-07-25 21:57:22.870 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785016642870_56c6f254
+2026-07-25 21:57:22.887 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785016642870_56c6f254
+2026-07-25 21:57:22.900 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req-phd-479
+2026-07-25 21:57:22.914 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req-phd-479
+2026-07-25 21:59:37.554 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785016777554_33f9ce55
+2026-07-25 21:59:37.571 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785016777554_33f9ce55
+2026-07-25 21:59:37.587 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req-phd-47921312312312412
+2026-07-25 21:59:37.601 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req-phd-47921312312312412
+2026-07-25 22:03:28.301 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017008301_e737af07
+2026-07-25 22:03:28.317 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017008301_e737af07
+2026-07-25 22:03:28.329 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req-phd-47921312312312412
+2026-07-25 22:03:28.346 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req-phd-47921312312312412
+2026-07-25 22:03:29.724 [http-nio-65534-exec-1] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017009724_8f8a38cb
+2026-07-25 22:03:29.736 [http-nio-65534-exec-1] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017009724_8f8a38cb
+2026-07-25 22:17:11.029 [http-nio-65534-exec-8] INFO  o.a.tomcat.util.http.parser.Cookie - A cookie header was received [connect:sess=eyJ1c2VySWQiOiJiYWU2MTkxNS1jY2Y0LTQ4MzUtYjdhMS02NWNjMzc4NjlmMGIifQ==;] that contained an invalid cookie. That cookie will be ignored.
+ Note: further occurrences of this error will be logged at DEBUG level.
+2026-07-25 22:17:11.864 [http-nio-65534-exec-6] INFO  o.s.api.AbstractOpenApiResource - Init duration for springdoc-openapi is: 296 ms
+2026-07-25 22:17:14.986 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017834986_3b1ac63c
+2026-07-25 22:17:15.022 [http-nio-65534-exec-8] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017834986_3b1ac63c
+2026-07-25 22:17:15.087 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017835086_1738b542
+2026-07-25 22:17:15.116 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017835116_d9b2f2fd
+2026-07-25 22:17:15.118 [http-nio-65534-exec-4] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017835118_38d83c98
+2026-07-25 22:17:15.119 [http-nio-65534-exec-2] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017835119_cb8db1c2
+2026-07-25 22:17:15.123 [http-nio-65534-exec-1] INFO  t.n.c.s.ContextEnrichmentService - EnrichAll called with requestId: req_1785017835123_89bfd006
+2026-07-25 22:17:15.125 [http-nio-65534-exec-9] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017835086_1738b542
+2026-07-25 22:17:15.146 [http-nio-65534-exec-2] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017835119_cb8db1c2
+2026-07-25 22:17:15.161 [http-nio-65534-exec-1] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017835123_89bfd006
+2026-07-25 22:17:15.178 [http-nio-65534-exec-10] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017835116_d9b2f2fd
+2026-07-25 22:17:15.181 [http-nio-65534-exec-4] INFO  t.n.c.s.ContextEnrichmentService - ContextRecord saved with requestId: req_1785017835118_38d83c98
