@@ -1833,6 +1833,16 @@ async def start_monitoring():
         "message": "Inicializacao em segundo plano iniciada. Acompanhe os logs no terminal."
     }
 
+@APP.get("/scenarios")
+def get_scenarios():
+    path = BASE_DIR / "tests" / "pipeline_scenarios.json"
+    if not path.exists():
+        return {"scenarios": []}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return {"error": str(e), "scenarios": []}
+
 
 
 

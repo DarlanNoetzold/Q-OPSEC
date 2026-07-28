@@ -526,7 +526,8 @@
       const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
       const [pipelineOriginUrl, setPipelineOriginUrl] = useState('http://192.168.18.18:8090/callback');
       const [proposedAlgs, setProposedAlgs] = useState(['Kyber768', 'AES256_GCM']);
-      
+      const [scenarios, setScenarios] = useState([]);
+
       const ALL_ALGS = {
         classical: ['AES256_GCM', 'AES128_GCM', 'ChaCha20_Poly1305', 'RSA2048', 'RSA4096', 'ECDH_P256', 'ECDH_P384', 'ECDH_P521', '3DES', 'Blowfish'],
         pqc_kem: ['Kyber512', 'Kyber768', 'Kyber1024', 'FrodoKEM-640-AES', 'FrodoKEM-976-AES', 'FrodoKEM-1344-AES', 'BIKE-L1', 'BIKE-L3', 'BIKE-L5', 'HQC-128', 'HQC-192', 'HQC-256', 'Saber', 'LightSaber', 'FireSaber'],
@@ -586,7 +587,15 @@
       };
 
       useEffect(() => {
+        const fetchScenarios = async () => {
+          try {
+            const r = await fetch(API + '/scenarios');
+            const data = await r.json();
+            if (data.scenarios) setScenarios(data.scenarios);
+          } catch (e) { console.error('Scenarios load error', e); }
+        };
         fetchServices();
+        fetchScenarios();
         const t = setInterval(fetchServices, 5000);
         return () => clearInterval(t);
       }, []);
@@ -1000,7 +1009,25 @@
                     <span style={{background: '#3b82f6', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
                     Pipeline Architect
                     </h2>
-                    
+
+                    <div style={{marginBottom: '1rem'}}>
+                    <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Test Scenarios</label>
+                    <select 
+                      style={{width: '100%', background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6, color: '#6ee7b7', fontSize: '0.85rem'}}
+                      onChange={e => {
+                        const s = scenarios.find(x => x.id === e.target.value);
+                        if (s) {
+                          setPipelineRequestId(s.id + '-' + Math.floor(Math.random()*1000));
+                          setPipelineSource(s.payload.source);
+                          setPipelineData(JSON.stringify(s.payload.data, null, 2));
+                        }
+                      }}
+                    >
+                      <option value="">-- Select a Pre-configured Scenario --</option>
+                      {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                    </div>
+
                     <div style={{marginBottom: '1rem'}}>
                     <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Request Context</label>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem'}}>

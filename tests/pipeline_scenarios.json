@@ -1,0 +1,82 @@
+{
+  "scenarios": [
+    {
+      "id": "scenario-01-baseline",
+      "name": "Standard Flow (Baseline)",
+      "description": "Ideal conditions, low risk, high trust scores.",
+      "payload": {
+        "source": "phd-terminal-01",
+        "data": {
+          "transaction_id": "TX-99001",
+          "vitals": {"bp": "120/80", "hr": 72},
+          "origin": "Research-Lab-Main",
+          "access_type": "standard"
+        }
+      }
+    },
+    {
+      "id": "scenario-pqc-stress",
+      "name": "PQC Negotiation (Quantum Stress)",
+      "description": "Simulates a request requiring Post-Quantum Cryptography due to high sensitive metrics.",
+      "payload": {
+        "source": "secure-vault-01",
+        "data": {
+          "security_protocol": "PQC_ONLY",
+          "target_algorithm": "KYBER-512",
+          "quantum_risk_index": 0.85
+        }
+      }
+    },
+    {
+      "id": "scenario-high-risk-iot",
+      "name": "Unstable IoT Source (High Risk)",
+      "description": "High risk score from untrusted IoT device. Should trigger RL rejection or restricted crypto.",
+      "payload": {
+        "source": "untrusted-iot-bridge",
+        "data": {
+          "device_id": "IOT-SUSP-99",
+          "firmware_version": "0.1.2-alpha",
+          "location": "Public-External-Network"
+        }
+      }
+    },
+    {
+      "id": "scenario-malicious-pattern",
+      "name": "Malicious Pattern Detection",
+      "description": "Payload with strings known to trigger the BERT Classification Agent as high-risk/malicious.",
+      "payload": {
+        "source": "suspect-agent-02",
+        "data": {
+          "command": "SQL_INJECTION_RETRY",
+          "payload_dump": "SELECT * FROM users; --",
+          "entropy": 0.99
+        }
+      }
+    },
+    {
+      "id": "scenario-confiability-anomaly",
+      "name": "Trust Anomaly (Low Confiability)",
+      "description": "Valid data but source entity has low history of trust. Evaluates Trust-V2 resilience.",
+      "payload": {
+        "source": "new-researcher-id-44",
+        "data": {
+          "action": "FETCH_KEYS",
+          "reputation_score": 0.05
+        }
+      }
+    },
+    {
+      "id": "scenario-emergency-icu",
+      "name": "Emergency ICU Priority",
+      "description": "Critical medical data. Bypasses some latency-heavy checks in RL if priority is detected.",
+      "payload": {
+        "source": "icu-monitor-05",
+        "data": {
+          "alert": "CRITICAL_VITALS",
+          "priority": "HIGH",
+          "emergency_id": "EMS-911-SYNC"
+        }
+      }
+    }
+  ]
+}
