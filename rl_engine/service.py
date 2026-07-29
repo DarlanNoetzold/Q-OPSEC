@@ -97,7 +97,12 @@ class ImprovedRLEngineService:
         if conf_score is None:
             conf_score = 0.5
 
-        security_level = map_security_level(risk_score, conf_score)
+        # PHD-PRIORITY: If Orchestrator already decided a level, respect it string-to-enum
+        suggested_lvl = context.get("security_level")
+        if suggested_lvl and suggested_lvl in [lvl.name for lvl in SecurityLevel]:
+            security_level = SecurityLevel[suggested_lvl]
+        else:
+            security_level = map_security_level(risk_score, conf_score)
 
         valid_actions_enum = self.env.get_valid_actions(features, security_level)
         valid_action_indices = [self.env.actions.index(a) for a in valid_actions_enum]
@@ -180,6 +185,11 @@ class ImprovedRLEngineService:
         return payload
 
     def _get_security_level_name(self, context: Dict[str, Any]) -> str:
+        # PHD-PRIORITY: Keep consistency with decide_algorithms
+        suggested_lvl = context.get("security_level")
+        if suggested_lvl and suggested_lvl in [lvl.name for lvl in SecurityLevel]:
+            return suggested_lvl
+
         # Handle None values properly
         risk_score = context.get("risk_score")
         if risk_score is None:

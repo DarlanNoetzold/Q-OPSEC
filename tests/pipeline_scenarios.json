@@ -1,6 +1,20 @@
 {
   "scenarios": [
     {
+      "id": "scenario-extreme-risk",
+      "name": "Extreme Malicious Stress",
+      "description": "Fires all defensive triggers. High score in Root.",
+      "risk_score": 0.95,
+      "payload": {
+        "source": "attacker-node-01",
+        "risk_score": 0.95,
+        "data": {
+          "command": "DROP TABLE users",
+          "risk_score": 0.95
+        }
+      }
+    },
+    {
       "id": "scenario-01-baseline",
       "name": "Standard Flow (Baseline)",
       "description": "Ideal conditions, low risk, high trust scores.",
