@@ -215,7 +215,8 @@ class ContextAwarePolicy(BasePolicy):
             conf_score = context.get("conf_score", 0.5)
 
             # Higher risk/confidentiality = less exploration
-            combined_score = (risk_score + conf_score) / 2.0
+            # PHD-PESSIMISTIC: Again, use the MAX to protect against High Risk
+            combined_score = max(risk_score, conf_score)
             epsilon = self.base_epsilon * (1.0 - combined_score)
 
         # Epsilon-greedy with adjusted epsilon

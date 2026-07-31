@@ -129,16 +129,16 @@ class EnhancedEnvironment:
 
             # Post-Quantum Cryptography - RELAXED REQUIREMENTS
             CryptoAlgorithm.PQC_KYBER: {
-                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
+                'min_security_level': SecurityLevel.LOW,  # FURTHER RELAXED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.3  # LOWERED
+                'min_resources': 0.1
             },
             CryptoAlgorithm.PQC_DILITHIUM: {
-                'min_security_level': SecurityLevel.MODERATE,  # LOWERED
+                'min_security_level': SecurityLevel.LOW,  # FURTHER RELAXED
                 'requires_qkd': False,
                 'quantum_hardware': False,
-                'min_resources': 0.3  # LOWERED
+                'min_resources': 0.1
             },
             CryptoAlgorithm.PQC_NTRU: {
                 'min_security_level': SecurityLevel.HIGH,  # LOWERED
@@ -414,19 +414,21 @@ class EnhancedEnvironment:
 
 
 def map_security_level(risk_score: float, conf_score: float) -> SecurityLevel:
-    """Map risk and confidentiality scores to security level."""
+    """Map risk and confidentiality scores to security level. Pessimistic approach (higher of two)."""
     if risk_score is None:
         risk_score = 0.5
     if conf_score is None:
         conf_score = 0.5
 
-    combined_score = (risk_score + conf_score) / 2.0
+    # PHD-PESSIMISTIC: In security, we take the HIGHEST risk signal, not the average.
+    # Risk 1.0 + Conf 0.1 should be 1.0 (ULTRA), not 0.55 (MODERATE).
+    combined_score = max(risk_score, conf_score)
 
     if combined_score < 0.2:
         return SecurityLevel.VERY_LOW
-    elif combined_score < 0.4:
+    elif combined_score < 0.35:
         return SecurityLevel.LOW
-    elif combined_score < 0.6:
+    elif combined_score < 0.55:
         return SecurityLevel.MODERATE
     elif combined_score < 0.75:
         return SecurityLevel.HIGH
