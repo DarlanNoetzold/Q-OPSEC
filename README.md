@@ -11,7 +11,7 @@ The Q-OPSEC (Quantum-safe Operational Security) project is a framework designed 
 
 ## 3. MASTER API SPECIFICATION
 
-### MODULE: 🔥 CRITICAL OPERATIONAL FLOW
+### MODULE: CRITICAL OPERATIONAL FLOW
 #### INTERFACE: 1. Handshake
 - **Protocol Method**: `GET`
 - **Target Endpoint**: `http://{{host}}:8001/`
