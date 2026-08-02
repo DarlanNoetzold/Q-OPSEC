@@ -2,7 +2,7 @@
   "scenarios": [
     {
       "id": "scenario-extreme-risk",
-      "name": "Extreme Malicious Stress",
+      "name": "Test Algorithm Stress 1 with feature Extreme-Risk",
       "description": "Fires all defensive triggers. High score in Root.",
       "risk_score": 0.95,
       "payload": {
@@ -16,7 +16,7 @@
     },
     {
       "id": "scenario-01-baseline",
-      "name": "Standard Flow (Baseline)",
+      "name": "Test Algorithm Baseline 1",
       "description": "Ideal conditions, low risk, high trust scores.",
       "payload": {
         "source": "phd-terminal-01",
@@ -30,7 +30,7 @@
     },
     {
       "id": "scenario-pqc-stress",
-      "name": "PQC Negotiation (Quantum Stress)",
+      "name": "Test Algorithm PQC 1 with feature Quantum-Stress",
       "description": "Simulates a request requiring Post-Quantum Cryptography due to high sensitive metrics.",
       "payload": {
         "source": "secure-vault-01",
@@ -43,7 +43,7 @@
     },
     {
       "id": "scenario-high-risk-iot",
-      "name": "Unstable IoT Source (High Risk)",
+      "name": "Test Algorithm IoT 1 with feature High-Risk",
       "description": "High risk score from untrusted IoT device. Should trigger RL rejection or restricted crypto.",
       "payload": {
         "source": "untrusted-iot-bridge",
@@ -56,7 +56,7 @@
     },
     {
       "id": "scenario-malicious-pattern",
-      "name": "Malicious Pattern Detection",
+      "name": "Test Algorithm Pattern 1 with feature Malicious-Detection",
       "description": "Payload with strings known to trigger the BERT Classification Agent as high-risk/malicious.",
       "payload": {
         "source": "suspect-agent-02",
@@ -69,7 +69,7 @@
     },
     {
       "id": "scenario-confiability-anomaly",
-      "name": "Trust Anomaly (Low Confiability)",
+      "name": "Test Algorithm Trust 1 with feature Anomaly-Low-Confiability",
       "description": "Valid data but source entity has low history of trust. Evaluates Trust-V2 resilience.",
       "payload": {
         "source": "new-researcher-id-44",
@@ -81,7 +81,7 @@
     },
     {
       "id": "scenario-emergency-icu",
-      "name": "Emergency ICU Priority",
+      "name": "Test Algorithm Emergency 1 with feature ICU-Priority",
       "description": "Critical medical data. Bypasses some latency-heavy checks in RL if priority is detected.",
       "payload": {
         "source": "icu-monitor-05",
@@ -89,6 +89,47 @@
           "alert": "CRITICAL_VITALS",
           "priority": "HIGH",
           "emergency_id": "EMS-911-SYNC"
+        }
+      }
+    },
+    {
+      "id": "test-dilithium2-01",
+      "name": "Test Algorithm Dilithium-2 1",
+      "description": "Baseline test for Dilithium-2 digital signature verification.",
+      "payload": {
+        "source": "pqc-signer-01",
+        "data": {
+          "algorithm": "Dilithium-2",
+          "operation": "SIGN",
+          "priority": "NORMAL"
+        }
+      }
+    },
+    {
+      "id": "test-kyber768-02-entropy",
+      "name": "Test Algorithm Kyber-768 2 with feature Dynamic-Entropy",
+      "description": "KEM test with enhanced entropy injection for key encapsulation.",
+      "payload": {
+        "source": "secure-gateway-04",
+        "data": {
+          "algorithm": "Kyber-768",
+          "feature": "Dynamic-Entropy",
+          "entropy_source": "HWRNG-02",
+          "security_margin": 0.92
+        }
+      }
+    },
+    {
+      "id": "test-falcon512-01-latency",
+      "name": "Test Algorithm Falcon-512 1 with feature Low-Latency",
+      "description": "Latency-optimized Falcon execution for constrained IoT nodes.",
+      "payload": {
+        "source": "edge-iot-device-22",
+        "data": {
+          "algorithm": "Falcon-512",
+          "feature": "Low-Latency",
+          "max_delay_ms": 5,
+          "network_mode": "constrained"
         }
       }
     }
