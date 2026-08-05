@@ -284,6 +284,61 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+@APP.post("/train/{service_name}")
+async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
+    cfg = service_cfg(service_name)
+    base_url = cfg.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service has no base_url")
+    
+    # Mapeamento de endpoints de treinamento
+    endpoints = {
+        "risk_service": "/risk/train",
+        "confiability_service": "/confidentiality/train",
+        "rl_engine": "/training/enable" # RL usa enable/disable para treino contínuo
+    }
+    
+    target_path = endpoints.get(service_name, "/train")
+    url = f"{base_url}{target_path}"
+    
+    async with httpx.AsyncClient(timeout=300.0) as client: # Timeout maior para treino
+        try:
+            if service_name == "rl_engine":
+                # RL Engine geralmente espera GET ou POST vazio para enable
+                r = await client.post(url)
+            else:
+                r = await client.post(url, json=payload)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Error training {service_name}: {str(e)}")
+
+@APP.post("/predict/{service_name}")
+async def predict_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
+    cfg = service_cfg(service_name)
+    base_url = cfg.get("base_url")
+    if not base_url:
+        raise HTTPException(status_code=400, detail="Service has no base_url")
+    
+    # Mapeamento de endpoints de predição específicos de cada serviço
+    endpoints = {
+        "risk_service": "/risk/predict",
+        "classification_agent": "/api/v1/predict",
+        "confiability_service": "/confidentiality/predict",
+        "rl_engine": "/rl/predict"
+    }
+    
+    target_path = endpoints.get(service_name, "/predict")
+    url = f"{base_url}{target_path}"
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            r = await client.post(url, json=payload)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Error calling {service_name}: {str(e)}")
+
 @APP.get("/", response_class=HTMLResponse)
 async def dashboard():
     html_path = BASE_DIR / "dashboard.html"
