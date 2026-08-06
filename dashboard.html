@@ -513,10 +513,10 @@
       const [datasetPreview, setDatasetPreview] = useState(null);
 
       const PREDICTABLE_SERVICES = [
-        { id: 'risk_service', name: 'Risk Service V2', payload: { single: { features: { "feature1": 0.5, "feature2": 0.1 } } } },
+        { id: 'risk_service', name: 'Risk Service V2', payload: { single: { features: { amount: 5000, transaction_type: "transfer", source_ip: "192.168.1.50", auth_method: "password", classification_agent_label: "top secret" } }, models: ["random_forest", "xgboost", "catboost", "lightgbm", "logistic_regression", "pytorch_mlp"], request_id: "dashboard-test" } },
         { id: 'classification_agent', name: 'Classification BERT', payload: { data: { text: "Analyzable security event log content" } } },
         { id: 'confiability_service', name: 'Confiability Service', payload: { payload: { "source_reputation": 0.8, "integrity_check": true }, metadata: { source_id: "dashboard-test" } } },
-        { id: 'rl_engine', name: 'RL Security Engine', payload: { source: "node-a", destination: "node-b", security_level: "HIGH", risk_score: 0.7, conf_score: 0.4 } }
+        { id: 'rl_engine', name: 'RL Security Engine', payload: { request_id: "test-guid-123", source: "node-alpha", destination: "node-omega", security_level: "HIGH", risk_score: 0.85, conf_score: 0.90, dst_props: { hardware: ["TPM", "AES-NI"], location_risk: 0.2 } } }
       ];
       const [predictionService, setPredictionService] = useState(PREDICTABLE_SERVICES[0].id);
       const [predictionPayload, setPredictionPayload] = useState(JSON.stringify(PREDICTABLE_SERVICES[0].payload, null, 2));
@@ -524,7 +524,8 @@
 
       const TRAINABLE_SERVICES = [
         { id: 'risk_service', name: 'Risk Service V2', payload: { epochs: 10, batch_size: 32, learning_rate: 0.001 } },
-        { id: 'confiability_service', name: 'Confiability Service', payload: { test_size: 0.2, random_state: 42 } },
+        { id: 'confiability_service', name: 'Confiability Service', payload: { train_path: "datasets/v1/confiability_data.csv" } },
+        { id: 'classification_agent', name: 'Classification BERT', payload: { epochs: 3 } },
         { id: 'rl_engine', name: 'RL Security Engine', payload: {} }
       ];
 
@@ -568,7 +569,7 @@
 
       const [serviceConfigs, setServiceConfigs] = useState({});
 
-      const API = window.location.origin;
+      const API = "";
 
       const toast = (msg, type='ok') => {
         setNotif({ msg, type });
@@ -988,7 +989,7 @@
               role="tab"
               aria-selected={activeTab === 'predictions'}
             >
-              Previsões IA
+              AI Predictions
             </button>
             <button
               className={`tab ${activeTab === 'trace' ? 'active' : ''}`}
@@ -1052,7 +1053,7 @@
               role="tab"
               aria-selected={activeTab === 'monitoring'}
             >
-              Monitoria
+              Monitoring
             </button>
           </nav>
 
@@ -1276,12 +1277,12 @@
                 <div className="panel" style={{padding: '1.5rem'}}>
                   <h2 style={{fontWeight: '700', fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center'}}>
                     <span style={{background: '#8b5cf6', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
-                    Ajuste de Parâmetros e Gatilho de Predição
+                    Parameter Adjustment and Prediction Trigger
                   </h2>
                   
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem'}}>
                     <div>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Selecionar Modelo</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Select Model</label>
                       <select 
                         className="input" 
                         value={predictionService}
@@ -1295,7 +1296,7 @@
                       </select>
                       
                       <div style={{marginTop: '1.5rem'}}>
-                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Parâmetros (JSON)</label>
+                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Parameters (JSON)</label>
                         <textarea 
                           style={{height: '200px'}}
                           className="input"
@@ -1310,14 +1311,14 @@
                         onClick={runPrediction}
                         disabled={loading}
                       >
-                        {loading ? 'Processando...' : 'Executar Predição'}
+                        {loading ? 'Processing...' : 'Execute Prediction'}
                       </button>
                     </div>
                     
                     <div className="panel" style={{margin: 0, background: '#020617'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Resultado da Predição</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Prediction Result</label>
                       <pre style={{fontSize: '0.8rem', color: '#10b981', overflow: 'auto', maxHeight: '400px'}}>
-                        {predictionResult ? JSON.stringify(predictionResult, null, 2) : '// Nenhum resultado ainda'}
+                        {predictionResult ? JSON.stringify(predictionResult, null, 2) : '// No results yet'}
                       </pre>
                     </div>
                   </div>
@@ -1330,11 +1331,11 @@
                 <div className="panel" style={{padding: '1.5rem'}}>
                   <h2 style={{fontWeight: '700', fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center'}}>
                     <span style={{background: '#f59e0b', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
-                    Treinamento e Geração de Datasets
+                    Training and Dataset Generation
                   </h2>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem'}}>
                     <div>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Serviço de Treino</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Training Service</label>
                       <select 
                         className="input" 
                         value={trainService}
@@ -1348,7 +1349,7 @@
                       </select>
                       
                       <div style={{marginTop: '1rem'}}>
-                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Configuração de Treino (JSON)</label>
+                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Training Configuration (JSON)</label>
                         <textarea 
                           style={{height: '120px'}}
                           className="input"
@@ -1358,13 +1359,13 @@
                       </div>
                       
                       <button className="btn btn-ghost" style={{width: '100%', marginTop: '1rem', borderColor: '#f59e0b', color: '#f59e0b'}} onClick={runTraining} disabled={loading}>
-                        {loading ? 'Disparando...' : 'Iniciar Treinamento / Geração'}
+                        {loading ? 'Firing...' : 'Start Training / Generation'}
                       </button>
                     </div>
                     <div className="panel" style={{margin: 0, background: '#020617'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Log de Treino</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Training Log</label>
                       <pre style={{fontSize: '0.8rem', color: '#fbbf24', overflow: 'auto', maxHeight: '300px'}}>
-                        {trainResult ? JSON.stringify(trainResult, null, 2) : '// Nenhum treinamento disparado'}
+                        {trainResult ? JSON.stringify(trainResult, null, 2) : '// No training started'}
                       </pre>
                     </div>
                   </div>
@@ -1373,12 +1374,12 @@
                 <div className="panel" style={{padding: '1.5rem'}}>
                   <h2 style={{fontWeight: '700', fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center'}}>
                     <span style={{background: '#8b5cf6', width: 8, height: 24, borderRadius: 4, marginRight: 12}}></span>
-                    Ajuste de Parâmetros e Gatilho de Predição
+                    Parameter Adjustment and Prediction Trigger
                   </h2>
                   
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem'}}>
                     <div>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Selecionar Modelo</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Select Model</label>
                       <select 
                         className="input" 
                         value={predictionService}
@@ -1392,7 +1393,7 @@
                       </select>
                       
                       <div style={{marginTop: '1rem'}}>
-                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Parâmetros (JSON)</label>
+                        <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Parameters (JSON)</label>
                         <textarea 
                           style={{height: '120px'}}
                           className="input"
@@ -1407,14 +1408,14 @@
                         onClick={runPrediction}
                         disabled={loading}
                       >
-                        {loading ? 'Processando...' : 'Executar Predição'}
+                        {loading ? 'Processing...' : 'Execute Prediction'}
                       </button>
                     </div>
                     
                     <div className="panel" style={{margin: 0, background: '#020617'}}>
-                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Resultado da Predição</label>
+                      <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8}}>Prediction Result</label>
                       <pre style={{fontSize: '0.8rem', color: '#10b981', overflow: 'auto', maxHeight: '300px'}}>
-                        {predictionResult ? JSON.stringify(predictionResult, null, 2) : '// Nenhum resultado ainda'}
+                        {predictionResult ? JSON.stringify(predictionResult, null, 2) : '// No results yet'}
                       </pre>
                     </div>
                   </div>
