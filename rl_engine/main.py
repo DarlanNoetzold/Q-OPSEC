@@ -15,7 +15,7 @@ class Settings:
     debug: bool = False
     log_level: str = "info"
     registry_path: str = "./rl_registry.json"
-    handshake_url: str = "http://192.168.18.18:8001/handshake"
+    handshake_url: str = "http://127.0.0.1:8001/handshake"
 
     use_dqn: bool = False
     policy_type: str = "context_aware"
