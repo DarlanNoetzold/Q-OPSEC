@@ -513,12 +513,11 @@
       const [datasetPreview, setDatasetPreview] = useState(null);
 
       const PREDICTABLE_SERVICES = [
-        { id: 'risk_service', name: 'Risk Service V2', payload: { data: { "feature1": 0.5, "feature2": 0.1 } } },
-        { id: 'classification_agent', name: 'Classification BERT', payload: { text: "Analyzable security event log content" } },
-        { id: 'confiability_service', name: 'Confiability Service', payload: { data: { "source_reputation": 0.8, "integrity_check": true } } },
-        { id: 'rl_engine', name: 'RL Security Engine', payload: { risk_score: 0.7, classification_label: "Malicious", confiability_score: 0.4 } }
+        { id: 'risk_service', name: 'Risk Service V2', payload: { single: { features: { "feature1": 0.5, "feature2": 0.1 } } } },
+        { id: 'classification_agent', name: 'Classification BERT', payload: { data: { text: "Analyzable security event log content" } } },
+        { id: 'confiability_service', name: 'Confiability Service', payload: { payload: { "source_reputation": 0.8, "integrity_check": true }, metadata: { source_id: "dashboard-test" } } },
+        { id: 'rl_engine', name: 'RL Security Engine', payload: { source: "node-a", destination: "node-b", security_level: "HIGH", risk_score: 0.7, conf_score: 0.4 } }
       ];
-
       const [predictionService, setPredictionService] = useState(PREDICTABLE_SERVICES[0].id);
       const [predictionPayload, setPredictionPayload] = useState(JSON.stringify(PREDICTABLE_SERVICES[0].payload, null, 2));
       const [predictionResult, setPredictionResult] = useState(null);
