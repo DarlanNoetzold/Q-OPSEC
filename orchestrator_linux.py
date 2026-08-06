@@ -322,10 +322,11 @@ async def predict_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     
     # Mapeamento de endpoints de predição específicos de cada serviço
     endpoints = {
-        "risk_service": "/risk/predict",
+        "risk_service": "/predict/",
         "classification_agent": "/api/v1/predict",
-        "confiability_service": "/confidentiality/predict",
-        "rl_engine": "/rl/predict"
+        "confiability_service": "/api/v2/trust/evaluate",
+        "rl_engine": "/act",
+        "risk_service_v2": "/predict/"
     }
     
     target_path = endpoints.get(service_name, "/predict")
@@ -333,7 +334,13 @@ async def predict_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
-            r = await client.post(url, json=payload)
+            # Propagar API Key se disponível no ambiente para o classification_agent
+            headers = {}
+            api_key = env_for_service(cfg).get("CLASSIFY_API_KEY")
+            if api_key:
+                headers["X-API-Key"] = api_key
+
+            r = await client.post(url, json=payload, headers=headers)
             r.raise_for_status()
             return r.json()
         except Exception as e:
