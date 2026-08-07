@@ -286,6 +286,28 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
 
 @APP.post("/train/{service_name}")
 async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
+    # PhD Training V2 Pipeline integration
+    if service_name in ["risk_service", "risk_service_v2"]:
+        import subprocess
+        script = "/home/umbrel/projetos/Q-OPSEC/risk_service_V2/train_model.py"
+        venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
+        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/risk_v2_training.log"
+        log_file = open(log_path, "a")
+        subprocess.Popen([venv, script], cwd="/home/umbrel/projetos/Q-OPSEC/risk_service_V2", stdout=log_file, stderr=log_file)
+        return {"status": "training_started", "module": "risk_v2_phd", "log": "/logs/risk_v2_training.log"}
+
+    if service_name == "classification_agent":
+        import subprocess
+        script = "/home/umbrel/projetos/Q-OPSEC/classify_scheduler/main.py"
+        venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
+        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/classification_training.log"
+        log_file = open(log_path, "a")
+        subprocess.Popen([venv, script], cwd="/home/umbrel/projetos/Q-OPSEC/classify_scheduler", stdout=log_file, stderr=log_file)
+        return {"status": "training_started", "module": "classification_phd", "log": "/logs/classification_training.log"}
+
+    if service_name == "confiability_service":
+        return {"status": "not_applicable", "module": "trust_v2_phd", "detail": "Confiability V2 (Trust Engine) uses ad-hoc contextual evaluation and does not require a batch training pulse."}
+
     cfg = service_cfg(service_name)
     base_url = cfg.get("base_url")
     if not base_url:
@@ -294,7 +316,8 @@ async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     # Mapeamento de endpoints de treinamento
     endpoints = {
         "risk_service": "/risk/train",
-        "confiability_service": "/confidentiality/train",
+        "classification_agent": "/api/v1/train", # Adicionaremos suporte ou mudaremos para trigger local
+        "confiability_service": "/api/v2/trust/health", # V2 não tem endpoint de treino, usamos health para teste ou nada
         "rl_engine": "/training/enable" # RL usa enable/disable para treino contínuo
     }
     
@@ -715,18 +738,23 @@ def list_services():
             })
         else:
             pid = state.get("pid") or read_pidfile(name)
+            port = cfg.get("port")
 
             running = False
             if state.get("proc") and hasattr(state["proc"], "returncode"):
                 running = state["proc"].returncode is None
             elif pid:
                 running = is_pid_running(pid)
+            
+            # PhD Status Fallback: se o PID falhar mas a porta estiver respondendo, o serviço está ONLINE
+            if not running and port:
+                running = find_pid_by_port(int(port)) is not None
 
             out.append({
                 "name": name,
                 "type": "process",
                 "pid": pid,
-                "running": running,
+                "running": running or (port and find_pid_by_port(int(port)) is not None),
                 "started_at": state.get("started_at"),
                 "health": cfg.get("health"),
                 "log_file": state.get("log_file") or cfg.get("log_file"),
