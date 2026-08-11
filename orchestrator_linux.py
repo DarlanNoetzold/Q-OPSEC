@@ -289,12 +289,13 @@ async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     # PhD Training V2 Pipeline integration
     if service_name in ["risk_service", "risk_service_v2"]:
         import subprocess
-        script = "/home/umbrel/projetos/Q-OPSEC/risk_service_V2/train_model.py"
+        # Novo script que faz Generate then Train
+        script = "/home/umbrel/projetos/Q-OPSEC/risk_service_V2/phd_autonomous_trigger.py"
         venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
-        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/risk_v2_training.log"
+        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/risk_v2_phd_pipeline.log"
         log_file = open(log_path, "a")
         subprocess.Popen([venv, script], cwd="/home/umbrel/projetos/Q-OPSEC/risk_service_V2", stdout=log_file, stderr=log_file)
-        return {"status": "training_started", "module": "risk_v2_phd", "log": "/logs/risk_v2_training.log"}
+        return {"status": "phd_pipeline_started", "module": "risk_v2_autonomous", "log": "/logs/risk_v2_phd_pipeline.log"}
 
     if service_name == "classification_agent":
         import subprocess
