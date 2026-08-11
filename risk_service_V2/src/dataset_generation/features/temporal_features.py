@@ -79,9 +79,30 @@ def add_temporal_behavioral_features(events: pd.DataFrame) -> pd.DataFrame:
     df["password_resets_last_30d"] = 0
 
     # Group by user for rolling calculations
-    grouped = df.groupby("user_id", group_keys=False)
+    # Pandas 2.x note: group_keys=False + apply can sometimes drop the grouping column 
+    # if it's already in the function's internal logic, or keep it in the index.
+    
+    # Garantir que user_id seja uma coluna real e o index seja limpo antes do groupby
+    df = df.reset_index(drop=True)
+    
+    # Processamento individual para maior controle
+    user_ids = df["user_id"].unique()
+    processed_chunks = []
+    
+    for uid in user_ids:
+        user_chunk = df[df["user_id"] == uid].copy()
+        if not user_chunk.empty:
+            processed_chunk = _compute_user_temporal_features(user_chunk)
+            processed_chunks.append(processed_chunk)
+            
+    if processed_chunks:
+        df = pd.concat(processed_chunks, ignore_index=True)
 
-    df = grouped.apply(_compute_user_temporal_features)
+    # Limpeza de possíveis resíduos de processamento anterior (segurança)
+    potential_garbage = ["index", "level_0", "level_1"]
+    for col in potential_garbage:
+        if col in df.columns and col != "user_id":
+             df = df.drop(columns=[col])
 
     # Drop helper column
     df = df.drop(columns=["date_local"], errors="ignore")

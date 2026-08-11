@@ -57,9 +57,20 @@ def add_device_environment_features(events: pd.DataFrame) -> pd.DataFrame:
     df["devices_last_30d"] = 0
     df["is_device_compromised"] = 0  # placeholder, pode usar fraude/cenário depois
 
-    # Cálculo por usuário
+    # cálculo por usuário
     def _per_user(user_df: pd.DataFrame) -> pd.DataFrame:
         user_df = user_df.copy()
+        
+        # Se por algum motivo o groupby resultou em df vazio
+        if user_df.empty:
+            return user_df
+        
+        # Garantir user_id se ele foi movido para o index (embora as_index=False previna isso no groupby principal)
+        if "user_id" not in user_df.columns:
+            if user_df.index.name == "user_id":
+                user_df = user_df.reset_index()
+            elif "user_id" in user_df.index.names:
+                user_df = user_df.reset_index()
 
         # is_new_device_for_user via duplicated
         user_df["is_new_device_for_user"] = (

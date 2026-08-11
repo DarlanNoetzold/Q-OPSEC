@@ -18,9 +18,9 @@ random_seed: 42
 
 # Volume and time span
 generation:
-  num_users: 5000
-  min_events_per_user: 50
-  max_events_per_user: 500
+  num_users: 1000
+  min_events_per_user: 20
+  max_events_per_user: 100
   start_date: "2024-01-01"
   end_date: "2024-12-31"
 

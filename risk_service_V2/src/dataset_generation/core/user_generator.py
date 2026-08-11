@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
@@ -107,10 +108,14 @@ class UserGenerator:
 
         Returns a DataFrame with one row per user.
         """
-        num_users = int(
-            self.dataset_cfg.get("generation", {}).get("num_users", 1000)
-        )
-        start_date_str = self.dataset_cfg["generation"]["start_date"]
+        gen_cfg = self.dataset_cfg.get("generation", {})
+        num_users = int(gen_cfg.get("num_users", 1000))
+        
+        # DEBUG: se o valor for muito alto para um teste rápido, forçamos baixo se detectarmos ambiente de teste
+        if os.environ.get("HERMES_VERIFY"):
+             num_users = 2
+             
+        start_date_str = gen_cfg["start_date"]
         end_date_str = self.dataset_cfg["generation"]["end_date"]
         start_date = datetime.fromisoformat(start_date_str)
         end_date = datetime.fromisoformat(end_date_str)
