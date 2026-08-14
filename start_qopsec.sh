@@ -1,7 +1,8 @@
 #!/bin/bash
-# Configura o ambiente Java (detectado automaticamente)
+# Configura o ambiente Java e Maven
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-export PATH=$JAVA_HOME/bin:$PATH
+export MAVEN_HOME=/usr/share/maven
+export PATH=$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH
 
 source /home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/activate
 cd /home/umbrel/projetos/Q-OPSEC
