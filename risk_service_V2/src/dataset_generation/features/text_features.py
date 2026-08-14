@@ -15,14 +15,10 @@ logger = get_logger("text_features")
 
 
 def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add text/message content features (section 1.9).
-    Optimized for memory efficiency with chunked processing.
-    """
+    
     fraud_config = default_config_loader.load("fraud_scenarios.yaml")
     templates = fraud_config.get("message_templates", {})
 
-    # Initialize columns
     df["message_text"] = None
     df["message_length"] = 0
     df["message_language"] = "en"
@@ -30,7 +26,6 @@ def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
     df["contains_phone"] = False
     df["num_special_chars"] = 0
 
-    # Only generate text for events that need it (transactions, messages)
     text_event_types = ["transaction", "message", "login"]
     text_mask = df["event_type"].isin(text_event_types)
 
@@ -40,7 +35,6 @@ def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info(f"Generating text for {text_mask.sum():,} events (out of {len(df):,})")
 
-    # Process in chunks to avoid memory issues
     chunk_size = 50000
     text_indices = df[text_mask].index
 
@@ -48,13 +42,11 @@ def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
         chunk_indices = text_indices[i:i + chunk_size]
         chunk = df.loc[chunk_indices].copy()
 
-        # Generate text for this chunk
         chunk["message_text"] = chunk.apply(
             lambda row: _generate_text(row, templates),
             axis=1
         )
 
-        # Compute text features
         chunk["message_length"] = chunk["message_text"].str.len().fillna(0).astype(int)
         chunk["contains_url"] = chunk["message_text"].str.contains(
             r"http|www\.", case=False, na=False
@@ -63,10 +55,9 @@ def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
             r"\d{3}[-.\s]?\d{3}[-.\s]?\d{4}", na=False
         )
         chunk["num_special_chars"] = chunk["message_text"].apply(
-            lambda x: sum(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in str(x)) if pd.notna(x) else 0
+            lambda x: sum(c in "!@
         )
 
-        # Update main dataframe
         df.loc[chunk_indices, "message_text"] = chunk["message_text"]
         df.loc[chunk_indices, "message_length"] = chunk["message_length"]
         df.loc[chunk_indices, "contains_url"] = chunk["contains_url"]
@@ -81,28 +72,23 @@ def add_text_message_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _generate_text(row: pd.Series, templates: dict) -> str:
-    """Generate synthetic message text based on event type and fraud status."""
+    
     event_type = row.get("event_type", "transaction")
     is_fraud = row.get("is_fraud", False)
 
-    # Select template category
     if is_fraud:
         category = "fraudulent"
     else:
         category = "legitimate"
 
-    # Get templates for this category
     category_templates = templates.get(category, {})
     event_templates = category_templates.get(event_type, [])
 
     if not event_templates:
-        # Fallback
         return f"{event_type.capitalize()} of ${row.get('amount', 0):.2f}"
 
-    # Pick random template
     template = random.choice(event_templates)
 
-    # Fill in placeholders
     try:
         return template.format(
             amount=row.get("amount", 0),
@@ -111,5 +97,4 @@ def _generate_text(row: pd.Series, templates: dict) -> str:
             channel=row.get("channel", "web")
         )
     except (KeyError, ValueError):
-        # If template has placeholders we don't have, return as-is
         return template

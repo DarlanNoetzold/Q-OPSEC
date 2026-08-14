@@ -1,4 +1,3 @@
-# pytorch_mlp_model.py
 import torch
 import torch.nn as nn
 import torch.optim as optim

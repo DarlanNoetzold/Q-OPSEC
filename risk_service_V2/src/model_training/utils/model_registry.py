@@ -1,6 +1,4 @@
-"""
-Model Registry - Factory for creating model instances
-"""
+
 from typing import Dict, List
 from src.model_training.models import (
     XGBoostModel,
@@ -12,7 +10,7 @@ from src.common.logger import logger
 
 
 class ModelRegistry:
-    """Factory for creating and managing model instances."""
+    
 
     MODEL_CLASSES = {
         "xgboost": XGBoostModel,
@@ -27,7 +25,7 @@ class ModelRegistry:
         self.enabled_models = self.models_config.get("enabled", [])
 
     def create_models(self) -> Dict[str, object]:
-        """Create all enabled model instances."""
+        
         models = {}
 
         logger.info("\n" + "=" * 80)
@@ -51,5 +49,5 @@ class ModelRegistry:
         return models
 
     def get_available_models(self) -> List[str]:
-        """Get list of available model types."""
+        
         return list(self.MODEL_CLASSES.keys())

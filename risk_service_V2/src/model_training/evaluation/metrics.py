@@ -1,6 +1,4 @@
-"""
-Metrics - Calculate evaluation metrics for models
-"""
+
 import pandas as pd
 import numpy as np
 from typing import Dict
@@ -20,7 +18,7 @@ from src.common.logger import logger
 
 
 class MetricsCalculator:
-    """Calculate and format evaluation metrics."""
+    
 
     def __init__(self, config: dict):
         self.config = config
@@ -33,7 +31,7 @@ class MetricsCalculator:
             y_proba: np.ndarray,
             dataset_name: str = "test",
     ) -> Dict[str, float]:
-        """Calculate all configured metrics."""
+        
         metrics = {}
 
         if "accuracy" in self.metrics_config:
@@ -69,26 +67,25 @@ class MetricsCalculator:
         return metrics
 
     def log_metrics(self, metrics: Dict[str, float], model_name: str, dataset_name: str = "test"):
-        """Log metrics in a formatted way."""
+        
         logger.info(f"\n📊 {model_name.upper()} - {dataset_name.upper()} Metrics:")
         for metric_name, value in metrics.items():
             logger.info(f"   {metric_name:12s}: {value:.4f}")
 
     def get_confusion_matrix(self, y_true: pd.Series, y_pred: np.ndarray) -> np.ndarray:
-        """Get confusion matrix."""
+        
         return confusion_matrix(y_true, y_pred)
 
     def get_classification_report(
             self, y_true: pd.Series, y_pred: np.ndarray
     ) -> str:
-        """Get classification report."""
+        
         return classification_report(y_true, y_pred, zero_division=0)
 
     def compare_models(self, all_metrics: Dict[str, Dict[str, float]]) -> pd.DataFrame:
-        """Compare metrics across models."""
+        
         df = pd.DataFrame(all_metrics).T
 
-        # Sort by roc_auc if available, otherwise by f1
         if "roc_auc" in df.columns:
             df = df.sort_values("roc_auc", ascending=False)
         elif "f1" in df.columns:

@@ -5,21 +5,7 @@ from src.common.logger import logger
 
 app = FastAPI(
     title="Fraud Detection Model API",
-    description="""
-## 🕵️ Fraud Detection Model API
-
-API para servir modelos de detecção de fraude, incluindo:
-
-- **Prediction**: endpoints de predição/inferência
-- **Metrics**: métricas do modelo e/ou do serviço
-- **Dataset**: informações do dataset (se disponível)
-- **Models**: informações/versões de modelos
-
-### Documentação
-- Swagger UI: `/docs`
-- ReDoc: `/redoc`
-- OpenAPI JSON: `/openapi.json`
-""",
+    description=,
     version="1.0.0",
     contact={
         "name": "Fraud Detection Team",
@@ -33,7 +19,6 @@ API para servir modelos de detecção de fraude, incluindo:
     ],
 )
 
-# Instrumentação para o Prometheus
 
 try:
     from src.api.utils.logger import setup_logging

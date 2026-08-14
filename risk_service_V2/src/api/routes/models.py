@@ -29,9 +29,7 @@ def get_manager() -> ModelManager:
 
 @router.get("/feature_names")
 async def get_feature_names(manager: ModelManager = Depends(get_manager)):
-    """
-    Rota principal - retorna resumo do atributo feature_names carregado.
-    """
+    
     logger.info("GET /models/feature_names called")
     fn = manager.feature_names
     try:
@@ -52,10 +50,7 @@ async def get_feature_names(manager: ModelManager = Depends(get_manager)):
 
 @router.get("/feature_names/raw")
 async def get_feature_names_raw():
-    """
-    DEBUG endpoint: retorna o conteúdo bruto do arquivo feature_names.json do último modelo.
-    Útil para checar se o arquivo contém uma dict em vez de uma lista.
-    """
+    
     logger.info("GET /models/feature_names/raw called")
     try:
         mm = ModelManager()
@@ -100,13 +95,7 @@ async def get_feature_names_raw():
 
 @router.get("/feature_names/debug_columns")
 async def get_feature_names_debug_columns():
-    """
-    DEBUG endpoint: carrega manager em memória, e retorna
-    - tipo de feature_names em memória
-    - primeiras 200 feature_names
-    - se possível, um snapshot de colunas de um DataFrame vazio criado usando feature_names
-    - e um exemplo de índice que causaria o erro "Passing a dict as an indexer"
-    """
+    
     logger.info("GET /models/feature_names/debug_columns called")
     try:
         manager = get_manager()
@@ -119,13 +108,11 @@ async def get_feature_names_debug_columns():
         }
         logger.debug(f"feature_names info: {info}")
 
-        # tenta criar DataFrame vazio e indexar para reproduzir erro
         try:
             import pandas as pd, numpy as np
-            df = pd.DataFrame([{}])  # one-row empty
+            df = pd.DataFrame([{}])
             logger.debug("Created empty DataFrame for testing")
 
-            # ensure to coerce feature_names to list for the test
             if not isinstance(fn, list):
                 try:
                     test_fn = fn.get("all_features") if isinstance(fn, dict) and "all_features" in fn else list(fn)
@@ -136,15 +123,13 @@ async def get_feature_names_debug_columns():
             else:
                 test_fn = fn
 
-            # add missing columns
             for c in (test_fn or []):
                 if c not in df.columns:
                     df[c] = np.nan
             logger.debug(f"Added missing columns to DataFrame: {len(test_fn)} columns")
 
-            # attempt indexing (this is where dict-as-indexer would crash)
             try:
-                df_indexed = df[test_fn]  # if test_fn is dict -> triggers the same error
+                df_indexed = df[test_fn]
                 info["df_indexed_shape"] = df_indexed.shape
                 logger.info(f"DataFrame indexed successfully with shape {df_indexed.shape}")
             except Exception as e:

@@ -1,4 +1,3 @@
-# catboost_model.py
 import pandas as pd
 import numpy as np
 from catboost import CatBoostClassifier, Pool
@@ -6,7 +5,7 @@ from src.model_training.models.base_model import BaseModel
 from src.common.logger import logger
 
 class CatBoostModel(BaseModel):
-    """CatBoost classifier with native categorical support."""
+    
 
     def __init__(self, config: dict):
         super().__init__(config, model_name='catboost')

@@ -1,6 +1,4 @@
-"""
-Model Evaluator - Evaluate model performance
-"""
+
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
@@ -18,15 +16,10 @@ from src.common.logger import logger
 
 
 class ModelEvaluator:
-    """Evaluate model performance."""
+    
 
     def __init__(self, config: dict):
-        """
-        Initialize ModelEvaluator.
-
-        Args:
-            config: Training configuration dictionary
-        """
+        
         self.config = config
 
     def evaluate_model(
@@ -37,46 +30,28 @@ class ModelEvaluator:
             model_name: str,
             threshold: float = 0.5
     ) -> Dict[str, Any]:
-        """
-        Evaluate model performance.
-
-        Args:
-            model: Trained model
-            X: Features
-            y_true: True labels
-            model_name: Name of the model
-            threshold: Classification threshold
-
-        Returns:
-            Dictionary with evaluation metrics
-        """
+        
         try:
-            # 👇 CORREÇÃO: Garantir que y_true é 1D array sem NaN
             if isinstance(y_true, pd.DataFrame):
                 y_true = y_true.values.ravel()
             elif isinstance(y_true, pd.Series):
                 y_true = y_true.values
 
-            # Remove NaN do y_true e correspondentes em X
             mask = ~pd.isna(y_true)
             if not mask.all():
                 logger.warning(f"   ⚠️  Removing {(~mask).sum()} NaN values from y_true for {model_name}")
                 y_true = y_true[mask]
                 X = X[mask]
 
-            # Ensure y_true is integer
             y_true = y_true.astype(int)
 
-            # Get predictions
             y_proba = model.predict_proba(X)
 
-            # 👇 CORREÇÃO: Garantir que y_proba é 1D array
             if len(y_proba.shape) > 1:
-                y_proba = y_proba[:, 1]  # Probabilidade da classe 1
+                y_proba = y_proba[:, 1]
 
             y_pred = (y_proba >= threshold).astype(int)
 
-            # Calculate metrics
             metrics = {
                 "model_name": model_name,
                 "threshold": threshold,
@@ -87,7 +62,6 @@ class ModelEvaluator:
                 "roc_auc": roc_auc_score(y_true, y_proba)
             }
 
-            # Confusion matrix
             cm = confusion_matrix(y_true, y_pred)
             metrics["confusion_matrix"] = {
                 "tn": int(cm[0, 0]),
@@ -96,7 +70,6 @@ class ModelEvaluator:
                 "tp": int(cm[1, 1])
             }
 
-            # Log metrics
             logger.info(f"\n📊 {model_name.upper()} Evaluation:")
             logger.info(f"   Accuracy:  {metrics['accuracy']:.4f}")
             logger.info(f"   Precision: {metrics['precision']:.4f}")
@@ -112,15 +85,7 @@ class ModelEvaluator:
             raise
 
     def compare_models(self, all_metrics: Dict[str, Dict[str, Any]]) -> pd.DataFrame:
-        """
-        Compare multiple models.
-
-        Args:
-            all_metrics: Dictionary of model metrics
-
-        Returns:
-            DataFrame with comparison
-        """
+        
         if not all_metrics:
             logger.warning("⚠️  No metrics to compare")
             return pd.DataFrame()

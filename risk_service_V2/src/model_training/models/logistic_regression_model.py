@@ -1,6 +1,4 @@
-"""
-Logistic Regression Model
-"""
+
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
@@ -10,7 +8,7 @@ from src.common.logger import logger
 
 
 class LogisticRegressionModel(BaseModel):
-    """Logistic Regression classifier."""
+    
 
     def __init__(self, config: dict):
         super().__init__(config, model_name='logistic_regression')

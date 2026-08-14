@@ -21,13 +21,13 @@ def get_manager() -> ModelManager:
 
 @router.get("/versions")
 async def list_versions(manager: ModelManager = Depends(get_manager)):
-    """Lista todas as versões de modelos disponíveis."""
+    
     versions = manager.list_versions()
     return {"versions": versions, "count": len(versions)}
 
 @router.get("/latest")
 async def get_latest_metrics(manager: ModelManager = Depends(get_manager)):
-    """Retorna as métricas da versão mais recente dos modelos."""
+    
     try:
         metrics = manager.get_model_metrics(version=None)
         if not metrics:
@@ -42,7 +42,7 @@ async def get_latest_metrics(manager: ModelManager = Depends(get_manager)):
 
 @router.get("/{version}")
 async def get_metrics_by_version(version: str, manager: ModelManager = Depends(get_manager)):
-    """Retorna as métricas de uma versão específica dos modelos."""
+    
     try:
         metrics = manager.get_model_metrics(version=version)
         if not metrics:

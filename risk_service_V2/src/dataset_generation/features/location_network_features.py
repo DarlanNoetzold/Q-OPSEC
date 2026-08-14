@@ -13,7 +13,7 @@ logger = get_logger("location_network_features")
 
 
 def _process_chunk(args):
-    """Process a chunk of events in parallel."""
+    
     chunk_indices, ip_ranges = args
 
     ip_addresses = []
@@ -30,7 +30,6 @@ def _process_chunk(args):
     for idx in chunk_indices:
         ip_range = ip_ranges[idx]
 
-        # Generate synthetic IP
         base_ip = ip_range["range"].split("/")[0]
         octets = base_ip.split(".")
         octets[-1] = str(np.random.randint(1, 254))
@@ -62,12 +61,11 @@ def _process_chunk(args):
 
 
 def add_location_network_features(events: pd.DataFrame) -> pd.DataFrame:
-    """Add 1.5 Location / Network features (PARALLEL + VECTORIZED)."""
+    
 
     df = events.copy()
     net_cfg = default_config_loader.load("network_catalog.yaml")
 
-    # Get IP ranges and locations
     ip_ranges = net_cfg.get("ip_ranges", [])
     blacklisted_ips = set(net_cfg.get("blacklisted_ips", []))
 
@@ -92,11 +90,9 @@ def add_location_network_features(events: pd.DataFrame) -> pd.DataFrame:
     num_cores = cpu_count()
     logger.info(f"Assigning IP addresses to {n:,} events using {num_cores} CPU cores...")
 
-    # ✅ VETORIZADO: escolher IP ranges aleatórios para todos os eventos
     chosen_ranges = np.random.choice(len(ip_ranges), size=n)
 
-    # ✅ PARALELISMO: dividir em chunks e processar em paralelo
-    chunk_size = max(50_000, n // (num_cores * 4))  # 4 chunks por core
+    chunk_size = max(50_000, n // (num_cores * 4))
     chunks = []
 
     for chunk_start in range(0, n, chunk_size):
@@ -106,11 +102,9 @@ def add_location_network_features(events: pd.DataFrame) -> pd.DataFrame:
 
     logger.info(f"Processing {len(chunks)} chunks in parallel...")
 
-    # ✅ Processar chunks em paralelo
     with Pool(processes=num_cores) as pool:
         results = pool.map(_process_chunk, chunks)
 
-    # ✅ Combinar resultados
     logger.info("Combining results...")
 
     ip_addresses = []
@@ -136,7 +130,6 @@ def add_location_network_features(events: pd.DataFrame) -> pd.DataFrame:
         geolocation_lats.extend(result["geolocation_lats"])
         geolocation_lons.extend(result["geolocation_lons"])
 
-    # ✅ Atribuir tudo de uma vez
     df["ip_address"] = ip_addresses
     df["ip_country"] = ip_countries
     df["ip_region"] = ip_regions
@@ -148,22 +141,18 @@ def add_location_network_features(events: pd.DataFrame) -> pd.DataFrame:
     df["geolocation_lat"] = geolocation_lats
     df["geolocation_lon"] = geolocation_lons
 
-    # ✅ Blacklist check (vetorizado)
     if blacklisted_ips:
         df["ip_blacklisted"] = df["ip_address"].isin(blacklisted_ips).astype(int)
     else:
         df["ip_blacklisted"] = 0
 
-    # ✅ Proxy/Tor (vetorizado)
     df["is_proxy"] = np.random.choice([0, 1], size=n, p=[0.97, 0.03])
     df["is_tor"] = np.random.choice([0, 1], size=n, p=[0.995, 0.005])
 
-    # ✅ Connection type (vetorizado)
     connection_types = ["wifi", "cellular_4g", "cellular_5g", "ethernet", "unknown"]
     connection_weights = [0.5, 0.25, 0.15, 0.08, 0.02]
     df["connection_type"] = np.random.choice(connection_types, size=n, p=connection_weights)
 
-    # ✅ Distance from registered location (vetorizado)
     if "registered_country" in df.columns:
         same_country = df["ip_country"] == df["registered_country"]
 

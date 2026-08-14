@@ -1,6 +1,4 @@
-"""
-XGBoost Model
-"""
+
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -10,7 +8,7 @@ from src.common.logger import logger
 
 
 class XGBoostModel(BaseModel):
-    """XGBoost classifier."""
+    
 
     def __init__(self, config: dict):
         super().__init__(config, model_name='xgboost')

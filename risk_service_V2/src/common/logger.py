@@ -8,10 +8,7 @@ _LOGGER_CONFIGURED = False
 
 
 def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
-    """Configure loguru logger with console + rotating file.
-
-    Should be called once at startup.
-    """
+    
     global _LOGGER_CONFIGURED
     if _LOGGER_CONFIGURED:
         return
@@ -20,9 +17,8 @@ def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / "dataset_generation.log"
 
-    logger.remove()  # remove default handler
+    logger.remove()
 
-    # Console handler
     logger.add(
         sink=lambda msg: print(msg, end=""),
         level=level.upper(),
@@ -33,7 +29,6 @@ def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
         "<level>{message}</level>",
     )
 
-    # File handler (rotating)
     logger.add(
         log_file,
         level=level.upper(),
@@ -48,7 +43,7 @@ def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
 
 
 def get_logger(name: Optional[str] = None):
-    """Return loguru logger (optionally bind a name)."""
+    
     if name:
         return logger.bind(component=name)
     return logger

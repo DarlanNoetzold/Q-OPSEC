@@ -1,6 +1,4 @@
-"""
-Model classes package
-"""
+
 
 from .base_model import BaseModel
 from .logistic_regression_model import LogisticRegressionModel
