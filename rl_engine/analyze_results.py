@@ -7,7 +7,6 @@ from pathlib import Path
 import sys
 from scipy import stats
 
-# Style configuration
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 14
@@ -15,24 +14,21 @@ plt.rcParams['font.weight'] = 'bold'
 plt.rcParams['axes.labelweight'] = 'bold'
 plt.rcParams['axes.titleweight'] = 'bold'
 
-# ====================================================================== #
-# COLOR PALETTE - MONOCHROMATIC BY ALGORITHM FAMILY                      #
-# ====================================================================== #
 
 FAMILY_COLOR_BASES = {
-    "QKD":      (0.18, 0.47, 0.71),  # azul
-    "PQC":      (0.17, 0.63, 0.17),  # verde
-    "HYBRID":   (0.56, 0.27, 0.68),  # roxo
-    "RSA":      (0.84, 0.15, 0.16),  # vermelho
-    "ECC":      (0.89, 0.47, 0.20),  # laranja
-    "AES":      (0.26, 0.26, 0.26),  # cinza escuro
-    "CHACHA":   (0.40, 0.40, 0.40),  # cinza médio
-    "FALLBACK": (0.60, 0.60, 0.60)   # cinza claro
+    "QKD":      (0.18, 0.47, 0.71),
+    "PQC":      (0.17, 0.63, 0.17),
+    "HYBRID":   (0.56, 0.27, 0.68),
+    "RSA":      (0.84, 0.15, 0.16),
+    "ECC":      (0.89, 0.47, 0.20),
+    "AES":      (0.26, 0.26, 0.26),
+    "CHACHA":   (0.40, 0.40, 0.40),
+    "FALLBACK": (0.60, 0.60, 0.60)
 }
 
 
 def get_algorithm_family(algo: str) -> str:
-    """Identifica a família do algoritmo"""
+    
     algo = algo.upper()
     if "QKD" in algo and "HYBRID" not in algo:
         return "QKD"
@@ -52,12 +48,7 @@ def get_algorithm_family(algo: str) -> str:
 
 
 def generate_family_color_map(algorithms: list) -> dict:
-    """
-    Gera mapa de cores {algoritmo: (r,g,b)} onde:
-    - Cada família tem uma cor base
-    - Algoritmos da mesma família variam em luminosidade
-    """
-    # Agrupa por família
+    
     family_to_algos = {}
     for algo in algorithms:
         fam = get_algorithm_family(algo)
@@ -69,7 +60,6 @@ def generate_family_color_map(algorithms: list) -> dict:
         base = FAMILY_COLOR_BASES.get(family, (0.30, 0.30, 0.30))
         n = len(algos)
 
-        # Gama de fatores de luminosidade
         if n == 1:
             factors = [1.0]
         else:
@@ -86,7 +76,7 @@ def generate_family_color_map(algorithms: list) -> dict:
 
 class ResultAnalyzer:
     def __init__(self, json_file: str):
-        """Initialize analyzer with JSON results file"""
+        
         with open(json_file, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
 
@@ -95,7 +85,7 @@ class ResultAnalyzer:
         self.output_dir.mkdir(exist_ok=True)
 
     def generate_all_plots(self):
-        """Generate all plots for the article"""
+        
         print("\n📊 Generating visualizations...")
 
         self.plot_algorithm_distribution()
@@ -107,7 +97,6 @@ class ResultAnalyzer:
         self.plot_temporal_analysis()
         self.plot_resource_usage()
 
-        # NEW PLOTS
         self.plot_algorithm_category_comparison()
         self.plot_learning_curve()
         self.plot_risk_vs_performance()
@@ -122,7 +111,7 @@ class ResultAnalyzer:
         print(f"\n✅ Plots saved in: {self.output_dir}/")
 
     def plot_algorithm_distribution(self):
-        """Algorithm usage distribution - MONOCHROME"""
+        
         algo_counts = {}
         for _, row in self.df.iterrows():
             for algo in row['proposed_algorithms']:
@@ -132,7 +121,6 @@ class ResultAnalyzer:
         algos = list(algo_counts.keys())
         counts = list(algo_counts.values())
 
-        # Usa gradiente monocromático em tons de cinza
         n_algorithms = len(algos)
         colors = [plt.cm.Blues(0.3 + (i / n_algorithms) * 0.5) for i in range(n_algorithms)]
 
@@ -142,7 +130,6 @@ class ResultAnalyzer:
         ax.set_ylabel('Cryptographic Algorithm', fontsize=18, fontweight='bold')
         ax.tick_params(axis='both', which='major', labelsize=16)
 
-        # Add values on bars
         for bar in bars:
             width = bar.get_width()
             ax.text(width, bar.get_y() + bar.get_height() / 2,
@@ -154,7 +141,7 @@ class ResultAnalyzer:
         print("  ✓ algorithm_distribution.png")
 
     def plot_success_rate_by_security(self):
-        """Success rate by security level"""
+        
         success_by_level = self.df.groupby('security_level').agg({
             'feedback_success': ['mean', 'count']
         }).reset_index()
@@ -174,7 +161,6 @@ class ResultAnalyzer:
         ax.set_ylim(0, 105)
         ax.tick_params(axis='both', which='major', labelsize=16)
 
-        # Add values and count
         for i, bar in enumerate(bars):
             height = bar.get_height()
             count = success_by_level.iloc[i]['count']
@@ -189,10 +175,9 @@ class ResultAnalyzer:
         print("  ✓ success_rate_by_security.png")
 
     def plot_latency_comparison(self):
-        """Latency comparison between security levels"""
+        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
 
-        # Box plot
         bp = self.df.boxplot(column='feedback_latency', by='security_level', ax=ax1,
                               patch_artist=True, return_type='dict')
         ax1.set_xlabel('Security Level', fontsize=18, fontweight='bold')
@@ -201,7 +186,6 @@ class ResultAnalyzer:
         plt.sca(ax1)
         plt.xticks(rotation=45, ha='right')
 
-        # Violin plot
         sns.violinplot(data=self.df, x='security_level', y='feedback_latency',
                       ax=ax2, palette='Blues')
         ax2.set_xlabel('Security Level', fontsize=18, fontweight='bold')
@@ -217,7 +201,7 @@ class ResultAnalyzer:
         print("  ✓ latency_comparison.png")
 
     def plot_qkd_vs_non_qkd(self):
-        """QKD vs Non-QKD comparison - MONOCHROME"""
+        
         qkd_comparison = self.df.groupby('has_qkd').agg({
             'feedback_success': 'mean',
             'feedback_latency': 'mean',
@@ -237,7 +221,6 @@ class ResultAnalyzer:
         color_qkd = (0.18, 0.47, 0.71)
         color_non_qkd = (0.45, 0.45, 0.45)
 
-        # Success rate
         axes[0, 0].bar(qkd_comparison['has_qkd'], qkd_comparison['success_rate'],
                        color=[color_qkd, color_non_qkd])
         axes[0, 0].set_ylabel('Success Rate (%)', fontsize=16, fontweight='bold')
@@ -246,7 +229,6 @@ class ResultAnalyzer:
         for i, v in enumerate(qkd_comparison['success_rate']):
             axes[0, 0].text(i, v + 2, f'{v:.1f}%', ha='center', fontsize=14, fontweight='bold')
 
-        # Latency
         axes[0, 1].bar(qkd_comparison['has_qkd'], qkd_comparison['avg_latency'],
                        color=[color_qkd, color_non_qkd])
         axes[0, 1].set_ylabel('Average Latency (ms)', fontsize=16, fontweight='bold')
@@ -254,7 +236,6 @@ class ResultAnalyzer:
         for i, v in enumerate(qkd_comparison['avg_latency']):
             axes[0, 1].text(i, v + 2, f'{v:.1f}ms', ha='center', fontsize=14, fontweight='bold')
 
-        # Resource usage
         axes[1, 0].bar(qkd_comparison['has_qkd'], qkd_comparison['avg_resource'],
                        color=[color_qkd, color_non_qkd])
         axes[1, 0].set_ylabel('Average Resource Usage', fontsize=16, fontweight='bold')
@@ -263,7 +244,6 @@ class ResultAnalyzer:
         for i, v in enumerate(qkd_comparison['avg_resource']):
             axes[1, 0].text(i, v + 0.05, f'{v:.2f}', ha='center', fontsize=14, fontweight='bold')
 
-        # Count
         axes[1, 1].bar(qkd_comparison['has_qkd'], qkd_comparison['count'],
                        color=[color_qkd, color_non_qkd])
         axes[1, 1].set_ylabel('Number of Requests', fontsize=16, fontweight='bold')
@@ -277,7 +257,7 @@ class ResultAnalyzer:
         print("  ✓ qkd_comparison.png")
 
     def plot_response_time_distribution(self):
-        """Response time distribution"""
+        
         fig, ax = plt.subplots(figsize=(12, 7))
 
         ax.hist(self.df['response_time'], bins=30, color=(0.3, 0.3, 0.3),
@@ -299,7 +279,7 @@ class ResultAnalyzer:
         print("  ✓ response_time_distribution.png")
 
     def plot_security_level_heatmap(self):
-        """Metrics heatmap by security level"""
+        
         metrics_by_level = self.df.groupby('security_level').agg({
             'feedback_success': 'mean',
             'feedback_latency': 'mean',
@@ -329,7 +309,7 @@ class ResultAnalyzer:
         print("  ✓ security_heatmap.png")
 
     def plot_temporal_analysis(self):
-        """Temporal analysis of results"""
+        
         self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
         self.df = self.df.sort_values('timestamp')
         self.df['request_number'] = range(len(self.df))
@@ -367,7 +347,7 @@ class ResultAnalyzer:
         print("  ✓ temporal_analysis.png")
 
     def plot_resource_usage(self):
-        """Resource usage analysis"""
+        
         fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
         scatter = axes[0].scatter(self.df['feedback_resource_usage'],
@@ -399,7 +379,7 @@ class ResultAnalyzer:
         print("  ✓ resource_usage_analysis.png")
 
     def plot_algorithm_category_comparison(self):
-        """Compare algorithm categories (QKD, PQC, Hybrid, Classical) - MONOCHROME"""
+        
 
         def categorize_algo(algo):
             if 'QKD' in algo and 'HYBRID' not in algo:
@@ -463,7 +443,7 @@ class ResultAnalyzer:
         print("  ✓ algorithm_category_comparison.png")
 
     def plot_learning_curve(self):
-        """Learning curve showing improvement over episodes"""
+        
         if 'metrics_history' not in self.data or not self.data['metrics_history']:
             print("  ⚠ Skipping learning_curve.png (no episode data)")
             return
@@ -509,7 +489,7 @@ class ResultAnalyzer:
         print("  ✓ learning_curve.png")
 
     def plot_risk_vs_performance(self):
-        """Risk score vs performance metrics"""
+        
         if 'risk_score' not in self.df.columns:
             print("  ⚠ Skipping risk_vs_performance.png (no risk_score data)")
             return
@@ -556,7 +536,7 @@ class ResultAnalyzer:
         print("  ✓ risk_vs_performance.png")
 
     def plot_algorithm_success_matrix(self):
-        """Success rate matrix for each algorithm - MONOCHROME"""
+        
         algo_success = {}
         for _, row in self.df.iterrows():
             expected = row['expected_algorithm']
@@ -604,7 +584,7 @@ class ResultAnalyzer:
         print("  ✓ algorithm_success_matrix.png")
 
     def plot_latency_vs_security_scatter(self):
-        """3D-like scatter: Latency vs Security vs Success"""
+        
         fig, ax = plt.subplots(figsize=(14, 8))
 
         security_map = {'moderate': 1, 'high': 2, 'very_high': 3, 'ultra': 4}
@@ -640,7 +620,7 @@ class ResultAnalyzer:
         print("  ✓ latency_vs_security_scatter.png")
 
     def plot_episode_progression(self):
-        """Show progression across episodes"""
+        
         if 'metrics_history' not in self.data or not self.data['metrics_history']:
             print("  ⚠ Skipping episode_progression.png (no episode data)")
             return
@@ -699,7 +679,7 @@ class ResultAnalyzer:
         print("  ✓ episode_progression.png")
 
     def plot_algorithm_selection_evolution(self):
-        """Evolution of algorithm selection over time - MONOCHROME"""
+        
         algo_counts = {}
         for _, row in self.df.iterrows():
             for algo in row['proposed_algorithms']:
@@ -748,7 +728,7 @@ class ResultAnalyzer:
         print("  ✓ algorithm_selection_evolution.png")
 
     def plot_performance_radar(self):
-        """Radar chart comparing performance across security levels"""
+        
         security_levels = self.df['security_level'].unique()
 
         data_by_level = {}
@@ -792,7 +772,7 @@ class ResultAnalyzer:
         print("  ✓ performance_radar.png")
 
     def plot_correlation_matrix(self):
-        """Correlation matrix of numerical features"""
+        
         numerical_cols = ['feedback_success', 'feedback_latency',
                           'feedback_resource_usage', 'response_time']
 
@@ -821,7 +801,7 @@ class ResultAnalyzer:
         print("  ✓ correlation_matrix.png")
 
     def plot_cumulative_success(self):
-        """Cumulative success rate over time"""
+        
         self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
         self.df = self.df.sort_values('timestamp')
         self.df['cumulative_success'] = self.df['feedback_success'].cumsum()
@@ -858,13 +838,12 @@ class ResultAnalyzer:
         print("  ✓ cumulative_success.png")
 
     def generate_latex_tables(self):
-        """Generate tables in LaTeX format for the article"""
+        
         print("\n📝 Generating LaTeX tables...")
 
         latex_file = self.output_dir / 'tables.tex'
 
         with open(latex_file, 'w', encoding='utf-8') as f:
-            # Table 1: General metrics
             f.write("% Table 1: General Performance Metrics\n")
             f.write("\\begin{table}[h]\n")
             f.write("\\centering\n")
@@ -887,7 +866,6 @@ class ResultAnalyzer:
             f.write("\\label{tab:general_metrics}\n")
             f.write("\\end{table}\n\n")
 
-            # Table 2: By security level
             f.write("% Table 2: Metrics by Security Level\n")
             f.write("\\begin{table}[h]\n")
             f.write("\\centering\n")
@@ -906,7 +884,6 @@ class ResultAnalyzer:
             f.write("\\label{tab:security_level_metrics}\n")
             f.write("\\end{table}\n\n")
 
-            # Table 3: QKD comparison
             f.write("% Table 3: QKD vs Non-QKD Comparison\n")
             f.write("\\begin{table}[h]\n")
             f.write("\\centering\n")
@@ -928,7 +905,6 @@ class ResultAnalyzer:
             f.write("\\label{tab:qkd_comparison}\n")
             f.write("\\end{table}\n\n")
 
-            # Table 4: Algorithm distribution
             f.write("% Table 4: Algorithm Distribution\n")
             f.write("\\begin{table}[h]\n")
             f.write("\\centering\n")
@@ -952,7 +928,7 @@ class ResultAnalyzer:
         print(f"\n✅ LaTeX tables saved in: {latex_file}")
 
     def generate_summary_report(self):
-        """Generate summary report for the article"""
+        
         print("\n📄 Generating summary report...")
 
         report_file = self.output_dir / 'article_summary.md'
@@ -960,21 +936,21 @@ class ResultAnalyzer:
         with open(report_file, 'w', encoding='utf-8') as f:
             f.write("# RL Engine - Summary for Scientific Article\n\n")
 
-            f.write("## 1. Experiment Information\n\n")
+            f.write("#
             exp_info = self.data['experiment_info']
             f.write(f"- **Total Requests**: {exp_info['total_requests']}\n")
             f.write(f"- **Total Episodes**: {exp_info['total_episodes']}\n")
             f.write(f"- **Experiment Date**: {exp_info['timestamp']}\n")
             f.write(f"- **Version**: {exp_info.get('version', 'N/A')}\n\n")
 
-            f.write("## 2. Performance Metrics\n\n")
+            f.write("#
             perf = self.data['performance_metrics']
             f.write(f"- **Success Rate**: {perf['success_rate']:.2f}%\n")
             f.write(f"- **Average Latency**: {perf['avg_latency_ms']:.2f} ms (±{perf['std_latency_ms']:.2f})\n")
             f.write(f"- **Latency Range**: {perf['min_latency_ms']:.2f} - {perf['max_latency_ms']:.2f} ms\n")
             f.write(f"- **Average Response Time**: {perf['avg_response_time_s']:.4f} s\n\n")
 
-            f.write("## 3. Most Used Algorithms\n\n")
+            f.write("#
             sorted_algos = sorted(self.data['algorithm_usage'].items(),
                                   key=lambda x: x[1], reverse=True)
             for i, (algo, count) in enumerate(sorted_algos[:10], 1):
@@ -982,26 +958,26 @@ class ResultAnalyzer:
                 f.write(f"{i}. **{algo}**: {count} times ({percentage:.1f}%)\n")
             f.write("\n")
 
-            f.write("## 4. Analysis by Security Level\n\n")
+            f.write("#
             for level, data in sorted(self.data['by_security_level'].items()):
-                f.write(f"### {level.upper()}\n")
+                f.write(f"#
                 f.write(f"- Requests: {data['count']}\n")
                 f.write(f"- Success Rate: {data['success_rate']:.2f}%\n")
                 f.write(f"- Average Latency: {data['avg_latency']:.2f} ms\n\n")
 
-            f.write("## 5. QKD vs Non-QKD Comparison\n\n")
+            f.write("#
             qkd = self.data['qkd_analysis']
-            f.write("### With QKD Hardware\n")
+            f.write("#
             f.write(f"- Requests: {qkd['with_qkd']['count']}\n")
             f.write(f"- Success Rate: {qkd['with_qkd']['success_rate']:.2f}%\n")
             f.write(f"- Average Latency: {qkd['with_qkd']['avg_latency']:.2f} ms\n\n")
 
-            f.write("### Without QKD Hardware\n")
+            f.write("#
             f.write(f"- Requests: {qkd['without_qkd']['count']}\n")
             f.write(f"- Success Rate: {qkd['without_qkd']['success_rate']:.2f}%\n")
             f.write(f"- Average Latency: {qkd['without_qkd']['avg_latency']:.2f} ms\n\n")
 
-            f.write("## 6. Expected Algorithm Distribution\n\n")
+            f.write("#
             f.write("| Algorithm | Count | Percentage |\n")
             f.write("|-----------|-------|------------|\n")
             for algo, count in sorted(self.data['expected_algorithm_distribution'].items()):
@@ -1009,7 +985,7 @@ class ResultAnalyzer:
                 f.write(f"| {algo} | {count} | {percentage:.1f}% |\n")
             f.write("\n")
 
-            f.write("## 7. Key Findings\n\n")
+            f.write("#
             f.write("1. The RL Engine demonstrated high success rate in algorithm selection\n")
             f.write("2. Average latency remained within acceptable limits across all security levels\n")
             f.write("3. Quantum algorithms were prioritized in high-security scenarios\n")
@@ -1017,7 +993,7 @@ class ResultAnalyzer:
             f.write("5. Resource usage scaled appropriately with security requirements\n")
             f.write("6. Algorithm distribution shows balanced exploration across categories\n\n")
 
-            f.write("## 8. Statistical Summary\n\n")
+            f.write("#
             f.write(f"- **Total Unique Algorithms**: {len(self.data['expected_algorithm_distribution'])}\n")
             f.write(
                 f"- **Average Requests per Algorithm**: {exp_info['total_requests'] / len(self.data['expected_algorithm_distribution']):.1f}\n")
@@ -1030,7 +1006,7 @@ class ResultAnalyzer:
 
 
 def main():
-    """Main function"""
+    
     if len(sys.argv) < 2:
         print("Usage: python analyze_results_v2_monochrome.py <json_results_file>")
         print("\nExample: python analyze_results_v2_monochrome.py synthetic_rl_realistic_20241210_143022.json")
@@ -1049,13 +1025,10 @@ def main():
 
     analyzer = ResultAnalyzer(json_file)
 
-    # Generate all visualizations
     analyzer.generate_all_plots()
 
-    # Generate LaTeX tables
     analyzer.generate_latex_tables()
 
-    # Generate summary for article
     analyzer.generate_summary_report()
 
     print("\n" + "=" * 70)

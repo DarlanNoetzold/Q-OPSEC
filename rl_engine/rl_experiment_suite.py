@@ -14,7 +14,7 @@ class UltraBalancedExperiment:
         self.base_url = base_url
         self.results: List[Dict[str, Any]] = []
         self.metrics_history: List[Dict[str, Any]] = []
-        self.algorithm_usage_counter: Dict[str, int] = {}  # Track usage for diversity penalty
+        self.algorithm_usage_counter: Dict[str, int] = {}
 
     def health_check(self) -> bool:
         try:
@@ -72,57 +72,45 @@ class UltraBalancedExperiment:
     def generate_feedback_for_algorithm(self, expected_algo: str,
                                         proposed_algos: List[str],
                                         scenario: Dict) -> Dict:
-        """Generate feedback with tuned rewards and diversity mechanics"""
+        
 
-        # Check if expected algorithm was proposed
         algo_match = any(expected_algo in algo for algo in proposed_algos)
 
-        # Track usage for diversity penalty/bonus
         for algo in proposed_algos:
             self.algorithm_usage_counter[algo] = self.algorithm_usage_counter.get(algo, 0) + 1
 
-        # Calculate diversity penalty (penalize overused algorithms) and bonus (reward underused)
         total_requests = sum(self.algorithm_usage_counter.values())
         diversity_penalty = 0.0
         diversity_bonus = 0.0
 
-        # taxa "esperada" dinâmica: 1 / número de algoritmos já vistos
         num_algos_usados = max(1, len(self.algorithm_usage_counter))
         expected_rate = 1.0 / num_algos_usados
 
-        if total_requests > 20:  # Só depois de um pouco de exploração
+        if total_requests > 20:
             for algo in proposed_algos:
                 usage_rate = self.algorithm_usage_counter.get(algo, 0) / total_requests
 
-                # Penaliza algoritmos muito sobre-usados (suavizado)
                 if usage_rate > expected_rate * 2.0:
-                    diversity_penalty += 0.10  # antes 0.30
+                    diversity_penalty += 0.10
                 elif usage_rate > expected_rate * 1.5:
-                    diversity_penalty += 0.05  # antes 0.15
+                    diversity_penalty += 0.05
 
-                # BÔNUS para algoritmos pouco usados → aumenta diversidade
                 if usage_rate < expected_rate * 0.6:
                     diversity_bonus += 0.05
 
-        # Sistema de recompensa: maior taxa de sucesso
         if algo_match:
-            # Alta recompensa para acerto (bem > 85%)
             base_success = 0.93 - diversity_penalty + diversity_bonus
             latency_multiplier = 0.80
             resource_multiplier = 0.90
         else:
-            # Mesmo erro pode ter sucesso razoável (para aumentar taxa global)
             base_success = 0.55 - diversity_penalty + (diversity_bonus * 0.5)
             latency_multiplier = 1.5
             resource_multiplier = 1.2
 
-        # Garante faixa válida
         base_success = max(0.10, min(0.99, base_success))
 
-        # Add controlled randomness
         success = random.random() < base_success
 
-        # Algorithm-specific latencies with differentiation
         latency_map = {
             'BB84': (45, 75),
             'E91': (48, 78),
@@ -146,8 +134,7 @@ class UltraBalancedExperiment:
             'FALLBACK': (15, 35)
         }
 
-        # Find latency range with better matching
-        latency_range = (25, 50)  # default
+        latency_range = (25, 50)
         for key, value in latency_map.items():
             if key in expected_algo:
                 latency_range = value
@@ -156,10 +143,8 @@ class UltraBalancedExperiment:
         if success:
             latency = random.uniform(latency_range[0], latency_range[1]) * latency_multiplier
         else:
-            # Failed requests have much higher latency
             latency = random.uniform(latency_range[1] * 2.5, latency_range[1] * 4.0)
 
-        # Resource usage with better differentiation
         resource_map = {
             'QKD': 0.88,
             'PQC': 0.68,
@@ -192,7 +177,7 @@ class UltraBalancedExperiment:
         }
 
     def run_scenario(self, scenario: Dict):
-        """Execute a test scenario"""
+        
         print(f"  → {scenario['name']}")
 
         result = self.send_request(scenario['context'])
@@ -206,7 +191,6 @@ class UltraBalancedExperiment:
             scenario
         )
 
-        # Wait time for agent to process
         time.sleep(0.2)
 
         self.send_feedback(
@@ -258,9 +242,9 @@ class UltraBalancedExperiment:
 
     def run_experiment(self, scenarios: List[Dict], episodes: int = 10,
                        iterations_per_episode: int = 20):
-        """Execute complete experiment - TUNED VERSION"""
+        
         total_requests = episodes * iterations_per_episode * len(scenarios)
-        expected_per_algo = episodes * iterations_per_episode  # 1 cenário por algoritmo
+        expected_per_algo = episodes * iterations_per_episode
 
         print("=" * 80)
         print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.1 (TUNED)")
@@ -299,13 +283,12 @@ class UltraBalancedExperiment:
             for iteration in range(iterations_per_episode):
                 print(f"\n[Iteration {iteration + 1}/{iterations_per_episode}]")
 
-                # NO SHUFFLING - maintain consistent order for learning
                 for idx, scenario in enumerate(scenarios, 1):
                     print(f"  [{idx}/{len(scenarios)}]", end=" ")
                     self.run_scenario(scenario)
 
                 if iteration < iterations_per_episode - 1:
-                    time.sleep(0.5)  # wait between iterations
+                    time.sleep(0.5)
 
             episode_result = self.end_episode()
             episode_elapsed = time.time() - episode_start
@@ -315,7 +298,6 @@ class UltraBalancedExperiment:
             metrics['elapsed_time'] = episode_elapsed
             self.metrics_history.append(metrics)
 
-            # Show current distribution
             print(f"\n  📊 Current Algorithm Usage:")
             sorted_usage = sorted(self.algorithm_usage_counter.items(),
                                   key=lambda x: x[1], reverse=True)[:5]
@@ -325,7 +307,7 @@ class UltraBalancedExperiment:
             print(f"\n  ✅ Episode {episode} completed in {episode_elapsed:.2f}s")
 
             if episode < episodes:
-                time.sleep(1.0)  # wait between episodes
+                time.sleep(1.0)
 
         experiment_elapsed = time.time() - experiment_start
 
@@ -341,7 +323,7 @@ class UltraBalancedExperiment:
         return self.generate_report()
 
     def generate_report(self) -> Dict:
-        """Generate complete report in English"""
+        
         print("\n📊 Generating report...")
 
         algorithm_usage: Dict[str, int] = {}
@@ -354,7 +336,6 @@ class UltraBalancedExperiment:
             exp = result['expected_algorithm']
             expected_algo_usage[exp] = expected_algo_usage.get(exp, 0) + 1
 
-        # By security level
         by_security_level: Dict[str, Dict[str, Any]] = {}
         for result in self.results:
             level = result['security_level']
@@ -369,7 +350,6 @@ class UltraBalancedExperiment:
                 by_security_level[level]['success'] += 1
             by_security_level[level]['latencies'].append(result['feedback_latency'])
 
-        # Calculate metrics by security level
         for level in by_security_level:
             data = by_security_level[level]
             data['success_rate'] = (data['success'] / data['count'] * 100) if data['count'] > 0 else 0
@@ -377,7 +357,6 @@ class UltraBalancedExperiment:
             del data['success']
             del data['latencies']
 
-        # QKD analysis
         qkd_results = [r for r in self.results if r['has_qkd']]
         non_qkd_results = [r for r in self.results if not r['has_qkd']]
 
@@ -397,9 +376,7 @@ class UltraBalancedExperiment:
             }
         }
 
-        # Diversity analysis
         total_requests = len(self.results)
-        # 20 scenarios/algoritmos
         expected_per_algo = total_requests / 20 if total_requests > 0 else 0
 
         diversity_metrics = {
@@ -445,17 +422,13 @@ class UltraBalancedExperiment:
 
     def generate_plots(self, report: Dict, prefix: str = "rl_experiment_v8_fixed",
                        timestamp: Optional[str] = None) -> Dict[str, str]:
-        """
-        Gera gráficos básicos (salvos em PNG) a partir do report.
-        Retorna um dict com os nomes dos arquivos gerados.
-        """
+        
         if timestamp is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_name = f"{prefix}_{timestamp}"
 
         plot_files: Dict[str, str] = {}
 
-        # --- 1) Distribuição de uso dos algoritmos ---
         algos = list(report['algorithm_usage'].keys())
         counts = [report['algorithm_usage'][a] for a in algos]
         expected_per_algo = report['diversity_metrics']['expected_per_algorithm']
@@ -476,13 +449,11 @@ class UltraBalancedExperiment:
             plt.close()
             plot_files['algorithm_usage_plot'] = fname
 
-        # --- 2) Sucesso por nível de segurança ---
         sec_levels = list(report['by_security_level'].keys())
         if sec_levels:
             success_rates = [report['by_security_level'][lvl]['success_rate'] for lvl in sec_levels]
             avg_latencies = [report['by_security_level'][lvl]['avg_latency'] for lvl in sec_levels]
 
-            # Sucesso
             plt.figure(figsize=(8, 5))
             plt.bar(sec_levels, success_rates, color='seagreen', alpha=0.8)
             plt.ylabel("Success rate (%)")
@@ -493,7 +464,6 @@ class UltraBalancedExperiment:
             plt.close()
             plot_files['success_by_security_plot'] = fname
 
-            # Latência média
             plt.figure(figsize=(8, 5))
             plt.bar(sec_levels, avg_latencies, color='darkorange', alpha=0.8)
             plt.ylabel("Avg latency (ms)")
@@ -504,7 +474,6 @@ class UltraBalancedExperiment:
             plt.close()
             plot_files['latency_by_security_plot'] = fname
 
-        # --- 3) Histograma de latências ---
         latencies = [r['feedback_latency'] for r in report['raw_results']]
         if latencies:
             plt.figure(figsize=(8, 5))
@@ -518,7 +487,6 @@ class UltraBalancedExperiment:
             plt.close()
             plot_files['latency_histogram'] = fname
 
-        # --- 4) Scatter: latência vs uso de recurso ---
         res_usage = [r['feedback_resource_usage'] for r in report['raw_results']]
         if latencies and res_usage and len(latencies) == len(res_usage):
             plt.figure(figsize=(8, 5))
@@ -535,7 +503,7 @@ class UltraBalancedExperiment:
         return plot_files
 
     def save_results(self, report: Dict, prefix: str = "rl_experiment_v8_fixed"):
-        """Save results in English + generate basic plots"""
+        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         json_file = f"{prefix}_{timestamp}.json"
@@ -610,7 +578,6 @@ class UltraBalancedExperiment:
 
         print(f"✅ Summary TXT: {txt_file}")
 
-        # Gerar gráficos
         plot_files = self.generate_plots(report, prefix=prefix, timestamp=timestamp)
         for label, fname in plot_files.items():
             print(f"✅ Plot ({label}): {fname}")
@@ -624,9 +591,7 @@ class UltraBalancedExperiment:
         return out
 
 
-# ULTRA BALANCED SCENARIOS - 20 algorithms with varied contexts
 ULTRA_BALANCED_SCENARIOS = [
-    # === 1. QKD BB84 (5%) ===
     {
         'name': 'QKD BB84 - Ultra Security',
         'category': 'quantum_bb84',
@@ -647,7 +612,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 2. QKD E91 (5%) ===
     {
         'name': 'QKD E91 - Entanglement Based',
         'category': 'quantum_e91',
@@ -668,7 +632,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 3. QKD CV-QKD (5%) ===
     {
         'name': 'QKD CV-QKD - Continuous Variable',
         'category': 'quantum_cv',
@@ -689,7 +652,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 4. QKD MDI-QKD (5%) ===
     {
         'name': 'QKD MDI-QKD - Measurement Device Independent',
         'category': 'quantum_mdi',
@@ -710,7 +672,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 5. QKD DECOY (5%) ===
     {
         'name': 'QKD DECOY - Decoy State Protocol',
         'category': 'quantum_decoy',
@@ -731,7 +692,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 6. PQC KYBER (5%) ===
     {
         'name': 'PQC KYBER - Post-Quantum KEM',
         'category': 'pqc_kyber',
@@ -752,7 +712,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 7. PQC DILITHIUM (5%) ===
     {
         'name': 'PQC DILITHIUM - Digital Signature',
         'category': 'pqc_dilithium',
@@ -773,7 +732,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 8. PQC NTRU (5%) ===
     {
         'name': 'PQC NTRU - Lattice-Based Encryption',
         'category': 'pqc_ntru',
@@ -794,7 +752,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 9. PQC SABER (5%) ===
     {
         'name': 'PQC SABER - Module Learning',
         'category': 'pqc_saber',
@@ -815,7 +772,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 10. PQC FALCON (5%) ===
     {
         'name': 'PQC FALCON - Fast Fourier Lattice',
         'category': 'pqc_falcon',
@@ -836,7 +792,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 11. PQC SPHINCS+ (5%) ===
     {
         'name': 'PQC SPHINCS+ - Stateless Hash-Based',
         'category': 'pqc_sphincs',
@@ -857,7 +812,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 12. HYBRID QKD+PQC (5%) ===
     {
         'name': 'HYBRID QKD+PQC - Maximum Security',
         'category': 'hybrid_qkd_pqc',
@@ -878,7 +832,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 13. HYBRID RSA+PQC (5%) ===
     {
         'name': 'HYBRID RSA+PQC - Transition Security',
         'category': 'hybrid_rsa',
@@ -899,7 +852,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 14. HYBRID ECC+PQC (5%) ===
     {
         'name': 'HYBRID ECC+PQC - Elliptic Curve Hybrid',
         'category': 'hybrid_ecc',
@@ -920,7 +872,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 15. RSA 4096 (5%) ===
     {
         'name': 'RSA 4096 - Classical Strong',
         'category': 'classical_rsa',
@@ -941,7 +892,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 16. ECC 521 (5%) ===
     {
         'name': 'ECC 521 - Elliptic Curve',
         'category': 'classical_ecc',
@@ -962,7 +912,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 17. AES 256 GCM (5%) ===
     {
         'name': 'AES 256 GCM - Symmetric Encryption',
         'category': 'classical_aes256',
@@ -983,7 +932,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 18. AES 192 (5%) ===
     {
         'name': 'AES 192 - Medium Symmetric',
         'category': 'classical_aes192',
@@ -1004,7 +952,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 19. ChaCha20-Poly1305 (5%) ===
     {
         'name': 'ChaCha20-Poly1305 - Stream Cipher',
         'category': 'classical_chacha',
@@ -1025,7 +972,6 @@ ULTRA_BALANCED_SCENARIOS = [
         }
     },
 
-    # === 20. FALLBACK AES (5%) ===
     {
         'name': 'FALLBACK AES - Emergency Mode',
         'category': 'fallback',
@@ -1055,9 +1001,8 @@ def main():
     print("RL ENGINE - ULTRA BALANCED EXPERIMENT v8.1 (TUNED)")
     print("=" * 80)
 
-    # Parâmetros do experimento (ajuste aqui se quiser "muuuito mais")
     episodes = 10
-    iterations_per_episode = 20  # antes era 5; agora 4x mais
+    iterations_per_episode = 20
     total_scenarios = len(ULTRA_BALANCED_SCENARIOS)
     total_requests = episodes * iterations_per_episode * total_scenarios
     expected_per_algo = total_requests / total_scenarios if total_scenarios > 0 else 0

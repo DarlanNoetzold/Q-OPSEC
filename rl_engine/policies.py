@@ -12,12 +12,7 @@ class BasePolicy:
 class EpsilonGreedyPolicy(BasePolicy):
     def __init__(self, epsilon: float = 0.2, epsilon_decay: float = 0.995,
                  epsilon_min: float = 0.01):
-        """
-        Args:
-            epsilon: Initial exploration rate
-            epsilon_decay: Decay factor per episode
-            epsilon_min: Minimum exploration rate
-        """
+        
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
@@ -46,12 +41,7 @@ class EpsilonGreedyPolicy(BasePolicy):
 class BoltzmannPolicy(BasePolicy):
     def __init__(self, temperature: float = 1.0, temperature_decay: float = 0.995,
                  temperature_min: float = 0.1):
-        """
-        Args:
-            temperature: Initial temperature (higher = more exploration)
-            temperature_decay: Decay factor per episode
-            temperature_min: Minimum temperature
-        """
+        
         self.temperature = temperature
         self.temperature_decay = temperature_decay
         self.temperature_min = temperature_min
@@ -66,12 +56,9 @@ class BoltzmannPolicy(BasePolicy):
 
         valid_q = np.array([q_values.get(a, 0.0) for a in valid_actions])
 
-        # Compute Boltzmann probabilities
-        # P(a) ∝ exp(Q(s,a) / T)
         exp_q = np.exp(valid_q / self.temperature)
         probs = exp_q / np.sum(exp_q)
 
-        # Sample action
         action_idx = np.random.choice(len(valid_actions), p=probs)
         return valid_actions[action_idx]
 
@@ -85,10 +72,7 @@ class BoltzmannPolicy(BasePolicy):
 
 class UCBPolicy(BasePolicy):
     def __init__(self, c: float = 2.0):
-        """
-        Args:
-            c: Exploration constant (higher = more exploration)
-        """
+        
         self.c = c
         self.action_counts = {}
         self.total_count = 0
@@ -116,7 +100,6 @@ class UCBPolicy(BasePolicy):
             q_value = q_values.get(a, 0.0)
             count = self.action_counts[state_key][a]
 
-            # UCB formula: Q(s,a) + c * sqrt(ln(N) / n(s,a))
             exploration_bonus = self.c * np.sqrt(np.log(self.total_count + 1) / count)
             ucb_values[a] = q_value + exploration_bonus
 
@@ -167,12 +150,12 @@ class AdaptivePolicy(BasePolicy):
                 self.current_strategy = "boltzmann"
 
     def decay(self):
-        """Decay exploration parameters"""
+        
         self.epsilon_greedy.decay()
         self.boltzmann.decay()
 
     def reset(self):
-        """Reset all strategies"""
+        
         self.epsilon_greedy.reset()
         self.boltzmann.reset()
         self.ucb.reset()
@@ -181,49 +164,30 @@ class AdaptivePolicy(BasePolicy):
 
 
 class ContextAwarePolicy(BasePolicy):
-    """
-    Context-aware policy that adapts exploration based on context
-    Higher risk contexts use more exploitation (less exploration)
-    """
+    
 
     def __init__(self, base_epsilon: float = 0.2):
-        """
-        Args:
-            base_epsilon: Base exploration rate
-        """
+        
         self.base_epsilon = base_epsilon
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int],
                       context: Dict = None) -> int:
-        """
-        Select action with context-aware exploration
-
-        Args:
-            state: Current state
-            q_values: Q-values for actions
-            valid_actions: List of valid action indices
-            context: Context dictionary with risk/conf scores
-        """
+        
         if not valid_actions:
             return 0
 
-        # Adjust epsilon based on context
         epsilon = self.base_epsilon
 
         if context:
             risk_score = context.get("risk_score", 0.5)
             conf_score = context.get("conf_score", 0.5)
 
-            # Higher risk/confidentiality = less exploration
-            # PHD-PESSIMISTIC: Again, use the MAX to protect against High Risk
             combined_score = max(risk_score, conf_score)
             epsilon = self.base_epsilon * (1.0 - combined_score)
 
-        # Epsilon-greedy with adjusted epsilon
         if random.random() < epsilon:
             return random.choice(valid_actions)
 
-        # Exploitation
         if not q_values:
             return random.choice(valid_actions)
 
@@ -232,27 +196,19 @@ class ContextAwarePolicy(BasePolicy):
 
 
 class SafeExplorationPolicy(BasePolicy):
-    """
-    Safe exploration policy that avoids risky actions
-    during exploration phase
-    """
+    
 
     def __init__(self, epsilon: float = 0.2, safety_threshold: float = 0.7):
-        """
-        Args:
-            epsilon: Exploration rate
-            safety_threshold: Minimum safety score for exploration
-        """
+        
         self.epsilon = epsilon
         self.safety_threshold = safety_threshold
         self.action_safety_scores = {}
 
     def update_safety_score(self, action: int, success: bool):
-        """Update safety score for action based on outcome"""
+        
         if action not in self.action_safety_scores:
             self.action_safety_scores[action] = 0.5
 
-        # Exponential moving average
         alpha = 0.1
         new_score = 1.0 if success else 0.0
         self.action_safety_scores[action] = (
@@ -260,21 +216,18 @@ class SafeExplorationPolicy(BasePolicy):
         )
 
     def select_action(self, state, q_values: Dict, valid_actions: List[int]) -> int:
-        """Select action with safety constraints"""
+        
         if not valid_actions:
             return 0
 
-        # Filter safe actions
         safe_actions = [
             a for a in valid_actions
             if self.action_safety_scores.get(a, 0.5) >= self.safety_threshold
         ]
 
-        # If no safe actions, use all valid actions
         if not safe_actions:
             safe_actions = valid_actions
 
-        # Epsilon-greedy over safe actions
         if random.random() < self.epsilon:
             return random.choice(safe_actions)
 
