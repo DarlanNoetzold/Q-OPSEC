@@ -1,6 +1,10 @@
 **.joblib
 **.log
 **.log.gz
-/logs
+*.log
+*.pid
 */logs
 */logs/**
+/logs
+__pycache__/
+logs/
