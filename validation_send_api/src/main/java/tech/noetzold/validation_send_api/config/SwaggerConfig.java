@@ -24,16 +24,16 @@ public class SwaggerConfig {
                         .contact(new Contact()
                                 .name("Noetzold Tech")
                                 .email("contato@noetzold.tech")
-                                .url("https://noetzold.tech"))
+                                .url("https:
                         .license(new License()
                                 .name("Apache 2.0")
-                                .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
+                                .url("https:
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8005")
+                                .url("http:
                                 .description("Servidor de Desenvolvimento"),
                         new Server()
-                                .url("https://api.noetzold.tech")
+                                .url("https:
                                 .description("Servidor de Produção")));
     }
 }
