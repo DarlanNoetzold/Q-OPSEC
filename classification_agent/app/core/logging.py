@@ -1,6 +1,4 @@
-"""
-Structured logging configuration.
-"""
+
 import sys
 import logging
 import structlog
@@ -9,7 +7,7 @@ from .config import settings
 
 
 def configure_logging() -> None:
-    """Configure structured logging."""
+    
 
     log_level_mapping = {
         "DEBUG": logging.DEBUG,
@@ -38,12 +36,12 @@ def configure_logging() -> None:
 
 
 def get_logger(name: str = __name__) -> structlog.BoundLogger:
-    """Get a structured logger instance."""
+    
     return structlog.get_logger(name)
 
 
 class RequestLoggingMiddleware:
-    """Middleware for logging HTTP requests."""
+    
 
     def __init__(self, app):
         self.app = app
@@ -58,7 +56,6 @@ class RequestLoggingMiddleware:
         method = scope.get("method")
         path = scope.get("path")
 
-        # Log request start
         self.logger.info(
             "Request started",
             request_id=request_id,

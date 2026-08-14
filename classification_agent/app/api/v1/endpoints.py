@@ -1,6 +1,4 @@
-"""
-API endpoints for the Classification Agent.
-"""
+
 import logging
 import time
 from datetime import datetime
@@ -24,7 +22,6 @@ from ...utils.exceptions import (
 logger = get_logger(__name__)
 router = APIRouter()
 
-# Metrics directory configuration
 METRICS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\models\metrics")
 IMAGE_ALLOWED = {
     "all_models_accuracy.png",
@@ -35,12 +32,9 @@ IMAGE_ALLOWED = {
 }
 
 
-# ============================================================================
-# Schemas
-# ============================================================================
 
 class HealthResponse(BaseModel):
-    """Resposta do health check"""
+    
     status: str = Field(..., description="Status do serviço (ok, degraded, error)")
     version: str = Field(..., description="Versão da API")
     model_loaded: bool = Field(..., description="Se há um modelo carregado")
@@ -50,13 +44,13 @@ class HealthResponse(BaseModel):
 
 
 class ModelReloadRequest(BaseModel):
-    """Request para reload do modelo"""
+    
     force: bool = Field(False, description="Forçar reload mesmo se o modelo já estiver atualizado")
     model_config = {"protected_namespaces": ()}
 
 
 class ModelReloadResponse(BaseModel):
-    """Resposta do reload do modelo"""
+    
     status: str = Field(..., description="Status da operação (success, error)")
     model_name: Optional[str] = Field(None, description="Nome do modelo carregado")
     previous_model: Optional[str] = Field(None, description="Nome do modelo anterior")
@@ -65,7 +59,7 @@ class ModelReloadResponse(BaseModel):
 
 
 class PredictionRequest(BaseModel):
-    """Request de predição"""
+    
     data: Any = Field(..., description="Objeto ou lista de objetos com os dados para predição")
     return_probabilities: bool = Field(True, description="Se deve retornar probabilidades por classe")
     send_to_rl: bool = Field(False, description="Se deve enviar resultado para RL Engine")
@@ -89,7 +83,7 @@ class PredictionRequest(BaseModel):
 
 
 class PredictionResult(BaseModel):
-    """Resultado individual de predição"""
+    
     label: str = Field(..., description="Classe predita")
     confidence: Optional[float] = Field(None, description="Confiança da predição (0-1)")
     probabilities: Optional[Dict[str, float]] = Field(None, description="Probabilidades por classe")
@@ -99,7 +93,7 @@ class PredictionResult(BaseModel):
 
 
 class PredictResponse(BaseModel):
-    """Resposta completa de predição"""
+    
     results: List[PredictionResult] = Field(..., description="Lista de resultados de predição")
     model_name: Optional[str] = Field(None, description="Nome do modelo usado")
     model_version: Optional[str] = Field(None, description="Versão do modelo")
@@ -110,7 +104,7 @@ class PredictResponse(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    """Métricas do serviço"""
+    
     total_requests: int = Field(..., description="Total de requisições recebidas")
     total_predictions: int = Field(..., description="Total de predições realizadas")
     average_response_time_ms: float = Field(..., description="Tempo médio de resposta em ms")
@@ -122,33 +116,27 @@ class MetricsResponse(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
-# ============================================================================
-# Helper Functions for Training Metrics
-# ============================================================================
 
 def _list_training_sessions() -> List[str]:
-    """Lista todas as sessões de treinamento disponíveis"""
+    
     if not METRICS_ROOT.exists():
         return []
     sessions = []
     for p in METRICS_ROOT.iterdir():
         if p.is_dir() and (p / "training_summary.json").exists():
             sessions.append(p.name)
-    sessions.sort(reverse=True)  # Mais recentes primeiro
+    sessions.sort(reverse=True)
     return sessions
 
 
 def _get_latest_training_session() -> Optional[Path]:
-    """Retorna o path da sessão de treinamento mais recente"""
+    
     sessions = _list_training_sessions()
     if not sessions:
         return None
     return METRICS_ROOT / sessions[0]
 
 
-# ============================================================================
-# Health & Model Endpoints
-# ============================================================================
 
 @router.get(
     "/health",
@@ -174,16 +162,7 @@ def _get_latest_training_session() -> Optional[Path]:
     }
 )
 async def health_check():
-    """
-    Verifica o status de saúde do serviço.
-
-    Retorna informações sobre:
-    - Status geral do serviço
-    - Versão da API
-    - Se há modelo carregado
-    - Nome do modelo atual
-    - Tempo de uptime
-    """
+    
     health_data = metrics_service.get_health_status()
     return HealthResponse(
         status=health_data.get("status", "unknown"),
@@ -219,16 +198,7 @@ async def health_check():
     }
 )
 async def get_model_info(user: Dict[str, Any] = Depends(get_current_user)):
-    """
-    Retorna informações detalhadas do modelo carregado.
-
-    Inclui:
-    - Nome e versão do modelo
-    - Classes disponíveis
-    - Colunas/features requeridas
-    - Timestamp de carregamento
-    - Metadados adicionais (métricas, etc.)
-    """
+    
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
@@ -244,14 +214,7 @@ async def get_model_info(user: Dict[str, Any] = Depends(get_current_user)):
     response_model=ModelReloadResponse,
     tags=["Model"],
     summary="Recarrega o modelo mais recente",
-    description="""
-Recarrega o modelo mais recente disponível.
-
-- Se `force=false` (padrão): só recarrega se houver uma versão mais nova
-- Se `force=true`: força o reload mesmo se o modelo já estiver atualizado
-
-Requer autenticação.
-""",
+    description=,
     responses={
         200: {
             "description": "Modelo recarregado com sucesso",
@@ -274,16 +237,7 @@ async def reload_model(
     request: ModelReloadRequest = ModelReloadRequest(),
     user: Dict[str, Any] = Depends(require_auth),
 ):
-    """
-    Recarrega o modelo mais recente.
-
-    Args:
-        request: Configuração do reload (force=true para forçar)
-        user: Usuário autenticado
-
-    Returns:
-        Status do reload e informações do modelo
-    """
+    
     try:
         previous_model = model_service.model_name if model_service.is_model_loaded() else None
         reloaded = await model_service.load_latest_model(force=request.force)
@@ -314,14 +268,7 @@ async def reload_model(
     "/model/manifest",
     tags=["Model"],
     summary="Manifest do modelo (schema de entrada/saída)",
-    description="""
-Retorna o manifest completo do modelo, incluindo:
-
-- Schema de entrada (features requeridas e tipos)
-- Schema de saída (formato da predição)
-- Classes disponíveis
-- Metadados do modelo
-""",
+    description=,
     responses={
         200: {
             "description": "Manifest do modelo",
@@ -355,14 +302,7 @@ Retorna o manifest completo do modelo, incluindo:
     }
 )
 async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
-    """
-    Retorna o manifest do modelo com schemas de entrada e saída.
-
-    Útil para:
-    - Validação de inputs
-    - Geração de documentação
-    - Integração com outros sistemas
-    """
+    
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
@@ -399,33 +339,13 @@ async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
     return manifest
 
 
-# ============================================================================
-# Prediction Endpoint
-# ============================================================================
 
 @router.post(
     "/predict",
     response_model=PredictResponse,
     tags=["Prediction"],
     summary="Executa predição/classificação",
-    description="""
-Executa predição usando o modelo carregado.
-
-### Fluxo
-1. **Validação**: Valida o input contra o schema do modelo
-2. **Predição**: Executa a predição e retorna label + probabilidades
-3. **RL Engine** (opcional): Se `send_to_rl=true`, envia resultado para RL Engine
-
-### Input
-- `data`: Objeto ou lista de objetos com as features
-- `return_probabilities`: Se deve retornar probabilidades (padrão: true)
-- `send_to_rl`: Se deve enviar para RL Engine (padrão: false)
-
-### Output
-- `results`: Lista de predições (label, confidence, probabilities)
-- `model_name`, `model_version`: Informações do modelo usado
-- `prediction_time_ms`: Tempo de processamento
-""",
+    description=,
     responses={
         200: {
             "description": "Predição realizada com sucesso",
@@ -461,37 +381,19 @@ async def predict(
     http_request: Request,
     user: Dict[str, Any] = Depends(get_current_user),
 ):
-    """
-    Executa predição com o modelo carregado.
-
-    Args:
-        request: Dados de entrada e configurações
-        http_request: Request HTTP (para logging)
-        user: Usuário autenticado
-
-    Returns:
-        Resultados da predição com labels, probabilidades e metadados
-    """
+    
     request_id = request.request_id or "req-unknown"
     logger.info(f"[{request_id}] Classify predict called", batch_size=1 if isinstance(request.data, dict) else len(request.data))
-    
+
     start_time = time.time()
 
     if not model_service.is_model_loaded():
         raise ModelNotLoadedException("No model is currently loaded")
 
     try:
-        # Importante: No ModelService corrigido, validate_input retorna um DataFrame.
-        # No código original deste endpoint, o desenvolvedor usou 'if validation_errors:'
-        # o que gera erro no Pandas. Corrigido para verificar se há erros de fato.
         validation_errors_df = model_service.validate_input(request.data)
-        
-        # Se você tinha uma lógica específica de erro no validate_input que retornava 
-        # as mensagens de erro em colunas, checamos aqui se há algo. 
-        # Como o novo ModelService apenas prepara o input, aqui costuma vir o DF pronto.
+
         if hasattr(validation_errors_df, 'empty') and not validation_errors_df.empty:
-            # Se fosse um fluxo de erro, levantaria ValidationException. 
-            # Mas como o ModelService agora retorna o X pronto para o predict, apenas seguimos.
             pass
 
         labels, probabilities, input_hashes = model_service.predict(
@@ -570,25 +472,13 @@ async def predict(
         raise PredictionException(f"Prediction failed: {str(e)}")
 
 
-# ============================================================================
-# Monitoring Endpoints
-# ============================================================================
 
 @router.get(
     "/metrics",
     response_model=MetricsResponse,
     tags=["Monitoring"],
     summary="Métricas do serviço",
-    description="""
-Retorna métricas agregadas do serviço, incluindo:
-
-- Total de requisições e predições
-- Tempo médio de resposta
-- Taxa de erro
-- Número de reloads do modelo
-- Uptime
-- Timestamp da última predição
-""",
+    description=,
     responses={
         200: {
             "description": "Métricas do serviço",
@@ -611,14 +501,7 @@ Retorna métricas agregadas do serviço, incluindo:
     }
 )
 async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
-    """
-    Retorna métricas agregadas do serviço.
-
-    Útil para:
-    - Monitoramento de performance
-    - Alertas e dashboards
-    - Análise de uso
-    """
+    
     m = metrics_service.get_metrics()
     return MetricsResponse(
         total_requests=m.get("total_requests", 0),
@@ -632,9 +515,6 @@ async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
     )
 
 
-# ============================================================================
-# Training Metrics Endpoints
-# ============================================================================
 
 @router.get(
     "/training/sessions",
@@ -656,7 +536,7 @@ async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
     }
 )
 async def list_training_sessions(user: Dict[str, Any] = Depends(get_current_user)):
-    """Lista todas as sessões de treinamento disponíveis."""
+    
     sessions = _list_training_sessions()
     return JSONResponse(content={"sessions": sessions, "total": len(sessions)})
 
@@ -672,7 +552,7 @@ async def list_training_sessions(user: Dict[str, Any] = Depends(get_current_user
     }
 )
 async def get_latest_training_summary(user: Dict[str, Any] = Depends(get_current_user)):
-    """Retorna o summary da sessão de treinamento mais recente."""
+    
     latest = _get_latest_training_session()
     if latest is None:
         raise HTTPException(status_code=404, detail="No training metrics available")
@@ -701,7 +581,7 @@ async def get_training_session_summary(
     session_id: str,
     user: Dict[str, Any] = Depends(get_current_user)
 ):
-    """Retorna o summary de uma sessão de treinamento específica."""
+    
     session_path = METRICS_ROOT / session_id
     summary_path = session_path / "training_summary.json"
 
@@ -746,7 +626,7 @@ async def get_training_session_summary(
     }
 )
 async def list_available_images(user: Dict[str, Any] = Depends(get_current_user)):
-    """Lista todas as imagens (gráficos) disponíveis."""
+    
     return JSONResponse(content={
         "available_images": list(IMAGE_ALLOWED),
         "description": {
@@ -775,7 +655,7 @@ async def get_training_session_image(
     image_name: str,
     user: Dict[str, Any] = Depends(get_current_user)
 ):
-    """Retorna uma imagem específica de uma sessão de treinamento."""
+    
     if image_name not in IMAGE_ALLOWED:
         raise HTTPException(status_code=400, detail=f"Invalid image name. Allowed: {list(IMAGE_ALLOWED)}")
 
@@ -803,7 +683,7 @@ async def get_latest_training_image(
     image_name: str,
     user: Dict[str, Any] = Depends(get_current_user)
 ):
-    """Retorna uma imagem da sessão de treinamento mais recente."""
+    
     if image_name not in IMAGE_ALLOWED:
         raise HTTPException(status_code=400, detail=f"Invalid image name. Allowed: {list(IMAGE_ALLOWED)}")
 
