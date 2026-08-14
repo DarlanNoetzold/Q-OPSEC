@@ -1,4 +1,6 @@
-
+"""
+Metrics and monitoring service.
+"""
 import time
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -11,32 +13,38 @@ logger = get_logger(__name__)
 
 
 class MetricsService:
-    
+    """Service for collecting and managing API metrics."""
 
     def __init__(self, max_history_size: int = 10000):
         self.max_history_size = max_history_size
         self.start_time = time.time()
         self.lock = Lock()
 
+        # Counters
         self.total_requests = 0
         self.total_predictions = 0
         self.total_errors = 0
         self.model_reload_count = 0
 
+        # Response times (sliding window)
         self.response_times = deque(maxlen=max_history_size)
 
+        # Error tracking
         self.error_counts = defaultdict(int)
 
+        # Request tracking
         self.requests_by_endpoint = defaultdict(int)
         self.requests_by_status = defaultdict(int)
 
+        # Prediction tracking
         self.predictions_by_model = defaultdict(int)
         self.last_prediction_at: Optional[datetime] = None
 
+        # Current model
         self.current_model: Optional[str] = None
 
     def record_request(self, endpoint: str, method: str, status_code: int, response_time: float):
-        
+        """Record a request with its metrics."""
         with self.lock:
             self.total_requests += 1
             self.response_times.append(response_time)
@@ -47,7 +55,7 @@ class MetricsService:
                 self.total_errors += 1
 
     def record_prediction(self, model_name: str, batch_size: int = 1):
-        
+        """Record a prediction event."""
         with self.lock:
             self.total_predictions += batch_size
             self.predictions_by_model[model_name] += batch_size
@@ -55,25 +63,27 @@ class MetricsService:
             self.current_model = model_name
 
     def record_error(self, error_type: str):
-        
+        """Record an error event."""
         with self.lock:
             self.error_counts[error_type] += 1
 
     def record_model_reload(self, model_name: str):
-        
+        """Record a model reload event."""
         with self.lock:
             self.model_reload_count += 1
             self.current_model = model_name
 
     def get_metrics(self) -> Dict[str, Any]:
-        
+        """Get current metrics summary."""
         with self.lock:
             uptime = time.time() - self.start_time
 
+            # Calculate average response time
             avg_response_time = 0.0
             if self.response_times:
-                avg_response_time = sum(self.response_times) / len(self.response_times) * 1000
+                avg_response_time = sum(self.response_times) / len(self.response_times) * 1000  # Convert to ms
 
+            # Calculate error rate
             error_rate = 0.0
             if self.total_requests > 0:
                 error_rate = self.total_errors / self.total_requests
@@ -95,26 +105,31 @@ class MetricsService:
             }
 
     def get_health_status(self) -> Dict[str, Any]:
-        
+        """Get health status based on metrics."""
         with self.lock:
             uptime = time.time() - self.start_time
 
+            # Determine health status
             status = "healthy"
             issues = []
 
-            if self.total_requests > 10:
+            # Check error rate
+            if self.total_requests > 10:  # Only check if we have enough requests
                 error_rate = self.total_errors / self.total_requests
-                if error_rate > 0.1:
+                if error_rate > 0.1:  # More than 10% errors
                     status = "degraded"
                     issues.append(f"High error rate: {error_rate:.2%}")
 
+            # Check if model is loaded
             if not self.current_model:
                 status = "degraded"
                 issues.append("No model loaded")
 
+            # Check recent activity (if we've had predictions)
             if self.last_prediction_at:
                 time_since_last = datetime.utcnow() - self.last_prediction_at
                 if time_since_last > timedelta(hours=1):
+                    # This might be normal, so just note it
                     issues.append(f"No predictions in {time_since_last}")
 
             return {
@@ -126,7 +141,7 @@ class MetricsService:
             }
 
     def reset_metrics(self):
-        
+        """Reset all metrics (useful for testing)."""
         with self.lock:
             self.total_requests = 0
             self.total_predictions = 0
@@ -142,4 +157,5 @@ class MetricsService:
             self.start_time = time.time()
 
 
+# Global metrics service instance
 metrics_service = MetricsService()

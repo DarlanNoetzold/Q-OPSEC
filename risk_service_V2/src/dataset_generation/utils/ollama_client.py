@@ -12,10 +12,10 @@ logger = get_logger("ollama_client")
 
 
 class OllamaClient:
-    
+    """Client for interacting with local Ollama LLM instance."""
 
     def __init__(self) -> None:
-        
+        """Initialize Ollama client with config."""
         llm_config = default_config_loader.load("llm_config.yaml")
 
         self.base_url = llm_config.get("ollama", {}).get("base_url", "http://localhost:11434")
@@ -29,7 +29,7 @@ class OllamaClient:
         logger.info(f"Ollama client initialized: {self.base_url}, model={self.model}")
 
     def test_connection(self) -> bool:
-        
+        """Test if Ollama server is reachable and model is available."""
         try:
             response = requests.get(f"{self.base_url}/api/tags", timeout=5)
 
@@ -38,8 +38,9 @@ class OllamaClient:
                 return False
 
             models = response.json().get("models", [])
-            model_names = [m.get("name", "").split(":")[0] for m in models]
+            model_names = [m.get("name", "").split(":")[0] for m in models]  # Remove :tag
 
+            # Check if model exists (with or without tag)
             model_base = self.model.split(":")[0]
             if model_base not in model_names and self.model not in [m.get("name", "") for m in models]:
                 logger.warning(f"Model '{self.model}' not found. Available: {[m.get('name') for m in models]}")
@@ -56,7 +57,7 @@ class OllamaClient:
             return False
 
     def generate(self, prompt: str, **kwargs) -> str:
-        
+        """Generate text using Ollama."""
         try:
             params = {
                 "model": self.model,
@@ -86,13 +87,14 @@ class OllamaClient:
             return ""
 
     def assess_transaction_risk(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        
+        """Assess transaction risk using LLM."""
         try:
             prompt_template = self.prompts.get("risk_assessment", {}).get("template", "")
 
             if not prompt_template:
                 return self.fallback_values.get("risk_assessment", {"risk_score": 0.5, "reasoning": "No template"})
 
+            # Safe format - replace missing keys with "N/A"
             safe_context = {
                 "event_type": context.get("event_type", "N/A"),
                 "amount": context.get("amount", "N/A"),
@@ -127,7 +129,7 @@ class OllamaClient:
             return self.fallback_values.get("risk_assessment", {"risk_score": 0.5, "reasoning": str(e)})
 
     def detect_phishing(self, message_text: str) -> Dict[str, Any]:
-        
+        """Detect phishing in message text."""
         try:
             prompt_template = self.prompts.get("phishing_detection", {}).get("template", "")
 

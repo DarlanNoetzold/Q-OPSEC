@@ -1,4 +1,5 @@
 from prometheus_fastapi_instrumentator import Instrumentator
+# main.py
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -48,7 +49,20 @@ def create_app() -> FastAPI:
         version=settings.api_version,
         debug=settings.debug,
         lifespan=lifespan,
-        description=,
+        description="""
+## 🧠 Classification Agent API
+
+API para classificação/predição com:
+- **Predição** (`/predict`)
+- **Métricas e monitoramento** (`/metrics`)
+- **Model ops** (manifest, reload, info)
+- **Datasets** (upload, preview, schema, stats, validate)
+
+### Documentação
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+- OpenAPI JSON: `/openapi.json`
+""",
         openapi_tags=[
             {"name": "Health", "description": "Health checks e endpoints operacionais"},
             {"name": "Model", "description": "Operações do modelo (info/reload/manifest)"},
@@ -109,7 +123,9 @@ if __name__ == "__main__":
         log_level=settings.log_level.lower()
     )
 
+# Monitoring
 
+# AUTO-GENERATED MONITORING
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:

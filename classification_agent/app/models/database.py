@@ -1,3 +1,4 @@
+# app/models/database.py
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -19,7 +20,7 @@ class ModelStatus(str, Enum):
 
 
 class PredictionRecord(Document):
-    
+    """Documento para armazenar registros de predições"""
 
     request_id: Indexed(str) = Field(..., description="ID único da requisição")
     ml_name: Indexed(str) = Field(..., description="Nome do modelo usado")
@@ -44,7 +45,7 @@ class PredictionRecord(Document):
 
 
 class ModelRecord(Document):
-    
+    """Documento para armazenar informações dos modelos"""
 
     name: Indexed(str) = Field(..., description="Nome do modelo")
     version: str = Field(..., description="Versão do modelo")
@@ -70,7 +71,7 @@ class ModelRecord(Document):
 
 
 class MetricRecord(Document):
-    
+    """Documento para armazenar métricas da API"""
 
     endpoint: Indexed(str) = Field(..., description="Endpoint da API")
     method: str = Field(..., description="Método HTTP")
@@ -91,8 +92,9 @@ class MetricRecord(Document):
         ]
 
 
+# Modelos Pydantic usados pelos handlers de erro/validação
 class ErrorResponse(BaseModel):
-    
+    """Modelo para resposta de erro padrão dos handlers"""
     error: str
     message: str
     details: Optional[Dict[str, Any]] = None
@@ -102,7 +104,7 @@ class ErrorResponse(BaseModel):
 
 
 class ValidationErrorDetail(BaseModel):
-    
+    """Detalhe de erro de validação por campo"""
     field: str
     message: str
     value: Optional[Any] = None
@@ -110,7 +112,7 @@ class ValidationErrorDetail(BaseModel):
 
 
 class ValidationErrorResponse(BaseModel):
-    
+    """Resposta de erro de validação (HTTP 422)"""
     error: str = "validation_error"
     details: List[ValidationErrorDetail]
     request_id: Optional[str] = None

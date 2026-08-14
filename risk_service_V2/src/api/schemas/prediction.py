@@ -11,6 +11,7 @@ class BatchRecords(BaseModel):
 
 
 class PredictRequest(BaseModel):
+    # either provide a single record or a list of records
     single: Optional[SingleRecord] = None
     batch: Optional[BatchRecords] = None
     version: Optional[str] = None

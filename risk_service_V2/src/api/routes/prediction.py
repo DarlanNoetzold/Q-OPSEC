@@ -33,6 +33,7 @@ def get_manager() -> ModelManager:
 @router.post("/")
 async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manager)):
     try:
+        # Build input records
         if req.single:
             records = [req.single.features]
         elif req.batch and "records" in req.batch:
@@ -47,6 +48,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
             else:
                 normalized_records.append(r)
 
+        # Optionally load specific version
         if req.version:
             try:
                 manager.load(req.version)
@@ -54,6 +56,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
                 logger.exception(f"Failed to load model version {req.version}: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to load model version {req.version}: {e}")
 
+        # Defensive coercion: ensure feature_names is a list
         if not isinstance(manager.feature_names, list):
             logger.debug(f"Coercing manager.feature_names from {type(manager.feature_names)} to list.")
             try:
@@ -67,10 +70,10 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
         print(f"[{req.request_id}] RISK_SERVICE | SUCCESS | Prediction completed", flush=True)
         logger.info(f"[{req.request_id}] Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
         result = manager.predict(normalized_records, model_names=req.models)
-
+        
         if isinstance(result, dict):
             result["request_id"] = req.request_id
-
+            
         return result
 
         raise

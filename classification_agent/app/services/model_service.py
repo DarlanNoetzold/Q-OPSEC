@@ -36,13 +36,13 @@ class ModelService:
     async def load_latest_model(self, force: bool = False) -> bool:
         try:
             current_file_path = Path(__file__).resolve()
-            project_root = current_file_path.parents[3]
-
+            project_root = current_file_path.parents[3] 
+            
             possible_latest = [
                 project_root / "classify_scheduler" / "model_registry" / "latest.json",
                 Path("/home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json")
             ]
-
+            
             latest_file = next((p for p in possible_latest if p.exists()), None)
             if not latest_file:
                 raise ModelLoadError("latest.json nao encontrado.")
@@ -52,7 +52,7 @@ class ModelService:
 
             tag = model_info.get("tag") or model_info.get("version")
             registry_path = latest_file.parent
-
+            
             model_path = None
             if os.path.exists(registry_path):
                 for entry in os.listdir(registry_path):
@@ -76,11 +76,14 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
+            # Inspecao profunda do Pipeline para separar tipos de colunas
             self.categorical_cols = []
             self.numeric_cols = []
             self.required_columns = []
 
+            # Tenta pegar do ColumnTransformer se existir
             try:
+                # O Pipeline do Q-OPSEC geralmente tem um preprocessor chamado 'preprocessor' ou no step 0
                 step0 = self.model.steps[0][1] if hasattr(self.model, "steps") else None
                 ct = step0 if step0 and hasattr(step0, "transformers_") else self.preprocessor
 
@@ -97,12 +100,13 @@ class ModelService:
 
             if not self.required_columns:
                 self.required_columns = list(model_info.get("required_columns") or [])
+                # Heuristica baseada em nomes se o CT falhar
                 for col in self.required_columns:
                     if any(k in col.lower() for k in ['geo', 'device', 'policy', 'type', 'status', 'classification', 'level']):
                         self.categorical_cols.append(col)
                     else:
                         self.numeric_cols.append(col)
-
+            
             self.classes = [str(c) for c in (model_info.get("classes") or [])]
             self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
             self.model_version = tag
@@ -121,7 +125,7 @@ class ModelService:
         if isinstance(data, dict):
             data = [data]
         df = pd.DataFrame(data)
-
+        
         if self.required_columns:
             for col in self.required_columns:
                 if col not in df.columns:
@@ -129,37 +133,38 @@ class ModelService:
                         df[col] = "unknown"
                     else:
                         df[col] = 0.0
-
+            
             df = df[self.required_columns]
 
+        # Tratamento individual por tipo para evitar o erro de casting
         for col in self.categorical_cols:
             df[col] = df[col].fillna("unknown").astype(str)
-
+        
         for col in self.numeric_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
-
+            
         return df
 
     def predict(self, data: Union[Dict, List]):
         try:
             if not self.is_model_loaded():
                 raise PredictionError("No model loaded")
-
+            
             df = self.validate_input(data)
-
+            
             predictions = self.model.predict(df)
             probabilities = self.model.predict_proba(df)
-
+            
             results = []
             probs = []
             for i, pred in enumerate(predictions):
                 label = self.classes[int(pred)] if (self.classes and int(pred) < len(self.classes)) else str(pred)
                 results.append(label)
                 probs.append(float(np.max(probabilities[i])))
-
+            
             track_id = hashlib.md5(str(datetime.now()).encode()).hexdigest()[:8]
             return results, probs, track_id
-
+            
         except Exception as e:
             logger.error("Prediction failed Detailed", error=str(e))
             raise PredictionError(f"Prediction failed: {str(e)}")

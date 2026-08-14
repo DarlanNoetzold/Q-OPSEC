@@ -27,15 +27,34 @@ class EventMixConfig:
 
 
 class EventGenerator:
-    
+    """Generate raw events for users aligned with 1.1, and basic 1.3/1.4 structure.
+
+    At this stage we generate:
+      - event_id
+      - user_id, account_id
+      - event_type
+      - event_source (approximate)
+      - timestamp_utc
+      - timezone (copied from user)
+      - basic transaction fields: amount, currency, channel, transaction_type
+
+    Detailed features will be filled by feature modules later.
+    """
 
     def __init__(self, users_df: pd.DataFrame) -> None:
-        
+        """
+        Initialize EventGenerator with users DataFrame.
+
+        Args:
+            users_df: DataFrame containing user information
+        """
         self.users_df = users_df
 
+        # Load configs
         self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
         self.user_profiles_cfg = default_config_loader.load("user_profiles.yaml")
 
+        # Set random seed if configured
         random_seed = self.dataset_cfg.get("random_seed", None)
         if random_seed is not None:
             random.seed(random_seed)
@@ -45,6 +64,7 @@ class EventGenerator:
 
     def _load_event_mix(self) -> Dict[str, float]:
         mix_cfg = self.dataset_cfg.get("generation", {}).get("event_mix", {})
+        # Normalize just in case
         total = sum(mix_cfg.values()) or 1.0
         return {k: v / total for k, v in mix_cfg.items()}
 
@@ -61,26 +81,33 @@ class EventGenerator:
         return random.choices(event_types, weights=weights, k=1)[0]
 
     def _sample_timestamp_for_user(self, start_date: datetime, end_date: datetime) -> datetime:
-        
+        """
+        Gera um timestamp com padrão temporal realista (não-uniforme).
+        """
         temporal = self.dataset_cfg.get("temporal_patterns", {})
         hour_weights = temporal.get("events_by_hour_weights", None)
 
+        # Se não houver padrão temporal configurado, usar distribuição uniforme
         if hour_weights is None:
             total_seconds = int((end_date - start_date).total_seconds())
             offset = random.randint(0, total_seconds)
             return start_date + timedelta(seconds=offset)
 
+        # Normalizar pesos
         hour_weights = np.array(hour_weights, dtype=float)
         hour_weights = hour_weights / hour_weights.sum()
 
+        # Gerar data uniforme
         total_days = (end_date - start_date).days
         day_offset = random.randint(0, total_days)
         base_date = start_date + timedelta(days=day_offset)
 
+        # Gerar hora com distribuição ponderada
         hour = np.random.choice(np.arange(24), p=hour_weights)
         minute = random.randint(0, 59)
         second = random.randint(0, 59)
 
+        # Combinar
         timestamp = base_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
             hours=int(hour), minutes=minute, seconds=second
         )
@@ -115,7 +142,13 @@ class EventGenerator:
         }
 
     def generate_events(self) -> pd.DataFrame:
-        
+        """Generate events for each user.
+
+        Returns a DataFrame of raw events with basic columns:
+          - event_id, user_id, account_id, event_type, event_source,
+            timestamp_utc, timezone,
+            amount, currency, transaction_type, channel (for transactions only).
+        """
         gen_cfg = self.dataset_cfg["generation"]
         start_date = datetime.fromisoformat(gen_cfg["start_date"])
         end_date = datetime.fromisoformat(gen_cfg["end_date"])
@@ -147,6 +180,7 @@ class EventGenerator:
                 if event_type == "transaction":
                     base_record.update(self._sample_transaction_details(user))
                 else:
+                    # For non-transaction, set NaNs for transaction fields
                     base_record.update(
                         {
                             "amount": np.nan,
@@ -164,6 +198,7 @@ class EventGenerator:
         return events_df
 
     def _infer_event_source(self, event_type: str, user_row: pd.Series) -> str:
+        # Simple heuristic for now
         if event_type in {"login", "transaction"}:
             profile_cfg = self.user_profiles_cfg["profiles"][user_row["profile_name"]]
             channel_dist = profile_cfg["transaction_behavior"].get(
@@ -192,6 +227,7 @@ class EventGenerator:
 
     def _infer_channel_from_source(self, event_source: str) -> str:
         if event_source == "mobile_app":
+            # randomly android/ios
             return random.choice(["mobile_android", "mobile_ios"])
         if event_source == "web_app":
             return "web"

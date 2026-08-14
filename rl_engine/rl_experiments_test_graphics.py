@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-
+# -*- coding: utf-8 -*-
+"""
+SYNTHETIC RL ENGINE EXPERIMENT - REALISTIC VERSION
+Gera dados artificiais determinísticos com:
+ - Variação realista entre algoritmos (alguns mais usados, outros menos)
+ - Taxa de sucesso realista (~85-92%, não 100%)
+ - Ruído nos dados (latência, recursos, etc.)
+ - Falhas ocasionais
+ - Padrões mais naturais
+"""
 
 import json
 import csv
@@ -8,6 +17,9 @@ import statistics
 from datetime import datetime
 from typing import Dict, List, Any
 
+# ====================================================================== #
+# Lista de algoritmos                                                    #
+# ====================================================================== #
 ALGORITHMS = [
     "QKD_BB84", "QKD_E91", "QKD_CV-QKD", "QKD_MDI-QKD", "QKD_DECOY",
     "PQC_KYBER", "PQC_DILITHIUM", "PQC_NTRU", "PQC_SABER", "PQC_FALCON",
@@ -23,29 +35,33 @@ class SyntheticRLExperiment:
         self.metrics_history: List[Dict[str, Any]] = []
         self.algorithm_usage_counter: Dict[str, int] = {}
 
+        # Pesos de preferência por algoritmo (alguns mais usados que outros)
         self.algorithm_weights = {
-            "PQC_KYBER": 1.8,
-            "PQC_DILITHIUM": 1.6,
-            "HYBRID_QKD_PQC": 1.4,
-            "QKD_BB84": 1.3,
-            "AES_256_GCM": 1.2,
-            "PQC_FALCON": 1.1,
-            "RSA_4096": 1.0,
-            "ECC_521": 1.0,
-            "PQC_NTRU": 0.9,
-            "QKD_E91": 0.8,
-            "HYBRID_RSA_PQC": 0.8,
-            "QKD_CV-QKD": 0.7,
-            "PQC_SABER": 0.7,
-            "CHACHA20_POLY1305": 0.6,
-            "QKD_MDI-QKD": 0.5,
-            "QKD_DECOY": 0.5,
-            "HYBRID_ECC_PQC": 0.5,
-            "PQC_SPHINCS": 0.4,
-            "AES_192": 0.3,
-            "FALLBACK_AES": 0.2
+            "PQC_KYBER": 1.8,  # Muito usado
+            "PQC_DILITHIUM": 1.6,  # Muito usado
+            "HYBRID_QKD_PQC": 1.4,  # Bastante usado
+            "QKD_BB84": 1.3,  # Bastante usado
+            "AES_256_GCM": 1.2,  # Comum
+            "PQC_FALCON": 1.1,  # Comum
+            "RSA_4096": 1.0,  # Normal
+            "ECC_521": 1.0,  # Normal
+            "PQC_NTRU": 0.9,  # Menos usado
+            "QKD_E91": 0.8,  # Menos usado
+            "HYBRID_RSA_PQC": 0.8,  # Menos usado
+            "QKD_CV-QKD": 0.7,  # Pouco usado
+            "PQC_SABER": 0.7,  # Pouco usado
+            "CHACHA20_POLY1305": 0.6,  # Pouco usado
+            "QKD_MDI-QKD": 0.5,  # Raro
+            "QKD_DECOY": 0.5,  # Raro
+            "HYBRID_ECC_PQC": 0.5,  # Raro
+            "PQC_SPHINCS": 0.4,  # Muito raro
+            "AES_192": 0.3,  # Muito raro
+            "FALLBACK_AES": 0.2  # Emergência apenas
         }
 
+    # ------------------------------------------------------------------ #
+    # Utilitários determinísticos com ruído                              #
+    # ------------------------------------------------------------------ #
 
     @staticmethod
     def _algo_family(algo: str) -> str:
@@ -66,7 +82,10 @@ class SyntheticRLExperiment:
         return "FALLBACK"
 
     def _pseudo_noise(self, seed: int, amplitude: float = 1.0) -> float:
-        
+        """
+        Gera ruído determinístico usando função senoidal composta
+        Retorna valor entre -amplitude e +amplitude
+        """
         x = seed * 0.1
         noise = (
                 0.5 * (((seed * 17) % 100) / 100.0 - 0.5) +
@@ -76,36 +95,50 @@ class SyntheticRLExperiment:
         return noise * amplitude
 
     def _should_match(self, global_step: int, scenario_idx: int, expected_algo: str) -> bool:
-        
+        """
+        Define se vai dar match, considerando peso do algoritmo
+        Algoritmos mais populares têm maior chance de match
+        """
         weight = self.algorithm_weights.get(expected_algo, 1.0)
 
-        base_match_rate = 65 + (weight * 10)
+        # Base: ~75-85% de match dependendo do peso
+        base_match_rate = 65 + (weight * 10)  # 65% a 83%
 
+        # Hash determinístico
         h = (global_step * 19 + scenario_idx * 13) % 100
 
         return h < base_match_rate
 
     def _calculate_success(self, global_step: int, scenario_idx: int,
                            match: bool, expected_algo: str, security_level: str) -> bool:
-        
+        """
+        Calcula sucesso com base em múltiplos fatores
+        - Match/mismatch
+        - Tipo de algoritmo
+        - Nível de segurança
+        - Ruído
+        """
+        # Taxa base
         if match:
-            base_rate = 92
+            base_rate = 92  # 92% quando acerta
         else:
-            base_rate = 68
+            base_rate = 68  # 68% quando erra
 
+        # Ajuste por família de algoritmo
         family = self._algo_family(expected_algo)
         family_bonus = {
-            'PQC': 3,
-            'HYBRID': 2,
-            'QKD': 0,
-            'AES': -2,
+            'PQC': 3,  # PQC é mais confiável
+            'HYBRID': 2,  # Hybrid também
+            'QKD': 0,  # QKD neutro
+            'AES': -2,  # AES clássico menos
             'RSA': -2,
             'ECC': -2,
             'CHACHA': -3,
-            'FALLBACK': -5
+            'FALLBACK': -5  # Fallback pior
         }
         base_rate += family_bonus.get(family, 0)
 
+        # Ajuste por nível de segurança (ultra é mais exigente)
         security_penalty = {
             'ultra': -5,
             'very_high': -3,
@@ -114,17 +147,22 @@ class SyntheticRLExperiment:
         }
         base_rate += security_penalty.get(security_level, 0)
 
+        # Adiciona ruído
         noise = self._pseudo_noise(global_step + scenario_idx * 7, amplitude=8)
         final_rate = base_rate + noise
 
+        # Limita entre 10% e 98%
         final_rate = max(10, min(98, final_rate))
 
+        # Decisão determinística
         h = (global_step * 23 + scenario_idx * 11) % 100
         return h < final_rate
 
     def _calculate_latency(self, expected_algo: str, success: bool,
                            global_step: int, security_level: str) -> float:
-        
+        """
+        Latência com ruído e variação realista
+        """
         latency_map = {
             'QKD': (50, 95),
             'PQC': (28, 58),
@@ -139,9 +177,11 @@ class SyntheticRLExperiment:
         family = self._algo_family(expected_algo)
         base_min, base_max = latency_map.get(family, (30, 60))
 
+        # Variação cíclica
         phase = ((global_step * 7) % 100) / 100.0
         base = base_min + (base_max - base_min) * phase
 
+        # Penalidade por nível de segurança
         security_mult = {
             'ultra': 1.3,
             'very_high': 1.15,
@@ -150,19 +190,24 @@ class SyntheticRLExperiment:
         }
         base *= security_mult.get(security_level, 1.0)
 
+        # Falha = muito mais lento
         if not success:
             base *= 2.8
 
+        # Adiciona ruído significativo
         noise = self._pseudo_noise(global_step * 3, amplitude=base * 0.25)
         latency = base + noise
 
+        # Garante mínimo
         latency = max(5.0, latency)
 
         return round(latency, 2)
 
     def _calculate_resource(self, expected_algo: str, success: bool,
                             global_step: int) -> float:
-        
+        """
+        Uso de recurso com variação
+        """
         resource_map = {
             'QKD': 0.85,
             'PQC': 0.68,
@@ -177,9 +222,11 @@ class SyntheticRLExperiment:
         family = self._algo_family(expected_algo)
         base = resource_map.get(family, 0.50)
 
+        # Variação
         osc = self._pseudo_noise(global_step * 5, amplitude=0.12)
         value = base + osc
 
+        # Falha consome mais
         if not success:
             value *= 1.15
 
@@ -187,9 +234,13 @@ class SyntheticRLExperiment:
         return round(value, 2)
 
     def _calculate_response_time(self, global_step: int, latency: float) -> float:
-        
+        """
+        Tempo de resposta correlacionado com latência
+        """
+        # Base proporcional à latência
         base = 0.012 + (latency / 1000.0) * 0.3
 
+        # Ruído
         noise = self._pseudo_noise(global_step * 11, amplitude=0.008)
 
         response = base + noise
@@ -198,11 +249,14 @@ class SyntheticRLExperiment:
         return round(response, 4)
 
     def _compute_diversity_penalty(self, algo: str, global_step: int) -> float:
-        
+        """
+        Penalidade de diversidade mais suave
+        """
         total_so_far = sum(self.algorithm_usage_counter.values())
         if total_so_far < 20:
             return 0.0
 
+        # Uso esperado considerando peso
         total_weight = sum(self.algorithm_weights.values())
         algo_weight = self.algorithm_weights.get(algo, 1.0)
         expected = (total_so_far * algo_weight) / total_weight
@@ -214,6 +268,7 @@ class SyntheticRLExperiment:
 
         ratio = used / expected
 
+        # Penalidade suave
         if ratio <= 1.5:
             return 0.0
         elif ratio <= 2.0:
@@ -225,19 +280,26 @@ class SyntheticRLExperiment:
 
     def _select_proposed_algorithm(self, expected_algo: str, is_match: bool,
                                    global_step: int, scenario_idx: int) -> List[str]:
-        
+        """
+        Seleciona algoritmo proposto de forma mais realista
+        """
         if is_match:
             return [expected_algo]
 
+        # Quando não dá match, escolhe outro baseado em pesos
+        # Cria lista ponderada
         candidates = []
         for algo, weight in self.algorithm_weights.items():
             if algo != expected_algo:
+                # Adiciona múltiplas vezes baseado no peso
                 count = int(weight * 10)
                 candidates.extend([algo] * count)
 
+        # Seleciona deterministicamente
         idx = (global_step * 29 + scenario_idx * 37) % len(candidates)
         selected = candidates[idx]
 
+        # 30% de chance de incluir o esperado como fallback
         include_expected = ((global_step + scenario_idx) % 10) < 3
 
         if include_expected:
@@ -245,11 +307,16 @@ class SyntheticRLExperiment:
         else:
             return [selected]
 
+    # ------------------------------------------------------------------ #
+    # Execução sintética                                                 #
+    # ------------------------------------------------------------------ #
 
     def run_experiment(self, scenarios: List[Dict[str, Any]],
                        episodes: int = 30,
                        iterations_per_episode: int = 50) -> Dict[str, Any]:
-        
+        """
+        Executa experimento sintético com dados realistas
+        """
         total_requests = episodes * iterations_per_episode * len(scenarios)
         print("=" * 80)
         print("SYNTHETIC RL ENGINE EXPERIMENT - REALISTIC VERSION")
@@ -288,19 +355,24 @@ class SyntheticRLExperiment:
                     expected_algo = scenario['expected_algorithm']
                     security_level = scenario['context']['security_level']
 
+                    # 1) Match/mismatch com peso
                     is_match = self._should_match(global_step, s_idx, expected_algo)
 
+                    # 2) Algoritmo proposto
                     proposed_algos = self._select_proposed_algorithm(
                         expected_algo, is_match, global_step, s_idx
                     )
 
+                    # Contabiliza uso
                     for p in proposed_algos:
                         self.algorithm_usage_counter[p] = self.algorithm_usage_counter.get(p, 0) + 1
 
+                    # 3) Sucesso com ruído
                     success = self._calculate_success(
                         global_step, s_idx, is_match, expected_algo, security_level
                     )
 
+                    # 4) Métricas com ruído
                     latency = self._calculate_latency(
                         expected_algo, success, global_step, security_level
                     )
@@ -313,6 +385,7 @@ class SyntheticRLExperiment:
                     if success:
                         ep_success += 1
 
+                    # 5) Penalidade de diversidade
                     diversity_penalty = self._compute_diversity_penalty(expected_algo, global_step)
 
                     result_data = {
@@ -336,6 +409,7 @@ class SyntheticRLExperiment:
 
                     self.results.append(result_data)
 
+            # Métricas do episódio
             episode_elapsed = time.time() - episode_start
             success_rate_ep = (ep_success / ep_count * 100) if ep_count > 0 else 0
             avg_lat_ep = statistics.mean(ep_latencies) if ep_latencies else 0.0
@@ -361,6 +435,9 @@ class SyntheticRLExperiment:
 
         return self.generate_report()
 
+    # ------------------------------------------------------------------ #
+    # Relatório                                                          #
+    # ------------------------------------------------------------------ #
 
     def generate_report(self) -> Dict[str, Any]:
         print("\n📊 Generating synthetic report...")
@@ -547,6 +624,9 @@ class SyntheticRLExperiment:
         }
 
 
+# ---------------------------------------------------------------------- #
+# Cenários sintéticos                                                    #
+# ---------------------------------------------------------------------- #
 
 SYNTHETIC_SCENARIOS = [
     {

@@ -53,6 +53,7 @@ class ContextRequest(BaseModel):
         populate_by_name = True
         extra = "allow"
 
+    # Optional enhanced fields
     source_reputation: Optional[float] = Field(None, ge=0.0, le=1.0)
     source_location_risk: Optional[float] = Field(None, ge=0.0, le=1.0)
     data_sensitivity: Optional[float] = Field(None, ge=0.0, le=1.0)
@@ -86,6 +87,7 @@ def act(req: ContextRequest):
         print(f"  risk_score: {req.risk_score}")
         print(f"{'=' * 60}\n")
 
+        # Sincronização PhD para o orquestrador capturar o retorno
         req_dict = req.model_dump()
         req_dict["request_id"] = request_id
         req_dict["requestId"] = request_id
@@ -126,6 +128,7 @@ def act(req: ContextRequest):
         traceback.print_exc()
         print(f"{'!' * 60}\\n")
 
+        # Process failure feedback
         outcome = {
             "success": False,
             "latency": 0.0,
@@ -307,6 +310,7 @@ if __name__ == "__main__":
         port=settings.port,
         log_level=settings.log_level.lower()
     )
+
 
 
 

@@ -34,7 +34,21 @@ class UserProfileConfig:
 
 
 class UserGenerator:
-    
+    """Generate synthetic users aligned with section 1.2 (User / Account).
+
+    Fields produced per user:
+      - user_id
+      - account_id
+      - user_type
+      - user_segment
+      - user_risk_class
+      - account_creation_date
+      - account_age_days (computed later given event timestamp)
+      - registered_country
+      - registered_region (synthetic)
+      - timezone
+      - base profile info used later for behavior
+    """
 
     def __init__(self, random_seed: int | None = None) -> None:
         if random_seed is not None:
@@ -81,21 +95,26 @@ class UserGenerator:
         return random.choices(self.profiles, weights=self.profile_weights, k=1)[0]
 
     def _sample_account_creation_date(self, start_date: datetime, end_date: datetime) -> datetime:
-        
+        """Sample an account creation date before end_date, up to 3 years back."""
         max_age_days = 365 * 3
         end_minus = end_date - timedelta(days=random.randint(0, max_age_days))
+        # Ensure not before global start_date
         if end_minus < start_date:
             end_minus = start_date
         return end_minus
 
     def generate_users(self) -> pd.DataFrame:
-        
+        """Generate users according to dataset_config.generation.num_users.
+
+        Returns a DataFrame with one row per user.
+        """
         gen_cfg = self.dataset_cfg.get("generation", {})
         num_users = int(gen_cfg.get("num_users", 1000))
-
+        
+        # DEBUG: se o valor for muito alto para um teste rápido, forçamos baixo se detectarmos ambiente de teste
         if os.environ.get("HERMES_VERIFY"):
              num_users = 2
-
+             
         start_date_str = gen_cfg["start_date"]
         end_date_str = self.dataset_cfg["generation"]["end_date"]
         start_date = datetime.fromisoformat(start_date_str)
@@ -109,6 +128,7 @@ class UserGenerator:
             account_id = f"A{user_idx:07d}"
 
             registered_country = random.choice(profile.country_pool)
+            # synthetic region name using Faker
             registered_region = self.faker.state_abbr() if registered_country == "US" else self.faker.state()
 
             timezone_name = random.choice(profile.timezone_pool)
@@ -128,6 +148,7 @@ class UserGenerator:
                 "registered_region": registered_region,
                 "timezone": timezone_name,
                 "account_creation_date": account_creation_date.date(),
+                # we'll compute account_age_days later per event based on event timestamp
                 "profile_name": profile.name,
                 "events_per_month_mean": profile.events_per_month_mean,
                 "events_per_month_std": profile.events_per_month_std,

@@ -10,10 +10,26 @@ logger = get_logger("device_environment_features")
 
 
 def add_device_environment_features(events: pd.DataFrame) -> pd.DataFrame:
-    
+    """Add 1.6 Device / Environment features.
+
+    Fields (mostly synthetic/derived at this stage):
+      - device_id
+      - device_type (mobile, desktop, tablet, etc.)
+      - os_family (Android, iOS, Windows, macOS, Linux, etc.)
+      - os_version
+      - browser_family
+      - browser_version
+      - app_version
+      - is_emulator
+      - is_rooted_or_jailbroken
+      - is_device_compromised (placeholder heuristic)
+      - is_new_device_for_user
+      - devices_last_30d
+    """
 
     df = events.copy()
 
+    # Garantir colunas básicas (podem ter vindo do gerador de eventos/perfis)
     base_cols_defaults = {
         "device_id": None,
         "device_type": "unknown",
@@ -30,31 +46,38 @@ def add_device_environment_features(events: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             df[col] = default
 
+    # Ordenar por usuário e tempo para lógicas de histórico
     if not pd.api.types.is_datetime64_any_dtype(df["timestamp_utc"]):
         df["timestamp_utc"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
     df = df.sort_values(["user_id", "timestamp_utc"]).reset_index(drop=True)
 
+    # Novos campos
     df["is_new_device_for_user"] = 0
     df["devices_last_30d"] = 0
-    df["is_device_compromised"] = 0
+    df["is_device_compromised"] = 0  # placeholder, pode usar fraude/cenário depois
 
+    # cálculo por usuário
     def _per_user(user_df: pd.DataFrame) -> pd.DataFrame:
         user_df = user_df.copy()
-
+        
+        # Se por algum motivo o groupby resultou em df vazio
         if user_df.empty:
             return user_df
-
+        
+        # Garantir user_id se ele foi movido para o index (embora as_index=False previna isso no groupby principal)
         if "user_id" not in user_df.columns:
             if user_df.index.name == "user_id":
                 user_df = user_df.reset_index()
             elif "user_id" in user_df.index.names:
                 user_df = user_df.reset_index()
 
+        # is_new_device_for_user via duplicated
         user_df["is_new_device_for_user"] = (
             ~user_df["device_id"].astype(str).duplicated()
         ).astype(int)
 
+        # devices_last_30d: número de devices distintos nos últimos 30 dias
         times = user_df["timestamp_utc"].values.astype("datetime64[s]").astype("int64")
         device_ids = user_df["device_id"].astype(str).values
 
@@ -72,6 +95,8 @@ def add_device_environment_features(events: pd.DataFrame) -> pd.DataFrame:
 
         user_df["devices_last_30d"] = devices_last_30d
 
+        # Heurística simples para is_device_compromised:
+        # marcar 1 se is_emulator ou is_rooted_or_jailbroken, ou se device_type == "unknown" e evento suspeito
         compromised = (
             (user_df["is_emulator"].astype(int) == 1)
             | (user_df["is_rooted_or_jailbroken"].astype(int) == 1)

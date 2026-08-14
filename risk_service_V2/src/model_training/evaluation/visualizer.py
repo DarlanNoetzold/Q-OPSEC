@@ -1,4 +1,6 @@
-
+"""
+Visualizer - Create evaluation plots and charts
+"""
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,7 +19,7 @@ from src.common.logger import logger
 
 
 class Visualizer:
-    
+    """Create evaluation visualizations."""
 
     def __init__(self, config: dict, output_dir: Path):
         self.config = config
@@ -38,7 +40,7 @@ class Visualizer:
         feature_importance: pd.DataFrame = None,
         version: str = "v1",
     ):
-        
+        """Create all configured plots."""
         if not self.enabled:
             logger.info("   ⚠️  Visualizations disabled")
             return
@@ -65,7 +67,7 @@ class Visualizer:
     def plot_confusion_matrix(
         self, y_true, y_pred, model_name: str, output_dir: Path
     ):
-        
+        """Plot confusion matrix."""
         cm = confusion_matrix(y_true, y_pred)
 
         plt.figure(figsize=(8, 6))
@@ -87,7 +89,7 @@ class Visualizer:
         plt.close()
 
     def plot_roc_curve(self, y_true, y_proba, model_name: str, output_dir: Path):
-        
+        """Plot ROC curve."""
         fpr, tpr, _ = roc_curve(y_true, y_proba[:, 1])
         roc_auc = auc(fpr, tpr)
 
@@ -110,7 +112,7 @@ class Visualizer:
     def plot_precision_recall_curve(
         self, y_true, y_proba, model_name: str, output_dir: Path
     ):
-        
+        """Plot precision-recall curve."""
         precision, recall, _ = precision_recall_curve(y_true, y_proba[:, 1])
         pr_auc = average_precision_score(y_true, y_proba[:, 1])
 
@@ -130,7 +132,7 @@ class Visualizer:
     def plot_feature_importance(
         self, feature_importance: pd.DataFrame, model_name: str, output_dir: Path
     ):
-        
+        """Plot feature importance."""
         top_n = self.config.get("evaluation", {}).get("feature_importance", {}).get("top_n", 30)
         df = feature_importance.head(top_n)
 
@@ -154,7 +156,7 @@ class Visualizer:
         output_dir: Path,
         thresholds=None,
     ):
-        
+        """Plot threshold analysis."""
         if thresholds is None:
             thresholds = np.linspace(0.1, 0.9, 81)
 

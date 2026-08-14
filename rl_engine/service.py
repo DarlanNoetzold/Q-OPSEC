@@ -18,10 +18,21 @@ class ImprovedRLEngineService:
     def __init__(self, registry_path: Path = Path("./rl_registry.json"),
                  use_dqn: bool = False,
                  policy_type: str = "context_aware"):
-        
+        """
+        Args:
+            registry_path: Path to save/load Q-table
+            use_dqn: Whether to use DQN (True) or Q-learning (False)
+            policy_type: Type of policy to use
+                - "epsilon_greedy": Standard epsilon-greedy
+                - "boltzmann": Softmax exploration
+                - "ucb": Upper Confidence Bound
+                - "adaptive": Adaptive strategy switching
+                - "context_aware": Context-aware exploration
+                - "safe": Safe exploration with constraints
+        """
         self.env = EnhancedEnvironment()
 
-        state_dim = 18
+        state_dim = 18  # From compute_state_vector
         action_space_size = len(CryptoAlgorithm)
         self.agent = HybridRLAgent(state_dim, action_space_size, use_dqn=use_dqn)
 
@@ -65,9 +76,19 @@ class ImprovedRLEngineService:
             return EpsilonGreedyPolicy(epsilon=0.2)
 
     def decide_algorithms(self, context: Dict[str, Any]) -> List[str]:
-        
+        """
+        Decide cryptographic algorithms based on context
+        Uses RL agent to select optimal algorithm
+
+        Args:
+            context: Request context with risk/conf scores
+
+        Returns:
+            List of algorithm names
+        """
         features = self.env.extract_features(context)
 
+        # Handle None values properly
         risk_score = context.get("risk_score")
         if risk_score is None:
             risk_score = 0.5
@@ -76,6 +97,7 @@ class ImprovedRLEngineService:
         if conf_score is None:
             conf_score = 0.5
 
+        # PHD-PRIORITY: If Orchestrator already decided a level, respect it string-to-enum
         suggested_lvl = context.get("security_level")
         if suggested_lvl and suggested_lvl in [lvl.name for lvl in SecurityLevel]:
             security_level = SecurityLevel[suggested_lvl]
@@ -134,7 +156,16 @@ class ImprovedRLEngineService:
         return algorithms
 
     def build_negotiation_payload(self, req: Dict[str, Any]) -> Dict[str, Any]:
-        
+        """
+        Build negotiation payload for handshake
+        Maintains API compatibility
+
+        Args:
+            req: Request dictionary with context
+
+        Returns:
+            Negotiation payload
+        """
         proposed_algorithms = self.decide_algorithms(req)
 
         payload = {
@@ -154,10 +185,12 @@ class ImprovedRLEngineService:
         return payload
 
     def _get_security_level_name(self, context: Dict[str, Any]) -> str:
+        # PHD-PRIORITY: Keep consistency with decide_algorithms
         suggested_lvl = context.get("security_level")
         if suggested_lvl and suggested_lvl in [lvl.name for lvl in SecurityLevel]:
             return suggested_lvl
 
+        # Handle None values properly
         risk_score = context.get("risk_score")
         if risk_score is None:
             risk_score = 0.5
@@ -170,7 +203,14 @@ class ImprovedRLEngineService:
         return security_level.name
 
     def process_feedback(self, request_id: str, outcome: Dict[str, Any]):
-        
+        """
+        Process feedback from negotiation outcome
+        Updates RL agent based on reward
+
+        Args:
+            request_id: Request identifier
+            outcome: Outcome dictionary with success, latency, etc.
+        """
         if not self.training_mode or not self.current_episode_experiences:
             return
 

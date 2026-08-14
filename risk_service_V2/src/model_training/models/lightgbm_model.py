@@ -1,4 +1,6 @@
-
+"""
+LightGBM Model
+"""
 import pandas as pd
 import numpy as np
 import lightgbm as lgb
@@ -8,7 +10,7 @@ from src.common.logger import logger
 
 
 class LightGBMModel(BaseModel):
-    
+    """LightGBM classifier."""
 
     def __init__(self, config: dict):
         super().__init__(config, model_name='lightgbm')
