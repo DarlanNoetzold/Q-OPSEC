@@ -289,6 +289,7 @@ async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     # PhD Training V2 Pipeline integration
     if service_name in ["risk_service", "risk_service_v2"]:
         import subprocess
+        print(f"[ORCHESTRATOR] Triggering Autonomous Dataset Pipeline for {service_name}", flush=True)
         # Novo script que faz Generate then Train
         script = "/home/umbrel/projetos/Q-OPSEC/risk_service_V2/phd_autonomous_trigger.py"
         venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
