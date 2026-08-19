@@ -76,14 +76,14 @@ class ModelService:
                 self.model = artifact
                 self.preprocessor = None
 
-            # Inspecao profunda do Pipeline para separar tipos de colunas
+
             self.categorical_cols = []
             self.numeric_cols = []
             self.required_columns = []
 
-            # Tenta pegar do ColumnTransformer se existir
+
             try:
-                # O Pipeline do Q-OPSEC geralmente tem um preprocessor chamado 'preprocessor' ou no step 0
+
                 step0 = self.model.steps[0][1] if hasattr(self.model, "steps") else None
                 ct = step0 if step0 and hasattr(step0, "transformers_") else self.preprocessor
 
@@ -100,7 +100,7 @@ class ModelService:
 
             if not self.required_columns:
                 self.required_columns = list(model_info.get("required_columns") or [])
-                # Heuristica baseada em nomes se o CT falhar
+
                 for col in self.required_columns:
                     if any(k in col.lower() for k in ['geo', 'device', 'policy', 'type', 'status', 'classification', 'level']):
                         self.categorical_cols.append(col)
@@ -136,7 +136,7 @@ class ModelService:
             
             df = df[self.required_columns]
 
-        # Tratamento individual por tipo para evitar o erro de casting
+
         for col in self.categorical_cols:
             df[col] = df[col].fillna("unknown").astype(str)
         

@@ -1,4 +1,4 @@
-# app/models/database.py
+
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -92,7 +92,7 @@ class MetricRecord(Document):
         ]
 
 
-# Modelos Pydantic usados pelos handlers de erro/validação
+
 class ErrorResponse(BaseModel):
     """Modelo para resposta de erro padrão dos handlers"""
     error: str

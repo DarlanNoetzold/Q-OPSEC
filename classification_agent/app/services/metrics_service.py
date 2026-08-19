@@ -20,27 +20,27 @@ class MetricsService:
         self.start_time = time.time()
         self.lock = Lock()
 
-        # Counters
+
         self.total_requests = 0
         self.total_predictions = 0
         self.total_errors = 0
         self.model_reload_count = 0
 
-        # Response times (sliding window)
+
         self.response_times = deque(maxlen=max_history_size)
 
-        # Error tracking
+
         self.error_counts = defaultdict(int)
 
-        # Request tracking
+
         self.requests_by_endpoint = defaultdict(int)
         self.requests_by_status = defaultdict(int)
 
-        # Prediction tracking
+
         self.predictions_by_model = defaultdict(int)
         self.last_prediction_at: Optional[datetime] = None
 
-        # Current model
+
         self.current_model: Optional[str] = None
 
     def record_request(self, endpoint: str, method: str, status_code: int, response_time: float):
@@ -78,12 +78,12 @@ class MetricsService:
         with self.lock:
             uptime = time.time() - self.start_time
 
-            # Calculate average response time
+
             avg_response_time = 0.0
             if self.response_times:
-                avg_response_time = sum(self.response_times) / len(self.response_times) * 1000  # Convert to ms
+                avg_response_time = sum(self.response_times) / len(self.response_times) * 1000
 
-            # Calculate error rate
+
             error_rate = 0.0
             if self.total_requests > 0:
                 error_rate = self.total_errors / self.total_requests
@@ -109,27 +109,27 @@ class MetricsService:
         with self.lock:
             uptime = time.time() - self.start_time
 
-            # Determine health status
+
             status = "healthy"
             issues = []
 
-            # Check error rate
-            if self.total_requests > 10:  # Only check if we have enough requests
+
+            if self.total_requests > 10:
                 error_rate = self.total_errors / self.total_requests
-                if error_rate > 0.1:  # More than 10% errors
+                if error_rate > 0.1:
                     status = "degraded"
                     issues.append(f"High error rate: {error_rate:.2%}")
 
-            # Check if model is loaded
+
             if not self.current_model:
                 status = "degraded"
                 issues.append("No model loaded")
 
-            # Check recent activity (if we've had predictions)
+
             if self.last_prediction_at:
                 time_since_last = datetime.utcnow() - self.last_prediction_at
                 if time_since_last > timedelta(hours=1):
-                    # This might be normal, so just note it
+
                     issues.append(f"No predictions in {time_since_last}")
 
             return {
@@ -157,5 +157,5 @@ class MetricsService:
             self.start_time = time.time()
 
 
-# Global metrics service instance
+
 metrics_service = MetricsService()

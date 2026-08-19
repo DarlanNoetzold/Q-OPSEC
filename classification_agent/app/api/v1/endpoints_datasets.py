@@ -1,4 +1,4 @@
-# app/api/v1/endpoints_datasets.py
+
 """
 Endpoints para gestão de datasets: upload, download, preview, schema, stats e validação.
 """
@@ -18,14 +18,14 @@ from ...services.model_service import model_service
 logger = get_logger(__name__)
 router = APIRouter()
 
-# Configuração do diretório de datasets (usando raw string para Windows)
+
 DATASETS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\datasets").resolve()
 DATASETS_ROOT.mkdir(parents=True, exist_ok=True)
 
 
-# ============================================================================
-# Schemas
-# ============================================================================
+
+
+
 
 class DatasetInfo(BaseModel):
     """Informações de um dataset"""
@@ -41,9 +41,9 @@ class CreateDatasetRequest(BaseModel):
     name: str = Field(..., min_length=1, description="Nome do dataset (será criado como diretório)")
 
 
-# ============================================================================
-# Dataset Management Endpoints
-# ============================================================================
+
+
+
 
 @router.get(
     "/datasets",
@@ -202,7 +202,7 @@ async def delete_dataset(name: str, user=Depends(require_auth)):
     if not target.is_dir():
         raise HTTPException(400, detail="Not a dataset directory")
 
-    # Delete recursivamente
+
     for p in target.rglob("*"):
         if p.is_file():
             p.unlink(missing_ok=True)
@@ -215,9 +215,9 @@ async def delete_dataset(name: str, user=Depends(require_auth)):
     return JSONResponse(status_code=204, content=None)
 
 
-# ============================================================================
-# File Management Endpoints
-# ============================================================================
+
+
+
 
 @router.post(
     "/datasets/{name}/files",
@@ -275,7 +275,7 @@ async def upload_file(
     if dest.exists() and not override:
         raise HTTPException(409, detail="File already exists. Use override=true")
 
-    # Upload com arquivo temporário
+
     tmp = dest.with_suffix(dest.suffix + ".part")
     with tmp.open("wb") as out:
         shutil.copyfileobj(file.file, out)
@@ -378,9 +378,9 @@ async def delete_file(name: str, filename: str, user=Depends(require_auth)):
     return JSONResponse(status_code=204, content=None)
 
 
-# ============================================================================
-# Metadata Endpoints
-# ============================================================================
+
+
+
 
 @router.post(
     "/datasets/{name}/metadata",
@@ -464,9 +464,9 @@ async def get_metadata(name: str, user=Depends(get_current_user)):
         return {"metadata": json.load(f)}
 
 
-# ============================================================================
-# Data Analysis Endpoints (Preview, Schema, Stats)
-# ============================================================================
+
+
+
 
 def _read_table(path: Path, nrows: Optional[int] = None):
     """
@@ -686,7 +686,7 @@ async def stats(
         import pandas as pd
         df = _read_table(path)
         desc_num = df.describe(include=["number"]).to_dict()
-        # Frequências para categóricas (top 10)
+
         cat_cols = [c for c in df.columns if df[c].dtype == "object"]
         cat_freqs = {c: df[c].value_counts().head(10).to_dict() for c in cat_cols}
         return {"describe_numeric": desc_num, "categorical_freqs": cat_freqs}
@@ -695,9 +695,9 @@ async def stats(
         raise HTTPException(400, detail=f"Stats failed: {e}")
 
 
-# ============================================================================
-# Validation Endpoint
-# ============================================================================
+
+
+
 
 @router.post(
     "/datasets/{name}/validate",
@@ -754,7 +754,7 @@ async def validate_dataset(
     if not path.exists() or DATASETS_ROOT not in path.parents:
         raise HTTPException(404, detail="File not found")
     try:
-        df = _read_table(path, nrows=200)  # sample
+        df = _read_table(path, nrows=200)
         required = set(model_service.get_required_columns() or [])
         missing = [c for c in required if c not in df.columns]
         extra = [c for c in df.columns if c not in required] if required else []

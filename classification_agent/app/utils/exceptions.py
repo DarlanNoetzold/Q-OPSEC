@@ -51,7 +51,7 @@ async def classification_agent_exception_handler(
     """Handle custom Classification Agent exceptions."""
     request_id = getattr(request.state, 'request_id', None)
 
-    # Log the error
+
     logger.error(
         "Classification Agent exception",
         request_id=request_id,
@@ -60,10 +60,10 @@ async def classification_agent_exception_handler(
         details=exc.details
     )
 
-    # Record error metric
+
     metrics_service.record_error(type(exc).__name__)
 
-    # Determine status code based on exception type
+
     if isinstance(exc, ModelNotLoadedException):
         status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     elif isinstance(exc, ValidationException):
@@ -126,7 +126,7 @@ async def validation_exception_handler(
 
     metrics_service.record_error("validation_error")
 
-    # Convert validation errors to our format
+
     validation_details = []
     for error in exc.errors():
         field = ".".join(str(loc) for loc in error["loc"])

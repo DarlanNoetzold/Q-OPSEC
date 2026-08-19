@@ -58,7 +58,7 @@ class RequestLoggingMiddleware:
         method = scope.get("method")
         path = scope.get("path")
 
-        # Log request start
+
         self.logger.info(
             "Request started",
             request_id=request_id,

@@ -24,7 +24,7 @@ from ...utils.exceptions import (
 logger = get_logger(__name__)
 router = APIRouter()
 
-# Metrics directory configuration
+
 METRICS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\models\metrics")
 IMAGE_ALLOWED = {
     "all_models_accuracy.png",
@@ -35,9 +35,9 @@ IMAGE_ALLOWED = {
 }
 
 
-# ============================================================================
-# Schemas
-# ============================================================================
+
+
+
 
 class HealthResponse(BaseModel):
     """Resposta do health check"""
@@ -122,9 +122,9 @@ class MetricsResponse(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
-# ============================================================================
-# Helper Functions for Training Metrics
-# ============================================================================
+
+
+
 
 def _list_training_sessions() -> List[str]:
     """Lista todas as sessões de treinamento disponíveis"""
@@ -134,7 +134,7 @@ def _list_training_sessions() -> List[str]:
     for p in METRICS_ROOT.iterdir():
         if p.is_dir() and (p / "training_summary.json").exists():
             sessions.append(p.name)
-    sessions.sort(reverse=True)  # Mais recentes primeiro
+    sessions.sort(reverse=True)
     return sessions
 
 
@@ -146,9 +146,9 @@ def _get_latest_training_session() -> Optional[Path]:
     return METRICS_ROOT / sessions[0]
 
 
-# ============================================================================
-# Health & Model Endpoints
-# ============================================================================
+
+
+
 
 @router.get(
     "/health",
@@ -399,9 +399,9 @@ async def get_model_manifest(user: Dict[str, Any] = Depends(get_current_user)):
     return manifest
 
 
-# ============================================================================
-# Prediction Endpoint
-# ============================================================================
+
+
+
 
 @router.post(
     "/predict",
@@ -481,17 +481,17 @@ async def predict(
         raise ModelNotLoadedException("No model is currently loaded")
 
     try:
-        # Importante: No ModelService corrigido, validate_input retorna um DataFrame.
-        # No código original deste endpoint, o desenvolvedor usou 'if validation_errors:'
-        # o que gera erro no Pandas. Corrigido para verificar se há erros de fato.
+
+
+
         validation_errors_df = model_service.validate_input(request.data)
         
-        # Se você tinha uma lógica específica de erro no validate_input que retornava 
-        # as mensagens de erro em colunas, checamos aqui se há algo. 
-        # Como o novo ModelService apenas prepara o input, aqui costuma vir o DF pronto.
+
+
+
         if hasattr(validation_errors_df, 'empty') and not validation_errors_df.empty:
-            # Se fosse um fluxo de erro, levantaria ValidationException. 
-            # Mas como o ModelService agora retorna o X pronto para o predict, apenas seguimos.
+
+
             pass
 
         labels, probabilities, input_hashes = model_service.predict(
@@ -570,9 +570,9 @@ async def predict(
         raise PredictionException(f"Prediction failed: {str(e)}")
 
 
-# ============================================================================
-# Monitoring Endpoints
-# ============================================================================
+
+
+
 
 @router.get(
     "/metrics",
@@ -632,9 +632,9 @@ async def get_metrics(user: Dict[str, Any] = Depends(require_auth)):
     )
 
 
-# ============================================================================
-# Training Metrics Endpoints
-# ============================================================================
+
+
+
 
 @router.get(
     "/training/sessions",

@@ -1,4 +1,4 @@
-# app/services/database.py
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from app.core.config import settings
@@ -22,14 +22,14 @@ class DatabaseService:
             self.client = AsyncIOMotorClient(settings.mongodb_url, serverSelectionTimeoutMS=5000)
             self.database = self.client[settings.mongodb_database]
             
-            # Skip if MongoDB is not available (fallback for classification-only mode)
+
             try:
                 await self.client.admin.command('ping')
             except Exception as e:
                 print(f"CRITICAL: MongoDB not reachable: {e}. Proceeding without DB...")
                 return
 
-            # Inicializa Beanie com os modelos
+
             await init_beanie(
                 database=self.database,
                 document_models=[
@@ -39,7 +39,7 @@ class DatabaseService:
                 ]
             )
 
-            # Testa a conexão
+
             await self.client.admin.command('ping')
             logger.info("Connected to MongoDB successfully")
 
@@ -63,7 +63,7 @@ class DatabaseService:
             return False
 
 
-# Instância global do serviço de banco
+
 db_service = DatabaseService()
 
 

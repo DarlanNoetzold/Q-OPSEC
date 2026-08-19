@@ -1,5 +1,5 @@
 from prometheus_fastapi_instrumentator import Instrumentator
-# main.py
+
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -123,9 +123,9 @@ if __name__ == "__main__":
         log_level=settings.log_level.lower()
     )
 
-# Monitoring
 
-# AUTO-GENERATED MONITORING
+
+
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:
