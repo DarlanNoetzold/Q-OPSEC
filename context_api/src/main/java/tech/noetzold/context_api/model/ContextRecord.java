@@ -1,4 +1,4 @@
-// src/main/java/tech/noetzold/context_api/persistence/ContextRecord.java
+
 package tech.noetzold.context_api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;

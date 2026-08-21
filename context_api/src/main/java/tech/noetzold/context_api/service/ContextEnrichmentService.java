@@ -1,4 +1,4 @@
-// src/main/java/tech/noetzold/context_api/service/ContextEnrichmentService.java
+
 package tech.noetzold.context_api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

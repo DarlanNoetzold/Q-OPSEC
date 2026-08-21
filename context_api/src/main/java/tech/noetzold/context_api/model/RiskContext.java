@@ -5,7 +5,7 @@ import java.util.Map;
 
 public record RiskContext(
         Double score,
-        String level,              // very_low, low, medium, high, critical
+        String level,
         Double anomaly_score,
         Map<String,Object> threat_intel,
         Integer recent_incidents,

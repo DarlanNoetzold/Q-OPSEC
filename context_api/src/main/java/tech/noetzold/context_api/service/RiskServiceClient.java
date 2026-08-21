@@ -38,7 +38,7 @@ public class RiskServiceClient {
             if (first.modelNotReady()) {
                 boolean trained = tryTrainDefault();
                 for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-                    sleepQuietly(RETRY_DELAY.multipliedBy(attempt)); // backoff linear
+                    sleepQuietly(RETRY_DELAY.multipliedBy(attempt));
                     AssessOutcome retry = doAssess(payload);
                     if (retry.context().isPresent()) {
                         return retry.context();

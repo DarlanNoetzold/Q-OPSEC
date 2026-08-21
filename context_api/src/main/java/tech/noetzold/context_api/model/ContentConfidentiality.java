@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 public record ContentConfidentiality(
-        String classification,  // public, internal, confidential, restricted
+        String classification,
         Double score,
         List<String> tags,
         List<String> detected_patterns,

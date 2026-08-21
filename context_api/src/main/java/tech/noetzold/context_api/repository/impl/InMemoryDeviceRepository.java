@@ -13,8 +13,8 @@ public class InMemoryDeviceRepository implements DeviceRepository {
     private static final Map<String, DeviceMeta> DB = new HashMap<>();
 
     static {
-        // Se necessário, carga inicial real pode ser feita aqui, ou deixe vazio.
-        // DB.put("dev-123", new DeviceMeta("Android 10", "IoT", "enabled", "compliant"));
+
+
     }
 
     @Override
