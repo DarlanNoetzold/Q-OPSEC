@@ -13,161 +13,81 @@ Características:
 - Compatibilidade com interface original
 """
 
-
-
 from quantum_gateway.qiskit_adapter import (
-
     QiskitQuantumSimulator,
-
     NoiseModelConfig,
-
     NoiseStatistics,
-
     create_qiskit_simulator_with_noise_preset,
-
 )
-
-
 
 from quantum_gateway.qiskit_channel_simulator import (
-
     QuantumChannelSimulator,
-
     QuantumChannelParameters,
-
     ChannelMetrics,
-
     PolarizationBasis,
-
     QubitState,
-
     create_channel_with_distance,
-
     create_metropolitan_channel,
-
     create_long_distance_channel,
-
 )
-
-
 
 from quantum_gateway.bb84 import (
-
     BB84Protocol,
-
     BB84Result,
-
     run_bb84_simulation,
-
 )
-
-
 
 from quantum_gateway.e91 import (
-
     E91Protocol,
-
     E91Result,
-
     run_e91_simulation,
-
 )
-
-
 
 from quantum_gateway.mdi_qkd import (
-
     MDIQKDProtocol,
-
     MDIQKDResult,
-
     run_mdi_qkd_simulation,
-
 )
-
-
 
 from quantum_gateway.logging_utils import (
-
     StructuredQKDLogger,
-
     QKDVisualization,
-
 )
 
-
-
 __version__ = "1.0.0"
-
 __author__ = "Qiskit QKD Team"
 
-
-
 __all__ = [
-
-             
-
+    # Adapter
     "QiskitQuantumSimulator",
-
     "NoiseModelConfig",
-
     "NoiseStatistics",
-
     "create_qiskit_simulator_with_noise_preset",
-
     
-
-             
-
+    # Channel
     "QuantumChannelSimulator",
-
     "QuantumChannelParameters",
-
     "ChannelMetrics",
-
     "PolarizationBasis",
-
     "QubitState",
-
     "create_channel_with_distance",
-
     "create_metropolitan_channel",
-
     "create_long_distance_channel",
-
     
-
-               
-
+    # Protocols
     "BB84Protocol",
-
     "BB84Result",
-
     "run_bb84_simulation",
-
     
-
     "E91Protocol",
-
     "E91Result",
-
     "run_e91_simulation",
-
     
-
     "MDIQKDProtocol",
-
     "MDIQKDResult",
-
     "run_mdi_qkd_simulation",
-
     
-
-               
-
+    # Utilities
     "StructuredQKDLogger",
-
     "QKDVisualization",
-
 ]
-
