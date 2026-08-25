@@ -34,9 +34,6 @@ sns.set_style("whitegrid")
 plt.rcParams["figure.dpi"] = 150
 plt.rcParams["savefig.bbox"] = "tight"
 
-# ============================================================================
-# CONFIGURAÇÕES GLOBAIS
-# ============================================================================
 
 USER_PROFILES = {
     "retail_low_risk": {
@@ -176,9 +173,6 @@ REQUIRED_COLUMNS = [
 ]
 
 
-# ============================================================================
-# FUNÇÕES AUXILIARES
-# ============================================================================
 
 def make_versioned_output_dir(base_dir: Path) -> Path:
     """Cria diretório de saída versionado: base_dir, base_dir_001, base_dir_002, ..."""
@@ -308,9 +302,6 @@ def make_device(rng: random.Random, user_id: str, idx: int, channel_hint: str) -
     )
 
 
-# ============================================================================
-# GERAÇÃO DE USUÁRIOS
-# ============================================================================
 
 def generate_users(num_users: int, start_date: datetime, seed: int = 42) -> pd.DataFrame:
     """Gera DataFrame de usuários."""
@@ -348,9 +339,6 @@ def generate_users(num_users: int, start_date: datetime, seed: int = 42) -> pd.D
     return df
 
 
-# ============================================================================
-# GERAÇÃO DE EVENTOS
-# ============================================================================
 
 def generate_events(users_df: pd.DataFrame, start_date: datetime, end_date: datetime, seed: int = 42) -> pd.DataFrame:
     """Gera eventos brutos para cada usuário."""
@@ -468,9 +456,6 @@ def generate_events(users_df: pd.DataFrame, start_date: datetime, end_date: date
     return df
 
 
-# ============================================================================
-# ADIÇÃO DE FEATURES
-# ============================================================================
 
 def add_all_features(events_df: pd.DataFrame, users_df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     """Adiciona todas as features necessárias."""
@@ -762,9 +747,6 @@ def add_all_features(events_df: pd.DataFrame, users_df: pd.DataFrame, seed: int 
     return df
 
 
-# ============================================================================
-# SCHEMA ENFORCER
-# ============================================================================
 
 def enforce_schema(df: pd.DataFrame) -> pd.DataFrame:
     """Garante que todas as colunas necessárias existam e estejam na ordem correta."""
@@ -782,9 +764,6 @@ def enforce_schema(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-# ============================================================================
-# SALVAMENTO
-# ============================================================================
 
 def save_dataset(df: pd.DataFrame, output_dir: Path, chunk_size: int = 500_000):
     """Salva dataset em chunks."""
@@ -826,9 +805,6 @@ def save_dataset(df: pd.DataFrame, output_dir: Path, chunk_size: int = 500_000):
     print(f"✅ Summary salvo: {summary_path}")
 
 
-# ============================================================================
-# GERAÇÃO DE FIGURAS ESTATÍSTICAS AVANÇADAS + TABELAS LATEX
-# ============================================================================
 
 def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     """Gera figuras estatísticas avançadas + tabelas LaTeX para publicação."""
@@ -849,9 +825,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     tx_df = df_plot[df_plot["event_type"] == "transaction"].copy()
     tx_df["log_amount"] = np.log1p(tx_df["amount"].fillna(0))
 
-    # ========================================================================
-    # FIGURA 1: Volume e Taxa de Fraude Diária com MA7
-    # ========================================================================
     print("  → [1/20] Volume e taxa de fraude diária...")
     daily = df_plot.groupby("date").agg({
         "event_id": "count",
@@ -881,9 +854,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "01_daily_volume_fraud_rate_ma7.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 2: Heatmap Fraude por Dia da Semana × Hora (MELHORADO)
-    # ========================================================================
     print("  → [2/20] Heatmap fraude por dia/hora (com suporte mínimo)...")
     heat = tx_df.copy()
     grp = heat.groupby(["day_of_week", "hour_of_day"]).agg(
@@ -919,9 +889,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "02_fraud_heatmap_dow_hour.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 3: ECDF de log(amount) (MELHORADO)
-    # ========================================================================
     print("  → [3/20] ECDF de log(amount) (com KS e medianas)...")
     fraud_amounts = tx_df[tx_df["is_fraud"] == 1]["log_amount"].dropna()
     legit_amounts = tx_df[tx_df["is_fraud"] == 0]["log_amount"].dropna()
@@ -955,9 +922,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "03_ecdf_log_amount_by_fraud.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 4: Boxplot de log(amount) por mês
-    # ========================================================================
     print("  → [4/20] Boxplot amount por mês...")
     tx_df["month"] = pd.to_datetime(tx_df["timestamp_utc"]).dt.month
 
@@ -971,9 +935,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "04_amount_boxplot_by_month.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 5: Calibration Curve
-    # ========================================================================
     print("  → [5/20] Calibration curve...")
     fraud_prob = df_plot["fraud_probability"].fillna(0).values
     is_fraud = df_plot["is_fraud"].values
@@ -1013,9 +974,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "05_calibration_curve.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 6: Top Features por AUC (numéricos)
-    # ========================================================================
     print("  → [6/20] Top features por AUC...")
     numeric_cols = ["amount", "account_age_days", "transactions_last_24h", "amount_sum_last_24h",
                     "logins_last_24h", "devices_last_30d", "security_score_tech", "ip_reputation_score"]
@@ -1047,9 +1005,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         plt.savefig(figures_dir / "06_top_features_by_auc.png", dpi=150)
         plt.close()
 
-    # ========================================================================
-    # FIGURA 7: Top Features por KS Statistic
-    # ========================================================================
     print("  → [7/20] Top features por KS...")
     ks_scores = []
     for col in numeric_cols:
@@ -1073,9 +1028,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         plt.savefig(figures_dir / "07_top_features_by_ks.png", dpi=150)
         plt.close()
 
-    # ========================================================================
-    # FIGURA 8: PSI Temporal (MELHORADO)
-    # ========================================================================
     print("  → [8/20] PSI temporal (bins consistentes, ordenado)...")
     df_plot_sorted = df_plot.sort_values("timestamp_utc").reset_index(drop=True)
     mid = len(df_plot_sorted) // 2
@@ -1130,9 +1082,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         plt.savefig(figures_dir / "08_psi_temporal.png", dpi=150)
         plt.close()
 
-    # ========================================================================
-    # FIGURA 9: Missingness por Feature Block (MELHORADO)
-    # ========================================================================
     print("  → [9/20] Missingness por bloco...")
     feature_blocks = {
         "Event ID": ["event_id", "event_type", "event_source"],
@@ -1163,9 +1112,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         plt.savefig(figures_dir / "09_missingness_by_block.png", dpi=150)
         plt.close()
 
-    # ========================================================================
-    # FIGURA 10: Fraude por Segmento de Usuário
-    # ========================================================================
     print("  → [10/20] Fraude por segmento...")
     segment_fraud = df_plot.groupby("user_segment")["is_fraud"].agg(["sum", "mean", "count"]).reset_index()
     segment_fraud["fraud_rate_pct"] = segment_fraud["mean"] * 100
@@ -1188,9 +1134,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "10_fraud_by_segment.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 11: Fraude por Canal
-    # ========================================================================
     print("  → [11/20] Fraude por canal...")
     channel_fraud = df_plot.groupby("channel")["is_fraud"].agg(["sum", "mean", "count"]).reset_index()
     channel_fraud["fraud_rate_pct"] = channel_fraud["mean"] * 100
@@ -1220,9 +1163,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "11_fraud_by_channel.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 12: Distribuição de Tipos de Fraude
-    # ========================================================================
     print("  → [12/20] Distribuição de tipos de fraude...")
     fraud_types = df_plot[df_plot["is_fraud"] == 1]["fraud_type"].value_counts()
 
@@ -1241,9 +1181,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "12_fraud_type_distribution.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 13: WOE/IV Analysis (Weight of Evidence / Information Value)
-    # ========================================================================
     print("  → [13/20] WOE/IV analysis...")
 
     def calculate_woe_iv(df, feature, target, bins=10):
@@ -1307,9 +1244,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         plt.savefig(figures_dir / "13_woe_iv_analysis.png", dpi=150)
         plt.close()
 
-    # ========================================================================
-    # FIGURA 14: Precision-Recall Curve
-    # ========================================================================
     print("  → [14/20] Precision-Recall curve...")
 
     precision, recall, _ = precision_recall_curve(is_fraud, fraud_prob)
@@ -1328,9 +1262,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "14_precision_recall_curve.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 15: Lift Chart
-    # ========================================================================
     print("  → [15/20] Lift chart...")
 
     df_lift = pd.DataFrame({
@@ -1372,9 +1303,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "15_lift_chart.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 16: Gain Chart
-    # ========================================================================
     print("  → [16/20] Gain chart...")
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -1394,9 +1322,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "16_gain_chart.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 17: ROC Curve
-    # ========================================================================
     print("  → [17/20] ROC curve...")
 
     fpr, tpr, thresholds = roc_curve(is_fraud, fraud_prob)
@@ -1415,9 +1340,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "17_roc_curve.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 18: Velocity Analysis (transactions_last_1h, transactions_last_24h)
-    # ========================================================================
     print("  → [18/20] Velocity analysis...")
 
     velocity_features = ['transactions_last_1h', 'transactions_last_24h']
@@ -1447,9 +1369,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "18_velocity_analysis.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 19: Feature Importance (Decision Tree Surrogate)
-    # ========================================================================
     print("  → [19/20] Feature importance (decision tree surrogate)...")
 
     feature_cols = ["amount", "account_age_days", "transactions_last_24h", "amount_sum_last_24h",
@@ -1458,7 +1377,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     X = df_plot[feature_cols].fillna(0).values
     y = df_plot['is_fraud'].values
 
-    # Amostra para performance
     if len(X) > 100_000:
         sample_idx = np.random.choice(len(X), 100_000, replace=False)
         X = X[sample_idx]
@@ -1479,37 +1397,26 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "19_feature_importance_tree.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # FIGURA 20: Brier Score Decomposition
-    # ========================================================================
     print("  → [20/20] Brier score decomposition...")
 
     from sklearn.metrics import brier_score_loss
 
     brier = brier_score_loss(is_fraud, fraud_prob)
 
-    # Decomposição: Brier = Reliability - Resolution + Uncertainty
-    # Reliability: calibration error
-    # Resolution: ability to separate classes
-    # Uncertainty: inherent uncertainty (fraud rate * (1 - fraud rate))
 
     uncertainty = is_fraud.mean() * (1 - is_fraud.mean())
 
-    # Simplified resolution (variance of predicted probabilities weighted by actual outcomes)
     resolution = np.mean((fraud_prob - is_fraud.mean()) ** 2)
 
-    # Reliability (calibration error)
     reliability = brier - uncertainty + resolution
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Brier score
     ax1.bar(['Brier Score'], [brier], color='steelblue', alpha=0.7, edgecolor='black', width=0.5)
     ax1.set_ylabel('Score', fontsize=11, fontweight='bold')
     ax1.set_title(f'Brier Score = {brier:.4f}\n(lower is better)', fontsize=13, fontweight='bold')
     ax1.grid(alpha=0.3, axis='y')
 
-    # Decomposition
     components = ['Uncertainty\n(baseline)', 'Resolution\n(discrimination)', 'Reliability\n(calibration)']
     values = [uncertainty, resolution, reliability]
     colors = ['gray', 'green', 'red']
@@ -1524,12 +1431,8 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     plt.savefig(figures_dir / "20_brier_score_decomposition.png", dpi=150)
     plt.close()
 
-    # ========================================================================
-    # TABELAS LaTeX
-    # ========================================================================
     print("  → [T] Gerando tabelas LaTeX...")
 
-    # T1: Sumário geral
     summary = pd.DataFrame({
         "metric": [
             "Total events",
@@ -1557,7 +1460,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         encoding="utf-8",
     )
 
-    # T2: Schema (coluna, tipo, missing)
     schema = pd.DataFrame({
         "column": df_plot.columns,
         "dtype": [str(t) for t in df_plot.dtypes],
@@ -1569,7 +1471,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         encoding="utf-8",
     )
 
-    # T3: Fraude por segmento
     seg = df_plot.groupby("user_segment").agg(
         n=("event_id", "size"),
         fraud_n=("is_fraud", "sum"),
@@ -1580,7 +1481,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         encoding="utf-8",
     )
 
-    # T4: Fraude por canal (apenas transações)
     ch = tx_df.groupby("channel").agg(
         n=("event_id", "size"),
         fraud_n=("is_fraud", "sum"),
@@ -1593,7 +1493,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
         encoding="utf-8",
     )
 
-    # T5: Top univariate AUC
     if auc_scores:
         auc_df = pd.DataFrame(auc_scores, columns=["feature", "auc"]).sort_values("auc", ascending=False)
         (tables_dir / "table_05_top_univariate_auc.tex").write_text(
@@ -1602,7 +1501,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
             encoding="utf-8",
         )
 
-    # T6: Top KS
     if ks_scores:
         ks_df = pd.DataFrame(ks_scores, columns=["feature", "ks_statistic"]).sort_values("ks_statistic",
                                                                                          ascending=False)
@@ -1611,7 +1509,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
             encoding="utf-8",
         )
 
-    # T7: PSI
     if psi_scores:
         psi_df = pd.DataFrame(psi_scores, columns=["feature", "psi"]).sort_values("psi", ascending=False)
         (tables_dir / "table_07_psi_temporal.tex").write_text(
@@ -1620,7 +1517,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
             encoding="utf-8",
         )
 
-    # T8: IV scores
     if iv_scores:
         iv_df = pd.DataFrame(iv_scores, columns=["feature", "information_value"]).sort_values("information_value",
                                                                                               ascending=False)
@@ -1629,14 +1525,12 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
             encoding="utf-8",
         )
 
-    # T9: Lift by decile
     (tables_dir / "table_09_lift_by_decile.tex").write_text(
         to_latex_table(lift_data[['decile', 'fraud_count', 'total', 'fraud_rate', 'lift', 'cumulative_lift']],
                        caption="Lift analysis by decile.", label="tab:lift_by_decile", index=False),
         encoding="utf-8",
     )
 
-    # T10: Model performance summary
     perf_summary = pd.DataFrame({
         "metric": ["ROC AUC", "Average Precision", "Brier Score", "Fraud Rate (baseline)"],
         "value": [roc_auc, ap_score, brier, is_fraud.mean()]
@@ -1651,9 +1545,6 @@ def generate_advanced_figures(df: pd.DataFrame, output_dir: Path):
     print(f"   Tabelas: {tables_dir}")
 
 
-# ============================================================================
-# MAIN
-# ============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Gera dataset sintético completo de detecção de fraude")

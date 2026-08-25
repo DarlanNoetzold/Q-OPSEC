@@ -33,7 +33,6 @@ API para servir modelos de detecção de fraude, incluindo:
     ],
 )
 
-# Instrumentação para o Prometheus
 
 try:
     from src.api.utils.logger import setup_logging

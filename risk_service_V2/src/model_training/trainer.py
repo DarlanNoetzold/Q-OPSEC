@@ -29,13 +29,11 @@ class ModelTrainer:
         self.config = config
         self.version = datetime.now().strftime("v%Y%m%d_%H%M%S")
 
-        # Initialize components
         self.data_loader = DataLoader(config)
         self.feature_engineer = FeatureEngineer(config)
         self.model_factory = ModelFactory(config)
         self.evaluator = ModelEvaluator(config)
 
-        # Output directories
         self.models_dir = Path(config.get("output", {}).get("models_dir", "output/models"))
         self.eval_dir = Path(config.get("output", {}).get("evaluation_dir", "output/evaluation"))
 
@@ -45,7 +43,6 @@ class ModelTrainer:
         self.models_dir.mkdir(parents=True, exist_ok=True)
         self.eval_dir.mkdir(parents=True, exist_ok=True)
 
-        # Storage
         self.trained_models: Dict[str, Any] = {}
         self.metrics: Dict[str, Dict[str, Any]] = {}
         self.optimal_thresholds: Dict[str, float] = {}
@@ -63,47 +60,36 @@ class ModelTrainer:
         logger.info("STARTING TRAINING PIPELINE")
         logger.info("=" * 80)
 
-        # 1. Load datasets
         train_df, val_df, test_df = self.data_loader.load_datasets()
 
-        # 2. Prepare features
         X_train, y_train, X_val, y_val, X_test, y_test = self.data_loader.prepare_features(
             train_df, val_df, test_df
         )
 
-        # 👇 CORREÇÃO CRÍTICA: Garantir que y é 1D array
         y_train = self._ensure_1d(y_train, "y_train")
         y_val = self._ensure_1d(y_val, "y_val")
         y_test = self._ensure_1d(y_test, "y_test")
 
-        # 3. Feature engineering
         X_train, X_val, X_test = self.feature_engineer.fit_transform(
             X_train, X_val, X_test
         )
 
-        # 3.1 Convert categorical columns to category dtype for XGBoost and LightGBM
         categorical_cols = [col for col in X_train.columns if X_train[col].dtype == 'object']
         for col in categorical_cols:
             X_train[col] = X_train[col].astype('category')
             X_val[col] = X_val[col].astype('category')
             X_test[col] = X_test[col].astype('category')
 
-        # 4. Initialize models
         self._initialize_models()
 
-        # 5. Train models
         self._train_models(X_train, y_train, X_val, y_val)
 
-        # 6. Optimize thresholds
         self._optimize_thresholds(X_val, y_val)
 
-        # 7. Evaluate on test set
         self._evaluate_models(X_test, y_test)
 
-        # 8. Save artifacts
         self._save_artifacts()
 
-        # 9. Compare models
         self._compare_models()
 
         logger.info("\n" + "=" * 80)
@@ -130,17 +116,14 @@ class ModelTrainer:
         elif isinstance(y, pd.Series):
             y = y.values
 
-        # Ensure 1D
         if len(y.shape) > 1:
             logger.warning(f"   ⚠️  {name} is {y.shape}, flattening to 1D")
             y = y.ravel()
 
-        # Remove NaN
         if np.isnan(y).any():
             logger.warning(f"   ⚠️  {name} contains {np.isnan(y).sum()} NaN values")
             raise ValueError(f"{name} contains NaN values after cleaning")
 
-        # Ensure integer
         y = y.astype(int)
 
         logger.info(f"   ✅ {name} shape: {y.shape}, dtype: {y.dtype}, unique: {np.unique(y)}")
@@ -155,7 +138,6 @@ class ModelTrainer:
 
         model_configs = self.config.get("models", {})
 
-        # Get list of enabled models
         enabled_models = model_configs.get("enabled", [])
 
         if not enabled_models:
@@ -163,11 +145,9 @@ class ModelTrainer:
 
         logger.info(f"   Enabled models: {enabled_models}")
 
-        # Initialize each enabled model
         for model_name in enabled_models:
             if model_name in model_configs:
                 try:
-                    # 👇 CORREÇÃO: create_model() só precisa do nome
                     model = self.model_factory.create_model(model_name)
                     self.trained_models[model_name] = {
                     "model": model,
@@ -197,7 +177,6 @@ class ModelTrainer:
         logger.info("TRAINING MODELS")
         logger.info("=" * 80)
 
-        # Use original y as pandas Series for model.train
         y_train_orig = pd.Series(y_train)
         y_val_orig = pd.Series(y_val)
 
@@ -207,10 +186,8 @@ class ModelTrainer:
             try:
                 model = model_info["model"]
 
-                # Train
                 model.train(X_train, y_train_orig, X_val, y_val_orig)
 
-                # Quick validation
                 train_acc = model.score(X_train, y_train)
                 val_acc = model.score(X_val, y_val)
 
@@ -218,7 +195,6 @@ class ModelTrainer:
                 logger.info(f"      Train accuracy: {train_acc:.4f}")
                 logger.info(f"      Val accuracy:   {val_acc:.4f}")
 
-                # Store trained model
                 model_info["trained"] = True
                 model_info["train_accuracy"] = train_acc
                 model_info["val_accuracy"] = val_acc
@@ -246,14 +222,11 @@ class ModelTrainer:
             try:
                 model = model_info["model"]
 
-                # Get probabilities
                 y_proba = model.predict_proba(X_val)
 
-                # 👇 CORREÇÃO: Garantir que y_proba é 1D
                 if len(y_proba.shape) > 1:
                     y_proba = y_proba[:, 1]
 
-                # Try different thresholds
                 thresholds = np.arange(0.1, 0.9, 0.05)
                 best_f1 = 0
                 best_threshold = 0.5
@@ -310,7 +283,6 @@ class ModelTrainer:
         logger.info("SAVING ARTIFACTS")
         logger.info("=" * 80)
 
-        # Save models
         for model_name, model_info in self.trained_models.items():
             if not model_info.get("trained", False):
                 continue
@@ -319,7 +291,6 @@ class ModelTrainer:
             joblib.dump(model_info["model"], model_path)
             logger.info(f"   💾 Model saved to {model_path}")
 
-            # Save metadata
             metadata = {
                 "model_name": model_name,
                 "version": self.version,
@@ -334,7 +305,6 @@ class ModelTrainer:
                 json.dump(metadata, f, indent=2)
             logger.info(f"   💾 Metadata saved to {metadata_path}")
 
-        # Save feature engineering artifacts
         scaler_path = self.models_dir / "scaler.pkl"
         joblib.dump(self.feature_engineer.scaler, scaler_path)
         logger.info(f"   💾 Scaler saved to {scaler_path}")
@@ -343,20 +313,17 @@ class ModelTrainer:
         joblib.dump(self.feature_engineer.label_encoders, encoders_path)
         logger.info(f"   💾 Label encoders saved to {encoders_path}")
 
-        # Save feature names
         feature_names_path = self.models_dir / "feature_names.json"
         feature_info = self.data_loader.get_feature_info()
         with open(feature_names_path, "w") as f:
             json.dump(feature_info, f, indent=2)
         logger.info(f"   💾 Feature names saved to {feature_names_path}")
 
-        # Save metrics
         metrics_path = self.eval_dir / "metrics.json"
         with open(metrics_path, "w") as f:
             json.dump(self.metrics, f, indent=2, default=str)
         logger.info(f"   💾 Metrics saved to {metrics_path}")
 
-        # Save config
         config_path = self.models_dir / "training_config.json"
         with open(config_path, "w") as f:
             json.dump(self.config, f, indent=2)

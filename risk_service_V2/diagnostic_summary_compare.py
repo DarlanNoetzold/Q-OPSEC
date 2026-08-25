@@ -1,11 +1,10 @@
-# diagnostic_summary_compare.py
 import pandas as pd
 
 print("=" * 80)
 print("🔍 SUMMARY vs REAL DATA DIAGNOSTIC")
 print("=" * 80)
 
-path = "output/dataset_full.csv"  # ajuste se o seu output_dir for outro
+path = "output/dataset_full.csv"
 print(f"📂 Loading: {path}")
 
 df = pd.read_csv(path, usecols=["is_fraud"])

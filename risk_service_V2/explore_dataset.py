@@ -13,12 +13,10 @@ import sys
 warnings.filterwarnings('ignore')
 sns.set_style("whitegrid")
 
-# Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.common.config_loader import default_config_loader
 
-# Configuration
 OUTPUT_DIR = Path("output")
 REPORT_DIR = Path("output/analysis")
 REPORT_DIR.mkdir(exist_ok=True, parents=True)
@@ -41,7 +39,6 @@ def convert_csv_to_parquet():
             print(f"⚠️  {filename}: Not found, skipping")
             continue
 
-        # Skip if parquet already exists and is newer
         if parquet_path.exists() and parquet_path.stat().st_mtime > csv_path.stat().st_mtime:
             print(f"✅ {filename}: Parquet already up-to-date")
             converted.append(filename.replace(".csv", ".parquet"))
@@ -50,7 +47,6 @@ def convert_csv_to_parquet():
         print(f"\n📂 Converting {filename}...")
 
         try:
-            # Read CSV in chunks
             chunk_size = 500_000
             chunks = []
 
@@ -59,11 +55,9 @@ def convert_csv_to_parquet():
                 if (i + 1) % 5 == 0:
                     print(f"   Read chunk {i + 1} ({len(chunk):,} rows)")
 
-            # Concatenate and save
             df = pd.concat(chunks, ignore_index=True)
             df.to_parquet(parquet_path, index=False, compression="snappy")
 
-            # Compare sizes
             csv_size = csv_path.stat().st_size / 1024 / 1024
             parquet_size = parquet_path.stat().st_size / 1024 / 1024
             reduction = (1 - parquet_size / csv_size) * 100
@@ -94,7 +88,6 @@ def load_datasets(prefer_parquet=True):
     }
 
     for name, base_filename in files.items():
-        # Try parquet first, then csv
         loaded = False
 
         if prefer_parquet:
@@ -143,13 +136,11 @@ def validate_schema(datasets):
         return
 
     try:
-        # Load schema
         schema = default_config_loader.load("schema_fields.yaml")
         actual_cols = set(df_full.columns)
 
         print(f"\n📋 Dataset columns: {len(actual_cols)}")
 
-        # Check each section
         all_expected = set()
         missing_by_section = {}
         present_by_section = {}
@@ -171,14 +162,13 @@ def validate_schema(datasets):
                 missing_by_section[section_name] = missing
                 print(f"\n⚠️  {section_name}:")
                 print(f"   Expected: {len(expected_cols)}, Found: {len(present)}, Missing: {len(missing)}")
-                for col in sorted(list(missing)[:5]):  # Show first 5
+                for col in sorted(list(missing)[:5]):
                     print(f"     • {col}")
                 if len(missing) > 5:
                     print(f"     ... and {len(missing) - 5} more")
             else:
                 print(f"\n✅ {section_name}: All {len(expected_cols)} fields present")
 
-        # Summary
         print("\n" + "=" * 80)
         print("📊 VALIDATION SUMMARY")
         print("=" * 80)
@@ -195,7 +185,6 @@ def validate_schema(datasets):
             if len(extra) > 10:
                 print(f"   ... and {len(extra) - 10} more")
 
-        # Coverage percentage
         coverage = len(actual_cols & all_expected) / len(all_expected) * 100
         print(f"\n📈 Schema coverage: {coverage:.1f}%")
 
@@ -225,7 +214,6 @@ def analyze_basic_info(datasets):
         except:
             pass
 
-    # Data types
     print("\n📋 Column Types:")
     dtype_counts = df_full.dtypes.value_counts()
     for dtype, count in dtype_counts.items():
@@ -242,7 +230,6 @@ def analyze_columns(datasets):
     if df_full is None:
         return
 
-    # Group columns by category
     categories = {
         "Event Identification": ["event_id", "event_type", "event_source", "timestamp"],
         "User/Account": ["user_id", "account_id", "account_type", "user_segment", "user_risk_class"],
@@ -260,7 +247,7 @@ def analyze_columns(datasets):
         matching_cols = [col for col in df_full.columns if any(kw in col.lower() for kw in keywords)]
         if matching_cols:
             print(f"\n{category} ({len(matching_cols)} columns):")
-            for col in matching_cols[:10]:  # Show first 10
+            for col in matching_cols[:10]:
                 dtype = df_full[col].dtype
                 nulls = df_full[col].isna().sum()
                 null_pct = (nulls / len(df_full)) * 100
@@ -289,7 +276,6 @@ def analyze_fraud_distribution(datasets):
         print(f"  Fraudulent:        {fraud_count:>10,} ({fraud_rate:>6.2%})")
         print(f"  Legitimate:        {len(df) - fraud_count:>10,} ({1 - fraud_rate:>6.2%})")
 
-        # Fraud types
         if "fraud_type" in df.columns:
             print(f"\n  Fraud Types:")
             fraud_df = df[df["is_fraud"] == 1]
@@ -315,14 +301,12 @@ def analyze_temporal_patterns(datasets):
         df_full["hour"] = df_full["timestamp_utc"].dt.hour
         df_full["day"] = df_full["timestamp_utc"].dt.day_name()
 
-        # Events by hour
         print("\nEvents by Hour of Day:")
         hourly = df_full.groupby("hour").size()
         for hour, count in hourly.items():
             bar = "█" * int(count / hourly.max() * 50)
             print(f"  {hour:02d}:00 | {bar} {count:,}")
 
-        # Events by day
         print("\nEvents by Day of Week:")
         daily = df_full["day"].value_counts()
         for day, count in daily.items():
@@ -343,7 +327,6 @@ def analyze_user_behavior(datasets):
     if df_full is None or "user_id" not in df_full.columns:
         return
 
-    # Events per user
     events_per_user = df_full.groupby("user_id").size()
     print(f"\nEvents per User:")
     print(f"  Mean:   {events_per_user.mean():>10.1f}")
@@ -351,7 +334,6 @@ def analyze_user_behavior(datasets):
     print(f"  Min:    {events_per_user.min():>10,}")
     print(f"  Max:    {events_per_user.max():>10,}")
 
-    # User risk classes
     if "user_risk_class" in df_full.columns:
         print(f"\nUser Risk Classes:")
         risk_classes = df_full["user_risk_class"].value_counts()
@@ -359,7 +341,6 @@ def analyze_user_behavior(datasets):
             pct = (count / len(df_full)) * 100
             print(f"  • {risk_class:15s}: {count:>10,} ({pct:>5.1f}%)")
 
-    # User segments
     if "user_segment" in df_full.columns:
         print(f"\nUser Segments:")
         segments = df_full["user_segment"].value_counts()
@@ -378,7 +359,6 @@ def analyze_transaction_patterns(datasets):
     if df_full is None or "amount" not in df_full.columns:
         return
 
-    # Filter transactions only
     transactions = df_full[df_full["event_type"] == "transaction"]
 
     if len(transactions) == 0:
@@ -393,13 +373,11 @@ def analyze_transaction_patterns(datasets):
     print(f"  Max:    ${transactions['amount'].max():>12,.2f}")
     print(f"  Std:    ${transactions['amount'].std():>12,.2f}")
 
-    # Percentiles
     print(f"\nPercentiles:")
     for p in [10, 25, 50, 75, 90, 95, 99]:
         val = transactions["amount"].quantile(p / 100)
         print(f"  {p:2d}th: ${val:>12,.2f}")
 
-    # Channels
     if "channel" in transactions.columns:
         print(f"\nTransaction Channels:")
         channels = transactions["channel"].value_counts()
@@ -482,7 +460,6 @@ def generate_visualizations(datasets):
     if df_full is None:
         return
 
-    # 1. Fraud distribution
     if "is_fraud" in df_full.columns:
         try:
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -499,7 +476,6 @@ def generate_visualizations(datasets):
         except Exception as e:
             print(f"  ❌ Error generating fraud_distribution.png: {e}")
 
-    # 2. Fraud types
     if "fraud_type" in df_full.columns:
         try:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -516,20 +492,17 @@ def generate_visualizations(datasets):
         except Exception as e:
             print(f"  ❌ Error generating fraud_types.png: {e}")
 
-    # 3. Transaction amounts
     if "amount" in df_full.columns:
         try:
             transactions = df_full[df_full["event_type"] == "transaction"]
             if len(transactions) > 0:
                 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-                # Histogram
                 axes[0].hist(transactions["amount"], bins=50, color="skyblue", edgecolor="black", alpha=0.7)
                 axes[0].set_xlabel("Amount")
                 axes[0].set_ylabel("Frequency")
                 axes[0].set_title("Transaction Amount Distribution")
 
-                # Box plot by fraud status
                 if "is_fraud" in transactions.columns:
                     transactions.boxplot(column="amount", by="is_fraud", ax=axes[1])
                     axes[1].set_xlabel("Is Fraud")
@@ -544,7 +517,6 @@ def generate_visualizations(datasets):
         except Exception as e:
             print(f"  ❌ Error generating transaction_amounts.png: {e}")
 
-    # 4. Temporal patterns
     if "timestamp_utc" in df_full.columns:
         try:
             df_full["timestamp_utc"] = pd.to_datetime(df_full["timestamp_utc"])
@@ -564,9 +536,8 @@ def generate_visualizations(datasets):
         except Exception as e:
             print(f"  ❌ Error generating temporal_patterns.png: {e}")
 
-    # 5. Correlation heatmap (numeric features only)
     try:
-        numeric_cols = df_full.select_dtypes(include=[np.number]).columns[:20]  # First 20 numeric
+        numeric_cols = df_full.select_dtypes(include=[np.number]).columns[:20]
         if len(numeric_cols) > 1:
             fig, ax = plt.subplots(figsize=(12, 10))
             corr = df_full[numeric_cols].corr()
@@ -627,20 +598,16 @@ def main():
     print("FRAUD DETECTION DATASET EXPLORER")
     print("🔍" * 40 + "\n")
 
-    # Step 1: Convert CSV to Parquet (if needed)
     convert_csv_to_parquet()
 
-    # Step 2: Load datasets (prefer parquet)
     datasets = load_datasets(prefer_parquet=True)
 
     if not datasets:
         print("\n❌ No datasets found in output/ directory")
         return
 
-    # Step 3: Validate schema
     validate_schema(datasets)
 
-    # Step 4: Run analyses
     analyze_basic_info(datasets)
     analyze_columns(datasets)
     analyze_fraud_distribution(datasets)
@@ -650,10 +617,8 @@ def main():
     analyze_llm_features(datasets)
     analyze_missing_data(datasets)
 
-    # Step 5: Generate visualizations
     generate_visualizations(datasets)
 
-    # Step 6: Export report
     export_summary_report(datasets)
 
     print("\n" + "=" * 80)

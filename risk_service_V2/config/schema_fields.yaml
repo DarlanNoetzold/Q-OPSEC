@@ -1,7 +1,4 @@
-# Complete field schema for digital security dataset
-# Organized by sections 1.1 through 1.11
 
-# 1.1 Event Identification
 event_identification:
   event_id:
     type: string
@@ -35,7 +32,6 @@ event_identification:
     description: "User's timezone (e.g., America/Sao_Paulo)"
     applies_to: [all]
 
-# 1.2 User / Account
 user_account:
   user_id:
     type: string
@@ -90,7 +86,6 @@ user_account:
     description: "Number of distinct devices used in last 30 days"
     applies_to: [all]
 
-# 1.3 Temporal / Behavioral Features
 temporal_behavioral:
   hour_of_day:
     type: integer
@@ -182,7 +177,6 @@ temporal_behavioral:
     description: "Number of password resets in last 30 days"
     applies_to: [all]
 
-# 1.4 Transaction / Business Content
 transaction_content:
   amount:
     type: float
@@ -269,7 +263,6 @@ transaction_content:
     description: "Percentile of current amount in user's last 30 days (0-100)"
     applies_to: [transaction]
 
-# 1.5 Location / Network
 location_network:
   ip_address:
     type: string
@@ -366,7 +359,6 @@ location_network:
     description: "Number of distinct countries in last 7 days"
     applies_to: [all]
 
-# 1.6 Device / Environment
 device_environment:
   device_id:
     type: string
@@ -451,7 +443,6 @@ device_environment:
     description: "Whether Tor usage is detected"
     applies_to: [all]
 
-# 1.7 Authentication / Authorization / Security Tech & Versions
 auth_security:
   auth_method:
     type: categorical
@@ -507,7 +498,6 @@ auth_security:
     values: [admin, operator, end_user, auditor, system]
     applies_to: [all]
 
-  # Security technologies
   tls_version:
     type: categorical
     description: "TLS version used"
@@ -648,7 +638,6 @@ auth_security:
     description: "Password policy version"
     applies_to: [password_change, login]
 
-# 1.8 Fraud / Abuse / Historical Risk
 fraud_history:
   user_has_fraud_history:
     type: binary
@@ -695,7 +684,6 @@ fraud_history:
     description: "Whether destination is on blacklist"
     applies_to: [transaction]
 
-# 1.9 Text / Message Content
 text_content:
   message_text:
     type: string
@@ -732,7 +720,6 @@ text_content:
     description: "Detected language (ISO 639-1)"
     applies_to: [transaction, login]
 
-  # Optional pre-LLM features
   message_toxicity_score:
     type: float
     description: "Toxicity score (0-1)"
@@ -743,9 +730,7 @@ text_content:
     description: "Phishing keyword score (0-1)"
     applies_to: [transaction, login]
 
-# 1.10 LLM-Derived Features
 llm_features:
-  # Numeric scores
   llm_risk_score:
     type: float
     description: "LLM-assessed risk score (0-1)"
@@ -777,7 +762,6 @@ llm_features:
     description: "LLM-assessed sensitivity request score (0-1)"
     applies_to: [transaction, login]
 
-  # Categorical classifications
   llm_risk_category:
     type: categorical
     description: "LLM-assessed risk category"
@@ -796,7 +780,6 @@ llm_features:
     values: [pay_bill, transfer_to_self, transfer_to_third_party, test_transaction, other]
     applies_to: [transaction]
 
-  # Boolean signals
   llm_detected_social_engineering_language:
     type: binary
     description: "LLM detected social engineering language"
@@ -817,7 +800,6 @@ llm_features:
     description: "LLM detected suspicious link"
     applies_to: [transaction, login]
 
-  # Explainability / metadata
   llm_short_explanation:
     type: string
     description: "Short explanation from LLM"
@@ -848,7 +830,6 @@ llm_features:
     description: "Timestamp of LLM inference"
     applies_to: [all]
 
-# 1.11 Labels / Ground Truth
 labels:
   label_fraud:
     type: binary

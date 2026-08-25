@@ -51,32 +51,26 @@ class ModelEvaluator:
             Dictionary with evaluation metrics
         """
         try:
-            # 👇 CORREÇÃO: Garantir que y_true é 1D array sem NaN
             if isinstance(y_true, pd.DataFrame):
                 y_true = y_true.values.ravel()
             elif isinstance(y_true, pd.Series):
                 y_true = y_true.values
 
-            # Remove NaN do y_true e correspondentes em X
             mask = ~pd.isna(y_true)
             if not mask.all():
                 logger.warning(f"   ⚠️  Removing {(~mask).sum()} NaN values from y_true for {model_name}")
                 y_true = y_true[mask]
                 X = X[mask]
 
-            # Ensure y_true is integer
             y_true = y_true.astype(int)
 
-            # Get predictions
             y_proba = model.predict_proba(X)
 
-            # 👇 CORREÇÃO: Garantir que y_proba é 1D array
             if len(y_proba.shape) > 1:
-                y_proba = y_proba[:, 1]  # Probabilidade da classe 1
+                y_proba = y_proba[:, 1]
 
             y_pred = (y_proba >= threshold).astype(int)
 
-            # Calculate metrics
             metrics = {
                 "model_name": model_name,
                 "threshold": threshold,
@@ -87,7 +81,6 @@ class ModelEvaluator:
                 "roc_auc": roc_auc_score(y_true, y_proba)
             }
 
-            # Confusion matrix
             cm = confusion_matrix(y_true, y_pred)
             metrics["confusion_matrix"] = {
                 "tn": int(cm[0, 0]),
@@ -96,7 +89,6 @@ class ModelEvaluator:
                 "tp": int(cm[1, 1])
             }
 
-            # Log metrics
             logger.info(f"\n📊 {model_name.upper()} Evaluation:")
             logger.info(f"   Accuracy:  {metrics['accuracy']:.4f}")
             logger.info(f"   Precision: {metrics['precision']:.4f}")

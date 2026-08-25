@@ -43,10 +43,8 @@ def load_config(path: str) -> dict:
 
 def main():
     """Main training function."""
-    # Parse arguments
     args = parse_args()
 
-    # Load configuration (direto, sem ConfigLoader)
     config = load_config(args.config)
 
     logger.info("=" * 80)
@@ -56,10 +54,8 @@ def main():
     logger.info(f"Log level: {args.log_level}")
 
     try:
-        # Initialize trainer
         trainer = ModelTrainer(config)
 
-        # Run training pipeline
         trainer.train_pipeline()
 
         logger.info("\n" + "=" * 80)

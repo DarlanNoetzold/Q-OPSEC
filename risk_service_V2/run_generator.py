@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 def main():
-    # Caminhos relativos ao root do risk_service_V2
     config_path = "dataset_config.yaml"
     output_dir = "output"
     

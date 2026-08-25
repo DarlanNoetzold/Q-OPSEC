@@ -38,9 +38,8 @@ class OllamaClient:
                 return False
 
             models = response.json().get("models", [])
-            model_names = [m.get("name", "").split(":")[0] for m in models]  # Remove :tag
+            model_names = [m.get("name", "").split(":")[0] for m in models]
 
-            # Check if model exists (with or without tag)
             model_base = self.model.split(":")[0]
             if model_base not in model_names and self.model not in [m.get("name", "") for m in models]:
                 logger.warning(f"Model '{self.model}' not found. Available: {[m.get('name') for m in models]}")
@@ -94,7 +93,6 @@ class OllamaClient:
             if not prompt_template:
                 return self.fallback_values.get("risk_assessment", {"risk_score": 0.5, "reasoning": "No template"})
 
-            # Safe format - replace missing keys with "N/A"
             safe_context = {
                 "event_type": context.get("event_type", "N/A"),
                 "amount": context.get("amount", "N/A"),

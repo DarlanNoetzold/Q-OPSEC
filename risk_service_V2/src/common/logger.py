@@ -20,9 +20,8 @@ def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / "dataset_generation.log"
 
-    logger.remove()  # remove default handler
+    logger.remove()
 
-    # Console handler
     logger.add(
         sink=lambda msg: print(msg, end=""),
         level=level.upper(),
@@ -33,7 +32,6 @@ def setup_logger(log_dir: str | Path = "logs", level: str = "INFO") -> None:
         "<level>{message}</level>",
     )
 
-    # File handler (rotating)
     logger.add(
         log_file,
         level=level.upper(),

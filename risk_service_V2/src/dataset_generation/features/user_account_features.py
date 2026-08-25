@@ -34,12 +34,10 @@ def add_user_account_features(events: pd.DataFrame, users: pd.DataFrame) -> pd.D
 
     df = events.copy()
 
-    # Ensure account_creation_date is datetime
     users_df = users.copy()
     if not pd.api.types.is_datetime64_any_dtype(users_df["account_creation_date"]):
         users_df["account_creation_date"] = pd.to_datetime(users_df["account_creation_date"])
 
-    # Join user metadata
     join_cols = [
       "user_type",
       "user_segment",
@@ -52,7 +50,6 @@ def add_user_account_features(events: pd.DataFrame, users: pd.DataFrame) -> pd.D
 
     df = df.merge(users_meta, on="user_id", how="left", validate="m:1")
 
-    # Compute account_age_days per event (based on timestamp_utc)
     if not pd.api.types.is_datetime64_any_dtype(df["timestamp_utc"]):
         df["timestamp_utc"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
@@ -62,7 +59,6 @@ def add_user_account_features(events: pd.DataFrame, users: pd.DataFrame) -> pd.D
         .clip(lower=0)
     )
 
-    # Initialize fields that depend on other modules
     if "sensitive_data_change_last_7d" not in df.columns:
         df["sensitive_data_change_last_7d"] = 0
 

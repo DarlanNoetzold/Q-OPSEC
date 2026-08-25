@@ -10,7 +10,6 @@ from src.common.logger import get_logger
 from src.dataset_generation.core.user_generator import UserGenerator
 from src.dataset_generation.core.event_generator import EventGenerator
 
-# ✅ TODAS as importações de features corrigidas
 from src.dataset_generation.features.event_identification import add_event_identification_features
 from src.dataset_generation.features.user_account_features import add_user_account_features
 from src.dataset_generation.features.temporal_features import add_temporal_behavioral_features
@@ -34,18 +33,15 @@ def optimize_dataframe_memory(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.columns:
         col_type = df[col].dtype
 
-        # Converter object para category se tiver poucos valores únicos
         if col_type == 'object':
             num_unique = df[col].nunique()
             num_total = len(df[col])
             if num_unique / num_total < 0.5:
                 df[col] = df[col].astype('category')
 
-        # Converter float64 para float32
         elif col_type == 'float64':
             df[col] = df[col].astype('float32')
 
-        # Converter int64 para int32 se possível
         elif col_type == 'int64':
             c_min = df[col].min()
             c_max = df[col].max()
@@ -74,13 +70,11 @@ class DatasetOrchestrator:
         logger.info("🚀 Starting dataset generation pipeline")
         logger.info("=" * 80)
 
-        # 1. Generate users
         logger.info("\n[1/11] Generating users...")
         user_gen = UserGenerator()
         users_df = user_gen.generate_users()
         logger.info(f"✅ Generated {len(users_df):,} users")
 
-        # 2. Generate raw events
         logger.info("\n[2/11] Generating raw events...")
         event_gen = EventGenerator(users_df)
         df = event_gen.generate_events()
@@ -89,7 +83,6 @@ class DatasetOrchestrator:
         del event_gen
         gc.collect()
 
-        # 3. Add features progressively
         logger.info("\n[3/11] Adding event identification features...")
         df = add_event_identification_features(df)
         gc.collect()
@@ -129,7 +122,6 @@ class DatasetOrchestrator:
         df = add_text_message_features(df)
         gc.collect()
 
-        # LLM features (opcional)
         llm_enabled = self.config.get("llm", {}).get("enabled", False)
         if llm_enabled:
             logger.info("\n[BONUS] Adding LLM features...")
@@ -138,12 +130,10 @@ class DatasetOrchestrator:
         else:
             logger.info("\n[SKIP] LLM features disabled in config")
 
-        # 4. Optimize memory
         logger.info("\n[OPTIMIZE] Optimizing memory usage...")
         df = optimize_dataframe_memory(df)
         gc.collect()
 
-        # 5. Save dataset
         logger.info("\n[SAVE] Saving dataset...")
         self._save_dataset(df)
 
@@ -162,7 +152,6 @@ class DatasetOrchestrator:
         df.reset_index(drop=True, inplace=True)
         gc.collect()
 
-        # Save full dataset
         full_path = self.output_dir / "dataset_full.csv"
         logger.info(f"Saving full dataset to {full_path}")
 
@@ -176,10 +165,8 @@ class DatasetOrchestrator:
 
         gc.collect()
 
-        # Create splits
         self._create_splits(df)
 
-        # Save summary
         self._save_summary(df)
 
     def _create_splits(self, df: pd.DataFrame):
@@ -201,7 +188,7 @@ class DatasetOrchestrator:
             val_df = df.iloc[train_end:val_end]
             test_df = df.iloc[val_end:]
 
-        else:  # random
+        else:
             train_df = df.sample(frac=0.70, random_state=42)
             remaining = df.drop(train_df.index)
             val_df = remaining.sample(frac=0.5, random_state=42)

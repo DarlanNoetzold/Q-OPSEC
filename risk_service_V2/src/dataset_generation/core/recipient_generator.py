@@ -42,7 +42,6 @@ class RecipientGenerator:
         self.dataset_cfg = default_config_loader.load("dataset_config.yaml")
         self.user_profiles_cfg = default_config_loader.load("user_profiles.yaml")
 
-        # Build recipient pool
         self.recipients: List[Dict] = self._generate_recipient_pool()
         logger.info("Generated {n} recipients", n=len(self.recipients))
 
@@ -65,7 +64,6 @@ class RecipientGenerator:
             recipient_id = f"R{i:07d}"
             recipient_type = random.choices(types, weights=weights, k=1)[0]
 
-            # recipient_account_age_days: synthetic, 0 to 3650 days
             account_age = random.randint(0, 3650)
 
             recipient_country = random.choices(
@@ -98,7 +96,6 @@ class RecipientGenerator:
         """
         df = events.copy()
 
-        # Initialize columns for ALL events (not just transactions)
         df["recipient_id"] = None
         df["recipient_type"] = None
         df["recipient_account_age_days"] = np.nan
@@ -106,23 +103,17 @@ class RecipientGenerator:
         df["is_new_recipient"] = 0
         df["transactions_with_recipient_last_30d"] = 0
 
-        # Filter only transaction events
         tx_mask = df["event_type"] == "transaction"
         if not tx_mask.any():
             logger.warning("No transaction events to assign recipients")
             return df
 
-        # Sort by user and time for sequential processing
         df = df.sort_values(["user_id", "timestamp_utc"]).reset_index(drop=True)
 
-        # Track user recipient history: user_id -> Set[recipient_id]
         user_recipient_history: Dict[str, Set[str]] = {}
 
-        # Track recent transactions with each recipient for rolling window
-        # user_id -> recipient_id -> List[timestamp_sec]
         user_recipient_tx_times: Dict[str, Dict[str, List[int]]] = {}
 
-        # Convert timestamps to seconds for easier computation
         timestamps_sec = df["timestamp_utc"].astype("int64") // 10**9
 
         for idx, row in df.iterrows():
@@ -132,14 +123,10 @@ class RecipientGenerator:
             user_id = row["user_id"]
             t_sec = timestamps_sec[idx]
 
-            # Select a recipient
-            # For normal users: mostly recurring recipients with some new ones
-            # For fraudsters: higher rate of new recipients (from config)
             profile_name = users.loc[users["user_id"] == user_id, "profile_name"].iloc[0]
             profile_cfg = self.user_profiles_cfg["profiles"][profile_name]
             new_recipient_rate = profile_cfg["transaction_behavior"].get("new_recipient_rate", 0.1)
 
-            # Initialize history if needed
             if user_id not in user_recipient_history:
                 user_recipient_history[user_id] = set()
             if user_id not in user_recipient_tx_times:
@@ -147,28 +134,22 @@ class RecipientGenerator:
 
             known_recipients = list(user_recipient_history[user_id])
 
-            # Decide if new or recurring
             if not known_recipients or random.random() < new_recipient_rate:
-                # Pick a new recipient from pool
                 recipient = random.choice(self.recipients)
                 is_new = 1
             else:
-                # Pick a known recipient (biased towards recent ones)
                 recipient_id_choice = random.choice(known_recipients)
                 recipient = next(r for r in self.recipients if r["recipient_id"] == recipient_id_choice)
                 is_new = 0
 
             recipient_id = recipient["recipient_id"]
 
-            # Update history
             user_recipient_history[user_id].add(recipient_id)
 
-            # Track this transaction timestamp for recipient
             if recipient_id not in user_recipient_tx_times[user_id]:
                 user_recipient_tx_times[user_id][recipient_id] = []
             user_recipient_tx_times[user_id][recipient_id].append(t_sec)
 
-            # Compute transactions_with_recipient_last_30d
             win_30d = t_sec - 30 * 86400
             recent_tx = [
                 t for t in user_recipient_tx_times[user_id][recipient_id]
@@ -176,7 +157,6 @@ class RecipientGenerator:
             ]
             tx_last_30d = len(recent_tx)
 
-            # Assign to DataFrame
             df.at[idx, "recipient_id"] = recipient_id
             df.at[idx, "recipient_type"] = recipient["recipient_type"]
             df.at[idx, "recipient_account_age_days"] = recipient["recipient_account_age_days"]

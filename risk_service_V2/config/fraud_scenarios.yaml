@@ -1,4 +1,3 @@
-# Fraud scenario configurations
 
 scenarios:
   account_takeover:

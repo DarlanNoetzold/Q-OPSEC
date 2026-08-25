@@ -111,13 +111,11 @@ class BaseModel(ABC):
         model_dir = output_dir / version
         model_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save model
         model_path = model_dir / f"{self.model_name}_model.pkl"
         with open(model_path, 'wb') as f:
             pickle.dump(self.model, f)
         logger.info(f"   💾 Model saved to {model_path}")
 
-        # Save metadata
         metadata = {
             'model_name': self.model_name,
             'best_threshold': float(self.best_threshold),
@@ -130,7 +128,6 @@ class BaseModel(ABC):
             json.dump(metadata, f, indent=2)
         logger.info(f"   💾 Metadata saved to {metadata_path}")
 
-        # Save feature importance
         if self.feature_importance is not None:
             importance_df = self.get_feature_importance()
             importance_path = model_dir / f"{self.model_name}_feature_importance.csv"
@@ -144,7 +141,6 @@ class BaseModel(ABC):
         Args:
             model_dir: Directory containing saved model
         """
-        # Load model
         model_path = model_dir / f"{self.model_name}_model.pkl"
         if model_path.exists():
             with open(model_path, 'rb') as f:
@@ -153,7 +149,6 @@ class BaseModel(ABC):
         else:
             raise FileNotFoundError(f"Model file not found: {model_path}")
 
-        # Load metadata
         metadata_path = model_dir / f"{self.model_name}_metadata.json"
         if metadata_path.exists():
             with open(metadata_path, 'r') as f:
@@ -200,7 +195,6 @@ class BaseModel(ABC):
             elif metric == 'recall':
                 score = recall_score(y_true, y_pred, zero_division=0)
             elif metric == 'youden':
-                # Youden's J statistic = Sensitivity + Specificity - 1
                 from sklearn.metrics import confusion_matrix
                 tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
                 sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0

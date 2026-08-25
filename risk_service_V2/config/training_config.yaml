@@ -1,8 +1,4 @@
-# ============================================================================
-# MODEL TRAINING CONFIGURATION
-# ============================================================================
 
-# Data Configuration
 data:
   input_dir: "output"
   train_file: "dataset_train.parquet"  # or .csv
@@ -11,7 +7,6 @@ data:
 
   target_column: "is_fraud"
 
-  # Columns to exclude from features
   exclude_columns:
     - "event_id"
     - "user_id"
@@ -27,37 +22,29 @@ data:
     - "ip_address"
     - "device_id"
 
-  # Feature types (auto-detected if not specified)
   numeric_features: []  # Auto-detect if empty
   categorical_features: []  # Auto-detect if empty
 
-  # Missing value handling
   missing_value_strategy:
     numeric: "median"  # mean, median, zero, drop
     categorical: "mode"  # mode, unknown, drop
 
-  # Class balancing
   balance_classes: false
   balance_method: "none"  # none, smote, undersample, oversample
   balance_ratio: 0.5  # Target ratio for minority class
 
-# Feature Engineering
 feature_engineering:
-  # Categorical encoding
   categorical_encoding: "label"  # label, onehot, target
   max_categories_onehot: 10  # Max unique values for one-hot encoding
 
-  # Numeric scaling
   numeric_scaling: "standard"  # standard, minmax, robust, none
 
-  # Feature selection
   feature_selection:
     enabled: false
     method: "importance"  # importance, correlation, mutual_info
     top_k: 50  # Number of features to keep
     correlation_threshold: 0.95  # Remove highly correlated features
 
-# Model Configuration
 models:
   enabled:
     - xgboost
@@ -82,7 +69,6 @@ models:
     batch_size: 64
     learning_rate: 0.001
 
-  # XGBoost
   xgboost:
     params:
       objective: "binary:logistic"
@@ -115,7 +101,6 @@ models:
         min_child_weight: [1, 3, 5]
         gamma: [0, 0.1, 0.2]
 
-  # LightGBM
   lightgbm:
     params:
       objective: "binary"
@@ -147,7 +132,6 @@ models:
         colsample_bytree: [0.6, 0.8, 1.0]
         min_child_samples: [10, 20, 30]
 
-  # Random Forest
   random_forest:
     params:
       n_estimators: 100
@@ -173,7 +157,6 @@ models:
         min_samples_leaf: [1, 2, 4]
         max_features: ["sqrt", "log2"]
 
-  # Logistic Regression (Baseline)
   logistic_regression:
     params:
       penalty: "l2"
@@ -194,21 +177,17 @@ models:
         penalty: ["l1", "l2"]
         solver: ["liblinear", "saga"]
 
-# Training Configuration
 training:
-  # Cross-validation
   cross_validation:
     enabled: false
     n_folds: 5
     stratified: true
 
-  # Early stopping (for boosting models)
   early_stopping:
     enabled: true
     rounds: 50
     metric: "auc"
 
-  # Evaluation metrics to compute
   metrics:
     - "accuracy"
     - "precision"
@@ -218,16 +197,13 @@ training:
     - "pr_auc"
     - "log_loss"
 
-  # Threshold optimization
   threshold_optimization:
     enabled: true
     metric: "f1"  # f1, precision, recall, youden
     search_range: [0.1, 0.9]
     search_steps: 81
 
-# Evaluation Configuration
 evaluation:
-  # Generate visualizations
   visualizations:
     enabled: true
     plots:
@@ -238,13 +214,11 @@ evaluation:
       - "calibration_curve"
       - "threshold_analysis"
 
-  # Feature importance
   feature_importance:
     enabled: true
     top_n: 30
     method: "gain"  # gain, weight, cover (for tree models)
 
-  # SHAP analysis (expensive, optional)
   shap_analysis:
     enabled: false
     sample_size: 1000  # Number of samples for SHAP
@@ -253,18 +227,15 @@ evaluation:
       - "waterfall"
       - "dependence"
 
-# Output Configuration
 output:
   models_dir: "output/models"
   evaluation_dir: "output/evaluation"
   logs_dir: "logs"
 
-  # Model versioning
   versioning:
     enabled: true
     format: "timestamp"  # timestamp, sequential, semantic
 
-  # Save artifacts
   save_artifacts:
     model: true
     preprocessor: true
@@ -273,7 +244,6 @@ output:
     predictions: true
     config: true
 
-# Logging
 logging:
   level: "INFO"  # DEBUG, INFO, WARNING, ERROR
   console: true

@@ -98,7 +98,6 @@ class UserGenerator:
         """Sample an account creation date before end_date, up to 3 years back."""
         max_age_days = 365 * 3
         end_minus = end_date - timedelta(days=random.randint(0, max_age_days))
-        # Ensure not before global start_date
         if end_minus < start_date:
             end_minus = start_date
         return end_minus
@@ -111,7 +110,6 @@ class UserGenerator:
         gen_cfg = self.dataset_cfg.get("generation", {})
         num_users = int(gen_cfg.get("num_users", 1000))
         
-        # DEBUG: se o valor for muito alto para um teste rápido, forçamos baixo se detectarmos ambiente de teste
         if os.environ.get("HERMES_VERIFY"):
              num_users = 2
              
@@ -128,7 +126,6 @@ class UserGenerator:
             account_id = f"A{user_idx:07d}"
 
             registered_country = random.choice(profile.country_pool)
-            # synthetic region name using Faker
             registered_region = self.faker.state_abbr() if registered_country == "US" else self.faker.state()
 
             timezone_name = random.choice(profile.timezone_pool)
@@ -148,7 +145,6 @@ class UserGenerator:
                 "registered_region": registered_region,
                 "timezone": timezone_name,
                 "account_creation_date": account_creation_date.date(),
-                # we'll compute account_age_days later per event based on event timestamp
                 "profile_name": profile.name,
                 "events_per_month_mean": profile.events_per_month_mean,
                 "events_per_month_std": profile.events_per_month_std,

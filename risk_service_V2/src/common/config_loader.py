@@ -43,11 +43,9 @@ class ConfigLoader:
 
         If cache is empty, returns empty dict. Use load() first to populate.
         """
-        # Se o cache tiver apenas 1 arquivo carregado, retorna ele
         if len(self._cache) == 1:
             return list(self._cache.values())[0]
 
-        # Se tiver múltiplos ou nenhum, retorna o cache inteiro
         return self._cache if self._cache else {}
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
@@ -61,7 +59,6 @@ class ConfigLoader:
             return default
 
         root_name = parts[0]
-        # try to ensure config is loaded
         filename_guess = f"{root_name}.yaml"
         path = self.base_dir / filename_guess
         if path.exists() and root_name not in self._cache:

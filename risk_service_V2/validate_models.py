@@ -30,9 +30,6 @@ from sklearn.preprocessing import label_binarize
 
 warnings.filterwarnings("ignore")
 
-# ─────────────────────────────────────────────
-# CONFIG
-# ─────────────────────────────────────────────
 MODELS_ROOT   = Path("output/models")
 EVAL_ROOT     = Path("output/evaluation")
 DATA_ROOT     = Path("output")
@@ -79,9 +76,6 @@ STYLE = {
 plt.rcParams.update(STYLE)
 
 
-# ─────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────
 
 def get_latest_version(models_root: Path) -> Path:
     dirs = sorted([d for d in models_root.iterdir() if d.is_dir()])
@@ -143,7 +137,6 @@ def load_dataset(split: str = "test") -> pd.DataFrame:
 def preprocess(df: pd.DataFrame, feature_names, encoders, scaler, model_name: str) -> pd.DataFrame:
     df = df.copy().replace("", np.nan)
 
-    # apply label encoders
     for col, enc in encoders.items():
         if col not in df.columns:
             continue
@@ -154,7 +147,6 @@ def preprocess(df: pd.DataFrame, feature_names, encoders, scaler, model_name: st
             mapping = {c: i for i, c in enumerate(enc.classes_)}
             df[col] = df[col].map(lambda x: mapping.get(str(x), -1)).astype(int)
 
-    # lightgbm: keep categoricals as pd.Categorical
     if model_name == "lightgbm":
         for col in encoders.keys():
             if col in df.columns:
@@ -167,18 +159,15 @@ def preprocess(df: pd.DataFrame, feature_names, encoders, scaler, model_name: st
     else:
         df = df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
-    # ensure all expected features exist
     for col in feature_names:
         if col not in df.columns:
             df[col] = 0
     df = df[feature_names]
 
-    # pytorch_mlp: force float64
     if model_name == "pytorch_mlp":
         df = df.astype(np.float64)
         return df
 
-    # apply scaler (numeric only, skip lightgbm categoricals)
     if scaler is not None and model_name != "logistic_regression":
         try:
             num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -240,9 +229,6 @@ def bootstrap_ci(y_true, y_prob, metric_fn, n=1000, ci=0.95, threshold=0.5):
     return float(np.mean(scores)), float(lo), float(hi)
 
 
-# ─────────────────────────────────────────────
-# PLOTS
-# ─────────────────────────────────────────────
 
 def plot_roc_curves(results: dict, out_dir: Path):
     fig, ax = plt.subplots(figsize=(6, 5))
@@ -413,7 +399,6 @@ def plot_feature_importance(results: dict, feature_names: list, out_dir: Path, t
     if not importances:
         return
 
-    # individual plots
     for name, imp in importances.items():
         idx = np.argsort(imp)[-top_n:]
         fig, ax = plt.subplots(figsize=(7, top_n * 0.28 + 1))
@@ -425,13 +410,11 @@ def plot_feature_importance(results: dict, feature_names: list, out_dir: Path, t
         fig.savefig(out_dir / f"feature_importance_{name}.png")
         plt.close(fig)
 
-    # aggregated heatmap (top_n features by mean importance)
     df_imp = pd.DataFrame(importances, index=feature_names)
     df_imp["mean"] = df_imp.mean(axis=1)
     top_feats = df_imp.nlargest(top_n, "mean").drop(columns="mean")
     if top_feats.empty:
         return
-    # normalize per model
     top_feats_norm = top_feats.div(top_feats.max(axis=0), axis=1).fillna(0)
     top_feats_norm.columns = [MODEL_DISPLAY.get(c, c) for c in top_feats_norm.columns]
 
@@ -563,7 +546,6 @@ def plot_det_curves(results: dict, out_dir: Path):
         fpr, fnr, _ = roc_curve(r["y_true"], r["y_prob"])
         fnr = 1 - fpr[::-1]
         fpr_det = fpr[::-1]
-        # transform to normal deviate
         fpr_t = scipy_norm.ppf(np.clip(fpr_det, 1e-4, 1 - 1e-4))
         fnr_t = scipy_norm.ppf(np.clip(fnr, 1e-4, 1 - 1e-4))
         ax.plot(fpr_t, fnr_t, color=PALETTE.get(name, None), lw=1.8,
@@ -582,15 +564,11 @@ def plot_det_curves(results: dict, out_dir: Path):
     plt.close(fig)
 
 
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
 
 def main(args):
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # ── load version
     if args.version:
         version_dir = MODELS_ROOT / args.version
     else:
@@ -602,19 +580,16 @@ def main(args):
     print(f"   Features : {len(feature_names)}")
     print(f"   Models   : {list(models.keys())}")
 
-    # ── load test set
     df_test = load_dataset("test")
     print(f"\n📊 Test set: {df_test.shape[0]:,} rows × {df_test.shape[1]} cols")
     print(f"   Fraud rate: {df_test[TARGET_COL].mean()*100:.2f}%")
 
     y_true = df_test[TARGET_COL].values.astype(int)
 
-    # ── dataset plots
     print("\n🖼  Generating dataset plots...")
     plot_dataset_stats(df_test, out_dir)
     plot_correlation_matrix(df_test, feature_names, out_dir)
 
-    # ── per-model evaluation
     results = {}
     print("\n🔍 Evaluating models...")
     for name, model in models.items():
@@ -641,7 +616,6 @@ def main(args):
         print("❌ No models evaluated successfully.")
         sys.exit(1)
 
-    # ── bootstrap CI
     print("\n📐 Computing bootstrap confidence intervals (n=1000)...")
     ci_results = {}
     for name, r in results.items():
@@ -657,7 +631,6 @@ def main(args):
               f"AUC={ci_results[name]['roc_auc'][0]:.4f} "
               f"[{ci_results[name]['roc_auc'][1]:.4f}, {ci_results[name]['roc_auc'][2]:.4f}]")
 
-    # ── plots
     print("\n🖼  Generating model plots...")
     plot_roc_curves(results, out_dir)
     plot_pr_curves(results, out_dir)
@@ -672,7 +645,6 @@ def main(args):
     plot_wilcoxon_heatmap(results, out_dir)
     plot_det_curves(results, out_dir)
 
-    # ── summary table
     print("\n📋 Building summary table...")
     rows = []
     for name, r in results.items():
@@ -705,7 +677,6 @@ def main(args):
     df_summary.to_csv(out_dir / "metrics_summary.csv")
     print(df_summary[["Accuracy", "Precision", "Recall", "F1", "ROC-AUC", "PR-AUC", "MCC"]].to_string())
 
-    # ── feature importance table
     print("\n📋 Building feature importance table...")
     fi_rows = []
     for name, r in results.items():
@@ -725,13 +696,11 @@ def main(args):
         df_fi = pd.DataFrame(fi_rows)
         df_fi.to_csv(out_dir / "feature_importance_all.csv", index=False)
 
-        # pivot: mean importance across models
         df_fi_pivot = df_fi.pivot_table(index="feature", columns="model", values="importance", aggfunc="mean")
         df_fi_pivot["mean"] = df_fi_pivot.mean(axis=1)
         df_fi_pivot = df_fi_pivot.sort_values("mean", ascending=False)
         df_fi_pivot.to_csv(out_dir / "feature_importance_pivot.csv")
 
-    # ── JSON report
     report = {
         "version":    version_dir.name,
         "timestamp":  datetime.now().isoformat(),

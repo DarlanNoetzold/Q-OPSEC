@@ -88,7 +88,6 @@ class MetricsCalculator:
         """Compare metrics across models."""
         df = pd.DataFrame(all_metrics).T
 
-        # Sort by roc_auc if available, otherwise by f1
         if "roc_auc" in df.columns:
             df = df.sort_values("roc_auc", ascending=False)
         elif "f1" in df.columns:
