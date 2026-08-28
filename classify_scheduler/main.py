@@ -15,12 +15,10 @@ def run_train_once(cfg: DefaultConfig):
     seed_everything(cfg.seed)
     df = load_dataset(cfg.data_path)
 
-    # Normaliza rótulos
     df, dropped = normalize_labels(df, cfg.target_col)
     if dropped:
         print(f"[WARN] Dropped rows with invalid labels: {dropped}")
 
-    # Falha se o CSV não tiver pelo menos 2 classes
     ensure_classes(df, cfg.target_col, cfg.allowed_classes)
     print_summary_classes(df, cfg.target_col)
 
@@ -45,11 +43,9 @@ def run_train_once(cfg: DefaultConfig):
     holdout = evaluate_holdout(best.pipeline, best.X_test, best.y_test, cfg.allowed_classes)
     print(f"[HOLDOUT] accuracy={holdout['accuracy']:.4f}, f1_macro={holdout['f1_macro']:.4f}")
 
-    # Salvar métricas e gráficos
     session_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     save_training_metrics(best, session_id)
 
-    # Colunas requeridas (todas as colunas de features usadas no treino)
     required_columns = [c for c in df.columns if c != cfg.target_col]
 
     registry = ModelRegistry(cfg.registry_dir)
@@ -70,7 +66,7 @@ def run_train_once(cfg: DefaultConfig):
             "n_samples": len(df),
             "n_features": len(required_columns),
             "required_columns": required_columns,
-            "session_id": session_id,  # Link para as métricas
+            "session_id": session_id,
         },
         candidates=best.candidates,
     )

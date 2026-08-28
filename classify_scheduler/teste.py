@@ -10,7 +10,6 @@ records = []
 for i in range(N):
     label = random.choice(labels)
 
-    # score coerente com o rótulo
     if label == "Very Low": score = np.random.uniform(0, 0.1)
     elif label == "Low": score = np.random.uniform(0.1, 0.3)
     elif label == "Medium": score = np.random.uniform(0.3, 0.5)

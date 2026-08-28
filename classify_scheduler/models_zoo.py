@@ -18,7 +18,6 @@ import numpy as np
 from utils import available
 
 
-# Transformer simples para converter matriz esparsa em densa (para GaussianNB)
 class DenseTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
@@ -30,7 +29,6 @@ class DenseTransformer(BaseEstimator, TransformerMixin):
 def make_models(preprocessor) -> Dict[str, Pipeline]:
     models: Dict[str, Pipeline] = {}
 
-    # 1) LogReg (boa baseline e calibrada naturalmente)
     models["logreg_lbfgs"] = Pipeline([
         ("pre", preprocessor),
         ("clf", LogisticRegression(
@@ -42,13 +40,11 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 2) Linear SVM calibrado (probabilidades úteis p/ thresholding)
     lin = Pipeline([("pre", preprocessor), ("clf", LinearSVC(class_weight="balanced"))])
     models["linear_svm_calibrated"] = Pipeline([
         ("cal", CalibratedClassifierCV(lin, cv=3))
     ])
 
-    # 3) SVC RBF (dois sabores)
     models["svc_rbf_std"] = Pipeline([
         ("pre", preprocessor),
         ("clf", SVC(C=2.0, kernel="rbf", gamma="scale", probability=True, class_weight="balanced"))
@@ -58,7 +54,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ("clf", SVC(C=4.0, kernel="rbf", gamma=0.2, probability=True, class_weight="balanced"))
     ])
 
-    # 4) RandomForest (duas variações)
     models["rf_balanced"] = Pipeline([
         ("pre", preprocessor),
         ("clf", RandomForestClassifier(
@@ -84,7 +79,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 5) ExtraTrees (duas variações)
     models["et_balanced"] = Pipeline([
         ("pre", preprocessor),
         ("clf", ExtraTreesClassifier(
@@ -107,7 +101,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 6) GradientBoosting (clássico)
     models["gb"] = Pipeline([
         ("pre", preprocessor),
         ("clf", GradientBoostingClassifier(
@@ -118,7 +111,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 7) HistGradientBoosting (forte em tabular)
     models["hgb_std"] = Pipeline([
         ("pre", preprocessor),
         ("clf", HistGradientBoostingClassifier(
@@ -138,7 +130,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 8) MLP (duas variações)
     models["mlp_medium"] = Pipeline([
         ("pre", preprocessor),
         ("clf", MLPClassifier(
@@ -164,20 +155,17 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
         ))
     ])
 
-    # 9) KNN
     models["knn_dist"] = Pipeline([
         ("pre", preprocessor),
         ("clf", KNeighborsClassifier(n_neighbors=17, weights="distance", p=2))
     ])
 
-    # 10) GaussianNB (com densificação)
     models["gnb_dense"] = Pipeline([
         ("pre", preprocessor),
         ("to_dense", DenseTransformer()),
         ("clf", GaussianNB(var_smoothing=1e-9))
     ])
 
-    # 11) XGBoost (opcional)
     if available("xgboost"):
         from xgboost import XGBClassifier
         models["xgb_hist"] = Pipeline([
@@ -196,7 +184,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
             ))
         ])
 
-    # 12) LightGBM (opcional)
     if available("lightgbm"):
         import lightgbm as lgb
         models["lgbm_std"] = Pipeline([
@@ -213,7 +200,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
             ))
         ])
 
-    # 13) CatBoost (opcional)
     if available("catboost"):
         from catboost import CatBoostClassifier
         models["catboost_multi"] = Pipeline([

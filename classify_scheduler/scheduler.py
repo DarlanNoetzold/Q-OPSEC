@@ -36,7 +36,6 @@ def save_training_metrics(train_result, session_id: str):
     accs = [c["cv_accuracy"] for c in candidates]
     f1s = [c["cv_f1_macro"] for c in candidates]
 
-    # 1. Accuracy comparison
     plt.figure(figsize=(12, 6))
     colors = ['#2ecc71' if v == max(accs) else '#3498db' for v in accs]
     plt.barh(names, accs, color=colors)
@@ -49,7 +48,6 @@ def save_training_metrics(train_result, session_id: str):
     plt.savefig(session_path / "all_models_accuracy.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    # 2. F1-Score comparison
     plt.figure(figsize=(12, 6))
     colors = ['#2ecc71' if v == max(f1s) else '#e74c3c' for v in f1s]
     plt.barh(names, f1s, color=colors)
@@ -62,7 +60,6 @@ def save_training_metrics(train_result, session_id: str):
     plt.savefig(session_path / "all_models_f1score.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    # 3. Accuracy vs F1 scatter
     plt.figure(figsize=(10, 8))
     plt.scatter(accs, f1s, s=100, alpha=0.6, c=range(len(names)), cmap='viridis')
     for i, name in enumerate(names):
@@ -75,7 +72,6 @@ def save_training_metrics(train_result, session_id: str):
     plt.savefig(session_path / "accuracy_vs_f1.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    # 4. Confusion matrix (holdout)
     y_pred = train_result.pipeline.predict(train_result.X_test)
     cm = confusion_matrix(train_result.y_test, y_pred)
 
@@ -90,7 +86,6 @@ def save_training_metrics(train_result, session_id: str):
     plt.savefig(session_path / "best_model_confusion_matrix.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    # 5. Top 10 ranking
     top10 = sorted(candidates, key=lambda x: x["cv_accuracy"], reverse=True)[:10]
     if top10:
         top_names = [c["name"] for c in top10]
@@ -112,7 +107,6 @@ def save_training_metrics(train_result, session_id: str):
         plt.savefig(session_path / "top10_models_ranking.png", dpi=150, bbox_inches='tight')
         plt.close()
 
-    # 6. Summary JSON
     summary = {
         "timestamp": datetime.now().isoformat(),
         "session_id": session_id,

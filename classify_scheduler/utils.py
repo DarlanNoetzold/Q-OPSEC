@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Any
 
-# Mapeamento canônico para normalização de labels
 CANONICAL = {
     "very low": "Very Low",
     "verylow": "Very Low",
@@ -112,7 +111,6 @@ def get_feature_columns_from_df(df: pd.DataFrame, target_col: str, exclude_ident
     feature_cols = [col for col in all_cols if col != target_col]
 
     if exclude_identifiers:
-        # Excluir colunas que parecem identificadores
         identifier_patterns = ["id", "request_id", "_id"]
         feature_cols = [
             col for col in feature_cols

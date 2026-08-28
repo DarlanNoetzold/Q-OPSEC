@@ -71,7 +71,6 @@ def train_and_select_best(
         X, y, test_size=test_size, random_state=seed, stratify=y
     )
 
-    # Build preprocessor e capturar feature columns
     pre, feat_cols = build_preprocessor(X_train, target_col=None)
     print(f"[INFO] Feature columns (after preprocessing): {list(feat_cols)}")
 
@@ -124,5 +123,5 @@ def train_and_select_best(
         y_test=y_test,
         candidates=candidates,
         ordered_classes=ordered_classes,
-        feature_columns=list(feat_cols)  # Colunas reais de features
+        feature_columns=list(feat_cols)
     )
