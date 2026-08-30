@@ -45,18 +45,14 @@ class ContextDatasetGenerator:
           cr.request_id,
           cr.created_at,
 
-          -- RISK FEATURES
           (cr.risk_json->>'score')::float AS risk_score,
           COALESCE(cr.risk_json->>'level', 'unknown') AS risk_level,
           COALESCE((cr.risk_json->>'anomaly_score')::float, 0.0) AS risk_anomaly_score,
           COALESCE(cr.risk_json->>'model_version', 'unknown') AS risk_model_version,
           COALESCE((cr.risk_json->>'recent_incidents')::int, 0) AS risk_recent_incidents,
-          -- policy_overrides como array JSON
           COALESCE(cr.risk_json->'policy_overrides', '[]'::jsonb) AS risk_policy_overrides,
-          -- contagem de policy overrides
           COALESCE(jsonb_array_length(cr.risk_json->'policy_overrides'), 0) AS risk_policy_overrides_count,
 
-          -- CONFIDENTIALITY FEATURES
           COALESCE((cr.confidentiality_json->>'score')::float, 0.0) AS conf_score,
           COALESCE(cr.confidentiality_json->>'classification', 'unknown') AS conf_classification,
           COALESCE(cr.confidentiality_json->'tags', '[]'::jsonb) AS conf_tags,
@@ -65,7 +61,6 @@ class ContextDatasetGenerator:
           COALESCE(jsonb_array_length(cr.confidentiality_json->'detected_patterns'), 0) AS conf_patterns_count,
           COALESCE(cr.confidentiality_json->>'model_version','unknown') AS conf_model_version,
 
-          -- SOURCE FEATURES
           COALESCE(cr.source_json->>'ip','0.0.0.0') AS src_ip,
           COALESCE(cr.source_json->>'geo','Unknown') AS src_geo,
           COALESCE(cr.source_json->>'user_id','') AS src_user_id,
@@ -76,7 +71,6 @@ class ContextDatasetGenerator:
           COALESCE(cr.source_json->>'mfa_status','unknown') AS src_mfa_status,
           COALESCE(cr.source_json->>'security_status','unknown') AS src_security_status,
 
-          -- DESTINATION FEATURES
           COALESCE(cr.destination_json->>'ip','0.0.0.0') AS dst_ip,
           COALESCE(cr.destination_json->>'service_id','') AS dst_service_id,
           COALESCE(cr.destination_json->>'service_type','unknown') AS dst_service_type,
@@ -84,40 +78,31 @@ class ContextDatasetGenerator:
           COALESCE(cr.destination_json->>'security_status','unknown') AS dst_security_status,
           COALESCE(cr.destination_json->>'os_version','unknown') AS dst_os_version,
           COALESCE(cr.destination_json->'allowed_protocols', '[]'::jsonb) AS dst_allowed_protocols,
-          -- verifica se TLS1.3 está permitido
           COALESCE((cr.destination_json->'allowed_protocols') ? 'TLS1.3', false) AS dst_tls13_allowed,
-          -- contagem de protocolos permitidos
           COALESCE(jsonb_array_length(cr.destination_json->'allowed_protocols'), 0) AS dst_protocols_count,
 
-          -- HEADERS FEATURES
           COALESCE(cr.headers_json, '{}'::jsonb) AS headers_json,
-          -- contagem de headers
           (
             SELECT COUNT(*) 
             FROM jsonb_object_keys(COALESCE(cr.headers_json,'{}'::jsonb))
           ) AS headers_count,
 
-          -- TIME FEATURES
           EXTRACT(HOUR FROM cr.created_at) AS hour_of_day,
           EXTRACT(DOW FROM cr.created_at) AS day_of_week,
           EXTRACT(MONTH FROM cr.created_at) AS month,
           EXTRACT(YEAR FROM cr.created_at) AS year,
 
-          -- DERIVED FEATURES
-          -- IP privado (192.168.*, 10.*, 172.16-31.*)
           CASE 
             WHEN COALESCE(cr.source_json->>'ip','') ~ '^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)' THEN true
             ELSE false
           END AS src_ip_private,
 
-          -- Normalização do status MFA
           CASE lower(COALESCE(cr.source_json->>'mfa_status','unknown'))
             WHEN 'enabled' THEN 'enabled'
             WHEN 'disabled' THEN 'disabled'
             ELSE 'unknown'
           END AS src_mfa_status_norm,
 
-          -- Score combinado (risk + confidentiality)
           COALESCE((cr.risk_json->>'score')::float, 0.0) * 0.6 + 
           COALESCE((cr.confidentiality_json->>'score')::float, 0.0) * 0.4 AS combined_score
 
@@ -140,7 +125,6 @@ class ContextDatasetGenerator:
         CREATE OR REPLACE VIEW context_records_labels AS
         SELECT
           *,
-          -- SECURITY LEVEL LABEL
           CASE
             WHEN lower(dst_security_policy) = 'high'
               OR lower(conf_classification) IN ('confidential','restricted','secret')
@@ -157,7 +141,6 @@ class ContextDatasetGenerator:
             ELSE 'low'
           END AS security_level_label,
 
-          -- ENCRYPTION SCRIPT LABEL
           CASE
             WHEN (
               lower(dst_security_policy) = 'high'
@@ -184,7 +167,6 @@ class ContextDatasetGenerator:
             END
           END AS encryption_script_label,
 
-          -- PRIORITY LABEL (para ordenação de processamento)
           CASE
             WHEN lower(dst_security_policy) = 'high'
               OR lower(conf_classification) IN ('confidential','restricted','secret')
@@ -257,26 +239,19 @@ class ContextDatasetGenerator:
         SELECT
             id, request_id, created_at,
 
-            -- Risk features
             risk_score, risk_level, risk_anomaly_score, risk_recent_incidents,
             risk_policy_overrides_count,
 
-            -- Confidentiality features  
             conf_score, conf_classification, conf_tags_count, conf_patterns_count,
 
-            -- Source features
             src_ip_private, src_geo, src_mfa_status_norm, src_device_type, src_security_status,
 
-            -- Destination features
             dst_service_type, dst_security_policy, dst_tls13_allowed, dst_protocols_count,
 
-            -- Headers and time features
             headers_count, hour_of_day, day_of_week, month,
 
-            -- Derived features
             combined_score,
 
-            -- Labels (targets)
             security_level_label, encryption_script_label, processing_priority_label
 
         FROM context_records_labels
@@ -314,7 +289,6 @@ class ContextDatasetGenerator:
         advanced_sql = """
         WITH feature_engineering AS (
           SELECT *,
-            -- One-hot (já existiam)
             CASE WHEN risk_level = 'low' THEN 1 ELSE 0 END as risk_level_low,
             CASE WHEN risk_level = 'medium' THEN 1 ELSE 0 END as risk_level_medium,
             CASE WHEN risk_level = 'high' THEN 1 ELSE 0 END as risk_level_high,
@@ -332,63 +306,53 @@ class ContextDatasetGenerator:
             CASE WHEN dst_security_policy = 'medium' THEN 1 ELSE 0 END as dst_policy_medium,
             CASE WHEN dst_security_policy = 'high' THEN 1 ELSE 0 END as dst_policy_high,
         
-            -- Cíclicas (já existiam)
             SIN(2 * PI() * hour_of_day / 24.0) as hour_sin,
             COS(2 * PI() * hour_of_day / 24.0) as hour_cos,
             SIN(2 * PI() * day_of_week / 7.0) as day_sin,
             COS(2 * PI() * day_of_week / 7.0) as day_cos,
         
-            -- Interações/normalizações (já existiam)
             risk_score * conf_score as risk_conf_interaction,
             CASE WHEN src_ip_private AND dst_tls13_allowed THEN 1 ELSE 0 END as private_secure_combo,
             (risk_score - 0.5) / 0.5 as risk_score_normalized,
             (conf_score - 0.5) / 0.5 as conf_score_normalized,
         
-            -- Fallback do request_id
             COALESCE(request_id, 'req-' || id::text) AS request_id_resolved
         
           FROM context_records_labels
         )
         SELECT
           id,
-          request_id_resolved,         -- novo
+          request_id_resolved,
           created_at,
         
-          -- Numéricas originais
           risk_score, risk_anomaly_score, risk_recent_incidents,
           conf_score,
           headers_count, combined_score,
         
-          -- Contagens/flags adicionais
-          risk_policy_overrides_count, -- novo
+          risk_policy_overrides_count,
           conf_tags_count, conf_patterns_count,
           dst_protocols_count,
           src_ip_private, dst_tls13_allowed,
         
-          -- Categóricas cruas para debug/interpretabilidade
-          risk_level,                  -- novo
-          conf_classification,         -- novo
-          src_geo,                     -- novo
-          src_device_type,             -- novo
-          dst_service_type,            -- novo
-          dst_security_policy,         -- novo
-          src_mfa_status_norm,         -- novo
+          risk_level,
+          conf_classification,
+          src_geo,
+          src_device_type,
+          dst_service_type,
+          dst_security_policy,
+          src_mfa_status_norm,
         
-          -- Tempo cru + cíclico
-          hour_of_day, day_of_week, month, year,  -- novos (os crus)
+          hour_of_day, day_of_week, month, year,
           hour_sin, hour_cos, day_sin, day_cos,
         
-          -- One-hot
           risk_level_low, risk_level_medium, risk_level_high, risk_level_critical,
           conf_public, conf_internal, conf_confidential, conf_restricted,
           src_mfa_enabled, src_mfa_disabled,
           dst_policy_low, dst_policy_medium, dst_policy_high,
         
-          -- Interações/normalizações
           risk_conf_interaction, private_secure_combo,
           risk_score_normalized, conf_score_normalized,
         
-          -- Targets
           security_level_label, encryption_script_label, processing_priority_label
         
         FROM feature_engineering
