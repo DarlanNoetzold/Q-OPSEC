@@ -34,7 +34,6 @@ def _to_unix_ts(value) -> int:
     return int(value)
 
 
-# Enhanced FastAPI app with comprehensive Swagger documentation
 app = FastAPI(
     title="OraculumPrisec Crypto Module",
     description="""
@@ -470,9 +469,7 @@ if __name__ == "__main__":
 
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
-# Monitoring
 
-# AUTO-GENERATED MONITORING
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:
