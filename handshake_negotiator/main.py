@@ -55,7 +55,6 @@ Cliente → Handshake → KMS → KDE → Crypto → Validation → Receptor
     ],
 )
 
-# URLs dos serviços integrados
 KMS_URL = "http://192.168.18.18:8002/kms/create_key"
 KDE_URL = "http://192.168.18.18:8003/deliver"
 CRYPTO_URL = "http://192.168.18.18:8004/encrypt/by-request-id"
@@ -229,7 +228,6 @@ async def handshake(req: NegotiationRequest):
     chosen_alg, session_id, _, _ = negotiate_algorithms(req)
 
 
-    # 1) KMS - Criação de chave
     kms_payload = {
         "session_id": session_id,
         "request_id": request_id,
@@ -256,7 +254,6 @@ async def handshake(req: NegotiationRequest):
         "Negotiation completed successfully"
     )
 
-    # 2) KDE - Entrega de chave
     raw_dest = req.destination
     if raw_dest and "10.0.0.5" in raw_dest:
         raw_dest = raw_dest.replace("10.0.0.5", "192.168.18.18")
@@ -280,7 +277,6 @@ async def handshake(req: NegotiationRequest):
         except Exception:
             kde_data = {"raw": kde_resp.text}
 
-    # 3) CRYPTO - Criptografia da mensagem
     crypto_payload = {
         "request_id": request_id,
         "session_id": key_data["session_id"],
@@ -304,7 +300,6 @@ async def handshake(req: NegotiationRequest):
         except Exception:
             pass
 
-    # 4) VALIDATION - Envio para validação e receptor final
     validation_data: dict | str
     if crypto_nonce_b64 and crypto_ciphertext_b64:
         validation_payload = {
@@ -330,7 +325,6 @@ async def handshake(req: NegotiationRequest):
     else:
         validation_data = {"skip": "no crypto output available"}
 
-    # Retorno final
     return NegotiationResponse(
         request_id=request_id,
         session_id=key_data["session_id"],
@@ -422,9 +416,7 @@ if __name__ == "__main__":
 
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
 
-# Monitoring
 
-# AUTO-GENERATED MONITORING
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:
