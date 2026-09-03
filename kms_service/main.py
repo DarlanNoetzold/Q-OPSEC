@@ -99,8 +99,6 @@ def supported_algorithms():
     },
 )
 def algorithm_info(algorithm: str):
-    # Se get_algorithm_info já lança erro, ok.
-    # Se não, você pode ajustar aqui para retornar 404 quando None.
     info = get_algorithm_info(algorithm)
     if not info:
         raise HTTPException(status_code=404, detail="Algorithm not found")
@@ -177,7 +175,7 @@ async def create_key(req: CreateKeyRequest):
         requested_algorithm=req.algorithm,
         selected_algorithm=selected_alg,
         key_material=key_material,
-        expires_at=expires_at,  # int
+        expires_at=expires_at,
         fallback_applied=fallback_applied,
         fallback_reason=fallback_reason,
         source_of_key=source_of_key,
@@ -309,7 +307,7 @@ def health_check():
             "liboqs": OQS_AVAILABLE,
             "pqcrypto": PQC_AVAILABLE,
             "qkd_gateway": os.getenv("QKD_AVAILABLE", "false").lower() == "true",
-            "storage": True,  # TODO: verify Redis/DB connectivity
+            "storage": True,
         },
     }
     return status

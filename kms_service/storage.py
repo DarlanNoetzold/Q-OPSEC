@@ -19,12 +19,10 @@ import os
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
-# Backend configuration
-STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "redis")  # "redis", "sqlite", "memory"
+STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "redis")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 SQLITE_PATH = os.getenv("SQLITE_PATH", "kms_sessions.db")
 
-# Internal state
 _memory_store: Dict[str, Dict[str, Any]] = {}
 _redis_client = None
 _sqlite_conn: Optional[sqlite3.Connection] = None
@@ -34,7 +32,6 @@ def _to_epoch(value) -> int:
     """Convert datetime or int to epoch seconds (UTC)."""
     if isinstance(value, datetime):
         if value.tzinfo is None:
-            # Assume UTC if naive
             value = value.replace(tzinfo=timezone.utc)
         return int(value.timestamp())
     return int(value)
@@ -51,7 +48,7 @@ def _init_redis() -> bool:
     if _redis_client is not None:
         return True
     try:
-        import redis  # type: ignore
+        import redis
         _redis_client = redis.from_url(REDIS_URL, decode_responses=True)
         _redis_client.ping()
         print(f"[Storage] Redis connected: {REDIS_URL}")
@@ -86,13 +83,11 @@ def _init_sqlite():
                 CREATE INDEX IF NOT EXISTS idx_request_id ON key_sessions(request_id)  -- <- NOVO
             """)
 
-            # Migração: adicionar coluna request_id se não existir
             try:
                 _sqlite_conn.execute("ALTER TABLE key_sessions ADD COLUMN request_id TEXT")
                 _sqlite_conn.commit()
                 print("[Storage] Coluna request_id adicionada à tabela existente")
             except sqlite3.OperationalError:
-                # Coluna já existe
                 pass
 
             _sqlite_conn.commit()
@@ -110,7 +105,6 @@ def _cleanup_expired():
     current_time = int(time.time())
 
     if STORAGE_BACKEND == "redis" and _redis_client:
-        # Redis uses TTL; no manual cleanup required
         return
 
     if STORAGE_BACKEND == "sqlite" and _sqlite_conn:
@@ -156,7 +150,7 @@ async def save_session(session_id: str, request_id: str, algorithm: str, key_mat
     """
     session_data = {
         "session_id": session_id,
-        "request_id": request_id,  # <- NOVO
+        "request_id": request_id,
         "algorithm": algorithm,
         "key_material": key_material,
         "expires_at": expires_at,
@@ -170,15 +164,13 @@ async def save_session(session_id: str, request_id: str, algorithm: str, key_mat
             if not _init_redis():
                 return await _save_memory(session_data)
 
-            # Salva no Redis com TTL automático
             _redis_client.setex(
                 f"kms:session:{session_id}",
                 ttl_seconds,
                 json.dumps(session_data)
             )
-            # Também mapeia request_id -> session_id
             _redis_client.setex(
-                f"kms:request:{request_id}",  # <- NOVO
+                f"kms:request:{request_id}",
                 ttl_seconds,
                 session_id
             )
@@ -194,7 +186,7 @@ async def save_session(session_id: str, request_id: str, algorithm: str, key_mat
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (
                 session_id,
-                request_id,  # <- NOVO
+                request_id,
                 algorithm,
                 key_material,
                 expires_at,
@@ -202,13 +194,12 @@ async def save_session(session_id: str, request_id: str, algorithm: str, key_mat
             ))
             _sqlite_conn.commit()
 
-            # Cleanup periódico
             if hash(session_id) % 100 == 0:
                 _cleanup_expired()
 
             return True
 
-        else:  # memory
+        else:
             return await _save_memory(session_data)
 
     except Exception as e:
@@ -221,7 +212,6 @@ async def _save_memory(session_data: Dict[str, Any]) -> bool:
     session_id = session_data["session_id"]
     _memory_store[session_id] = session_data
 
-    # Periodic cleanup
     if len(_memory_store) % 50 == 0:
         _cleanup_expired()
 
@@ -250,7 +240,6 @@ async def get_session(session_id: str) -> Optional[Dict[str, Any]]:
                 return None
             session_data = json.loads(data)
             if int(session_data.get("expires_at", 0)) > current_time:
-                # Convert epoch -> datetime (UTC)
                 session_data["expires_at"] = _to_datetime(session_data["expires_at"])
                 return session_data
             return None
@@ -272,14 +261,12 @@ async def get_session(session_id: str) -> Optional[Dict[str, Any]]:
                 }
             return None
 
-        # memory
         session_data = _memory_store.get(session_id)
         if session_data and int(session_data.get("expires_at", 0)) > current_time:
             session_copy = dict(session_data)
             session_copy["expires_at"] = _to_datetime(session_copy["expires_at"])
             return session_copy
         elif session_data:
-            # Remove if expired
             _memory_store.pop(session_id, None)
             return None
 
@@ -303,7 +290,6 @@ async def get_session_by_request(request_id: str) -> Optional[Dict[str, Any]]:
 
     try:
         if STORAGE_BACKEND == "redis" and _redis_client:
-            # Busca session_id pelo request_id
             session_id = _redis_client.get(f"kms:request:{request_id}")
             if session_id:
                 return await get_session(session_id)
@@ -328,8 +314,7 @@ async def get_session_by_request(request_id: str) -> Optional[Dict[str, Any]]:
                 }
             return None
 
-        else:  # memory
-            # Busca linear na memória
+        else:
             for session_data in _memory_store.values():
                 if (session_data.get("request_id") == request_id and
                     session_data.get("expires_at", 0) > current_time):
@@ -360,7 +345,6 @@ async def delete_session(session_id: str) -> bool:
             _sqlite_conn.commit()
             return cursor.rowcount > 0
 
-        # memory
         if session_id in _memory_store:
             _memory_store.pop(session_id, None)
             return True
@@ -411,7 +395,6 @@ async def list_sessions(limit: int = 100) -> List[Dict[str, Any]]:
                 for row in cursor.fetchall()
             ]
 
-        # memory
         sessions = []
         for session_data in list(_memory_store.values())[:limit]:
             if int(session_data.get("expires_at", 0)) > current_time:
@@ -457,7 +440,6 @@ def get_storage_stats() -> Dict[str, Any]:
                 "database_path": SQLITE_PATH
             }
 
-        # memory
         active_sessions = sum(
             1 for v in _memory_store.values()
             if int(v.get("expires_at", 0)) > current_time
@@ -475,7 +457,6 @@ def get_storage_stats() -> Dict[str, Any]:
         }
 
 
-# Auto-initialize based on backend
 if STORAGE_BACKEND == "redis":
     _init_redis()
 elif STORAGE_BACKEND == "sqlite":

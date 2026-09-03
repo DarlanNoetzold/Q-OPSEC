@@ -17,7 +17,6 @@ from quantum_gateway.qkd_interface import (
     qkd_device_independent_simulation,
 )
 
-# Map of supported QKD algorithms to their simulation functions
 QKD_ALGORITHMS = {
     "QKD_BB84": qkd_bb84_simulation,
     "QKD_E91": qkd_e91_simulation,

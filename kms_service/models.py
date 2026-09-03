@@ -11,7 +11,7 @@ class KeySession(Base):
     session_id = Column(String, primary_key=True, index=True)
     request_id = Column(String, index=True, nullable=False)
     algorithm = Column(String, nullable=False)
-    key_material = Column(String, nullable=False)  # em base64
+    key_material = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
 class KeyResponse(BaseModel):
     session_id: str
@@ -40,4 +40,4 @@ class CreateKeyResponse(BaseModel):
     expires_at: int
     fallback_applied: bool = False
     fallback_reason: Optional[str] = None
-    source_of_key: str  # "qkd" | "pqc" | "classical"
+    source_of_key: str

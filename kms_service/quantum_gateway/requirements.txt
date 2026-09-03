@@ -1,2 +1,1 @@
-# Q-OPSEC Automated Requirements
 quantum_gateway

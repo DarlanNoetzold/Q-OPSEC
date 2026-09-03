@@ -21,9 +21,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timedelta
-# ====================================================================
-# liboqs (Open Quantum Safe) - Primary PQC Backend
-# ====================================================================
 OQS_AVAILABLE = False
 try:
     import oqs
@@ -35,14 +32,10 @@ except ImportError:
     OQS_AVAILABLE = False
     print("[KMS] liboqs-python not available")
 
-# ====================================================================
-# pqcrypto - Fallback PQC Backend
-# ====================================================================
 PQC_AVAILABLE = False
 try:
     import pqcrypto
 
-    # Verify if KEMs are actually available
     try:
         from pqcrypto.kem import ntruhrss701
 
@@ -74,25 +67,20 @@ def _normalize_oqs_algorithm(requested: str, kem_mechs: list, sig_mechs: list) -
     if not requested:
         return None, ""
 
-    # Try exact match first
     if requested in kem_mechs:
         return requested, "kem"
     if requested in sig_mechs:
         return requested, "sig"
 
-    # Common aliases (post-NIST standardization)
     aliases = {
-        # Kyber -> ML-KEM (NIST standardized names)
         "Kyber512": "ML-KEM-512",
         "Kyber768": "ML-KEM-768",
         "Kyber1024": "ML-KEM-1024",
 
-        # Dilithium -> ML-DSA (NIST standardized names)
         "Dilithium2": "ML-DSA-44",
         "Dilithium3": "ML-DSA-65",
         "Dilithium5": "ML-DSA-87",
 
-        # Falcon variants
         "Falcon-512": "Falcon-512",
         "Falcon-1024": "Falcon-1024",
         "FALCON-512": "Falcon-512",
@@ -106,7 +94,6 @@ def _normalize_oqs_algorithm(requested: str, kem_mechs: list, sig_mechs: list) -
         if candidate in sig_mechs:
             return candidate, "sig"
 
-    # Case-insensitive and hyphen-tolerant matching
     def normalize(s: str) -> str:
         return s.replace("-", "").replace("_", "").upper()
 
@@ -134,7 +121,6 @@ def _oqs_kem_mechanisms():
     if not OQS_AVAILABLE:
         return []
 
-    # Try different function names across liboqs versions
     function_names = [
         "get_supported_KEM_mechanisms",
         "get_available_KEM_mechanisms",
@@ -164,7 +150,6 @@ def _oqs_sig_mechanisms():
     if not OQS_AVAILABLE:
         return []
 
-    # Try different function names across liboqs versions
     function_names = [
         "get_supported_sig_mechanisms",
         "get_available_sig_mechanisms",
@@ -270,29 +255,21 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
         ValueError: If the algorithm is not supported by any backend
     """
 
-    # ====================================================================
-    # 1. QKD (Quantum Key Distribution) - Only for QKD_* algorithms
-    # ====================================================================
     if algorithm.upper().startswith("QKD"):
         chosen_algo, key_material = generate_key_from_gateway(algorithm)
         if key_material:
             return chosen_algo, key_material
         else:
-            # Clear fallback if QKD gateway failed
             print(f"[KMS] QKD requested ({algorithm}) but no material was generated. "
                   f"Falling back to AES256_GCM.")
             key = AESGCM.generate_key(bit_length=256)
             return "AES256_GCM", base64.b64encode(key).decode()
 
-    # ====================================================================
-    # 2. Post-Quantum Cryptography via liboqs (Primary PQC Backend)
-    # ====================================================================
     if OQS_AVAILABLE:
         kem_mechs = _oqs_kem_mechanisms()
         sig_mechs = _oqs_sig_mechanisms()
         normalized, cat = _normalize_oqs_algorithm(algorithm, kem_mechs, sig_mechs)
 
-        # Handle KEM (Key Encapsulation Mechanism)
         if normalized and cat == "kem":
             try:
                 with oqs.KeyEncapsulation(normalized) as kem:
@@ -302,21 +279,15 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
             except Exception as e:
                 print(f"[KMS Error] Failed to generate KEM {normalized} with liboqs: {e}")
 
-        # Handle Digital Signatures
         if normalized and cat == "sig":
             try:
                 with oqs.Signature(normalized) as sig:
                     public_key = sig.generate_keypair()
-                    # Derive session key from public key material
                     return normalized, base64.b64encode(derive_key(public_key, 32)).decode()
             except Exception as e:
                 print(f"[KMS Error] Failed to generate Signature {normalized} with liboqs: {e}")
 
-    # ====================================================================
-    # 3. Post-Quantum Cryptography via pqcrypto (Fallback PQC Backend)
-    # ====================================================================
     if PQC_AVAILABLE:
-        # KEM algorithm mapping
         pqc_kem_map = {
             "NTRU-HRSS-701": ("pqcrypto.kem.ntruhrss701", "ntruhrss701"),
             "NTRU-HPS-2048-509": ("pqcrypto.kem.ntruhps2048509", "ntruhps2048509"),
@@ -329,7 +300,6 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
             "FrodoKEM-1344-AES": ("pqcrypto.kem.frodokem1344aes", "frodokem1344aes")
         }
 
-        # Signature algorithm mapping
         pqc_sig_map = {
             "Dilithium2": ("pqcrypto.sign.dilithium2", "dilithium2"),
             "Dilithium3": ("pqcrypto.sign.dilithium3", "dilithium3"),
@@ -341,7 +311,6 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
             "SPHINCS+-SHA256-256s": ("pqcrypto.sign.sphincssha256256ssimple", "sphincssha256256ssimple")
         }
 
-        # Try KEM algorithms
         if algorithm in pqc_kem_map:
             module_path, module_name = pqc_kem_map[algorithm]
             try:
@@ -352,40 +321,30 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
             except ImportError:
                 print(f"[KMS Warning] pqcrypto module {module_path} not available")
 
-        # Try signature algorithms
         if algorithm in pqc_sig_map:
             module_path, module_name = pqc_sig_map[algorithm]
             try:
                 module = __import__(module_path, fromlist=[module_name])
                 pk, sk = module.generate_keypair()
-                # Derive session key from public key material
                 return algorithm, base64.b64encode(derive_key(pk, 32)).decode()
             except ImportError:
                 print(f"[KMS Warning] pqcrypto module {module_path} not available")
 
-    # ====================================================================
-    # 4. Classical Cryptographic Algorithms (Always Available)
-    # ====================================================================
 
-    # Symmetric encryption algorithms
     classical_algorithms = {
-        # AES family (recommended)
         "AES256_GCM": lambda: AESGCM.generate_key(bit_length=256),
         "AES128_GCM": lambda: AESGCM.generate_key(bit_length=128),
 
-        # ChaCha20-Poly1305 (modern alternative to AES)
         "ChaCha20_Poly1305": lambda: ChaCha20Poly1305.generate_key(),
 
-        # Legacy algorithms (not recommended for new applications)
-        "3DES": lambda: os.urandom(24),  # 3DES uses 192 bits (24 bytes)
-        "Blowfish": lambda: os.urandom(32),  # Blowfish supports up to 448 bits
+        "3DES": lambda: os.urandom(24),
+        "Blowfish": lambda: os.urandom(32),
     }
 
     if algorithm in classical_algorithms:
         key = classical_algorithms[algorithm]()
         return algorithm, base64.b64encode(key).decode()
 
-    # RSA key generation (derive session key from private key)
     rsa_algorithms = {
         "RSA2048": 2048,
         "RSA4096": 4096
@@ -402,10 +361,8 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()
         )
-        # Derive 256-bit session key from RSA private key
         return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
 
-    # Elliptic Curve Cryptography (ECC)
     ecc_algorithms = {
         "ECDH_P256": ec.SECP256R1(),
         "ECDH_P384": ec.SECP384R1(),
@@ -417,31 +374,25 @@ def generate_key(algorithm: str) -> Tuple[str, str]:
         private_key = ec.generate_private_key(curve)
 
         if algorithm == "ECDH_Curve25519":
-            # X25519 uses raw encoding
             key_bytes = private_key.private_bytes(
                 encoding=serialization.Encoding.Raw,
                 format=serialization.PrivateFormat.Raw,
                 encryption_algorithm=serialization.NoEncryption()
             )
         else:
-            # Other curves use DER encoding
             key_bytes = private_key.private_bytes(
                 encoding=serialization.Encoding.DER,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             )
-        # Derive 256-bit session key from ECC private key
         return algorithm, base64.b64encode(derive_key(key_bytes, 32)).decode()
 
-    # ====================================================================
-    # 5. Algorithm Not Supported
-    # ====================================================================
     raise ValueError(f"Algorithm '{algorithm}' is not supported by the KMS")
 
 
 def build_session(
     session_id: Optional[str],
-    request_id: str,  # <- NOVO: Adicionar request_id aqui
+    request_id: str,
     algorithm: str,
     ttl_seconds: int
 ) -> Tuple[str, str, str, int, bool, Optional[str], str, str]:
@@ -465,10 +416,8 @@ def build_session(
     - fallback_reason: Reason for fallback (if any)
     - source_of_key: Source category ('qkd', 'pqc', 'classical')
     """
-    # Generate the key
     selected_alg, key_material = generate_key(algorithm)
 
-    # Detect if fallback was applied
     fallback_applied = selected_alg != algorithm
     fallback_reason = None
     if fallback_applied:
@@ -480,7 +429,6 @@ def build_session(
         else:
             fallback_reason = "ALGO_NOT_SUPPORTED"
 
-    # Determine key source for telemetry
     if selected_alg.startswith("QKD"):
         source_of_key = "qkd"
     elif selected_alg.upper().startswith(
@@ -489,7 +437,6 @@ def build_session(
     else:
         source_of_key = "classical"
 
-    # Calculate expiration timestamp
     expires_at = int(time.time()) + int(ttl_seconds)
     sid = session_id or str(uuid.uuid4())
 
@@ -508,7 +455,7 @@ def get_supported_algorithms():
             "AES256_GCM", "AES128_GCM", "ChaCha20_Poly1305",
             "RSA2048", "RSA4096",
             "ECDH_P256", "ECDH_P384", "ECDH_Curve25519",
-            "3DES", "Blowfish"  # Legacy algorithms
+            "3DES", "Blowfish"
         ],
         "pqc_kems": [],
         "pqc_signatures": [],
@@ -517,17 +464,14 @@ def get_supported_algorithms():
         "oqs_signatures": []
     }
 
-    # Add liboqs algorithms (primary PQC backend)
     if OQS_AVAILABLE:
         supported["oqs_kems"] = _oqs_kem_mechanisms()
         supported["oqs_signatures"] = _oqs_sig_mechanisms()
 
-    # Add pqcrypto algorithms (fallback PQC backend)
     if PQC_AVAILABLE:
         supported["pqc_kems"] = _get_pqcrypto_kems()
         supported["pqc_signatures"] = _get_pqcrypto_sigs()
 
-    # Add QKD algorithms (if available)
     qkd_available = os.getenv("QKD_AVAILABLE", "false").lower() == "true"
     if qkd_available:
         supported["qkd"] = [
@@ -553,12 +497,11 @@ def get_algorithm_info(algorithm: str):
         "algorithm": algorithm,
         "category": "unknown",
         "security_level": "unknown",
-        "key_size_bits": 256,  # Default: 256 bits
+        "key_size_bits": 256,
         "quantum_resistant": False,
         "recommended": True
     }
 
-    # Classical symmetric algorithms
     if algorithm in ["AES256_GCM", "ChaCha20_Poly1305"]:
         info.update({
             "category": "symmetric",
@@ -575,7 +518,6 @@ def get_algorithm_info(algorithm: str):
             "recommended": True
         })
 
-    # Classical asymmetric algorithms
     elif algorithm.startswith("RSA"):
         key_size = int(algorithm.replace("RSA", ""))
         info.update({
@@ -593,7 +535,6 @@ def get_algorithm_info(algorithm: str):
             "recommended": True
         })
 
-    # Post-Quantum KEM algorithms
     elif algorithm.startswith(("Kyber", "ML-KEM", "NTRU", "Saber", "Frodo")):
         info.update({
             "category": "pqc_kem",
@@ -602,7 +543,6 @@ def get_algorithm_info(algorithm: str):
             "recommended": True
         })
 
-    # Post-Quantum signature algorithms
     elif algorithm.startswith(("Dilithium", "ML-DSA", "Falcon", "SPHINCS")):
         info.update({
             "category": "pqc_signature",
@@ -611,7 +551,6 @@ def get_algorithm_info(algorithm: str):
             "recommended": True
         })
 
-    # Quantum Key Distribution
     elif algorithm.startswith("QKD"):
         info.update({
             "category": "qkd",
@@ -620,7 +559,6 @@ def get_algorithm_info(algorithm: str):
             "recommended": True
         })
 
-    # Legacy algorithms (not recommended)
     elif algorithm in ["3DES", "Blowfish"]:
         info.update({
             "category": "legacy",

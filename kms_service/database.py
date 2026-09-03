@@ -1,14 +1,11 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from models import Base  # Base declarative do KMS (onde está KeySession)
+from models import Base
 
-# Ajuste os parâmetros abaixo (usuário, senha, IP, porta, DB)
 DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/kms_db"
 
-# Criar engine (future=True opcional)
 engine = create_engine(DATABASE_URL, future=True)
 
-# Criar SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
@@ -33,7 +30,6 @@ def migrate_add_request_id():
     caso você já tenha a tabela criada sem essa coluna.
     """
     with engine.begin() as conn:
-        # Adiciona coluna se não existir
         conn.execute(text("""
             DO $$
             BEGIN
@@ -46,7 +42,6 @@ def migrate_add_request_id():
                 END IF;
             END$$;
         """))
-        # Adiciona índice se não existir
         conn.execute(text("""
             DO $$
             BEGIN
