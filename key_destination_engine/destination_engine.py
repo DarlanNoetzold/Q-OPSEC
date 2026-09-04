@@ -6,22 +6,22 @@ from models import DeliveryRequest, DeliveryResponse
 from config import SUPPORTED_METHODS
 
 try:
-    from delivery_methods.api_delivery import deliver_via_api    # type: ignore
+    from delivery_methods.api_delivery import deliver_via_api
 except Exception:
     deliver_via_api = None
 
 try:
-    from delivery_methods.mqtt_delivery import deliver_via_mqtt  # type: ignore
+    from delivery_methods.mqtt_delivery import deliver_via_mqtt
 except Exception:
     deliver_via_mqtt = None
 
 try:
-    from delivery_methods.hsm_delivery import deliver_via_hsm    # type: ignore
+    from delivery_methods.hsm_delivery import deliver_via_hsm
 except Exception:
     deliver_via_hsm = None
 
 try:
-    from delivery_methods.file_delivery import deliver_via_file  # type: ignore
+    from delivery_methods.file_delivery import deliver_via_file
 except Exception:
     deliver_via_file = None
 
@@ -109,7 +109,7 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
         return result
 
     try:
-        handler_result = await handler(req, delivery_id)  # type: ignore
+        handler_result = await handler(req, delivery_id)
         result = _normalize_handler_result(req, delivery_id, handler_result)
     except Exception as e:
         result = _build_response(

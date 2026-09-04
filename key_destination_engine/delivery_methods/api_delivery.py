@@ -1,4 +1,3 @@
-# delivery_methods/api_delivery.py
 import httpx
 from typing import Dict, Any, Tuple, Optional
 from config import API_TIMEOUT
@@ -30,7 +29,6 @@ def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], D
 async def deliver_via_api(req: DeliveryRequest, delivery_id: str):
     url = req.destination
 
-    # Sanitização e Normalização de URL
     if not url:
         url = "http://192.168.18.18:8005/validation/send"
     
@@ -56,7 +54,6 @@ async def deliver_via_api(req: DeliveryRequest, delivery_id: str):
             elif method == "DELETE":
                 resp = await client.request("DELETE", url, json=body, headers=headers)
             elif method == "GET":
-                # Para GET, enviamos params ao invés de body
                 resp = await client.get(url, params=body, headers=headers)
             else:
                 return (

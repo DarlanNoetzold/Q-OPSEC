@@ -6,7 +6,7 @@ class DeliveryRequest(BaseModel):
     session_id: str
     request_id: Optional[str] = None
     destination: str
-    delivery_method: str  # "API", "MQTT", "HSM", "FILE"
+    delivery_method: str
     key_material: str
     algorithm: str
     expires_at: int = Field(..., description="Unix epoch (seconds)")
@@ -20,7 +20,7 @@ class DeliveryResponse(BaseModel):
     session_id: str
     request_id: str
     destination: str
-    status: str                 # "delivered" | "failed" | "pending"
+    status: str
     delivery_method: str
     timestamp: datetime
     delivery_id: str

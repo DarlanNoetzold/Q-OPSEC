@@ -64,9 +64,7 @@ async def health_check():
 if __name__ == "__main__":
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
-# Monitoring
 
-# AUTO-GENERATED MONITORING
 try:
     Instrumentator().instrument(app).expose(app)
 except Exception as e:

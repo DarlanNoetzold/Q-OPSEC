@@ -1,4 +1,3 @@
-# delivery_methods/file_delivery.py
 import os
 from typing import Tuple, Dict, Any
 from config import FILE_DELIVERY_BASE_PATH
