@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import asyncio
 import aiohttp
 import random
@@ -9,7 +8,6 @@ import uuid
 import hashlib
 from typing import Dict, Any, Tuple, List
 
-# ---------- Catálogos básicos ----------
 
 DOC_TYPES = ["finance", "hr", "legal", "marketing", "support", "engineering", "sales", "ops", "security", "product", "compliance"]
 APPS = ["mobile", "web", "admin", "partner", "api", "cli", "edge", "iot"]
@@ -27,7 +25,7 @@ REGIONS = ["us", "eu", "latam", "apac", "me"]
 
 PASSWORDS = ["admin123", "P@ssw0rd", "Secret_2025!", "letmein", "Tr0ub4dor&3"]
 SECRETS = ["sk_live_9f8a7s6d5f4", "AKIAIOSFODNN7EXAMPLE", "ghp_abc123xyz987", "l1v3-prod-KEY"]
-CARDS = ["4111111111111111", "5555555555554444", "4000000000000002", "378282246310005"]  # testes
+CARDS = ["4111111111111111", "5555555555554444", "4000000000000002", "378282246310005"]
 PIX_KEYS = ["cpf:12345678901", "cnpj:12345678000199", "email:pagamentos@empresa.com", "phone:+5511999999999", "aleatoria:1f2e3d4c-5b6a-7f8e-9a0b-1c2d3e4f5a6b"]
 
 EMAIL_USERS = ["john.doe", "jane.smith", "admin", "finance.bot", "alerts", "maria.silva", "joao.souza"]
@@ -46,7 +44,6 @@ ALGOS = [
 ]
 DELIVERY_HINTS = ["api", "mqtt", "file", "hsm"]
 
-# ---------- Templates de mensagens ----------
 
 PUBLIC_TEMPLATES_EN = [
     "Product update announcement for Q{q} {year}.",
@@ -86,7 +83,6 @@ NOISE_TEMPLATES = [
     "JSON-like: {{ 'test': true, 'count': {count} }}",
 ]
 
-# ---------- Helpers ----------
 
 def rand_email(rng: random.Random) -> str:
     return f"{rng.choice(EMAIL_USERS)}@{rng.choice(EMAIL_DOMAINS)}"
@@ -159,7 +155,6 @@ def maybe_longer_text(rng: random.Random, base: str) -> str:
     repeats = rng.choices([1, 2, 3, 5, 8], weights=[0.6, 0.2, 0.1, 0.07, 0.03], k=1)[0]
     return "\n\n".join([base] * repeats)
 
-# ---------- Geradores de dados ----------
 
 def rand_message(rng: random.Random) -> str:
     year = rng.choice([2024, 2025])
@@ -218,7 +213,7 @@ def rand_metadata(rng: random.Random, message: str) -> Dict[str, Any]:
         "locale": locale,
         "region": rng.choice(REGIONS),
         "timestamp": iso_now_ms(),
-        "expiresAt": int(time.time()) + rng.randint(60, 3600),  # 1min a 1h
+        "expiresAt": int(time.time()) + rng.randint(60, 3600),
         "user": user,
         "device": device,
         "network": net,
@@ -257,7 +252,6 @@ def rand_ids(rng: random.Random) -> Tuple[str, str]:
     destination = rng.choice(DESTS)
     return source, destination
 
-# ---------- Geração de casos inválidos (opcional) ----------
 
 def maybe_corrupt_payload(rng: random.Random, payload: Dict[str, Any], invalid_rate: float) -> Dict[str, Any]:
     if rng.random() >= invalid_rate:
@@ -288,7 +282,6 @@ def maybe_corrupt_payload(rng: random.Random, payload: Dict[str, Any], invalid_r
 
     return corrupted
 
-# ---------- Worker async ----------
 
 async def worker(session: aiohttp.ClientSession, url: str, idx: int, rng_seed: int, print_resp: bool, timeout: int, invalid_rate: float):
     rng = random.Random(rng_seed + idx)
@@ -339,7 +332,6 @@ async def worker(session: aiohttp.ClientSession, url: str, idx: int, rng_seed: i
             print(f"[{idx}] ERROR: {e}")
         return None, str(e)
 
-# ---------- Agendador com controle de RPS ----------
 
 async def run_load(url: str, total: int, concurrency: int, rps: float, timeout: int, seed: int, print_resp: bool, invalid_rate: float):
     connector = aiohttp.TCPConnector(limit=concurrency, ssl=False, force_close=False)
@@ -352,7 +344,7 @@ async def run_load(url: str, total: int, concurrency: int, rps: float, timeout: 
         async def schedule_task(i: int):
             async with sem:
                 if interval > 0:
-                    await asyncio.sleep(i * interval / max(1, concurrency))  # espalha no tempo
+                    await asyncio.sleep(i * interval / max(1, concurrency))
                 return await worker(session, url, i, seed, print_resp, timeout, invalid_rate)
 
         for i in range(total):
@@ -374,7 +366,6 @@ async def run_load(url: str, total: int, concurrency: int, rps: float, timeout: 
         err = sum(1 for s, _ in results if (s is None) or s >= 400)
         print(f"Done in {elapsed:.2f}s | total={total} OK={ok} ERR={err} (~{total/max(0.001,elapsed):.1f} req/s)")
 
-# ---------- CLI ----------
 
 def main():
     parser = argparse.ArgumentParser(description="Load generator for /intercept with diverse payloads")
