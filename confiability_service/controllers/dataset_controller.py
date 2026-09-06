@@ -1,4 +1,3 @@
-# controllers/dataset_controller.py
 from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from pathlib import Path
@@ -10,11 +9,9 @@ import traceback
 
 dataset_bp = Blueprint("datasets", __name__, url_prefix="/datasets")
 
-# Diretório raiz dos datasets
 DATA_DIR = Path(os.getcwd()) / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# Logging
 logger = logging.getLogger("dataset_controller")
 if not logger.handlers:
     handler = logging.StreamHandler()
@@ -23,7 +20,6 @@ if not logger.handlers:
     logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# Extensões permitidas
 ALLOWED_EXTENSIONS = {".csv", ".parquet", ".jsonl", ".ndjson", ".json", ".tsv", ".txt"}
 
 
@@ -59,7 +55,6 @@ def list_datasets():
                     "extension": item.suffix
                 })
             elif item.is_dir():
-                # Diretório (coleção de arquivos)
                 files = [f.name for f in item.iterdir() if f.is_file()]
                 total_size = sum(f.stat().st_size for f in item.iterdir() if f.is_file())
                 modified = max((f.stat().st_mtime for f in item.iterdir() if f.is_file()),
@@ -413,7 +408,6 @@ def preview_dataset(name: str):
         if not file_path.exists():
             return jsonify({"error": "File not found"}), 404
 
-        # Ler arquivo
         ext = file_path.suffix.lower()
         if ext in [".csv", ".tsv"]:
             df = pd.read_csv(file_path, nrows=n)
@@ -495,7 +489,6 @@ def get_stats(name: str):
         if not file_path.exists():
             return jsonify({"error": "File not found"}), 404
 
-        # Ler arquivo
         ext = file_path.suffix.lower()
         if ext in [".csv", ".tsv"]:
             df = pd.read_csv(file_path)

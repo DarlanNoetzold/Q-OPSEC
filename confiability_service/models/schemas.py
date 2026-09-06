@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import List, Dict, Optional
 from datetime import datetime
 
-# Input model from Context API -> this service
 class SourceContext(BaseModel):
     ip: Optional[str] = None
 
@@ -10,7 +9,6 @@ class DestinationContext(BaseModel):
     service_id: Optional[str] = None
 
 class ContentPointer(BaseModel):
-    # Opaque reference for production. For this PoC we allow an optional sample_text.
     ref: Optional[str] = Field(default=None, description="Opaque reference or ID")
     sample_text: Optional[str] = Field(default=None, description="Small safe sample to classify")
     metadata: Optional[Dict[str, str]] = Field(default=None, description="Optional metadata (doc_type, app, etc.)")
@@ -22,7 +20,7 @@ class ClassifyRequest(BaseModel):
     destination: Optional[DestinationContext] = None
 
 class ContentConfidentiality(BaseModel):
-    classification: str  # public, internal, confidential, restricted
+    classification: str
     score: float
     tags: List[str]
     detected_patterns: List[str]

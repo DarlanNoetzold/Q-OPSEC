@@ -10,13 +10,11 @@ from pathlib import Path
 import os
 import json
 
-conf_bp = Blueprint("confidentiality", __name__, url_prefix="/confidentiality") # Mantemos o prefixo mas corrigimos o orquestrador
+conf_bp = Blueprint("confidentiality", __name__, url_prefix="/confidentiality")
 _service = ConfidentialityModelService()
 
-# Diretório de métricas
 METRICS_DIR = Path(os.getcwd()) / "models" / "metrics"
 
-# ---------- Logging setup ----------
 logger = logging.getLogger("confidentiality_controller")
 if not logger.handlers:
     handler = logging.StreamHandler()
@@ -25,7 +23,6 @@ if not logger.handlers:
     logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# ---------- Utils ----------
 MAX_PREVIEW = 2000
 
 
@@ -61,7 +58,6 @@ def _keys(d: dict):
         return []
 
 
-# ---------- Endpoints ----------
 
 @conf_bp.route("/train", methods=["POST"])
 def train():
@@ -273,7 +269,6 @@ def get_latest_metrics():
         if not METRICS_DIR.exists():
             return jsonify({"error": "No metrics directory found"}), 404
 
-        # Listar todas as sessões de treinamento
         sessions = sorted(
             [p for p in METRICS_DIR.iterdir() if
              p.is_dir() and (p.name.startswith("training_") or p.name.startswith("retrain_"))],
@@ -287,7 +282,6 @@ def get_latest_metrics():
         latest_session = sessions[0]
         session_id = latest_session.name
 
-        # Ler o arquivo training_summary.json
         summary_file = latest_session / "training_summary.json"
         if not summary_file.exists():
             return jsonify({
@@ -298,7 +292,6 @@ def get_latest_metrics():
         with open(summary_file, "r", encoding="utf-8") as f:
             summary_data = json.load(f)
 
-        # Listar imagens disponíveis
         images = [f.name for f in latest_session.iterdir() if f.suffix == ".png"]
 
         return jsonify({
@@ -382,7 +375,6 @@ def get_session_metrics(session_id: str):
         with open(summary_file, "r", encoding="utf-8") as f:
             summary_data = json.load(f)
 
-        # Listar imagens disponíveis
         images = [f.name for f in session_path.iterdir() if f.suffix == ".png"]
 
         return jsonify({

@@ -27,10 +27,9 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.naive_bayes import MultinomialNB, ComplementNB
 from sklearn.neural_network import MLPClassifier
 
-# Plotting imports
 import matplotlib
 
-matplotlib.use('Agg')  # Backend sem GUI
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -50,7 +49,6 @@ except Exception:
 
 CLASS_LABELS = ["public", "internal", "confidential", "restricted"]
 
-# Logger setup
 logger = logging.getLogger("conf_model_service")
 if not logger.handlers:
     handler = logging.StreamHandler()
@@ -340,11 +338,9 @@ class ConfidentialityModelService:
         Salva metricas completas de TODOS os modelos treinados na sessao
         """
         try:
-            # Criar diretorio de metricas para esta sessao de treinamento
             metrics_dir = Path(MODELS_DIR) / "metrics" / training_session_id
             metrics_dir.mkdir(parents=True, exist_ok=True)
 
-            # Configurar estilo dos graficos
             sns.set_style("darkgrid")
             plt.rcParams['figure.facecolor'] = '#0f1328'
             plt.rcParams['axes.facecolor'] = '#0b0e1f'
@@ -354,18 +350,15 @@ class ConfidentialityModelService:
             plt.rcParams['ytick.color'] = '#9aa0b4'
             plt.rcParams['grid.color'] = '#242847'
 
-            # Preparar dados de todos os modelos
             model_names = [r['name'] for r in all_results]
             accuracies = [r['metrics']['accuracy'] for r in all_results]
             f1_scores = [r['metrics']['f1_macro'] for r in all_results]
             precisions = [r['metrics']['precision'] for r in all_results]
             recalls = [r['metrics']['recall'] for r in all_results]
 
-            # Distribuicao de classes
             unique, counts = np.unique(y_train, return_counts=True)
             class_dist = {str(k): int(v) for k, v in zip(unique, counts)}
 
-            # 1. GRAFICO COMPARATIVO DE TODOS OS MODELOS - ACCURACY
             fig, ax = plt.subplots(figsize=(16, 8))
             x_pos = np.arange(len(model_names))
             colors = ['#10b981' if r['name'] == best_model['name'] else '#3b82f6' for r in all_results]
@@ -390,7 +383,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "all_models_accuracy.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 2. GRAFICO COMPARATIVO - F1 SCORE
             fig, ax = plt.subplots(figsize=(16, 8))
             colors = ['#8b5cf6' if r['name'] == best_model['name'] else '#f59e0b' for r in all_results]
 
@@ -414,7 +406,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "all_models_f1score.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 3. GRAFICO COMPARATIVO - PRECISION vs RECALL
             fig, ax = plt.subplots(figsize=(16, 8))
             x_pos = np.arange(len(model_names))
             width = 0.35
@@ -436,7 +427,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "all_models_precision_recall.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 4. GRAFICO DE METRICAS DO MELHOR MODELO
             fig, ax = plt.subplots(figsize=(10, 6))
             metric_names = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
             metric_values = [
@@ -466,7 +456,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "best_model_metrics.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 5. MATRIZ DE CONFUSAO DO MELHOR MODELO
             best_model_obj = joblib.load(best_model['path'])
             y_pred = best_model_obj.predict(X_val)
             cm = confusion_matrix(y_val, y_pred)
@@ -484,7 +473,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "best_model_confusion_matrix.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 6. DISTRIBUICAO DE CLASSES
             fig, ax = plt.subplots(figsize=(10, 6))
             classes = list(class_dist.keys())
             counts = list(class_dist.values())
@@ -508,7 +496,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "class_distribution.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 7. TOP 10 MODELOS - RANKING
             top_10 = sorted(all_results, key=lambda x: x['metrics']['f1_macro'], reverse=True)[:10]
 
             fig, ax = plt.subplots(figsize=(12, 8))
@@ -539,7 +526,6 @@ class ConfidentialityModelService:
             plt.savefig(metrics_dir / "top10_models_ranking.png", dpi=150, facecolor='#0f1328')
             plt.close()
 
-            # 8. SALVAR METRICAS COMO JSON
             metrics_file = metrics_dir / "training_summary.json"
             summary_data = {
                 "training_session_id": training_session_id,
@@ -595,10 +581,8 @@ class ConfidentialityModelService:
         self._best_info = result["best"]
         self._best_model = joblib.load(self._best_info["path"])
 
-        # Gerar ID unico para esta sessao de treinamento
         training_session_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        # Salvar metricas completas de TODOS os modelos
         metrics_path = self._save_training_metrics(
             training_session_id=training_session_id,
             all_results=result["all"],
@@ -638,7 +622,6 @@ class ConfidentialityModelService:
             self._best_info = result["best"]
             self._best_model = joblib.load(self._best_info["path"])
 
-            # Salvar metricas do retrain
             training_session_id = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             self._save_training_metrics(
                 training_session_id=training_session_id,
