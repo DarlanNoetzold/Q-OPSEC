@@ -908,7 +908,6 @@
       };
 
       const getSwaggerUrl = (service) => {
-        // Use swagger_url directly from API response if available
         return service.swagger_url || null;
       };
 
@@ -1228,7 +1227,6 @@
                     )}
                     {step.status === 'success' && step.response && (
                     <div style={{fontSize: '0.65rem', color: '#6ee7b7', marginTop: '2px', padding: '2px 4px'}}>
-                    {/* Fallback para pegar dados aninhados ou diretos */}
                     {(step.response.selected_model || step.response.model_name || 
                     (step.response.results && step.response.results[0]?.label) || 
                     step.response.classification || step.response.algorithm || 
@@ -1238,7 +1236,6 @@
                     </div>
                     )}
                     {step.status === 'success' && step.service === 'rl_engine' && step.response && (
-                    /* Suporte a payload aninhado do RL Engine */
                     <div style={{fontSize: '0.6rem', color: '#fbbf24', marginLeft: '4px'}}>
                     Decision: {step.response.selected_algorithm || (step.response.payload && step.response.payload.selected_algorithm)} | Level: {step.response.security_level || (step.response.payload && step.response.payload.security_level)}
                     </div>
