@@ -5,7 +5,6 @@ echo "=========================================================="
 echo "   Q-OPSEC MASTER INSTALLER - UMREL/LINUX COMPLIANT"
 echo "=========================================================="
 
-# 1. Atualizar e Instalar Dependências de Sistema (APT)
 echo "[1/5] Instalando dependências de sistema (Native Build Tools)..."
 sudo apt-get update
 sudo apt-get install -y \
@@ -23,7 +22,6 @@ sudo apt-get install -y \
     mosquitto \
     mosquitto-clients
 
-# 2. Configurar Ambiente Python
 echo "[2/5] Configurando ambiente virtual Python 3.13..."
 cd /home/umbrel/projetos/Q-OPSEC
 if [ ! -d "qopsec_env" ]; then
@@ -32,15 +30,12 @@ fi
 source qopsec_env/bin/activate
 pip install --upgrade pip setuptools wheel
 
-# 3. Instalar Dependências de IA e Ciência de Dados (Pesadas)
 echo "[3/5] Instalando pacotes Python (Data Science & Quantum)..."
-# Nota: Instalamos em ordem para evitar conflitos de dependencias de build
 pip install numpy==2.5.1 pandas==3.0.5 scipy==1.18.0
 pip install matplotlib seaborn scikit-learn==1.9.0
 pip install torch xgboost catboost lightgbm
 pip install qiskit==2.5.1 qiskit-aer==0.17.2
 
-# 4. Compilar liboqs e oqs-python (Cripto Pós-Quântica)
 echo "[4/5] Compilando suporte a Criptografia Pós-Quântica (OQS)..."
 if [ ! -d "liboqs" ]; then
     git clone --branch main https://github.com/open-quantum-safe/liboqs.git
@@ -52,12 +47,10 @@ ninja
 sudo ninja install
 cd ../..
 
-# Instalar oqs-python (Wrapper)
 cd kms_service/liboqs-python || cd /home/umbrel/projetos/Q-OPSEC/kms_service/liboqs-python
 pip install .
 cd /home/umbrel/projetos/Q-OPSEC
 
-# 5. Instalar Requisitos de todos os Submódulos
 echo "[5/5] Instalando requisitos residuais de submódulos..."
 find . -name "requirements.txt" -exec pip install -r {} \;
 
