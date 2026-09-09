@@ -1,19 +1,11 @@
-# Q-OPSEC Automated Requirements
+# Q-OPSEC KMS Service V2 runtime dependencies
+# Standard-library modules (ctypes, dataclasses, importlib, platform, pprint,
+# ssl, subprocess, tempfile, urllib and warnings) are intentionally omitted.
 cryptography
-ctypes
-dataclasses
 fastapi
-importlib
 numpy
+# Optional PQC backend; the application degrades gracefully when unavailable.
 oqs
-platform
-pprint
 psutil
 pydantic
-ssl
-subprocess
-tempfile
-urllib
-uvicorn
 uvicorn[standard]
-warnings
