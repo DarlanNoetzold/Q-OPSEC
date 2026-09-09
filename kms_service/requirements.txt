@@ -1,16 +1,11 @@
+# Q-OPSEC KMS legacy runtime dependencies
+# Standard-library modules (ctypes, importlib, platform, pprint, ssl,
+# subprocess, tempfile, urllib and warnings) are intentionally omitted.
 SQLAlchemy
 cryptography
-ctypes
 fastapi
-importlib
+# Optional PQC backend; the service has a classical fallback.
 oqs
-platform
-pprint
 pydantic
 redis
-ssl
-subprocess
-tempfile
-urllib
-uvicorn
-warnings
+uvicorn[standard]
