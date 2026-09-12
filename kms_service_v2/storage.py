@@ -39,6 +39,17 @@ class KeySessionStore:
     def save(self, session_id: str, request_id: str, algorithm: str,
              key_material: str, expires_at: int, source: str = "unknown") -> bool:
         with self._lock:
+            # Keep both indexes consistent when identifiers are reused.
+            previous_session = self._sessions.get(session_id)
+            if previous_session:
+                previous_request_id = previous_session.get("request_id")
+                if previous_request_id:
+                    self._request_index.pop(previous_request_id, None)
+
+            previous_session_id = self._request_index.get(request_id)
+            if previous_session_id and previous_session_id != session_id:
+                self._sessions.pop(previous_session_id, None)
+
             self._sessions[session_id] = {
                 "session_id": session_id,
                 "request_id": request_id,
