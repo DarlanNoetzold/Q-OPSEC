@@ -74,6 +74,10 @@ async def fetch_message_from_interceptor(request_id: str) -> dict:
 
 def _derive_aead_key(ctx: dict, algorithm: str, for_encrypt: bool) -> Tuple[bytes, int]:
     alg = algorithm.upper()
+    # PQC/QKD algorithms negotiate the key-exchange/signature layer. Payload
+    # encryption remains AEAD; KMS already returns the derived session key.
+    if alg not in ("AES256_GCM", "CHACHA20_POLY1305"):
+        alg = "AES256_GCM"
     if alg == "AES256_GCM":
         length = 32
         info = HKDF_INFO_ENCRYPT if for_encrypt else HKDF_INFO_DECRYPT
@@ -88,7 +92,7 @@ def _derive_aead_key(ctx: dict, algorithm: str, for_encrypt: bool) -> Tuple[byte
 def aead_encrypt(ctx: dict, algorithm: str, plaintext: bytes, aad: Optional[bytes]) -> Tuple[str, str]:
     key, nonce_size = _derive_aead_key(ctx, algorithm, for_encrypt=True)
     nonce = os.urandom(nonce_size)
-    aead = AESGCM(key) if algorithm.upper() == "AES256_GCM" else ChaCha20Poly1305(key)
+    aead = AESGCM(key) if algorithm.upper() not in ("CHACHA20_POLY1305",) else ChaCha20Poly1305(key)
     ciphertext = aead.encrypt(nonce, plaintext, aad)
     return b64e(nonce), b64e(ciphertext)
 
@@ -96,5 +100,5 @@ def aead_decrypt(ctx: dict, algorithm: str, nonce_b64: str, ciphertext_b64: str,
     key, _ = _derive_aead_key(ctx, algorithm, for_encrypt=False)
     nonce = b64d(nonce_b64)
     ciphertext = b64d(ciphertext_b64)
-    aead = AESGCM(key) if algorithm.upper() == "AES256_GCM" else ChaCha20Poly1305(key)
+    aead = AESGCM(key) if algorithm.upper() not in ("CHACHA20_POLY1305",) else ChaCha20Poly1305(key)
     return aead.decrypt(nonce, ciphertext, aad)

@@ -5,7 +5,7 @@ class EncryptRequest(BaseModel):
     session_id: Optional[str] = None
     request_id: Optional[str] = None
 
-    algorithm: str = Field(..., description="AES256_GCM | CHACHA20_POLY1305")
+    algorithm: str = Field(..., description="AEAD name or negotiated KEM/signature name")
 
     plaintext_b64: Optional[str] = None
 
@@ -23,7 +23,7 @@ class EncryptResponse(BaseModel):
 class DecryptRequest(BaseModel):
     session_id: Optional[str] = None
     request_id: Optional[str] = None
-    algorithm: str = Field(..., description="AES256_GCM | CHACHA20_POLY1305")
+    algorithm: str = Field(..., description="AEAD name or negotiated KEM/signature name")
     nonce_b64: str
     ciphertext_b64: str
     aad_b64: Optional[str] = None

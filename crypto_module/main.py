@@ -211,9 +211,8 @@ class EncryptByRequestId(BaseModel):
     )
     algorithm: str = Field(
         "AES256_GCM",
-        description="Encryption algorithm to use",
+        description="AEAD name or negotiated KEM/signature name",
         example="AES256_GCM",
-        pattern="^(AES256_GCM|CHACHA20_POLY1305)$",
     )
     aad_b64: Optional[str] = Field(
         None,
