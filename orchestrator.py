@@ -922,14 +922,26 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
 async def run_pipeline(payload: Dict[str, Any] = Body(...)):
     """Executa o fluxo sequencial do Q-OPSEC como um middleware."""
     results = []
-    request_id = payload.get("requestId", f"req_{int(time.time())}")
+    request_id = payload.get("request_id") or payload.get("requestId", f"req_{int(time.time())}")
+    proposed = payload.get("proposed", ["AES256_GCM"])
+    dst_props = payload.get("dst_props", {})
+    scenario_level = payload.get("security_level")
+    if scenario_level:
+        dst_props = {**dst_props, "security_level": scenario_level}
     
     # 1. Handshake (Port 8001)
     results.append({"step": "handshake", "status": "executing"})
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             hs = await client.post("http://127.0.0.1:8001/handshake", json={
-                "requestId": request_id, "data": payload.get("data", {}), "metadata": payload.get("metadata", {})
+                "request_id": request_id,
+                "source": payload.get("source", "dashboard-client"),
+                "destination": payload.get("destination", "server-backend"),
+                "proposed": proposed,
+                "dst_props": dst_props,
+                "security_level": scenario_level,
+                "data": payload.get("data", {}),
+                "metadata": payload.get("metadata", {})
             })
             results[-1].update({"code": hs.status_code, "body": hs.json()})
     except Exception as e:
@@ -940,7 +952,7 @@ async def run_pipeline(payload: Dict[str, Any] = Body(...)):
     results.append({"step": "kms", "status": "executing"})
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            kms = await client.post("http://127.0.0.1:8002/kms/create_key", json={"requestId": request_id})
+            kms = await client.post("http://127.0.0.1:8002/kms/create_key", json={"requestId": request_id, "algorithm": payload.get("selected_algorithm", proposed[0])})
             results[-1].update({"code": kms.status_code})
     except Exception as e:
         results[-1].update({"status": "failed", "error": str(e)})
@@ -949,7 +961,7 @@ async def run_pipeline(payload: Dict[str, Any] = Body(...)):
     results.append({"step": "encrypt", "status": "executing"})
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            crypto = await client.post("http://127.0.0.1:8004/encrypt", json={"requestId": request_id, "data": payload.get("data", {})})
+            crypto = await client.post("http://127.0.0.1:8004/encrypt", json={"request_id": request_id, "algorithm": payload.get("selected_algorithm", proposed[0]), "data": payload.get("data", {})})
             results[-1].update({"code": crypto.status_code})
     except Exception as e:
         results[-1].update({"status": "failed", "error": str(e)})
@@ -972,7 +984,13 @@ async def run_pipeline(payload: Dict[str, Any] = Body(...)):
     except Exception as e:
         results[-1].update({"status": "failed", "error": str(e)})
 
-    return {"pipeline_status": "completed", "steps": results}
+    handshake_body = results[0].get("body", {}) if results else {}
+    return {
+        "pipeline_status": "completed",
+        "security_level": scenario_level or handshake_body.get("security_level"),
+        "selected_algorithm": handshake_body.get("selected_algorithm"),
+        "steps": results,
+    }
 
 if __name__ == "__main__":
     uvicorn.run("orchestrator:APP", host="0.0.0.0", port=8090, reload=False)

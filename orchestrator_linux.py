@@ -27,6 +27,25 @@ CONFIG_PATH = BASE_DIR / "services.yaml"
 STATE: Dict[str, Dict[str, Any]] = {}
 CONFIG: Dict[str, Any] = {}
 
+
+def resolve_rl_security_level(explicit_level, risk_score):
+    """Keep a scenario classification; derive only when it is absent."""
+    allowed = {"VERY_LOW", "LOW", "MODERATE", "HIGH", "VERY_HIGH", "ULTRA"}
+    if isinstance(explicit_level, str) and explicit_level.upper() in allowed:
+        return explicit_level.upper()
+    score = float(risk_score or 0.0)
+    if score >= 0.90:
+        return "ULTRA"
+    if score >= 0.75:
+        return "VERY_HIGH"
+    if score >= 0.60:
+        return "HIGH"
+    if score >= 0.35:
+        return "MODERATE"
+    if score >= 0.15:
+        return "LOW"
+    return "VERY_LOW"
+
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
@@ -1588,20 +1607,17 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                         elif any(x in label for x in ["low", "very low", "baixo"]): 
                             risk = 0.15
 
-                    # [PHD-FIX] Recalcula security_level baseado no score real da IA se o contexto estiver enviesado
                     risk_val = float(risk or 0.5)
-                    if risk_val >= 0.65:
-                         calculated_lvl = "HIGH"
-                    elif risk_val >= 0.35:
-                         calculated_lvl = "MODERATE"
-                    else:
-                         calculated_lvl = "LOW"
+                    calculated_lvl = resolve_rl_security_level(
+                        current_data.get("security_level"), risk_val
+                    )
                     
                     payload["risk_score"] = risk_val
                     payload["conf_score"] = float(conf or 0.5)
                     
                     # Prioriza o cálculo dinâmico da IA sobre o valor estático do contexto
                     payload["security_level"] = calculated_lvl
+                    current_data["security_level"] = calculated_lvl
                     print(f"[{request_id}] RL_ENGINE | AI_SCORE: {risk_val} | DYNAMIC_LEVEL: {calculated_lvl}", flush=True)
                     
                     payload["metadata"] = {

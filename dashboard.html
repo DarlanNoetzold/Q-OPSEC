@@ -605,6 +605,7 @@
       const [pipelineResults, setPipelineResults] = useState(null);
       const [pipelineRequestId, setPipelineRequestId] = useState('req-phd-' + Math.floor(Math.random()*1000));
       const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
+      const [pipelineSecurityLevel, setPipelineSecurityLevel] = useState('MODERATE');
       const [pipelineOriginUrl, setPipelineOriginUrl] = useState('http://192.168.18.18:8090/callback');
       const [proposedAlgs, setProposedAlgs] = useState(['Kyber768', 'AES256_GCM']);
       const [scenarios, setScenarios] = useState([]);
@@ -1107,7 +1108,9 @@
                         if (s) {
                           setPipelineRequestId(s.id + '-' + Math.floor(Math.random()*1000));
                           setPipelineSource(s.payload.source);
+                          setPipelineSecurityLevel(s.security_level || 'MODERATE');
                           setPipelineData(JSON.stringify(s.payload.data, null, 2));
+                          if (s.proposed_algorithms) setProposedAlgs(s.proposed_algorithms);
                         }
                       }}
                     >
@@ -1118,6 +1121,9 @@
 
                     <div style={{marginBottom: '1rem'}}>
                     <label style={{display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6}}>Request Context</label>
+                    <div style={{fontSize: '0.75rem', color: '#fbbf24', marginBottom: '0.75rem'}}>
+                    Scenario level: {scenarios.find(s => s.payload?.source === pipelineSource)?.security_level || 'derived from risk/confidentiality'}
+                    </div>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem'}}>
                     <input type="text" placeholder="Request ID" value={pipelineRequestId || 'req-auto-1'} onChange={e => setPipelineRequestId(e.target.value)} style={{background: '#070912', border: '1px solid #1e293b', padding: '10px 12px', borderRadius: 6, color: '#fff', fontSize: '0.85rem'}} />
                     <input type="text" placeholder="Source System" value={pipelineSource || 'client-terminal'} onChange={e => setPipelineSource(e.target.value)} style={{background: '#070912', border: '1px solid #1e293b', padding: '10px 12px', borderRadius: 6, color: '#fff', fontSize: '0.85rem'}} />
@@ -1174,6 +1180,7 @@
                     const payload = {
                     request_id: pipelineRequestId || 'req-auto-1',
                     source: pipelineSource || 'client-terminal',
+                    security_level: pipelineSecurityLevel,
                     destination: 'server-backend',
                     proposed: proposedAlgs.length > 0 ? proposedAlgs : ['AES256_GCM'],
                     originUrl: pipelineOriginUrl || 'http://192.168.18.18:8090/callback',
@@ -1276,7 +1283,7 @@
                     <div style={{background: '#0f172a', border: '1px solid #1e293b', padding: '10px', borderRadius: 6}}>
                     <div style={{fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase'}}>RL Engine</div>
                     <div style={{fontSize: '0.75rem', color: '#818cf8'}}>V2.0</div>
-                    <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Level: {pipelineResults.final_data?.security_level || 'LOW'}</div>
+                    <div style={{fontSize: '0.65rem', color: '#4ade80'}}>Level: {pipelineResults.security_level || pipelineResults.final_data?.security_level || pipelineSecurityLevel || 'MODERATE'}</div>
                     </div>
                     </div>
                     <div style={{background: '#020617', padding: '8px', borderRadius: 6, border: '1px solid #1e293b', fontSize: '0.65rem', color: '#94a3b8', marginBottom: '10px', marginTop: '10px'}}>
