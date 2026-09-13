@@ -5,6 +5,8 @@
       "name": "Test Algorithm Stress 1 with feature Extreme-Risk",
       "description": "Fires all defensive triggers. High score in Root.",
       "risk_score": 0.95,
+      "security_level": "ULTRA",
+      "proposed_algorithms": ["QKD_BB84", "Kyber1024", "AES256_GCM"],
       "payload": {
         "source": "attacker-node-01",
         "risk_score": 0.95,
@@ -18,6 +20,8 @@
       "id": "scenario-01-baseline",
       "name": "Test Algorithm Baseline 1",
       "description": "Ideal conditions, low risk, high trust scores.",
+      "security_level": "MODERATE",
+      "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
       "payload": {
         "source": "phd-terminal-01",
         "data": {
@@ -32,6 +36,8 @@
       "id": "scenario-pqc-stress",
       "name": "Test Algorithm PQC 1 with feature Quantum-Stress",
       "description": "Simulates a request requiring Post-Quantum Cryptography due to high sensitive metrics.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
       "payload": {
         "source": "secure-vault-01",
         "data": {
@@ -45,6 +51,8 @@
       "id": "scenario-high-risk-iot",
       "name": "Test Algorithm IoT 1 with feature High-Risk",
       "description": "High risk score from untrusted IoT device. Should trigger RL rejection or restricted crypto.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Falcon-512", "NTRU-HRSS-701", "AES256_GCM"],
       "payload": {
         "source": "untrusted-iot-bridge",
         "data": {
@@ -58,6 +66,8 @@
       "id": "scenario-malicious-pattern",
       "name": "Test Algorithm Pattern 1 with feature Malicious-Detection",
       "description": "Payload with strings known to trigger the BERT Classification Agent as high-risk/malicious.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Dilithium3", "Kyber768", "AES256_GCM"],
       "payload": {
         "source": "suspect-agent-02",
         "data": {
@@ -71,6 +81,8 @@
       "id": "scenario-confiability-anomaly",
       "name": "Test Algorithm Trust 1 with feature Anomaly-Low-Confiability",
       "description": "Valid data but source entity has low history of trust. Evaluates Trust-V2 resilience.",
+      "security_level": "LOW",
+      "proposed_algorithms": ["AES128_GCM", "ChaCha20_Poly1305"],
       "payload": {
         "source": "new-researcher-id-44",
         "data": {
@@ -83,6 +95,8 @@
       "id": "scenario-emergency-icu",
       "name": "Test Algorithm Emergency 1 with feature ICU-Priority",
       "description": "Critical medical data. Bypasses some latency-heavy checks in RL if priority is detected.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Hybrid_PQC_RSA", "Kyber768", "AES256_GCM"],
       "payload": {
         "source": "icu-monitor-05",
         "data": {
@@ -96,6 +110,8 @@
       "id": "test-dilithium2-01",
       "name": "Test Algorithm Dilithium-2 1",
       "description": "Baseline test for Dilithium-2 digital signature verification.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Dilithium3", "Falcon-512", "AES256_GCM"],
       "payload": {
         "source": "pqc-signer-01",
         "data": {
@@ -109,6 +125,8 @@
       "id": "test-kyber768-02-entropy",
       "name": "Test Algorithm Kyber-768 2 with feature Dynamic-Entropy",
       "description": "KEM test with enhanced entropy injection for key encapsulation.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber768", "Kyber1024", "AES256_GCM"],
       "payload": {
         "source": "secure-gateway-04",
         "data": {
@@ -123,6 +141,8 @@
       "id": "test-falcon512-01-latency",
       "name": "Test Algorithm Falcon-512 1 with feature Low-Latency",
       "description": "Latency-optimized Falcon execution for constrained IoT nodes.",
+      "security_level": "MODERATE",
+      "proposed_algorithms": ["Falcon-512", "AES256_GCM", "ChaCha20_Poly1305"],
       "payload": {
         "source": "edge-iot-device-22",
         "data": {
@@ -132,6 +152,38 @@
           "network_mode": "constrained"
         }
       }
+    },
+    {
+      "id": "scenario-very-low-legacy",
+      "name": "Test Security Very Low - Legacy Recovery",
+      "description": "Low-impact recovery path for the lowest classification.",
+      "security_level": "VERY_LOW",
+      "proposed_algorithms": ["AES128_GCM", "ChaCha20_Poly1305"],
+      "payload": {"source": "offline-recovery-node", "data": {"risk_score": 0.05, "reputation_score": 0.10}}
+    },
+    {
+      "id": "scenario-low-mobile",
+      "name": "Test Security Low - Mobile Constrained",
+      "description": "Constrained mobile node using a non-AES symmetric option.",
+      "security_level": "LOW",
+      "proposed_algorithms": ["ChaCha20_Poly1305", "AES128_GCM"],
+      "payload": {"source": "mobile-edge-node", "data": {"risk_score": 0.25, "network_mode": "constrained"}}
+    },
+    {
+      "id": "scenario-high-pqc-signature",
+      "name": "Test Security High - PQC Signature",
+      "description": "High-security signing flow with Dilithium and Falcon.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Dilithium3", "Falcon-512", "AES256_GCM"],
+      "payload": {"source": "pqc-signing-vault", "data": {"security_protocol": "PQC_SIGNATURE", "quantum_risk_index": 0.82}}
+    },
+    {
+      "id": "scenario-ultra-qkd",
+      "name": "Test Security Ultra - QKD Available",
+      "description": "Maximum-security path with quantum hardware.",
+      "security_level": "ULTRA",
+      "proposed_algorithms": ["QKD_BB84", "QKD_E91", "Kyber1024"],
+      "payload": {"source": "quantum-vault-node", "data": {"security_protocol": "QKD_REQUIRED", "quantum_hardware": true}}
     }
   ]
 }
