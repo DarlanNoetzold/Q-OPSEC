@@ -40,7 +40,7 @@ def negotiate_algorithms(req: NegotiationRequest) -> Tuple[str, str, bool, str |
         chosen = policies["fallback"]["if_qkd_unavailable"]
         return chosen, session_id, True, "QKD_UNAVAILABLE"
 
-    if chosen.startswith(("Kyber", "Dilithium", "Falcon", "Sphincs")) and False:
+    if chosen.startswith(("Kyber", "ML-KEM", "Dilithium", "ML-DSA", "Falcon", "Sphincs", "NTRU", "Saber")) and False:
         chosen = policies["fallback"]["if_pqc_unavailable"]
         return chosen, session_id, True, "PQC_UNAVAILABLE"
 

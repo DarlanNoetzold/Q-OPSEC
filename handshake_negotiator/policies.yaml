@@ -6,8 +6,18 @@ fallback:
 priority:
   - QKD_BB84
   - QKD_E91
+  - QKD_CV
+  - QKD_MDI
+  - QKD_SARG04
   - Kyber1024
-  - AES256_GCM
+  - Kyber768
+  - Kyber512
+  - Dilithium3
+  - Falcon-512
+  - NTRU-HRSS-701
+  - Saber
   - Hybrid_PQC_RSA
+  - Hybrid_PQC_ECC
+  - AES256_GCM
   - RSA4096
   - ChaCha20_Poly1305
