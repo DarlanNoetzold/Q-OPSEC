@@ -28,6 +28,20 @@ class CryptoAlgorithm(Enum):
     FALLBACK_AES = "FALLBACK_AES"
 
 
+WIRE_ALGORITHM_NAMES = {
+    CryptoAlgorithm.PQC_KYBER: "Kyber768",
+    CryptoAlgorithm.PQC_DILITHIUM: "Dilithium3",
+    CryptoAlgorithm.PQC_NTRU: "NTRU-HRSS-701",
+    CryptoAlgorithm.PQC_SABER: "Saber",
+    CryptoAlgorithm.PQC_FALCON: "Falcon-512",
+    CryptoAlgorithm.AES_256_GCM: "AES256_GCM",
+    CryptoAlgorithm.AES_192: "AES128_GCM",
+    CryptoAlgorithm.RSA_4096: "RSA4096",
+    CryptoAlgorithm.ECC_521: "ECDH_P384",
+    CryptoAlgorithm.FALLBACK_AES: "AES128_GCM",
+}
+
+
 class SecurityLevel(Enum):
     VERY_LOW = 0
     LOW = 1

@@ -15,6 +15,28 @@ from registry import RLRegistry
 
 class ImprovedRLEngineService:
 
+    # Public names shared by RL, handshake and KMS.  Keep the internal enum
+    # names separate so persisted Q-tables remain backward compatible.
+    ALGORITHM_WIRE_NAMES = {
+        CryptoAlgorithm.QKD_BB84: "QKD_BB84",
+        CryptoAlgorithm.QKD_E91: "QKD_E91",
+        CryptoAlgorithm.QKD_CV: "QKD_CV",
+        CryptoAlgorithm.QKD_MDI: "QKD_MDI",
+        CryptoAlgorithm.QKD_DECOY: "QKD_SARG04",
+        CryptoAlgorithm.PQC_KYBER: "Kyber768",
+        CryptoAlgorithm.PQC_DILITHIUM: "Dilithium3",
+        CryptoAlgorithm.PQC_NTRU: "NTRU-HRSS-701",
+        CryptoAlgorithm.PQC_SABER: "Saber",
+        CryptoAlgorithm.PQC_FALCON: "Falcon-512",
+        CryptoAlgorithm.HYBRID_RSA_PQC: "Hybrid_PQC_RSA",
+        CryptoAlgorithm.HYBRID_ECC_PQC: "Hybrid_PQC_ECC",
+        CryptoAlgorithm.AES_256_GCM: "AES256_GCM",
+        CryptoAlgorithm.AES_192: "AES128_GCM",
+        CryptoAlgorithm.RSA_4096: "RSA4096",
+        CryptoAlgorithm.ECC_521: "ECDH_P384",
+        CryptoAlgorithm.FALLBACK_AES: "AES128_GCM",
+    }
+
     def __init__(self, registry_path: Path = Path("./rl_registry.json"),
                  use_dqn: bool = False,
                  policy_type: str = "context_aware"):
@@ -107,6 +129,20 @@ class ImprovedRLEngineService:
         valid_actions_enum = self.env.get_valid_actions(features, security_level)
         valid_action_indices = [self.env.actions.index(a) for a in valid_actions_enum]
 
+        # Explicit PQC/QKD capability is a hard signal, not merely an RL
+        # feature. This prevents an old Q-table from selecting a classical
+        # algorithm for a scenario that explicitly requires PQC/QKD.
+        requested = str(context.get("requested_algorithm", "")).upper()
+        hardware = {str(item).upper() for item in features.dest_hardware_capabilities}
+        if "QKD" in hardware and security_level.value >= SecurityLevel.HIGH.value:
+            preferred = [a for a in valid_actions_enum if a.name.startswith("QKD_")]
+            if preferred:
+                valid_action_indices = [self.env.actions.index(preferred[0])]
+        elif "PQC" in hardware or requested.startswith(("PQC", "KYBER", "DILITHIUM", "FALCON", "NTRU")):
+            preferred = [a for a in valid_actions_enum if a.name.startswith("PQC_")]
+            if preferred:
+                valid_action_indices = [self.env.actions.index(preferred[0])]
+
         if self.policy_type == "context_aware":
             state_hash = self.env.compute_state_hash(features)
             q_values = self.agent.get_q_table().get(state_hash, {})
@@ -142,16 +178,17 @@ class ImprovedRLEngineService:
                               features) -> List[str]:
         algorithms = []
 
-        algorithms.append(primary_algo.value)
+        algorithms.append(self.ALGORITHM_WIRE_NAMES.get(primary_algo, primary_algo.value))
 
         if features.qkd_available:
             if primary_algo not in [CryptoAlgorithm.PQC_KYBER,
                                     CryptoAlgorithm.PQC_DILITHIUM,
                                     CryptoAlgorithm.PQC_NTRU]:
-                algorithms.append(CryptoAlgorithm.PQC_KYBER.value)
+                algorithms.append(self.ALGORITHM_WIRE_NAMES[CryptoAlgorithm.PQC_KYBER])
 
-        if CryptoAlgorithm.AES_256_GCM.value not in algorithms:
-            algorithms.append(CryptoAlgorithm.AES_256_GCM.value)
+        aes_name = self.ALGORITHM_WIRE_NAMES[CryptoAlgorithm.AES_256_GCM]
+        if aes_name not in algorithms:
+            algorithms.append(aes_name)
 
         return algorithms
 
