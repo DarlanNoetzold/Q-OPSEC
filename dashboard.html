@@ -1108,7 +1108,7 @@
                         if (s) {
                           setPipelineRequestId(s.id + '-' + Math.floor(Math.random()*1000));
                           setPipelineSource(s.payload.source);
-                          setPipelineSecurityLevel(s.security_level || 'MODERATE');
+                          setPipelineSecurityLevel(s.security_level || s.payload?.security_level || 'MODERATE');
                           setPipelineData(JSON.stringify(s.payload.data, null, 2));
                           if (s.proposed_algorithms) setProposedAlgs(s.proposed_algorithms);
                         }

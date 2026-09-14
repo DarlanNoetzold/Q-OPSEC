@@ -20,6 +20,14 @@ class ScenarioCoverageTests(unittest.TestCase):
         for level in ("VERY_LOW", "LOW", "MODERATE", "HIGH", "VERY_HIGH", "ULTRA"):
             self.assertEqual(level, resolve_rl_security_level(level, 0.01))
 
+    def test_scenario_payload_carries_level_and_algorithms(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        moderate = next(s for s in scenarios if s["id"] == "scenario-01-baseline")
+        self.assertEqual("MODERATE", moderate["payload"]["security_level"])
+        self.assertEqual(moderate["proposed_algorithms"], moderate["payload"]["proposed"])
+
 
 if __name__ == "__main__":
     unittest.main()

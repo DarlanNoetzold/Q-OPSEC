@@ -24,6 +24,8 @@
       "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
       "payload": {
         "source": "phd-terminal-01",
+        "security_level": "MODERATE",
+        "proposed": ["AES256_GCM", "ChaCha20_Poly1305"],
         "data": {
           "transaction_id": "TX-99001",
           "vitals": {"bp": "120/80", "hr": 72},
@@ -145,6 +147,8 @@
       "proposed_algorithms": ["Falcon-512", "AES256_GCM", "ChaCha20_Poly1305"],
       "payload": {
         "source": "edge-iot-device-22",
+        "security_level": "MODERATE",
+        "proposed": ["Falcon-512", "AES256_GCM", "ChaCha20_Poly1305"],
         "data": {
           "algorithm": "Falcon-512",
           "feature": "Low-Latency",
