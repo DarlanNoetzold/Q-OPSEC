@@ -1,4 +1,5 @@
 import uuid
+import threading
 from datetime import datetime
 from typing import Dict, Any, Optional, Tuple, Union
 
@@ -34,6 +35,7 @@ DELIVERY_METHODS: Dict[str, Optional[object]] = {
 
 delivery_tracker: Dict[str, DeliveryResponse] = {}
 delivery_attempts: Dict[str, int] = {}
+_tracker_lock = threading.Lock()
 
 
 def _build_response(
@@ -45,7 +47,7 @@ def _build_response(
 ) -> DeliveryResponse:
     return DeliveryResponse(
         session_id=req.session_id,
-        request_id=req.request_id,
+        request_id=req.request_id or "req-unknown",
         destination=req.destination,
         status=status,
         delivery_method=req.delivery_method,
@@ -92,8 +94,9 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             status="failed",
             message=f"Unsupported delivery method: {req.delivery_method}",
         )
-        delivery_tracker[delivery_id] = result
-        delivery_attempts[delivery_id] = 1
+        with _tracker_lock:
+            delivery_tracker[delivery_id] = result
+            delivery_attempts[delivery_id] = 1
         return result
 
     handler = DELIVERY_METHODS.get(method)
@@ -104,8 +107,9 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             status="failed",
             message=f"No handler available for method: {method}",
         )
-        delivery_tracker[delivery_id] = result
-        delivery_attempts[delivery_id] = 1
+        with _tracker_lock:
+            delivery_tracker[delivery_id] = result
+            delivery_attempts[delivery_id] = 1
         return result
 
     try:
@@ -119,15 +123,18 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             message=f"Delivery exception: {e}",
         )
 
-    delivery_tracker[delivery_id] = result
-    delivery_attempts[delivery_id] = delivery_attempts.get(delivery_id, 0) + 1
+    with _tracker_lock:
+        delivery_tracker[delivery_id] = result
+        delivery_attempts[delivery_id] = delivery_attempts.get(delivery_id, 0) + 1
 
     return result
 
 
 def get_delivery_status(delivery_id: str) -> Optional[DeliveryResponse]:
-    return delivery_tracker.get(delivery_id)
+    with _tracker_lock:
+        return delivery_tracker.get(delivery_id)
 
 
 def list_deliveries() -> Dict[str, DeliveryResponse]:
-    return delivery_tracker.copy()
+    with _tracker_lock:
+        return delivery_tracker.copy()
