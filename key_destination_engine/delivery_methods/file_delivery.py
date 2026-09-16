@@ -9,7 +9,9 @@ async def deliver_via_file(req: DeliveryRequest, delivery_id: str):
         dest = os.path.join(FILE_DELIVERY_BASE_PATH, f"{req.session_id}.key")
 
     try:
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        parent_dir = os.path.dirname(dest)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
         with open(dest, "w", encoding="utf-8") as f:
             f.write(req.key_material)
         return (
