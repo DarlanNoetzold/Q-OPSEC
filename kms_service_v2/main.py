@@ -79,7 +79,13 @@ def create_key(req: CreateKeyRequest):
             fallback_reason,
             source,
             qkd_metadata,
-        ) = build_session(req.session_id, req.request_id, req.algorithm, req.ttl_seconds)
+        ) = build_session(
+            req.session_id,
+            req.request_id,
+            req.algorithm,
+            req.ttl_seconds,
+            strict=req.strict,
+        )
 
         session_store.save(
             session_id=session_id,
