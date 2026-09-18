@@ -5,9 +5,29 @@ import unittest
 
 from destination_engine import deliver_key, get_delivery_status, list_deliveries
 from models import DeliveryRequest
+from delivery_methods.mqtt_delivery import deliver_via_mqtt
 
 
 class DestinationEngineRegressionTests(unittest.TestCase):
+    def test_mqtt_delivery_accepts_unix_timestamp_and_preserves_request_id(self):
+        async def run_test():
+            request = DeliveryRequest(
+                session_id="session-mqtt",
+                request_id="request-mqtt",
+                destination="device-1",
+                delivery_method="MQTT",
+                key_material="secret-key",
+                algorithm="AES256_GCM",
+                expires_at=4102444800,
+            )
+            return await deliver_via_mqtt(request, "delivery-mqtt")
+
+        result = asyncio.run(run_test())
+
+        self.assertEqual("delivered", result.status)
+        self.assertEqual("request-mqtt", result.request_id)
+        self.assertEqual(4102444800, result.metadata["expires_at"])
+
     def test_file_delivery_accepts_filename_without_parent_directory(self):
         async def run_test():
             request = DeliveryRequest(

@@ -1,4 +1,3 @@
-import json
 import asyncio
 from datetime import datetime
 from models import DeliveryRequest, DeliveryResponse
@@ -7,14 +6,14 @@ from config import MQTT_BROKER, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD, MQTT_TI
 
 async def deliver_via_mqtt(req: DeliveryRequest, delivery_id: str) -> DeliveryResponse:
     try:
-
         topic = f"keys/{req.destination}/receive"
         payload = {
             "session_id": req.session_id,
+            "request_id": req.request_id,
             "algorithm": req.algorithm,
             "key_material": req.key_material,
-            "expires_at": req.expires_at.isoformat(),
-            "delivery_id": delivery_id
+            "expires_at": req.expires_at,
+            "delivery_id": delivery_id,
         }
 
         print(f"[KDE] Publishing to MQTT topic: {topic}")
@@ -24,22 +23,28 @@ async def deliver_via_mqtt(req: DeliveryRequest, delivery_id: str) -> DeliveryRe
 
         return DeliveryResponse(
             session_id=req.session_id,
+            request_id=req.request_id or "req-unknown",
             destination=req.destination,
             status="delivered",
             delivery_method="MQTT",
             timestamp=datetime.utcnow(),
             delivery_id=delivery_id,
             message=f"Key published to MQTT topic: {topic}",
-            metadata={"topic": topic, "broker": f"{MQTT_BROKER}:{MQTT_PORT}"}
+            metadata={
+                "topic": topic,
+                "broker": f"{MQTT_BROKER}:{MQTT_PORT}",
+                "expires_at": payload["expires_at"],
+            },
         )
 
     except Exception as e:
         return DeliveryResponse(
             session_id=req.session_id,
+            request_id=req.request_id or "req-unknown",
             destination=req.destination,
             status="failed",
             delivery_method="MQTT",
             timestamp=datetime.utcnow(),
             delivery_id=delivery_id,
-            message=f"MQTT delivery failed: {str(e)}"
+            message=f"MQTT delivery failed: {str(e)}",
         )
