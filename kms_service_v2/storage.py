@@ -79,6 +79,7 @@ class KeySessionStore:
 
     def get_by_request_id(self, request_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
+            self._run_cleanup_if_needed()
             session_id = self._request_index.get(request_id)
             if session_id:
                 session = self._sessions.get(session_id)

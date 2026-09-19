@@ -23,6 +23,14 @@ class KeySessionStoreRegressionTests(unittest.TestCase):
         self.assertEqual("session-2", store.get_by_request_id("request-1")["session_id"])
         self.assertEqual(1, store.stats()["total_sessions"])
 
+    def test_request_lookup_runs_periodic_cleanup(self):
+        store = KeySessionStore(cleanup_interval_seconds=0)
+        store.save("session-expired", "request-expired", "AES256_GCM", "key", int(time.time()) - 1)
+
+        self.assertIsNone(store.get_by_request_id("request-missing"))
+        self.assertEqual(0, store.stats()["total_sessions"])
+        self.assertEqual(0, store.stats()["request_index_size"])
+
 
 if __name__ == "__main__":
     unittest.main()
