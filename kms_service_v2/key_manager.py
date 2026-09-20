@@ -60,6 +60,9 @@ def _generate_with_category(algorithm: str, fallback_source: str) -> Tuple[str, 
 
 def build_session(session_id: Optional[str], request_id: Optional[str],
                   algorithm: str, ttl_seconds: int, strict: bool = False) -> Tuple[str, str, str, str, int, bool, Optional[str], str, Optional[Dict]]:
+    if int(ttl_seconds) <= 0:
+        raise ValueError("ttl_seconds must be greater than zero")
+
     selected_algorithm, key_material, source, qkd_metadata = generate_key(algorithm)
 
     if strict and selected_algorithm != algorithm:

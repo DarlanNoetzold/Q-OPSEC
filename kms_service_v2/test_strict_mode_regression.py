@@ -35,6 +35,17 @@ class StrictModeRegressionTests(unittest.TestCase):
         self.assertEqual("AES256_GCM", result[2])
         self.assertTrue(result[5])
 
+    def test_non_positive_ttl_is_rejected(self):
+        for ttl_seconds in (0, -1):
+            with self.subTest(ttl_seconds=ttl_seconds):
+                with self.assertRaisesRegex(ValueError, "ttl_seconds"):
+                    build_session(
+                        session_id="session-invalid-ttl",
+                        request_id="request-invalid-ttl",
+                        algorithm="AES256_GCM",
+                        ttl_seconds=ttl_seconds,
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()
