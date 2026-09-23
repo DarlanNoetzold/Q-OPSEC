@@ -127,6 +127,7 @@ class KeySessionStore:
 
     def stats(self) -> Dict[str, Any]:
         with self._lock:
+            self._run_cleanup_if_needed()
             current_time = time.time()
             active_count = sum(
                 1 for d in self._sessions.values()

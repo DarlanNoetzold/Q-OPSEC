@@ -31,6 +31,15 @@ class KeySessionStoreRegressionTests(unittest.TestCase):
         self.assertEqual(0, store.stats()["total_sessions"])
         self.assertEqual(0, store.stats()["request_index_size"])
 
+    def test_stats_runs_periodic_cleanup(self):
+        store = KeySessionStore(cleanup_interval_seconds=0)
+        store.save("session-expired", "request-expired", "AES256_GCM", "key", int(time.time()) - 1)
+
+        stats = store.stats()
+
+        self.assertEqual(0, stats["total_sessions"])
+        self.assertEqual(0, stats["request_index_size"])
+
 
 if __name__ == "__main__":
     unittest.main()
