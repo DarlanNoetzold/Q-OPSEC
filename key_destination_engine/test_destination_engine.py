@@ -68,6 +68,38 @@ class DestinationEngineRegressionTests(unittest.TestCase):
         self.assertEqual(result, get_delivery_status(result.delivery_id))
         self.assertIn(result.delivery_id, list_deliveries())
 
+    def test_delivery_request_rejects_blank_required_text(self):
+        for field in (
+            "session_id",
+            "destination",
+            "delivery_method",
+            "key_material",
+            "algorithm",
+        ):
+            payload = {
+                "session_id": "session-1",
+                "destination": "device-1",
+                "delivery_method": "FILE",
+                "key_material": "secret-key",
+                "algorithm": "AES256_GCM",
+                "expires_at": 4102444800,
+            }
+            payload[field] = "   "
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                DeliveryRequest(**payload)
+
+    def test_delivery_request_rejects_blank_request_id(self):
+        with self.assertRaises(ValueError):
+            DeliveryRequest(
+                session_id="session-1",
+                request_id="   ",
+                destination="device-1",
+                delivery_method="FILE",
+                key_material="secret-key",
+                algorithm="AES256_GCM",
+                expires_at=4102444800,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

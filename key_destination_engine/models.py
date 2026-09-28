@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -11,6 +11,13 @@ class DeliveryRequest(BaseModel):
     algorithm: str
     expires_at: int = Field(..., description="Unix epoch (seconds)")
     metadata: Optional[Dict[str, Any]] = None
+
+    @field_validator("session_id", "request_id", "destination", "delivery_method", "key_material", "algorithm", mode="before")
+    @classmethod
+    def reject_blank_text(cls, value):
+        if isinstance(value, str) and not value.strip():
+            raise ValueError("required text fields must not be blank")
+        return value
 
     class Config:
         populate_by_name = True
