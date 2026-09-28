@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, Dict, Any
 
 
@@ -8,6 +8,20 @@ class CreateKeyRequest(BaseModel):
     algorithm: str
     ttl_seconds: int = 3600
     strict: bool = False
+
+    @field_validator("algorithm", "session_id", "request_id", mode="before")
+    @classmethod
+    def normalize_text_fields(cls, value):
+        if value is None:
+            return value
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("text fields must not be blank")
+        if len(normalized) > 256:
+            raise ValueError("text fields must be 256 characters or fewer")
+        return normalized
 
 
 class CreateKeyResponse(BaseModel):
