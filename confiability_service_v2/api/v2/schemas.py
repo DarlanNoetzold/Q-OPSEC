@@ -3,7 +3,7 @@ Trust Engine V2 - Schemas de Request/Response
 Validação de entrada usando Pydantic
 """
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from typing import Dict, Any, Optional
 
@@ -35,6 +35,12 @@ class TrustEvaluationRequest(BaseModel):
 
     )
 
+    @field_validator("payload")
+    @classmethod
+    def reject_empty_payload(cls, value):
+        if not value:
+            raise ValueError("payload must contain at least one field")
+        return value
 
 
     class Config:
