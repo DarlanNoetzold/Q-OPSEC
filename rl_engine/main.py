@@ -1,7 +1,7 @@
 from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pathlib import Path
 from typing import Dict, Any, Optional
 from service import ImprovedRLEngineService
@@ -66,6 +66,13 @@ class ContextRequest(BaseModel):
     available_resources: Optional[float] = Field(None, ge=0.0, le=1.0)
     network_latency: Optional[float] = Field(None, ge=0.0)
 
+    @field_validator("source", "destination", mode="before")
+    @classmethod
+    def reject_blank_endpoints(cls, value):
+        if isinstance(value, str) and not value.strip():
+            raise ValueError("source and destination must not be blank")
+        return value
+
 
 class FeedbackRequest(BaseModel):
     request_id: str = Field(..., description="Request identifier")
@@ -73,6 +80,13 @@ class FeedbackRequest(BaseModel):
     latency: Optional[float] = Field(None, description="Latency in milliseconds")
     resource_usage: Optional[float] = Field(None, ge=0.0, le=1.0)
     error_message: Optional[str] = None
+
+    @field_validator("request_id", mode="before")
+    @classmethod
+    def reject_blank_request_id(cls, value):
+        if isinstance(value, str) and not value.strip():
+            raise ValueError("request_id must not be blank")
+        return value
 
 
 @app.post("/act",
