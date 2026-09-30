@@ -6,6 +6,21 @@ from negotiator import negotiate_algorithms
 
 
 class NegotiationRegressionTests(unittest.TestCase):
+    def test_request_rejects_blank_endpoints_and_empty_proposals(self):
+        with self.assertRaises(ValueError):
+            NegotiationRequest(
+                source="   ",
+                destination="receiver",
+                proposed=["AES256_GCM"],
+            )
+
+        with self.assertRaises(ValueError):
+            NegotiationRequest(
+                source="sender",
+                destination="receiver",
+                proposed=[],
+            )
+
     def test_pqc_proposal_is_selected_when_supported(self):
         request = NegotiationRequest(
             request_id="test-pqc",
