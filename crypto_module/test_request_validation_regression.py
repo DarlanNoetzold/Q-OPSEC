@@ -4,6 +4,28 @@ from models import DecryptRequest, EncryptRequest
 
 
 class CryptoRequestValidationTests(unittest.TestCase):
+    def test_encrypt_rejects_oversized_identifiers(self):
+        with self.assertRaises(ValueError):
+            EncryptRequest(
+                algorithm="AES256_GCM",
+                session_id="s" * 257,
+            )
+
+        with self.assertRaises(ValueError):
+            EncryptRequest(
+                algorithm="A" * 257,
+            )
+
+    def test_decrypt_rejects_oversized_request_id(self):
+        with self.assertRaises(ValueError):
+            DecryptRequest(
+                session_id="session-1",
+                request_id="r" * 257,
+                algorithm="AES256_GCM",
+                nonce_b64="bm9uY2U=",
+                ciphertext_b64="Y2lwaGVydGV4dA==",
+            )
+
     def test_encrypt_rejects_blank_algorithm(self):
         with self.assertRaises(ValueError):
             EncryptRequest(algorithm="   ")

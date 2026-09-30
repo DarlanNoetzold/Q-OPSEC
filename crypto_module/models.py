@@ -19,6 +19,8 @@ class EncryptRequest(BaseModel):
     def reject_blank_text(cls, value):
         if isinstance(value, str) and not value.strip():
             raise ValueError("text fields must not be blank")
+        if isinstance(value, str) and len(value) > 256:
+            raise ValueError("text fields must not exceed 256 characters")
         return value
 
 class EncryptResponse(BaseModel):
@@ -41,6 +43,8 @@ class DecryptRequest(BaseModel):
     def reject_blank_text(cls, value):
         if isinstance(value, str) and not value.strip():
             raise ValueError("text fields must not be blank")
+        if isinstance(value, str) and len(value) > 256:
+            raise ValueError("text fields must not exceed 256 characters")
         return value
 
 class DecryptResponse(BaseModel):
