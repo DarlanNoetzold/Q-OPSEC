@@ -182,12 +182,76 @@
       "payload": {"source": "pqc-signing-vault", "data": {"security_protocol": "PQC_SIGNATURE", "quantum_risk_index": 0.82}}
     },
     {
-      "id": "scenario-ultra-qkd",
-      "name": "Test Security Ultra - QKD Available",
-      "description": "Maximum-security path with quantum hardware.",
-      "security_level": "ULTRA",
-      "proposed_algorithms": ["QKD_BB84", "QKD_E91", "Kyber1024"],
-      "payload": {"source": "quantum-vault-node", "data": {"security_protocol": "QKD_REQUIRED", "quantum_hardware": true}}
+      "id": "scenario-data-exfiltration",
+      "name": "Experiment Data Exfiltration Detection",
+      "description": "Sensitive export request from an unusual destination; validates confidentiality and risk escalation.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
+      "payload": {"source": "unknown-export-agent", "destination": "external-drop-zone", "data": {"operation": "BULK_EXPORT", "records": 50000, "contains_pii": true, "destination_trust": 0.08}}
+    },
+    {
+      "id": "scenario-replay-attack",
+      "name": "Experiment Replay Attack",
+      "description": "Reused nonce and request identifier should be rejected or marked as suspicious.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+      "payload": {"source": "gateway-04", "request_id": "replayed-request-001", "nonce": "AQIDBAUGBwgJCg==", "data": {"operation": "REPLAY_TEST", "sequence": 1, "timestamp": "2026-01-01T00:00:00Z"}}
+    },
+    {
+      "id": "scenario-zero-trust-device",
+      "name": "Experiment Zero Trust Device",
+      "description": "Unknown device with invalid attestation and stale firmware.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber1024", "Falcon-512", "AES256_GCM"],
+      "payload": {"source": "unregistered-device", "data": {"device_id": "ZT-UNKNOWN-77", "attestation": "INVALID", "firmware_age_days": 900, "secure_boot": false}}
+    },
+    {
+      "id": "scenario-pqc-migration",
+      "name": "Experiment PQC Migration",
+      "description": "Hybrid migration path from classical RSA to post-quantum key exchange.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Kyber768", "ECDH_P384", "AES256_GCM"],
+      "payload": {"source": "migration-coordinator", "data": {"migration_phase": "HYBRID", "legacy_algorithm": "RSA2048", "target_algorithm": "Kyber768", "dual_decrypt": true}}
+    },
+    {
+      "id": "scenario-degraded-dependencies",
+      "name": "Experiment Degraded Dependency Recovery",
+      "description": "Simulates downstream services being unavailable; validates graceful fallback.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "resilience-test-node", "data": {"dependency_mode": "DEGRADED", "risk_service_expected": "TIMEOUT", "confidentiality_service_expected": "UNAVAILABLE", "fallback_policy": "FAIL_CLOSED"}}
+    },
+    {
+      "id": "scenario-malformed-payload",
+      "name": "Experiment Malformed Payload",
+      "description": "Invalid types and incomplete context should produce a controlled validation response.",
+      "security_level": "MODERATE",
+      "proposed_algorithms": ["AES256_GCM"],
+      "payload": {"source": 42, "data": {"risk_score": "not-a-number", "headers": ["invalid-object"], "content": null}}
+    },
+    {
+      "id": "scenario-sensitive-healthcare",
+      "name": "Experiment Sensitive Healthcare Record",
+      "description": "High-sensitivity medical payload requiring strict confidentiality classification.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768", "Dilithium3"],
+      "payload": {"source": "hospital-edge-12", "data": {"document_type": "PATIENT_RECORD", "sensitivity": "PHI", "consent": "RESTRICTED", "access_reason": "EMERGENCY_CARE"}}
+    },
+    {
+      "id": "scenario-low-bandwidth-edge",
+      "name": "Experiment Low Bandwidth Edge",
+      "description": "Constrained link with strict latency and payload-size limits.",
+      "security_level": "LOW",
+      "proposed_algorithms": ["ChaCha20_Poly1305", "AES128_GCM"],
+      "payload": {"source": "satellite-edge-03", "data": {"network_mode": "SATELLITE", "bandwidth_kbps": 64, "max_latency_ms": 2500, "payload_bytes": 512}}
+    },
+    {
+      "id": "scenario-credential-stuffing",
+      "name": "Experiment Credential Stuffing Pattern",
+      "description": "Burst of failed authentication attempts from one source.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "credential-spray-node", "data": {"operation": "AUTHENTICATION", "failed_attempts": 120, "window_seconds": 30, "unique_accounts": 80, "geo_velocity": "IMPOSSIBLE"}}
     }
   ]
 }

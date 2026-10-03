@@ -28,6 +28,21 @@ class ScenarioCoverageTests(unittest.TestCase):
         self.assertEqual("MODERATE", moderate["payload"]["security_level"])
         self.assertEqual(moderate["proposed_algorithms"], moderate["payload"]["proposed"])
 
+    def test_extended_experiment_matrix_is_present(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        ids = {scenario["id"] for scenario in scenarios}
+        self.assertTrue({
+            "scenario-data-exfiltration",
+            "scenario-replay-attack",
+            "scenario-zero-trust-device",
+            "scenario-pqc-migration",
+            "scenario-degraded-dependencies",
+            "scenario-malformed-payload",
+        }.issubset(ids))
+        self.assertGreaterEqual(len(scenarios), 20)
+
 
 if __name__ == "__main__":
     unittest.main()
