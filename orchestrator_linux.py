@@ -528,6 +528,11 @@ async def start_service(name: str) -> Dict[str, Any]:
         if hasattr(proc, "returncode") and proc.returncode is None:
             return {"status": "running", "pid": proc.pid}
 
+    cwd = (BASE_DIR / cfg["cwd"]).resolve() if cfg.get("cwd") else BASE_DIR
+    cmd = cfg.get("start") or []
+    if not isinstance(cmd, list) or not cmd:
+        return {"status": "error", "error": f"Invalid start command for service {name}"}
+
     exist_pid = read_pidfile(name)
     if exist_pid and is_pid_running(exist_pid):
         STATE[name] = {
