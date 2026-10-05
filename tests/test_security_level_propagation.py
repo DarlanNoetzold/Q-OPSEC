@@ -43,6 +43,35 @@ class ScenarioCoverageTests(unittest.TestCase):
         }.issubset(ids))
         self.assertGreaterEqual(len(scenarios), 20)
 
+    def test_additional_experiment_matrix_is_present(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        ids = {scenario["id"] for scenario in scenarios}
+        self.assertTrue({
+            "scenario-key-rotation",
+            "scenario-cross-tenant-isolation",
+            "scenario-large-payload-boundary",
+            "scenario-clock-skew",
+            "scenario-duplicate-delivery",
+            "scenario-unicode-payload",
+            "scenario-policy-conflict",
+            "scenario-audit-integrity",
+            "scenario-key-compromise",
+            "scenario-algorithm-downgrade",
+            "scenario-rate-limit-burst",
+            "scenario-network-partition",
+            "scenario-privacy-redaction",
+            "scenario-invalid-algorithm",
+            "scenario-concurrent-key-use",
+            "scenario-policy-version-skew",
+        }.issubset(ids))
+        for scenario in scenarios:
+            self.assertIn("security_level", scenario)
+            self.assertIn("proposed_algorithms", scenario)
+            self.assertIn("payload", scenario)
+            self.assertIn("source", scenario["payload"])
+
 
 if __name__ == "__main__":
     unittest.main()

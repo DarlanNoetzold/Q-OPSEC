@@ -252,6 +252,134 @@
       "security_level": "HIGH",
       "proposed_algorithms": ["AES256_GCM", "Kyber768"],
       "payload": {"source": "credential-spray-node", "data": {"operation": "AUTHENTICATION", "failed_attempts": 120, "window_seconds": 30, "unique_accounts": 80, "geo_velocity": "IMPOSSIBLE"}}
+    },
+    {
+      "id": "scenario-key-rotation",
+      "name": "Experiment Key Rotation During Active Flow",
+      "description": "Rotates key material while a request is in flight; validates key-version consistency.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "key-rotation-coordinator", "data": {"operation": "ROTATE_KEY", "current_key_version": 17, "requested_key_version": 18, "active_sessions": 3}}
+    },
+    {
+      "id": "scenario-cross-tenant-isolation",
+      "name": "Experiment Cross-Tenant Isolation",
+      "description": "Attempts to reference another tenant's key and context; must fail closed.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber1024", "AES256_GCM"],
+      "payload": {"source": "tenant-a-client", "data": {"tenant_id": "tenant-a", "requested_tenant_id": "tenant-b", "resource": "key-ring-07", "operation": "READ"}}
+    },
+    {
+      "id": "scenario-large-payload-boundary",
+      "name": "Experiment Large Payload Boundary",
+      "description": "Payload at the documented size boundary; validates bounded serialization and encryption.",
+      "security_level": "MODERATE",
+      "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+      "payload": {"source": "bulk-ingest-node", "data": {"payload_bytes": 1048576, "chunk_size": 65536, "compression": "zstd"}}
+    },
+    {
+      "id": "scenario-clock-skew",
+      "name": "Experiment Clock Skew",
+      "description": "Client timestamp is outside the acceptance window; validates freshness checks.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "skewed-clock-node", "data": {"client_timestamp": "2020-01-01T00:00:00Z", "clock_skew_seconds": 86400, "nonce": "clock-skew-test-01"}}
+    },
+    {
+      "id": "scenario-duplicate-delivery",
+      "name": "Experiment Duplicate Delivery",
+      "description": "Same message is delivered twice; validates idempotency and replay protection.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+      "payload": {"source": "at-least-once-broker", "data": {"message_id": "msg-duplicate-001", "delivery_attempt": 2, "deduplication_key": "event-77"}}
+    },
+    {
+      "id": "scenario-unicode-payload",
+      "name": "Experiment Unicode and Normalization",
+      "description": "Mixed Unicode normalization forms and right-to-left text must survive safely.",
+      "security_level": "MODERATE",
+      "proposed_algorithms": ["AES256_GCM"],
+      "payload": {"source": "international-edge-node", "data": {"locale": "pt-BR", "text": "ação — اختبار — 日本語 — é", "normalization": "NFC"}}
+    },
+    {
+      "id": "scenario-policy-conflict",
+      "name": "Experiment Conflicting Security Policies",
+      "description": "Destination policy and client preference disagree; validates deterministic policy precedence.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768", "Dilithium3"],
+      "payload": {"source": "policy-conflict-client", "destination": "regulated-vault", "data": {"client_preference": "AES256_GCM", "destination_requirement": "PQC_ONLY", "policy_version": "2026.10"}}
+    },
+    {
+      "id": "scenario-audit-integrity",
+      "name": "Experiment Audit Log Integrity",
+      "description": "Audit event includes tampered sequence metadata; validates integrity and monotonic ordering.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Dilithium3", "Kyber768", "AES256_GCM"],
+      "payload": {"source": "audit-forwarder-09", "data": {"event_id": "audit-9001", "sequence": 41, "previous_hash": "tampered", "signature_status": "INVALID"}}
+    },
+    {
+      "id": "scenario-key-compromise",
+      "name": "Experiment Suspected Key Compromise",
+      "description": "Key reuse and exposure indicators require immediate isolation and rotation.",
+      "security_level": "ULTRA",
+      "proposed_algorithms": ["Kyber1024", "Dilithium3", "AES256_GCM"],
+      "payload": {"source": "compromised-key-sensor", "data": {"operation": "KEY_USE", "key_id": "key-17", "exposure_indicator": true, "reuse_count": 999, "rotation_required": true}}
+    },
+    {
+      "id": "scenario-algorithm-downgrade",
+      "name": "Experiment Algorithm Downgrade Attempt",
+      "description": "A client requests a weaker algorithm against a PQC-only destination policy.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768", "Dilithium3"],
+      "payload": {"source": "legacy-client-07", "destination": "pqc-only-vault", "data": {"requested_algorithm": "RSA2048", "required_policy": "PQC_ONLY", "downgrade_attempt": true}}
+    },
+    {
+      "id": "scenario-rate-limit-burst",
+      "name": "Experiment Rate Limit Burst",
+      "description": "A short burst exceeds the source quota and tests throttling behavior.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+      "payload": {"source": "burst-client-12", "data": {"requests_in_window": 10000, "window_seconds": 1, "quota": 100, "operation": "BULK_AUTH"}}
+    },
+    {
+      "id": "scenario-network-partition",
+      "name": "Experiment Network Partition",
+      "description": "Intermittent connectivity tests timeout handling and fail-closed delivery.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["Kyber768", "AES256_GCM"],
+      "payload": {"source": "partitioned-edge-04", "data": {"network_mode": "PARTITIONED", "packet_loss_percent": 80, "retry_budget": 2, "delivery_policy": "FAIL_CLOSED"}}
+    },
+    {
+      "id": "scenario-privacy-redaction",
+      "name": "Experiment Sensitive Data Redaction",
+      "description": "PII and secrets must remain redacted in logs and downstream metadata.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "privacy-test-client", "data": {"email": "person@example.invalid", "national_id": "REDACT-ME", "access_token": "SECRET-REDACT-ME", "logging_policy": "REDACT_SENSITIVE"}}
+    },
+    {
+      "id": "scenario-invalid-algorithm",
+      "name": "Experiment Invalid Algorithm Proposal",
+      "description": "Unknown algorithms must be rejected without unsafe fallback selection.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["NOT_A_REAL_ALGORITHM", "AES256_GCM"],
+      "payload": {"source": "invalid-algorithm-client", "data": {"requested_algorithm": "NOT_A_REAL_ALGORITHM", "validation_mode": "STRICT"}}
+    },
+    {
+      "id": "scenario-concurrent-key-use",
+      "name": "Experiment Concurrent Key Use",
+      "description": "Concurrent requests use the same key version and test locking and idempotency.",
+      "security_level": "HIGH",
+      "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+      "payload": {"source": "parallel-worker-pool", "data": {"key_id": "key-concurrent-01", "key_version": 4, "concurrent_requests": 32, "operation": "ENCRYPT"}}
+    },
+    {
+      "id": "scenario-policy-version-skew",
+      "name": "Experiment Policy Version Skew",
+      "description": "Stale policy metadata must not override the current destination policy.",
+      "security_level": "VERY_HIGH",
+      "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
+      "payload": {"source": "stale-policy-client", "destination": "regulated-vault", "data": {"client_policy_version": "2025.01", "server_policy_version": "2026.10", "policy_signature": "STALE", "operation": "WRITE"}}
     }
   ]
 }
