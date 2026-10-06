@@ -72,6 +72,24 @@ class ScenarioCoverageTests(unittest.TestCase):
             self.assertIn("payload", scenario)
             self.assertIn("source", scenario["payload"])
 
+    def test_new_orchestrator_experiments_cover_additional_threats(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        ids = {scenario["id"] for scenario in scenarios}
+        self.assertTrue({
+            "scenario-mfa-fatigue",
+            "scenario-supply-chain-compromise",
+            "scenario-container-escape-attempt",
+            "scenario-secrets-injection",
+            "scenario-malware-ransomware-indicator",
+            "scenario-dns-tunneling",
+            "scenario-api-schema-abuse",
+            "scenario-authorization-boundary",
+            "scenario-crypto-key-expiry",
+            "scenario-resource-exhaustion",
+        }.issubset(ids))
+
 
 if __name__ == "__main__":
     unittest.main()

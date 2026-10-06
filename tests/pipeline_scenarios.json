@@ -380,6 +380,222 @@
       "security_level": "VERY_HIGH",
       "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
       "payload": {"source": "stale-policy-client", "destination": "regulated-vault", "data": {"client_policy_version": "2025.01", "server_policy_version": "2026.10", "policy_signature": "STALE", "operation": "WRITE"}}
-    }
+    },
+      {
+        "id": "scenario-mfa-fatigue",
+        "name": "Experiment MFA Fatigue",
+        "description": "Repeated push approvals test authentication-fatigue detection and escalation.",
+        "security_level": "HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "Kyber768"
+        ],
+        "payload": {
+          "source": "mfa-push-spray-node",
+          "data": {
+            "operation": "MFA_CHALLENGE",
+            "push_requests": 45,
+            "window_seconds": 60,
+            "denied_prompts": 44,
+            "last_prompt_accepted": true
+          }
+        }
+      },
+      {
+        "id": "scenario-supply-chain-compromise",
+        "name": "Experiment Supply Chain Compromise",
+        "description": "A dependency with invalid signature and mismatched digest should be isolated.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": [
+          "Kyber768",
+          "Dilithium3",
+          "AES256_GCM"
+        ],
+        "payload": {
+          "source": "artifact-registry-proxy",
+          "data": {
+            "operation": "INSTALL_DEPENDENCY",
+            "package": "crypto-provider",
+            "version": "4.2.1",
+            "signature_status": "INVALID",
+            "expected_digest": "sha256:trusted",
+            "observed_digest": "sha256:untrusted",
+            "provenance": "UNVERIFIED"
+          }
+        }
+      },
+      {
+        "id": "scenario-container-escape-attempt",
+        "name": "Experiment Container Escape Attempt",
+        "description": "Privileged mode, host mount, and elevated capabilities test workload-isolation controls.",
+        "security_level": "ULTRA",
+        "proposed_algorithms": [
+          "Kyber1024",
+          "Dilithium3",
+          "AES256_GCM"
+        ],
+        "payload": {
+          "source": "isolated-workload-17",
+          "data": {
+            "operation": "CONTAINER_START",
+            "privileged": true,
+            "host_mount": "/var/run/container.sock",
+            "capabilities_added": [
+              "SYS_ADMIN"
+            ],
+            "image_signature": "UNVERIFIED"
+          }
+        }
+      },
+      {
+        "id": "scenario-secrets-injection",
+        "name": "Experiment Secret Injection",
+        "description": "Unapproved secret-like environment variables should be rejected or redacted.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "Kyber768"
+        ],
+        "payload": {
+          "source": "untrusted-build-runner",
+          "data": {
+            "operation": "DEPLOY",
+            "environment": {
+              "API_TOKEN": "TEST_REDACT_ONLY",
+              "PRIVATE_KEY": "TEST_REDACT_ONLY"
+            },
+            "secret_source": "UNAPPROVED",
+            "logging_policy": "REDACT_SENSITIVE"
+          }
+        }
+      },
+      {
+        "id": "scenario-malware-ransomware-indicator",
+        "name": "Experiment Malware and Ransomware Indicator",
+        "description": "Mass file encryption and suspicious persistence test endpoint containment signals.",
+        "security_level": "ULTRA",
+        "proposed_algorithms": [
+          "Kyber1024",
+          "Dilithium3",
+          "AES256_GCM"
+        ],
+        "payload": {
+          "source": "endpoint-sensor-31",
+          "data": {
+            "operation": "FILE_ACTIVITY",
+            "files_modified_per_minute": 1200,
+            "entropy_delta": 0.98,
+            "persistence_attempt": true,
+            "process_reputation": "MALICIOUS"
+          }
+        }
+      },
+      {
+        "id": "scenario-dns-tunneling",
+        "name": "Experiment DNS Tunneling",
+        "description": "Long high-entropy DNS labels and excessive query volume test covert-channel detection.",
+        "security_level": "HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "Kyber768"
+        ],
+        "payload": {
+          "source": "dns-egress-monitor-02",
+          "data": {
+            "operation": "DNS_QUERY",
+            "query_count_per_minute": 2400,
+            "mean_label_length": 58,
+            "label_entropy": 0.96,
+            "record_type": "TXT",
+            "domain_reputation": "UNKNOWN"
+          }
+        }
+      },
+      {
+        "id": "scenario-api-schema-abuse",
+        "name": "Experiment API Schema Abuse",
+        "description": "Deep nesting and oversized field claims test bounded validation and controlled rejection.",
+        "security_level": "HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "Kyber768"
+        ],
+        "payload": {
+          "source": "schema-probe-client",
+          "data": {
+            "operation": "API_REQUEST",
+            "declared_depth": 128,
+            "declared_payload_bytes": 20971520,
+            "unexpected_fields": [
+              "__proto__",
+              "constructor",
+              "prototype"
+            ],
+            "validation_mode": "STRICT"
+          }
+        }
+      },
+      {
+        "id": "scenario-authorization-boundary",
+        "name": "Experiment Authorization Boundary",
+        "description": "An authenticated low-privilege principal requests a sensitive administrative operation.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": [
+          "Kyber768",
+          "Dilithium3",
+          "AES256_GCM"
+        ],
+        "payload": {
+          "source": "authenticated-reader-08",
+          "data": {
+            "principal_role": "READ_ONLY",
+            "operation": "ROTATE_PRODUCTION_KEYS",
+            "resource_scope": "GLOBAL",
+            "authorization_claim": "MISSING",
+            "tenant_id": "tenant-a"
+          }
+        }
+      },
+      {
+        "id": "scenario-crypto-key-expiry",
+        "name": "Experiment Expired Crypto Key",
+        "description": "Expired key material should be rejected or rotated without a cryptographic downgrade.",
+        "security_level": "HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "Kyber768"
+        ],
+        "payload": {
+          "source": "stale-session-client",
+          "data": {
+            "operation": "ENCRYPT",
+            "key_id": "key-expired-09",
+            "key_version": 3,
+            "key_expired": true,
+            "expires_at": "2025-01-01T00:00:00Z",
+            "rotation_required": true
+          }
+        }
+      },
+      {
+        "id": "scenario-resource-exhaustion",
+        "name": "Experiment Resource Exhaustion Guard",
+        "description": "Extreme concurrency and memory claims test bounded admission and throttling.",
+        "security_level": "HIGH",
+        "proposed_algorithms": [
+          "AES256_GCM",
+          "ChaCha20_Poly1305"
+        ],
+        "payload": {
+          "source": "resource-pressure-client",
+          "data": {
+            "operation": "BULK_PROCESS",
+            "concurrent_jobs": 50000,
+            "declared_memory_mb": 1048576,
+            "queue_limit": 100,
+            "admission_policy": "BOUNDED"
+          }
+        }
+      }
   ]
 }
