@@ -90,6 +90,43 @@ class ScenarioCoverageTests(unittest.TestCase):
             "scenario-resource-exhaustion",
         }.issubset(ids))
 
+    def test_latest_experiments_cover_operational_security_gaps(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        by_id = {scenario["id"]: scenario for scenario in scenarios}
+        expected_ids = {
+            "scenario-ssrf-metadata-probe",
+            "scenario-path-traversal",
+            "scenario-tls-downgrade",
+            "scenario-signing-certificate-revoked",
+            "scenario-hardware-attestation-replay",
+            "scenario-rng-health-failure",
+            "scenario-audit-log-injection",
+            "scenario-data-residency-violation",
+            "scenario-backup-key-restore",
+            "scenario-cascading-service-failure",
+            "scenario-mtls-certificate-expiry",
+            "scenario-jwt-claim-confusion",
+            "scenario-object-level-authorization",
+            "scenario-signed-webhook-replay",
+            "scenario-kms-quorum-loss",
+            "scenario-encryption-authentication-tag-tamper",
+            "scenario-backup-restore-rollback",
+            "scenario-egress-dns-rebinding",
+            "scenario-secret-canary-exposure",
+            "scenario-queue-poison-message",
+        }
+        self.assertTrue(expected_ids.issubset(by_id))
+        for scenario_id in expected_ids:
+            scenario = by_id[scenario_id]
+            self.assertIn(scenario["security_level"], {
+                "VERY_LOW", "LOW", "MODERATE", "HIGH", "VERY_HIGH", "ULTRA"
+            })
+            self.assertTrue(scenario["proposed_algorithms"])
+            self.assertIsInstance(scenario["payload"].get("data"), dict)
+            self.assertTrue(scenario["payload"].get("source"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -596,6 +596,166 @@
             "admission_policy": "BOUNDED"
           }
         }
+      },
+      {
+        "id": "scenario-ssrf-metadata-probe",
+        "name": "Experiment SSRF Metadata Probe",
+        "description": "Untrusted URL targets private and cloud metadata ranges; requests must be blocked by egress policy.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "webhook-validation-probe", "data": {"operation": "FETCH_REMOTE_RESOURCE", "target_url": "http://169.254.169.254/latest/meta-data/", "redirect_chain": ["http://public.example.invalid", "http://127.0.0.1/admin"], "expected_policy": "DENY_PRIVATE_DESTINATIONS"}}
+      },
+      {
+        "id": "scenario-path-traversal",
+        "name": "Experiment Path Traversal Boundary",
+        "description": "Encoded traversal sequences must not escape the configured storage root.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM"],
+        "payload": {"source": "untrusted-file-client", "data": {"operation": "READ_ARTIFACT", "path": "%2e%2e/%2e%2e/secrets/config.json", "decode_passes": 2, "expected_policy": "CONTAINED_PATH_ONLY"}}
+      },
+      {
+        "id": "scenario-tls-downgrade",
+        "name": "Experiment TLS Downgrade Attempt",
+        "description": "A client offers obsolete protocol versions and weak cipher suites; secure minimums must be enforced.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "legacy-tls-client", "data": {"operation": "TLS_HANDSHAKE", "offered_versions": ["TLS1.0", "TLS1.1"], "offered_ciphers": ["RC4", "3DES"], "downgrade_sentinel": true, "minimum_version": "TLS1.2"}}
+      },
+      {
+        "id": "scenario-signing-certificate-revoked",
+        "name": "Experiment Revoked Signing Certificate",
+        "description": "A cryptographically valid signature chains to a revoked certificate and must be rejected.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["Dilithium3", "AES256_GCM"],
+        "payload": {"source": "artifact-signature-verifier", "data": {"operation": "VERIFY_SIGNATURE", "certificate_status": "REVOKED", "signature_valid": true, "revocation_checked_at": "2026-10-08T00:00:00Z", "expected_policy": "REJECT_REVOKED_SIGNER"}}
+      },
+      {
+        "id": "scenario-hardware-attestation-replay",
+        "name": "Experiment Hardware Attestation Replay",
+        "description": "A previously valid attestation with a stale nonce must not satisfy a fresh challenge.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
+        "payload": {"source": "device-attestation-gateway", "data": {"operation": "VERIFY_ATTESTATION", "device_id": "edge-device-044", "challenge_nonce": "fresh-challenge-2026-10", "attestation_nonce": "old-challenge-2026-09", "quote_timestamp": "2026-09-01T00:00:00Z", "expected_policy": "REQUIRE_FRESH_NONCE"}}
+      },
+      {
+        "id": "scenario-rng-health-failure",
+        "name": "Experiment Random Generator Health Failure",
+        "description": "Entropy-source health tests fail during key generation; key creation must stop safely.",
+        "security_level": "ULTRA",
+        "proposed_algorithms": ["Kyber1024", "AES256_GCM"],
+        "payload": {"source": "kms-entropy-monitor", "data": {"operation": "GENERATE_KEY", "entropy_source": "HWRNG-02", "health_test": "FAILED", "estimated_entropy_bits": 12, "expected_policy": "FAIL_CLOSED_NO_KEY_OUTPUT"}}
+      },
+      {
+        "id": "scenario-audit-log-injection",
+        "name": "Experiment Audit Log Injection",
+        "description": "Newlines and control characters in user-controlled fields must not forge audit events.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Dilithium3"],
+        "payload": {"source": "log-sanitization-client", "data": {"operation": "AUDIT_WRITE", "username": "operator\\n2026-10-08 INFO admin login success", "event_detail": "test\\r\\nforged-record", "expected_policy": "STRUCTURED_ESCAPED_LOGGING"}}
+      },
+      {
+        "id": "scenario-data-residency-violation",
+        "name": "Experiment Data Residency Violation",
+        "description": "A regulated record is routed to a destination outside its permitted jurisdiction.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "regional-data-router", "destination": "region-eu-west", "data": {"operation": "STORE_RECORD", "data_classification": "REGULATED_PII", "permitted_regions": ["region-eu-central"], "requested_region": "region-eu-west", "expected_policy": "DENY_OUT_OF_REGION"}}
+      },
+      {
+        "id": "scenario-backup-key-restore",
+        "name": "Experiment Backup Key Restore Controls",
+        "description": "A backup restore with stale key version and missing quorum must be denied or require controlled rekeying.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "disaster-recovery-controller", "data": {"operation": "RESTORE_KEY_BACKUP", "key_version": 6, "current_key_version": 9, "approval_signatures": 1, "required_quorum": 3, "backup_integrity": "VALID", "expected_policy": "REQUIRE_QUORUM_AND_ROTATION"}}
+      },
+      {
+        "id": "scenario-cascading-service-failure",
+        "name": "Experiment Cascading Service Failure",
+        "description": "Repeated downstream timeouts test bounded retries, circuit breaking, and fail-closed behavior.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "pipeline-resilience-test", "data": {"operation": "SECURE_DELIVERY", "failing_dependencies": ["risk_service", "kms_service"], "consecutive_timeouts": 12, "retry_budget": 2, "circuit_breaker": "OPEN", "expected_policy": "FAIL_CLOSED"}}
+      },
+      {
+        "id": "scenario-mtls-certificate-expiry",
+        "name": "Experiment Expired mTLS Certificate",
+        "description": "An expired client certificate must not authenticate even when its chain was previously trusted.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "expired-mtls-client", "data": {"operation": "MTLS_AUTHENTICATE", "certificate_status": "EXPIRED", "chain_status": "TRUSTED", "not_after": "2025-01-01T00:00:00Z", "expected_policy": "REJECT_EXPIRED_CERTIFICATE"}}
+      },
+      {
+        "id": "scenario-jwt-claim-confusion",
+        "name": "Experiment JWT Claim Confusion",
+        "description": "Conflicting issuer, audience, and tenant claims must be rejected rather than interpreted permissively.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Dilithium3"],
+        "payload": {"source": "claim-confusion-client", "data": {"operation": "AUTHORIZE", "issuer": "untrusted-issuer", "expected_issuer": "q-opsec-identity", "audience": "wrong-service", "tenant_claim": "tenant-b", "requested_tenant": "tenant-a", "expected_policy": "STRICT_CLAIM_VALIDATION"}}
+      },
+      {
+        "id": "scenario-object-level-authorization",
+        "name": "Experiment Object-Level Authorization Boundary",
+        "description": "A valid low-privilege user attempts to access an object owned by another tenant.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "tenant-reader-client", "data": {"operation": "READ_SECRET", "principal_tenant": "tenant-a", "object_tenant": "tenant-b", "principal_role": "READER", "expected_policy": "DENY_CROSS_TENANT_OBJECT_ACCESS"}}
+      },
+      {
+        "id": "scenario-signed-webhook-replay",
+        "name": "Experiment Signed Webhook Replay",
+        "description": "A validly signed webhook with a stale timestamp and previously used event identifier must be deduplicated.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+        "payload": {"source": "webhook-replay-client", "data": {"operation": "PROCESS_WEBHOOK", "signature_valid": true, "event_id": "evt-replayed-204", "timestamp": "2025-01-01T00:00:00Z", "delivery_count": 3, "expected_policy": "REJECT_STALE_OR_DUPLICATE_EVENT"}}
+      },
+      {
+        "id": "scenario-kms-quorum-loss",
+        "name": "Experiment KMS Quorum Loss",
+        "description": "Key administration during loss of quorum must stop without exposing or changing key material.",
+        "security_level": "ULTRA",
+        "proposed_algorithms": ["Kyber1024", "AES256_GCM"],
+        "payload": {"source": "kms-admin-controller", "data": {"operation": "ROTATE_KEY", "available_replicas": 1, "required_quorum": 3, "key_material_export": false, "expected_policy": "FAIL_CLOSED_PRESERVE_KEY_STATE"}}
+      },
+      {
+        "id": "scenario-encryption-authentication-tag-tamper",
+        "name": "Experiment AEAD Authentication Tag Tampering",
+        "description": "Modified authenticated ciphertext must fail integrity verification and never return plaintext.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+        "payload": {"source": "ciphertext-integrity-probe", "data": {"operation": "DECRYPT", "ciphertext_status": "TAMPERED", "authentication_tag_valid": false, "expected_policy": "REJECT_WITHOUT_PLAINTEXT"}}
+      },
+      {
+        "id": "scenario-backup-restore-rollback",
+        "name": "Experiment Backup Restore Rollback",
+        "description": "A correctly signed but obsolete backup must not roll back policy or key versions.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "backup-restore-agent", "data": {"operation": "RESTORE_CONFIGURATION", "signature_valid": true, "backup_sequence": 18, "current_sequence": 27, "expected_policy": "REJECT_ROLLBACK"}}
+      },
+      {
+        "id": "scenario-egress-dns-rebinding",
+        "name": "Experiment Egress DNS Rebinding",
+        "description": "A hostname resolving from a public address to a private address must be blocked at connection time.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "egress-policy-probe", "data": {"operation": "FETCH_REMOTE_RESOURCE", "hostname": "rebind.example.invalid", "initial_address_class": "PUBLIC", "resolved_address_class": "PRIVATE", "redirect_revalidation": true, "expected_policy": "DENY_PRIVATE_EGRESS"}}
+      },
+      {
+        "id": "scenario-secret-canary-exposure",
+        "name": "Experiment Secret Canary Exposure",
+        "description": "A synthetic canary credential in diagnostic data must be redacted and must not trigger real external access.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "diagnostic-redaction-test", "data": {"operation": "WRITE_DIAGNOSTIC", "canary_secret": "SYNTHETIC-CANARY-DO-NOT-USE", "logging_policy": "REDACT_SENSITIVE", "expected_policy": "REDACT_AND_NEVER_USE_SECRET"}}
+      },
+      {
+        "id": "scenario-queue-poison-message",
+        "name": "Experiment Poison Queue Message",
+        "description": "An invalid repeatedly retried event must be bounded, isolated to a dead-letter path, and not block healthy events.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+        "payload": {"source": "message-broker-test", "data": {"operation": "PROCESS_QUEUE_EVENT", "schema_valid": false, "delivery_attempt": 12, "max_attempts": 3, "healthy_events_waiting": 5, "expected_policy": "DEAD_LETTER_AND_CONTINUE"}}
       }
   ]
 }
