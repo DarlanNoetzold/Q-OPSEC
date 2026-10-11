@@ -127,6 +127,33 @@ class ScenarioCoverageTests(unittest.TestCase):
             self.assertIsInstance(scenario["payload"].get("data"), dict)
             self.assertTrue(scenario["payload"].get("source"))
 
+    def test_experiments_cover_identity_and_crypto_lifecycle_gaps(self):
+        scenarios = json.loads(
+            (Path(__file__).parents[1] / "tests" / "pipeline_scenarios.json").read_text()
+        )["scenarios"]
+        by_id = {scenario["id"]: scenario for scenario in scenarios}
+        expected_ids = {
+            "scenario-oauth-redirect-abuse",
+            "scenario-saml-assertion-replay",
+            "scenario-session-fixation",
+            "scenario-secure-boot-rollback",
+            "scenario-certificate-pinning-mismatch",
+            "scenario-ephemeral-key-reuse",
+            "scenario-backup-encryption-missing",
+            "scenario-training-data-poisoning",
+            "scenario-confused-deputy",
+            "scenario-cache-fail-open",
+        }
+        self.assertTrue(expected_ids.issubset(by_id))
+        for scenario_id in expected_ids:
+            scenario = by_id[scenario_id]
+            self.assertIn(scenario["security_level"], {
+                "VERY_LOW", "LOW", "MODERATE", "HIGH", "VERY_HIGH", "ULTRA"
+            })
+            self.assertTrue(scenario["proposed_algorithms"])
+            self.assertIsInstance(scenario["payload"].get("data"), dict)
+            self.assertTrue(scenario["payload"].get("source"))
+
 
 if __name__ == "__main__":
     unittest.main()

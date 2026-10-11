@@ -750,6 +750,86 @@
         "payload": {"source": "diagnostic-redaction-test", "data": {"operation": "WRITE_DIAGNOSTIC", "canary_secret": "SYNTHETIC-CANARY-DO-NOT-USE", "logging_policy": "REDACT_SENSITIVE", "expected_policy": "REDACT_AND_NEVER_USE_SECRET"}}
       },
       {
+        "id": "scenario-oauth-redirect-abuse",
+        "name": "Experiment OAuth Redirect URI Abuse",
+        "description": "An authorization response targeting an unregistered redirect URI must be rejected without leaking a code.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["Kyber768", "Dilithium3", "AES256_GCM"],
+        "payload": {"source": "oauth-client-validation", "data": {"operation": "AUTHORIZE", "client_id": "registered-client-12", "registered_redirect_uri": "https://client.example.invalid/callback", "requested_redirect_uri": "https://attacker.example.invalid/collect", "response_type": "code", "expected_policy": "EXACT_REDIRECT_URI_MATCH"}}
+      },
+      {
+        "id": "scenario-saml-assertion-replay",
+        "name": "Experiment SAML Assertion Replay",
+        "description": "A correctly signed assertion with a previously consumed identifier must be rejected as a replay.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["Dilithium3", "AES256_GCM"],
+        "payload": {"source": "federation-gateway", "data": {"operation": "VALIDATE_ASSERTION", "signature_valid": true, "assertion_id": "assertion-replay-001", "already_consumed": true, "audience": "q-opsec-console", "expected_policy": "ONE_TIME_ASSERTION"}}
+      },
+      {
+        "id": "scenario-session-fixation",
+        "name": "Experiment Session Fixation",
+        "description": "A privileged login must rotate a session identifier previously supplied by an untrusted client.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "ChaCha20_Poly1305"],
+        "payload": {"source": "session-lifecycle-test", "data": {"operation": "AUTHENTICATE", "pre_auth_session_id": "untrusted-session-001", "privilege_change": true, "session_rotated": false, "expected_policy": "ROTATE_ON_AUTHENTICATION"}}
+      },
+      {
+        "id": "scenario-secure-boot-rollback",
+        "name": "Experiment Secure Boot Version Rollback",
+        "description": "A validly signed but older boot image must not bypass the monotonic firmware security version.",
+        "security_level": "ULTRA",
+        "proposed_algorithms": ["Kyber1024", "Dilithium3", "AES256_GCM"],
+        "payload": {"source": "firmware-attestation-controller", "data": {"operation": "VERIFY_BOOT_IMAGE", "signature_valid": true, "image_security_version": 7, "minimum_security_version": 11, "expected_policy": "REJECT_FIRMWARE_ROLLBACK"}}
+      },
+      {
+        "id": "scenario-certificate-pinning-mismatch",
+        "name": "Experiment Certificate Pinning Mismatch",
+        "description": "A trusted chain with an unexpected leaf public-key pin must not be accepted by the client.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "pinned-client-test", "data": {"operation": "TLS_CONNECT", "certificate_chain_trusted": true, "leaf_pin_matches": false, "hostname_matches": true, "expected_policy": "REJECT_PIN_MISMATCH"}}
+      },
+      {
+        "id": "scenario-ephemeral-key-reuse",
+        "name": "Experiment Ephemeral Key Reuse",
+        "description": "Reusing an ephemeral key across independent sessions must be detected and trigger safe session rejection.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["Kyber768", "AES256_GCM"],
+        "payload": {"source": "session-key-telemetry", "data": {"operation": "DERIVE_SESSION_KEY", "ephemeral_key_id": "ephemeral-key-reused-22", "distinct_sessions": 8, "key_scope": "EPHEMERAL_PER_SESSION", "expected_policy": "REJECT_KEY_REUSE"}}
+      },
+      {
+        "id": "scenario-backup-encryption-missing",
+        "name": "Experiment Unencrypted Backup Detection",
+        "description": "A backup marked as containing key metadata but lacking encryption must be blocked from storage.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "backup-policy-validator", "data": {"operation": "STORE_BACKUP", "contains_key_metadata": true, "encryption_enabled": false, "destination_trust": "APPROVED", "expected_policy": "REQUIRE_ENCRYPTION_AT_REST"}}
+      },
+      {
+        "id": "scenario-training-data-poisoning",
+        "name": "Experiment Model Training Data Poisoning",
+        "description": "A training batch containing anomalous labels and untrusted provenance must be quarantined before model updates.",
+        "security_level": "HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "model-training-ingest", "data": {"operation": "INGEST_TRAINING_BATCH", "provenance": "UNVERIFIED", "label_anomaly_rate": 0.42, "duplicate_sample_rate": 0.81, "expected_policy": "QUARANTINE_UNTRUSTED_BATCH"}}
+      },
+      {
+        "id": "scenario-confused-deputy",
+        "name": "Experiment Confused Deputy Delegation",
+        "description": "A service with delegated authority must not apply its broader credentials to an unauthorized caller request.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Dilithium3"],
+        "payload": {"source": "delegated-service-gateway", "data": {"operation": "READ_TENANT_SECRET", "caller_scope": "tenant-a:read", "service_scope": "global:admin", "requested_tenant": "tenant-b", "expected_policy": "ENFORCE_CALLER_AUTHORITY"}}
+      },
+      {
+        "id": "scenario-cache-fail-open",
+        "name": "Experiment Authorization Cache Fail-Open",
+        "description": "An expired authorization cache entry during identity-provider outage must not grant privileged access.",
+        "security_level": "VERY_HIGH",
+        "proposed_algorithms": ["AES256_GCM", "Kyber768"],
+        "payload": {"source": "authorization-cache-test", "data": {"operation": "AUTHORIZE_ADMIN_ACTION", "identity_provider_status": "UNAVAILABLE", "cached_decision": "ALLOW", "cache_entry_expired": true, "expected_policy": "FAIL_CLOSED_ON_STALE_DECISION"}}
+      },
+      {
         "id": "scenario-queue-poison-message",
         "name": "Experiment Poison Queue Message",
         "description": "An invalid repeatedly retried event must be bounded, isolated to a dead-letter path, and not block healthy events.",
