@@ -10,6 +10,7 @@ from uuid import uuid4
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 import shutil
+import asyncio
 
 import httpx
 import uvicorn
@@ -76,6 +77,64 @@ def get_swagger_url(cfg: Dict[str, Any], name: str) -> Optional[str]:
                 return f"http://192.168.18.18:{port}/docs"
     
     return None
+
+def resolve_module_cwd(cfg: Dict[str, Any], root: Path = BASE_DIR) -> Path:
+    """Resolve a configured module directory without allowing path traversal."""
+    configured = cfg.get("cwd") or "."
+    root = root.resolve()
+    cwd = (root / configured).resolve()
+    if not cwd.is_relative_to(root):
+        raise ValueError("Module working directory must stay inside the project root")
+    return cwd
+
+
+def build_test_command(service_type: str, python_executable: str, pytest_available: bool, tests_directory: bool = False, maven_executable: str = "mvn") -> List[str]:
+    """Return a shell-free test command for one configured module."""
+    if str(service_type).lower() in {"spring", "java"}:
+        return [maven_executable, "-B", "-Dstyle.color=never", "test"]
+    if pytest_available:
+        return [python_executable, "-m", "pytest", "-q"]
+    start_dir = "tests" if tests_directory else "."
+    return [python_executable, "-m", "unittest", "discover", "-s", start_dir, "-p", "test*.py"]
+
+
+def test_python_interpreter(module_cwd: Path) -> str:
+    candidates = [
+        module_cwd / ".venv" / "bin" / "python3",
+        module_cwd / ".venv" / "bin" / "python",
+        BASE_DIR / "qopsec_env" / "bin" / "python3",
+        Path(shutil.which("python3") or sys.executable),
+    ]
+    return str(next((candidate for candidate in candidates if candidate.is_file() and os.access(candidate, os.X_OK)), candidates[-1]))
+
+
+def module_has_tests(service_type: str, module_cwd: Path) -> bool:
+    kind = str(service_type).lower()
+    if kind in {"spring", "java"}:
+        project_exists = (module_cwd / "pom.xml").is_file() or (module_cwd / "mvnw").is_file()
+        test_sources = module_cwd / "src" / "test"
+        return project_exists and test_sources.is_dir() and any(test_sources.rglob("*.java"))
+    if kind not in {"python", "fastapi", "process", "script"}:
+        return False
+    ignored_parts = {".git", ".venv", "venv", "qopsec_env", "node_modules", "__pycache__", "target", "build", "dist"}
+    for current, directories, files in os.walk(module_cwd):
+        relative = Path(current).relative_to(module_cwd)
+        directories[:] = [directory for directory in directories if directory not in ignored_parts]
+        if relative.parts and ignored_parts.intersection(relative.parts):
+            continue
+        if any(filename.startswith("test_") and filename.endswith(".py") for filename in files):
+            return True
+        if any(filename.endswith("_test.py") for filename in files):
+            return True
+    return False
+
+
+def service_can_run_tests(cfg: Dict[str, Any]) -> bool:
+    try:
+        return module_has_tests(cfg.get("type", "process"), resolve_module_cwd(cfg))
+    except (OSError, ValueError):
+        return False
+
 
 def docker_available() -> bool:
     """Check if Docker is available"""
@@ -761,6 +820,7 @@ def list_services():
                 "health": cfg.get("health"),
                 "ports": cfg.get("ports", []),
                 "swagger_url": get_swagger_url(cfg, name),
+                "can_test": False,
             })
         else:
             pid = state.get("pid") or read_pidfile(name)
@@ -788,8 +848,127 @@ def list_services():
                 "start": cfg.get("start"),
                 "cwd": cfg.get("cwd"),
                 "swagger_url": get_swagger_url(cfg, name),
+                "can_test": service_can_run_tests(cfg),
             })
     return out
+
+@APP.post("/services/{name}/tests", status_code=202)
+async def run_module_tests(name: str):
+    """Run the configured module's tests and retain output for dashboard polling."""
+    cfg = service_cfg(name)
+    service_type = str(cfg.get("type", "process")).lower()
+    if service_type == "docker":
+        raise HTTPException(status_code=400, detail="Tests are not configured for Docker services")
+
+    try:
+        module_cwd = resolve_module_cwd(cfg)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not module_cwd.is_dir():
+        raise HTTPException(status_code=400, detail=f"Module directory does not exist: {module_cwd}")
+    if not module_has_tests(service_type, module_cwd):
+        raise HTTPException(status_code=400, detail="No tests or test project configuration found for this module")
+
+    if service_type in {"spring", "java"} and not (module_cwd / "mvnw").is_file() and not shutil.which("mvn"):
+        raise HTTPException(status_code=400, detail="Maven executable not found on orchestrator host")
+
+    python_executable = test_python_interpreter(module_cwd)
+    pytest_available = False
+    if service_type not in {"spring", "java"}:
+        try:
+            pytest_check = await asyncio.create_subprocess_exec(
+                python_executable, "-m", "pytest", "--version",
+                cwd=str(module_cwd), stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+            )
+            pytest_available = await pytest_check.wait() == 0
+        except OSError:
+            pytest_available = False
+    maven_wrapper = module_cwd / "mvnw"
+    maven_executable = str(maven_wrapper) if maven_wrapper.is_file() else (shutil.which("mvn") or "mvn")
+    command = build_test_command(
+        service_type, python_executable, pytest_available,
+        tests_directory=(module_cwd / "tests").is_dir(),
+        maven_executable=maven_executable,
+    )
+    run_id = uuid4().hex
+    started_at = datetime.now().isoformat()
+    result = {
+        "run_id": run_id,
+        "service": name,
+        "type": service_type,
+        "status": "running",
+        "command": command,
+        "cwd": str(module_cwd),
+        "started_at": started_at,
+        "finished_at": None,
+        "duration_seconds": None,
+        "exit_code": None,
+        "summary": None,
+        "output": "",
+    }
+    STATE.setdefault("__test_runs__", {})[run_id] = result
+
+    async def execute_test_run():
+        started = time.monotonic()
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *command,
+                cwd=str(module_cwd),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+                start_new_session=True,
+            )
+            output, _ = await proc.communicate()
+            text = output.decode(errors="replace")
+            result["exit_code"] = proc.returncode
+            result["status"] = "passed" if _tests_were_executed(text, service_type, proc.returncode) else "failed"
+            result["output"] = text[-30000:]
+            result["summary"] = _summarize_test_output(text, service_type, proc.returncode)
+        except Exception as exc:
+            result["status"] = "failed"
+            result["exit_code"] = -1
+            result["output"] = str(exc)
+            result["summary"] = "Could not start the test process"
+        finally:
+            result["duration_seconds"] = round(time.monotonic() - started, 3)
+            result["finished_at"] = datetime.now().isoformat()
+
+    asyncio.create_task(execute_test_run())
+    return {key: value for key, value in result.items() if key != "output"}
+
+
+def _tests_were_executed(output: str, service_type: str, exit_code: Optional[int]) -> bool:
+    if exit_code != 0:
+        return False
+    if str(service_type).lower() in {"spring", "java"}:
+        return any("Tests run:" in line and "Failures:" in line for line in output.splitlines())
+    lines = [line.strip() for line in output.splitlines()]
+    return any(" passed" in line or " failed" in line for line in lines) or "OK" in lines
+
+
+def _summarize_test_output(output: str, service_type: str, exit_code: Optional[int]) -> str:
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    if str(service_type).lower() in {"spring", "java"}:
+        summaries = [line for line in lines if "Tests run:" in line and "Failures:" in line]
+        if summaries:
+            return summaries[-1]
+    else:
+        summaries = [line for line in lines if " passed" in line or " failed" in line or "OK" == line]
+        if summaries:
+            return summaries[-1]
+    if exit_code == 0 and not _tests_were_executed(output, service_type, exit_code):
+        return "Build succeeded but no tests were discovered"
+    return "Tests completed successfully" if exit_code == 0 else (lines[-1][:500] if lines else "Test process exited without output")
+
+
+@APP.get("/services/{name}/tests/{run_id}")
+def get_module_test_result(name: str, run_id: str):
+    service_cfg(name)
+    run = STATE.get("__test_runs__", {}).get(run_id)
+    if not run or run.get("service") != name:
+        raise HTTPException(status_code=404, detail="Test run not found")
+    return run
+
 
 @APP.post("/services/{name}/start")
 async def api_start(name: str):
