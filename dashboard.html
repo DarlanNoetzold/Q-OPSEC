@@ -203,6 +203,25 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    .test-result {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid #2a2f4a;
+      border-radius: 0.5rem;
+      background: #0b0e1f;
+    }
+    .test-result.passed { border-color: #10b98166; }
+    .test-result.failed { border-color: #ef444466; }
+    .test-result.running { border-color: #f59e0b66; }
+    .test-result pre {
+      margin-top: 0.5rem;
+      max-height: 240px;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: #cbd5e1;
+      font: 0.78rem/1.45 monospace;
+    }
     .panel {
       background: #0f1328;
       border: 1px solid #1f233a;
@@ -594,6 +613,8 @@
       };
 
       const [serviceConfigs, setServiceConfigs] = useState({});
+      const [testRuns, setTestRuns] = useState({});
+      const testPollers = React.useRef({});
 
       const API = "";
 
@@ -681,6 +702,33 @@
         const t = setInterval(fetchServices, 5000);
         return () => clearInterval(t);
       }, []);
+
+      const runModuleTests = async (name) => {
+        if (testPollers.current[name]) clearTimeout(testPollers.current[name]);
+        setTestRuns(prev => ({...prev, [name]: {status: 'running', output: '', summary: 'Starting test run…'}}));
+        try {
+          const startResponse = await fetch(`${API}/services/${encodeURIComponent(name)}/tests`, {method: 'POST'});
+          const started = await startResponse.json();
+          if (!startResponse.ok) throw new Error(started.detail || 'Could not start tests');
+          setTestRuns(prev => ({...prev, [name]: {...started, output: '', status: started.status || 'running'}}));
+          const poll = async () => {
+            try {
+              const response = await fetch(`${API}/services/${encodeURIComponent(name)}/tests/${encodeURIComponent(started.run_id)}`);
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.detail || 'Could not fetch test results');
+              setTestRuns(prev => ({...prev, [name]: result}));
+              if (result.status === 'running') testPollers.current[name] = setTimeout(poll, 1000);
+              else delete testPollers.current[name];
+            } catch (error) {
+              setTestRuns(prev => ({...prev, [name]: {...prev[name], status: 'failed', summary: error.message}}));
+              delete testPollers.current[name];
+            }
+          };
+          await poll();
+        } catch (error) {
+          setTestRuns(prev => ({...prev, [name]: {status: 'failed', summary: error.message, output: ''}}));
+        }
+      };
 
       const startAll = async () => {
         setLoading(true);
@@ -973,9 +1021,18 @@
               <button className="btn-sm" onClick={() => startService(s.name)} disabled={s.running || loading}>Start</button>
               <button className="btn-sm" onClick={() => stopService(s.name)} disabled={!s.running || loading}>Stop</button>
               <button className="btn-sm" onClick={() => restartService(s.name)} disabled={loading}>Restart</button>
+              <button className="btn-sm" onClick={() => runModuleTests(s.name)} disabled={!s.can_test || testRuns[s.name]?.status === 'running'} title={s.can_test ? 'Run this module’s automated tests' : 'No test suite detected for this module'}>Run tests</button>
               <button className="btn-sm" onClick={() => viewLogs(s.name)}>Logs</button>
               <button className="btn-sm" onClick={() => saveServiceConfig(s.name)}>Save Config</button>
             </div>
+            {testRuns[s.name] && (
+              <section className={`test-result ${testRuns[s.name].status}`} aria-live="polite" aria-label={`Test results for ${s.name}`}>
+                <strong>Tests: {testRuns[s.name].status.toUpperCase()}</strong>
+                {testRuns[s.name].summary && <div>{testRuns[s.name].summary}</div>}
+                {testRuns[s.name].duration_seconds != null && <div className="note">Duration: {testRuns[s.name].duration_seconds}s · Exit: {testRuns[s.name].exit_code}</div>}
+                {testRuns[s.name].output && <details><summary>Show test output</summary><pre>{testRuns[s.name].output}</pre></details>}
+              </section>
+            )}
           </div>
         );
       };
