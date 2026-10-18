@@ -80,12 +80,10 @@ def _derive_aead_key(ctx: dict, algorithm: str, for_encrypt: bool) -> Tuple[byte
         alg = "AES256_GCM"
     if alg == "AES256_GCM":
         length = 32
-        info = HKDF_INFO_ENCRYPT if for_encrypt else HKDF_INFO_DECRYPT
-        return _hkdf_derive(ctx["key_material"], length, info), AESGCM_NONCE_SIZE
+        return _hkdf_derive(ctx["key_material"], length, HKDF_INFO_ENCRYPT), AESGCM_NONCE_SIZE
     elif alg == "CHACHA20_POLY1305":
         length = 32
-        info = HKDF_INFO_ENCRYPT if for_encrypt else HKDF_INFO_DECRYPT
-        return _hkdf_derive(ctx["key_material"], length, info), CHACHA20_NONCE_SIZE
+        return _hkdf_derive(ctx["key_material"], length, HKDF_INFO_ENCRYPT), CHACHA20_NONCE_SIZE
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
