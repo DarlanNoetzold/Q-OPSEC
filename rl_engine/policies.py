@@ -211,8 +211,12 @@ class ContextAwarePolicy(BasePolicy):
         epsilon = self.base_epsilon
 
         if context:
-            risk_score = context.get("risk_score", 0.5)
-            conf_score = context.get("conf_score", 0.5)
+            risk_score = context.get("risk_score")
+            if risk_score is None:
+                risk_score = 0.5
+            conf_score = context.get("conf_score")
+            if conf_score is None:
+                conf_score = 0.5
 
             # Higher risk/confidentiality = less exploration
             # PHD-PESSIMISTIC: Again, use the MAX to protect against High Risk
