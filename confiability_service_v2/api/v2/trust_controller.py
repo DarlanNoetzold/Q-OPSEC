@@ -9,6 +9,8 @@ from flask.views import MethodView
 
 from flask_smorest import Blueprint, abort
 
+from werkzeug.exceptions import HTTPException
+
 from marshmallow import Schema, fields
 
 import time
@@ -390,7 +392,7 @@ class TrustEvaluate(MethodView):
 
                 logger.warning("VALIDATION_ERROR | details=%s", _json_preview(err.errors()))
 
-                abort(400, message="VALIDATION_ERROR", errors=err.errors())
+                abort(400, message="VALIDATION_ERROR", errors=err.errors(include_context=False))
 
 
 
@@ -446,11 +448,9 @@ class TrustEvaluate(MethodView):
 
             return result.to_dict()
 
-            print(f"[{rid}] CONFIABILITY_SERVICE | SUCCESS | trust_score={result.trust_score}", flush=True)
+        except HTTPException:
 
-            return result.to_dict()
-
-
+            raise
 
         except Exception as e:
 

@@ -222,41 +222,9 @@ class TrustOrchestrator:
 
         try:
 
-                                       
+            if context.entity_id or context.source_id:
 
-            event = {
-
-                "timestamp": context.timestamp,
-
-                "payload_hash": context.payload_hash,
-
-                "payload_fp": context.payload_fp,
-
-                "trust_score": result.trust_score,
-
-                "trust_level": result.trust_level,
-
-                "dimensions": result.dimensions,
-
-                "risk_flags": result.risk_flags,
-
-                "metadata": context.metadata
-
-            }
-
-
-
-                                      
-
-            if context.entity_id:
-
-                self.trust_repo.add_entity_event(context.entity_id, event)
-
-
-
-            if context.source_id:
-
-                self.trust_repo.add_source_event(context.source_id, event)
+                self.trust_repo.store(context, result)
 
 
 
@@ -270,15 +238,7 @@ class TrustOrchestrator:
 
                     fingerprint=context.payload_fp,
 
-                    metadata={
-
-                        "entity_id": context.entity_id,
-
-                        "timestamp": context.timestamp,
-
-                        "trust_score": result.trust_score
-
-                    }
+                    timestamp=context.timestamp
 
                 )
 
