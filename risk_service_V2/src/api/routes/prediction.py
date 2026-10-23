@@ -73,6 +73,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
             
         return result
 
+    except HTTPException:
         raise
     except Exception as e:
         logger.exception("Unhandled exception in predict endpoint")
