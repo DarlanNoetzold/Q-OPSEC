@@ -35,7 +35,6 @@ def make_models(preprocessor) -> Dict[str, Pipeline]:
             max_iter=2000,
             class_weight="balanced",
             solver="lbfgs",
-            multi_class="auto",
             C=1.5,
         ))
     ])
