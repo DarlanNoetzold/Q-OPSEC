@@ -1,10 +1,11 @@
+from datetime import datetime
+import json
+import logging
+import os
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine, text
-import json
-import os
-from datetime import datetime
-import logging
+from sqlalchemy.engine import URL
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -13,7 +14,14 @@ class ContextDatasetGenerator:
     def __init__(self, db_config):
         self.db_config = db_config
         self.engine = None
-        self.connection_string = f"postgresql://{db_config['username']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
+        self.connection_string = URL.create(
+            "postgresql+psycopg2",
+            username=db_config['username'],
+            password=db_config['password'],
+            host=db_config['host'],
+            port=db_config['port'],
+            database=db_config['database'],
+        ).render_as_string(hide_password=False)
 
     def connect(self):
         try:
@@ -38,7 +46,7 @@ class ContextDatasetGenerator:
 
     def create_ml_view(self):
 
-        ml_view_sql = """
+        ml_view_sql = r"""
         CREATE OR REPLACE VIEW context_records_ml AS
         SELECT
           cr.id,
