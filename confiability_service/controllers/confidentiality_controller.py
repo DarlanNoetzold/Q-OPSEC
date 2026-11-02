@@ -87,10 +87,6 @@ def train():
 
 
 @conf_bp.route("/classify", methods=["POST"])
-def classify_with_log():
-    data = request.get_json()
-    request_id = data.get("request_id", "no-id")
-    print(f"[{request_id}] CONFIABILITY_SERVICE | SUCCESS | Processing classification", flush=True)
 def classify():
     t0 = time.time()
     client_ip = _client_ip(request)

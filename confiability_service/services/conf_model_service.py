@@ -643,6 +643,8 @@ class ConfidentialityModelService:
         if self._best_model is None:
             self._load_best_from_disk()
         if self._best_model is None:
+            if not (req.content_pointer.sample_text or "").strip() or self.patterns.scan(req.content_pointer.sample_text or ""):
+                return self._fallback_classify(req)
             return None
 
         text = (req.content_pointer.sample_text or "").strip()
