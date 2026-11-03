@@ -8,3 +8,6 @@
 /logs
 __pycache__/
 logs/
+
+# Datasets de treino gerados (>100MB) - GitHub rejeita arquivos >100MB
+/risk_service_V2/output/dataset_*.csv
