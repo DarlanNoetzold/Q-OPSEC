@@ -21,6 +21,11 @@ scrape_configs:
           - '192.168.18.18:8090'
           - '192.168.18.18:9009'
 
+  - job_name: 'q-opsec-orchestrator-architecture'
+    metrics_path: '/architecture-metrics'
+    static_configs:
+      - targets: ['192.168.18.18:8090']
+
   - job_name: 'q-opsec-java'
     metrics_path: '/actuator/prometheus'
     static_configs:
