@@ -508,6 +508,7 @@
 
     function App() {
       const [services, setServices] = useState([]);
+      const [architectureStatus, setArchitectureStatus] = useState(null);
       const [activeTab, setActiveTab] = useState('services');
       const [loading, setLoading] = useState(false);
       const [notif, setNotif] = useState(null);
@@ -659,34 +660,50 @@
       setLoading(false);
     };
 
-    const fetchServices = async () => {
-        try {
-          const r = await fetch(API + '/services');
-          const data = await r.json();
-          setServices(data);
+    const fetchArchitectureStatus = async () => {
+      try {
+        const response = await fetch(`${API}/architecture/status`);
+        if (!response.ok) throw new Error('Architecture status unavailable');
+        setArchitectureStatus(await response.json());
+      } catch (error) {
+        setArchitectureStatus({status: 'unavailable', error: error.message});
+      }
+    };
 
-          setServiceConfigs(prev => {
-            const newConfigs = {...prev};
-            for (const s of data) {
-              if (!newConfigs[s.name]) {
-                newConfigs[s.name] = {
-                  start: s.start ? JSON.stringify(s.start, null, 2) : '[]',
-                  cwd: s.cwd || ''
-                };
-              } else {
-                if (!newConfigs[s.name].start || newConfigs[s.name].start === '[]') {
-                  newConfigs[s.name].start = s.start ? JSON.stringify(s.start, null, 2) : '[]';
-                }
-                if (!newConfigs[s.name].cwd) {
-                  newConfigs[s.name].cwd = s.cwd || '';
-                }
+    const loadArchitectureStatus = async () => {
+      setActiveTab('architecture');
+      await fetchArchitectureStatus();
+    };
+
+    const fetchServices = async () => {
+      try {
+        const r = await fetch(API + '/services');
+        if (!r.ok) throw new Error('Failed to fetch services');
+        const data = await r.json();
+        setServices(data);
+        await fetchArchitectureStatus();
+        setServiceConfigs(prev => {
+          const newConfigs = {...prev};
+          for (const s of data) {
+            if (!newConfigs[s.name]) {
+              newConfigs[s.name] = {
+                start: s.start ? JSON.stringify(s.start, null, 2) : '[]',
+                cwd: s.cwd || ''
+              };
+            } else {
+              if (!newConfigs[s.name].start || newConfigs[s.name].start === '[]') {
+                newConfigs[s.name].start = s.start ? JSON.stringify(s.start, null, 2) : '[]';
+              }
+              if (!newConfigs[s.name].cwd) {
+                newConfigs[s.name].cwd = s.cwd || '';
               }
             }
-            return newConfigs;
-          });
-        } catch (e) {
-          toast('Failed to load services', 'err');
-        }
+          }
+          return newConfigs;
+        });
+      } catch (e) {
+        toast('Failed to load services', 'err');
+      }
       };
 
       useEffect(() => {
@@ -1138,15 +1155,82 @@
             >
               Monitoring
             </button>
+            <button
+              className={`tab ${activeTab === 'architecture' ? 'active' : ''}`}
+              onClick={loadArchitectureStatus}
+              role="tab"
+              aria-selected={activeTab === 'architecture'}
+            >
+              Redis / Queue
+            </button>
           </nav>
 
           <main className="container" role="tabpanel" aria-live="polite">
             {activeTab === 'services' && (
+              <>
               <div className="grid" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem'}}>
                 {services.map(s => <ServiceCard key={s.name} s={s} />)}
               </div>
+              <div className="panel" role="region" aria-label="Redis and background queue health">
+                <div className="service-header">
+                  <h2>Shared cache &amp; background jobs</h2>
+                  <span className={`badge ${architectureStatus?.status === 'healthy' ? 'ok' : 'off'}`}>
+                    {(architectureStatus?.status || 'loading').toUpperCase()}
+                  </span>
+                </div>
+                <div className="grid">
+                  <div><strong>Redis:</strong> {architectureStatus?.redis?.connected ? 'Connected' : 'Unavailable'} · {architectureStatus?.cache?.entries ?? 0} cached entries</div>
+                  <div><strong>RabbitMQ:</strong> {architectureStatus?.rabbitmq?.connected ? 'Connected' : 'Unavailable'} · queue {architectureStatus?.rabbitmq?.queue || 'qopsec.jobs'}</div>
+                  <div><strong>Jobs:</strong> {architectureStatus?.jobs?.queued ?? 0} queued · {architectureStatus?.jobs?.running ?? 0} running · {architectureStatus?.jobs?.succeeded ?? 0} succeeded · {architectureStatus?.jobs?.failed ?? 0} failed</div>
+                </div>
+                <button className="btn-sm" onClick={loadArchitectureStatus}>Open cache/queue details</button>
+              </div>
+              </>
             )}
 
+            {activeTab === 'architecture' && (
+              <section aria-label="Redis and RabbitMQ architecture status">
+                <div className="service-header">
+                  <div>
+                    <h2>Redis cache &amp; RabbitMQ jobs</h2>
+                    <span className={`badge ${architectureStatus?.status === 'healthy' ? 'ok' : 'off'}`}>
+                      {(architectureStatus?.status || 'loading').toUpperCase()}
+                    </span>
+                  </div>
+                  <button className="btn btn-ghost" onClick={fetchArchitectureStatus}>↻ Refresh status</button>
+                </div>
+                {architectureStatus?.error && <p role="alert">{architectureStatus.error}</p>}
+                {architectureStatus && !architectureStatus.error && (
+                  <div className="grid">
+                    <div className="card">
+                      <h3>Redis</h3>
+                      <p>Connection: {architectureStatus.redis?.connected ? 'Connected' : 'Unavailable'}</p>
+                      <p>Container: {architectureStatus.redis?.container_running ? 'Running' : 'Stopped'}</p>
+                      <p>Cache entries: {architectureStatus.cache?.entries ?? 0}</p>
+                      <p>Hits / misses: {architectureStatus.cache?.hits ?? 0} / {architectureStatus.cache?.misses ?? 0}</p>
+                      <p>Evictions: {architectureStatus.cache?.evictions ?? 0}</p>
+                    </div>
+                    <div className="card">
+                      <h3>RabbitMQ</h3>
+                      <p>Connection: {architectureStatus.rabbitmq?.connected ? 'Connected' : 'Unavailable'}</p>
+                      <p>Container: {architectureStatus.rabbitmq?.container_running ? 'Running' : 'Stopped'}</p>
+                      <p>Queue: {architectureStatus.rabbitmq?.queue || 'qopsec.jobs'}</p>
+                    </div>
+                    <div className="card">
+                      <h3>Background jobs</h3>
+                      {['queued', 'running', 'succeeded', 'failed'].map(status => (
+                        <p key={status}>{status}: {architectureStatus.jobs?.[status] ?? 0}</p>
+                      ))}
+                      <p className="note">Last checked: {architectureStatus.checked_at ? new Date(architectureStatus.checked_at).toLocaleString() : '—'}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="panel">
+                  <h3>Prometheus metrics</h3>
+                  <p>Cache and queue metrics are exposed at <a href="/architecture-metrics" target="_blank">/architecture-metrics</a>.</p>
+                </div>
+              </section>
+            )}
             {activeTab === 'pipeline' && (
               <section>
                 <div style={{display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1.5rem'}}>
