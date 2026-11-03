@@ -1,9 +1,11 @@
 import httpx
 import asyncio
 import json
+import pytest
 
 API_URL = "http://192.168.18.18:8090"
 
+@pytest.mark.asyncio
 async def test_baseline_pipeline():
     print("Testing Baseline Pipeline...")
     payload = {
