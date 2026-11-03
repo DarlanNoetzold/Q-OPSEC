@@ -40,6 +40,60 @@ class RedisCacheTests(unittest.IsolatedAsyncioTestCase):
 
 
 class RabbitMQJobQueueTests(unittest.IsolatedAsyncioTestCase):
+    async def test_starts_configured_number_of_independent_async_consumers(self):
+        redis = AsyncMock()
+        queues = []
+        channels = []
+
+        class Queue:
+            async def consume(self, callback, no_ack=False):
+                self.callback = callback
+                return f"consumer-{len(queues)}"
+
+            async def cancel(self, _tag):
+                return None
+
+        class Channel:
+            def __init__(self):
+                self.default_exchange = AsyncMock()
+                self.qos = []
+
+            async def set_qos(self, prefetch_count):
+                self.qos.append(prefetch_count)
+
+            async def declare_queue(self, _name, durable=True):
+                queue = Queue()
+                queues.append(queue)
+                return queue
+
+        class Connection:
+            is_closed = False
+
+            async def channel(self):
+                channel = Channel()
+                channels.append(channel)
+                return channel
+
+            async def close(self):
+                self.is_closed = True
+
+        connection = Connection()
+        queue = RabbitMQJobQueue(
+            redis,
+            "amqp://guest:***@localhost/",
+            handler=AsyncMock(),
+            connection_factory=AsyncMock(return_value=connection),
+            worker_count=3,
+        )
+
+        await queue.start()
+
+        self.assertEqual(3, len(channels))
+        self.assertEqual(3, len(queues))
+        self.assertEqual([[1], [1], [1]], [channel.qos for channel in channels])
+        self.assertTrue(all(hasattr(item, "callback") for item in queues))
+        await queue.stop()
+
     async def test_enqueue_persists_status_then_publishes_durable_json_message(self):
         redis = AsyncMock()
         queue = RabbitMQJobQueue(redis, "amqp://guest:guest@localhost/")
