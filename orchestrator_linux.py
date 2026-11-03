@@ -978,6 +978,8 @@ async def _startup():
         url=rabbitmq_url,
         queue_name=os.environ.get("QOPSEC_RABBITMQ_QUEUE", "qopsec.jobs"),
         handler=_run_background_job,
+        worker_count=int(os.environ.get("QOPSEC_RABBITMQ_WORKERS", "4")),
+        prefetch_count=int(os.environ.get("QOPSEC_RABBITMQ_PREFETCH", "1")),
     )
     await JOB_QUEUE.start()
     _METRICS_TASK = asyncio.create_task(_metrics_refresh_loop(), name="qopsec-architecture-metrics")
@@ -1401,6 +1403,7 @@ from collections import defaultdict
 CACHE: RedisTTLCache | None = None
 REDIS_CLIENT: Redis | None = None
 JOB_QUEUE: RabbitMQJobQueue | None = None
+_CACHE_INFLIGHT: Dict[str, asyncio.Future] = {}
 ARCH_METRICS_REGISTRY = CollectorRegistry()
 ARCH_CACHE_HITS = Gauge("qopsec_cache_hits_total", "Cache hits in this orchestrator process", registry=ARCH_METRICS_REGISTRY)
 ARCH_CACHE_MISSES = Gauge("qopsec_cache_misses_total", "Cache misses in this orchestrator process", registry=ARCH_METRICS_REGISTRY)
@@ -1454,16 +1457,36 @@ def _metrics_cache_key(url: str, headers: Dict[str, str]) -> str:
     return f"proxy:{auth_scope}:{hashlib.sha256(url.encode()).hexdigest()}"
 
 
-async def cached_proxy_get(url: str, headers: Optional[Dict[str, str]] = None, ttl: Optional[float] = None):
-    cache_key = _metrics_cache_key(url, headers or {})
-    cached = await CACHE.get(cache_key)
-    if cached is not None:
-        return cached
+async def _load_cached_proxy(cache_key: str, url: str, headers: Optional[Dict[str, str]], ttl: Optional[float]):
     response = await proxy_get(url, headers=headers)
     lifetime = _cache_ttl_seconds() if ttl is None else max(0.0, ttl)
     if lifetime > 0:
         await CACHE.set(cache_key, response, ttl_seconds=lifetime)
     return response
+
+
+def _clear_inflight_cache_task(cache_key: str, task: asyncio.Task) -> None:
+    if _CACHE_INFLIGHT.get(cache_key) is task:
+        _CACHE_INFLIGHT.pop(cache_key, None)
+    if not task.cancelled():
+        task.exception()
+
+
+async def cached_proxy_get(url: str, headers: Optional[Dict[str, str]] = None, ttl: Optional[float] = None):
+    cache_key = _metrics_cache_key(url, headers or {})
+    cached = await CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
+    task = _CACHE_INFLIGHT.get(cache_key)
+    if task is None:
+        task = asyncio.create_task(
+            _load_cached_proxy(cache_key, url, headers, ttl),
+            name="qopsec-cached-proxy-fetch",
+        )
+        _CACHE_INFLIGHT[cache_key] = task
+        task.add_done_callback(lambda completed: _clear_inflight_cache_task(cache_key, completed))
+    return await asyncio.shield(task)
 
 
 @APP.get("/architecture/status")
@@ -1540,10 +1563,19 @@ def extract_timestamp(line: str) -> Optional[str]:
 @APP.get("/trace/{request_id}")
 async def trace_request(request_id: str, context_lines: int = Query(2, ge=0, le=10)):
     results = {}
-    for name, cfg in CONFIG.get("services", {}).items():
-        log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
-        matches = search_in_log(log_file, request_id, context_lines)
+    matches_by_service = await search_logs_concurrently([
+        (
+            name,
+            cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix(),
+            request_id,
+            context_lines,
+        )
+        for name, cfg in CONFIG.get("services", {}).items()
+    ])
+    for name, matches in matches_by_service.items():
         if matches:
+            cfg = CONFIG.get("services", {}).get(name, {})
+            log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
             results[name] = {
                 "service": name,
                 "log_file": log_file,
@@ -1632,18 +1664,23 @@ async def flow_status(request_id: str):
 @APP.get("/timeline/{request_id}")
 async def timeline(request_id: str):
     events = []
-
-    for name, cfg in CONFIG.get("services", {}).items():
-        log_file = cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix()
-        matches = search_in_log(log_file, request_id, context_lines=0)
-
-        for m in matches:
-            ts = m.get("timestamp")
+    matches_by_service = await search_logs_concurrently([
+        (
+            name,
+            cfg.get("log_file") or (Path(CONFIG["paths"]["logs_dir"]) / f"{name}.log").as_posix(),
+            request_id,
+            0,
+        )
+        for name, cfg in CONFIG.get("services", {}).items()
+    ])
+    for name, matches in matches_by_service.items():
+        for match in matches:
+            timestamp = match.get("timestamp")
             events.append({
-                "timestamp": ts,
+                "timestamp": timestamp,
                 "service": name,
-                "line": m["line"],
-                "line_number": m["line_number"]
+                "line": match["line"],
+                "line_number": match["line_number"]
             })
 
     events_sorted = sorted(
@@ -1701,6 +1738,15 @@ async def update_service_config(name: str, config: ServiceConfigUpdate = Body(..
 
     return {"status": "updated", "service": name, "config": svc}
 
+async def search_logs_concurrently(searches):
+    """Read independent service logs concurrently without blocking the event loop."""
+    results = await asyncio.gather(*(
+        asyncio.to_thread(search_in_log, path, request_id, context_lines)
+        for _name, path, request_id, context_lines in searches
+    ))
+    return {search[0]: result for search, result in zip(searches, results)}
+
+
 def get_api_key_for_service(svc):
     if "env" in svc:
         key = svc["env"].get("CLASSIFY_API_KEY") or svc["env"].get("API_KEY")
@@ -1735,7 +1781,7 @@ async def get_metrics_sessions(service_name: str):
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
 
-    return await proxy_get(url, headers=headers)
+    return await cached_proxy_get(url, headers=headers, ttl=20.0)
 
 @APP.get("/metrics/{service_name}/sessions/{session_id}")
 async def get_metrics_session_detail(service_name: str, session_id: str):
@@ -1761,7 +1807,7 @@ async def get_metrics_session_detail(service_name: str, session_id: str):
     else:
         raise HTTPException(status_code=400, detail="Unknown service for metrics")
 
-    return await proxy_get(url, headers=headers)
+    return await cached_proxy_get(url, headers=headers, ttl=45.0)
 
 @APP.get("/metrics/{service_name}/images")
 async def get_metrics_images(service_name: str):
@@ -1844,7 +1890,7 @@ async def get_datasets(service_name: str):
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
-    return await cached_proxy_get(url, headers=headers, ttl=30.0)
+    return await cached_proxy_get(url, headers=headers, ttl=10.0)
 
 @APP.get("/datasets/{service_name}/{dataset_name}/preview")
 async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n: int = 20):
@@ -1862,11 +1908,11 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
         headers["X-API-Key"] = api_key
 
     if service_name == "confiability_service":
-        url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
+        url = f"{base_url}/datasets/{quote(dataset_name, safe='')}/preview?file={quote(file, safe='')}&n={n}"
     elif service_name == "risk_service":
-        url = f"{base_url}/datasets/{dataset_name}/preview?file={file}&n={n}"
+        url = f"{base_url}/datasets/{quote(dataset_name, safe='')}/preview?file={quote(file, safe='')}&n={n}"
     elif service_name == "classification_agent":
-        url = f"{base_url}/api/v1/datasets/{dataset_name}/preview?file={file}&n={n}"
+        url = f"{base_url}/api/v1/datasets/{quote(dataset_name, safe='')}/preview?file={quote(file, safe='')}&n={n}"
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
