@@ -1,24 +1,33 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
+import hashlib
 import json
 import base64
 import os
 import signal
 import sys
 import time
+from urllib.parse import quote
 from uuid import uuid4
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 import shutil
-import asyncio
+import subprocess
 
 import httpx
 import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, Body, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse, Response
+from prometheus_client import CollectorRegistry, Gauge
+from prometheus_client.exposition import generate_latest
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
-import subprocess
+from starlette.middleware.cors import CORSMiddleware
+from redis.asyncio import Redis
+import aio_pika
+from common.rabbitmq_jobs import RabbitMQJobQueue
+from common.redis_cache import RedisTTLCache
 
 APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.6.0-linux-docker")
 Instrumentator().instrument(APP).expose(APP)
@@ -47,7 +56,7 @@ def resolve_rl_security_level(explicit_level, risk_score):
         return "LOW"
     return "VERY_LOW"
 
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 
 APP.add_middleware(
@@ -163,6 +172,18 @@ def docker_container_exists(name: str) -> bool:
     except subprocess.CalledProcessError:
         return False
 
+def docker_container_labels(name: str) -> List[str]:
+    try:
+        out = subprocess.check_output(
+            ["docker", "inspect", "--format", "{{range $key, $value := .Config.Labels}}{{$key}}={{$value}} {{end}}", name],
+            stderr=subprocess.DEVNULL,
+            timeout=3,
+        )
+        return out.decode(errors="replace").strip().split()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return []
+
+
 def docker_container_running(name: str) -> bool:
     try:
         out = subprocess.check_output(
@@ -214,10 +235,29 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
     name = cfg.get("container_name", cfg.get("name"))
     image = cfg.get("image")
 
+    if not name or not str(name).replace("-", "").replace("_", "").isalnum():
+        return {"status": "error", "error": "Invalid Docker container name"}
     if not image:
         return {"status": "error", "error": "No image specified"}
+    if not (BASE_DIR / "monitoring" / "prometheus.yml").is_file() and name == "qopsec-prom":
+        return {"status": "error", "error": "Prometheus config file is missing"}
+    if name == "qopsec-graf" and not (BASE_DIR / "monitoring" / "grafana" / "provisioning").is_dir():
+        return {"status": "error", "error": "Grafana provisioning directory is missing"}
+
+    is_qopsec_middleware = name.startswith(("qopsec-redis", "qopsec-rabbitmq"))
+    if is_qopsec_middleware:
+        for port in cfg.get("ports", []):
+            host = port.split(":", 1)[0] if port.count(":") == 2 else "127.0.0.1"
+            if host not in {"127.0.0.1", "localhost"}:
+                return {"status": "error", "error": "Redis/RabbitMQ ports must bind to localhost only"}
+
+    labels = cfg.get("labels", [])
+    if "com.qopsec.managed-by=orchestrator" not in labels:
+        return {"status": "error", "error": "Refusing to manage an unowned container"}
 
     if docker_container_exists(name):
+        if "com.qopsec.managed-by=orchestrator" not in docker_container_labels(name):
+            return {"status": "error", "error": "Refusing to manage an unowned container"}
         if docker_container_running(name):
             container_id = docker_get_container_id(name)
             return {"status": "running", "container_id": container_id, "container_name": name}
@@ -241,33 +281,63 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
     cmd = ["docker", "run"]
 
     cmd.extend(["--name", name])
+    if is_qopsec_middleware:
+        cmd.extend(["--network", cfg.get("network", "qopsec-internal")])
 
     if cfg.get("hostname"):
         cmd.extend(["--hostname", cfg["hostname"]])
 
     for key, value in cfg.get("env", {}).items():
+        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            env_name = value[2:-1]
+            value = os.environ.get(env_name)
+            if value is None:
+                return {"status": "error", "error": f"Required environment variable {env_name} is not set"}
         cmd.extend(["--env", f"{key}={value}"])
 
     for volume in cfg.get("volumes", []):
-        cmd.extend(["--volume", volume])
+        if ":" not in volume:
+            return {"status": "error", "error": "Invalid Docker volume mapping"}
+        volume_path, target_path = volume.split(":", 1)
+        read_only = target_path.endswith(":ro")
+        if read_only:
+            target_path = target_path[:-3]
+        resolved_volume = (BASE_DIR / volume_path).resolve()
+        if not resolved_volume.is_relative_to(BASE_DIR) or not resolved_volume.exists():
+            return {"status": "error", "error": "Docker volume source must exist inside project root"}
+        mount = f"{resolved_volume}:{target_path}" + (":ro" if read_only else "")
+        cmd.extend(["--volume", mount])
 
     for port in cfg.get("ports", []):
-        cmd.extend(["-p", port])
+        parts = port.split(":")
+        if len(parts) == 3:
+            host_ip, published_port, container_port = parts
+        elif len(parts) == 2:
+            host_ip, (published_port, container_port) = "127.0.0.1", parts
+        else:
+            host_ip, published_port, container_port = "127.0.0.1", parts[0], parts[0]
+        if is_qopsec_middleware:
+            host_ip = "127.0.0.1" if host_ip in {"127.0.0.1", "localhost"} else host_ip
+            cmd.extend(["-p", f"{host_ip}:{published_port}:{container_port}"])
+        else:
+            cmd.extend(["-p", port])
 
-    if cfg.get("network"):
+    if cfg.get("network") and cfg.get("network") != "host" and not is_qopsec_middleware:
         cmd.extend(["--network", cfg["network"]])
 
     if cfg.get("workdir"):
         cmd.extend(["--workdir", cfg["workdir"]])
 
     restart = cfg.get("restart", "no")
+    if is_qopsec_middleware:
+        restart = cfg.get("restart", "unless-stopped")
     cmd.extend(["--restart", restart])
-
-    if cfg.get("runtime"):
-        cmd.extend(["--runtime", cfg["runtime"]])
 
     for label in cfg.get("labels", []):
         cmd.extend(["--label", label])
+
+    if cfg.get("runtime"):
+        cmd.extend(["--runtime", cfg["runtime"]])
 
     for arg in cfg.get("extra_args", []):
         cmd.append(arg)
@@ -276,11 +346,19 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     cmd.append(image)
 
-    if cfg.get("command"):
-        if isinstance(cfg["command"], list):
-            cmd.extend(cfg["command"])
-        else:
-            cmd.append(cfg["command"])
+    command = cfg.get("command")
+    if command:
+        raw_args = command if isinstance(command, list) else [command]
+        command_args = []
+        for arg in raw_args:
+            if isinstance(arg, str) and arg.startswith("${") and arg.endswith("}"):
+                env_name = arg[2:-1]
+                if env_name not in os.environ:
+                    return {"status": "error", "error": f"Required environment variable {env_name} is not set"}
+                command_args.append(os.environ[env_name])
+            else:
+                command_args.append(arg)
+        cmd.extend(command_args)
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -306,6 +384,8 @@ async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
 async def docker_stop_container(name: str, timeout: int = 10) -> Dict[str, Any]:
     if not docker_container_exists(name):
         return {"status": "not_found"}
+    if "com.qopsec.managed-by=orchestrator" not in docker_container_labels(name):
+        return {"status": "error", "error": "Refusing to manage an unowned container"}
 
     if not docker_container_running(name):
         return {"status": "not_running"}
@@ -323,6 +403,8 @@ async def docker_stop_container(name: str, timeout: int = 10) -> Dict[str, Any]:
 async def docker_remove_container(name: str, force: bool = False) -> Dict[str, Any]:
     if not docker_container_exists(name):
         return {"status": "not_found"}
+    if "com.qopsec.managed-by=orchestrator" not in docker_container_labels(name):
+        return {"status": "error", "error": "Refusing to manage an unowned container"}
 
     cmd = ["docker", "rm"]
     if force:
@@ -362,28 +444,14 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-@APP.post("/train/{service_name}")
+@APP.post("/train/{service_name}", status_code=202)
 async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
-    # PhD Training V2 Pipeline integration
-    if service_name in ["risk_service", "risk_service_v2"]:
-        import subprocess
-        print(f"[ORCHESTRATOR] Triggering Autonomous Dataset Pipeline for {service_name}", flush=True)
-        # Novo script que faz Generate then Train
-        script = "/home/umbrel/projetos/Q-OPSEC/risk_service_V2/phd_autonomous_trigger.py"
-        venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
-        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/risk_v2_phd_pipeline.log"
-        log_file = open(log_path, "a")
-        subprocess.Popen([venv, script], cwd="/home/umbrel/projetos/Q-OPSEC/risk_service_V2", stdout=log_file, stderr=log_file)
-        return {"status": "phd_pipeline_started", "module": "risk_v2_autonomous", "log": "/logs/risk_v2_phd_pipeline.log"}
-
-    if service_name == "classification_agent":
-        import subprocess
-        script = "/home/umbrel/projetos/Q-OPSEC/classify_scheduler/main.py"
-        venv = "/home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/python3"
-        log_path = "/home/umbrel/projetos/Q-OPSEC/logs/classification_training.log"
-        log_file = open(log_path, "a")
-        subprocess.Popen([venv, script], cwd="/home/umbrel/projetos/Q-OPSEC/classify_scheduler", stdout=log_file, stderr=log_file)
-        return {"status": "training_started", "module": "classification_phd", "log": "/logs/classification_training.log"}
+    if service_name in {"risk_service", "risk_service_v2", "classification_agent"}:
+        if service_name == "risk_service_v2":
+            service_name = "risk_service"
+        await JOB_QUEUE.start()
+        job_id = await JOB_QUEUE.enqueue("training", {"service": service_name})
+        return {"status": "queued", "job_id": job_id, "service": service_name}
 
     if service_name == "confiability_service":
         return {"status": "not_applicable", "module": "trust_v2_phd", "detail": "Confiability V2 (Trust Engine) uses ad-hoc contextual evaluation and does not require a batch training pulse."}
@@ -580,6 +648,12 @@ async def start_service(name: str) -> Dict[str, Any]:
     if service_type == "docker":
         if not docker_running():
             return {"status": "error", "error": "Docker daemon not running"}
+        container_name = cfg.get("container_name", name)
+        if docker_container_exists(container_name):
+            labels = docker_container_labels(container_name)
+            expected = "com.qopsec.managed-by=orchestrator" in cfg.get("labels", [])
+            if expected and "com.qopsec.managed-by=orchestrator" not in labels:
+                return {"status": "error", "error": "Refusing to start/take over an existing unowned container"}
         return await docker_start_container(cfg)
 
     if name in STATE and STATE[name].get("proc"):
@@ -665,6 +739,9 @@ async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
 
     if service_type == "docker":
         container_name = cfg.get("container_name", name)
+        if "com.qopsec.managed-by=orchestrator" in cfg.get("labels", []) and \
+                "com.qopsec.managed-by=orchestrator" not in docker_container_labels(container_name):
+            return {"status": "error", "error": "Refusing to stop an unowned container"}
         return await docker_stop_container(container_name, int(timeout))
 
     state = STATE.get(name, {})
@@ -765,14 +842,155 @@ async def check_health(url: str, timeout: float = 6.0) -> Tuple[bool, Optional[i
     except Exception as e:
         return (False, None, str(e))
 
+async def _refresh_architecture_metrics() -> None:
+    cache_stats = await CACHE.stats()
+    ARCH_CACHE_HITS.set(cache_stats["hits"])
+    ARCH_CACHE_MISSES.set(cache_stats["misses"])
+    ARCH_CACHE_ENTRIES.set(cache_stats["entries"])
+    ARCH_CACHE_EVICTIONS.set(cache_stats.get("evictions", 0))
+    job_stats = await JOB_QUEUE.stats()
+    for status, gauge in ARCH_JOBS.items():
+        gauge.set(job_stats[status])
+
+
+async def _metrics_refresh_loop() -> None:
+    while True:
+        try:
+            await _refresh_architecture_metrics()
+            await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            print(f"[METRICS] Could not refresh queue/cache gauges: {exc}", flush=True)
+            await asyncio.sleep(5)
+
+
+async def _dependency_ready(name: str) -> bool:
+    cfg = service_cfg(name)
+    if name == "qopsec_redis":
+        client = None
+        try:
+            password = quote(os.environ.get("QOPSEC_REDIS_PASSWORD", ""), safe="")
+            client = Redis.from_url(
+                os.environ.get(
+                    "QOPSEC_REDIS_URL",
+                    f"redis://:{password}@127.0.0.1:6380/0",
+                ),
+                socket_connect_timeout=2,
+            )
+            await client.ping()
+            await client.aclose()
+            return True
+        except Exception:
+            if client is not None:
+                try:
+                    await client.aclose()
+                except Exception:
+                    pass
+            return False
+    if name == "qopsec_rabbitmq":
+        try:
+            url = os.environ.get("QOPSEC_RABBITMQ_URL")
+            if not url:
+                user = quote(os.environ.get("QOPSEC_RABBITMQ_USER", ""), safe="")
+                password = quote(os.environ.get("QOPSEC_RABBITMQ_PASSWORD", ""), safe="")
+                if not user or not password:
+                    return False
+                url = f"amqp://{user}:{password}@127.0.0.1:5673/%2F"
+            connection = await asyncio.wait_for(aio_pika.connect(url), timeout=3)
+            await connection.close()
+            return True
+        except Exception:
+            return False
+    if cfg.get("health"):
+        healthy, _, _ = await check_health(cfg["health"], timeout=2.0)
+        return healthy
+    return True
+
+
 @APP.on_event("startup")
-def _startup():
+async def _startup():
+    global CACHE, REDIS_CLIENT, JOB_QUEUE, _METRICS_TASK
     load_config()
+    for name in ("qopsec_redis", "qopsec_rabbitmq"):
+        cfg = CONFIG.get("services", {}).get(name)
+        if not cfg:
+            raise RuntimeError(f"Required managed infrastructure service is missing: {name}")
+        container_name = cfg.get("container_name", name)
+        if docker_container_exists(container_name):
+            if "com.qopsec.managed-by=orchestrator" not in docker_container_labels(container_name):
+                raise RuntimeError(f"Refusing to use existing unowned infrastructure container: {container_name}")
+        else:
+            result = await docker_start_container(cfg)
+            if result.get("status") == "error":
+                raise RuntimeError(f"Failed starting dependency {name}: {result.get('error')}")
+        deadline = time.monotonic() + float(cfg.get("startup_timeout", 90))
+        while time.monotonic() < deadline:
+            if await _dependency_ready(name):
+                break
+            await asyncio.sleep(1)
+        else:
+            raise RuntimeError(f"Timed out waiting for dependency {name}")
+        STATE[name] = {
+            "type": "docker",
+            "container_name": container_name,
+            "container_id": docker_get_container_id(container_name),
+            "running": docker_container_running(container_name),
+        }
+
+    for name, cfg in CONFIG.get("services", {}).items():
+        if name in {"qopsec_redis", "qopsec_rabbitmq"}:
+            continue
+        if not cfg or not cfg.get("image"):
+            continue
+        container_name = cfg.get("container_name", name)
+        if docker_container_exists(container_name):
+            if docker_container_running(container_name):
+                if cfg.get("labels") and "com.qopsec.managed-by=orchestrator" not in docker_container_labels(container_name):
+                    print(f"[STARTUP] Existing {name} is unowned; leaving it running without takeover.", flush=True)
+            else:
+                result = await docker_start_container(cfg)
+                if result.get("status") == "error":
+                    print(f"[STARTUP] Could not start {name}: {result.get('error')}", flush=True)
+        else:
+            result = await docker_start_container(cfg)
+            if result.get("status") == "error":
+                print(f"[STARTUP] Could not start {name}: {result.get('error')}", flush=True)
+    redis_password = quote(os.environ.get("QOPSEC_REDIS_PASSWORD", ""), safe="")
+    if not redis_password:
+        raise RuntimeError("QOPSEC_REDIS_PASSWORD must be set before starting the orchestrator")
+    redis_url = os.environ.get(
+        "QOPSEC_REDIS_URL",
+        f"redis://:{redis_password}@127.0.0.1:6380/0",
+    )
+    rabbitmq_url = os.environ.get("QOPSEC_RABBITMQ_URL")
+    if not rabbitmq_url:
+        rabbit_user = quote(os.environ.get("QOPSEC_RABBITMQ_USER", ""), safe="")
+        rabbit_password = quote(os.environ.get("QOPSEC_RABBITMQ_PASSWORD", ""), safe="")
+        if not rabbit_user or not rabbit_password:
+            raise RuntimeError("QOPSEC_RABBITMQ_USER and QOPSEC_RABBITMQ_PASSWORD must be set")
+        rabbitmq_url = f"amqp://{rabbit_user}:{rabbit_password}@127.0.0.1:5673/%2F"
+    REDIS_CLIENT = Redis.from_url(redis_url, decode_responses=False, socket_connect_timeout=3)
+    await REDIS_CLIENT.ping()
+    CACHE = RedisTTLCache(REDIS_CLIENT)
+    JOB_QUEUE = RabbitMQJobQueue(
+        redis_client=REDIS_CLIENT,
+        url=rabbitmq_url,
+        queue_name=os.environ.get("QOPSEC_RABBITMQ_QUEUE", "qopsec.jobs"),
+        handler=_run_background_job,
+    )
+    await JOB_QUEUE.start()
+    _METRICS_TASK = asyncio.create_task(_metrics_refresh_loop(), name="qopsec-architecture-metrics")
     for name, cfg in CONFIG.get("services", {}).items():
         service_type = cfg.get("type", "process")
 
         if service_type == "docker":
             container_name = cfg.get("container_name", name)
+            if cfg.get("image") and not docker_container_exists(container_name):
+                result = await docker_start_container(cfg)
+                if result.get("status") == "error":
+                    print(f"[STARTUP] Could not start {name}: {result.get('error')}", flush=True)
+                    continue
             if docker_container_running(container_name):
                 STATE[name] = {
                     "type": "docker",
@@ -791,12 +1009,30 @@ def _startup():
                     "health": cfg.get("health"),
                 }
 
+@APP.on_event("shutdown")
+async def _shutdown():
+    global _METRICS_TASK, CACHE, REDIS_CLIENT, JOB_QUEUE
+    if _METRICS_TASK is not None:
+        _METRICS_TASK.cancel()
+        try:
+            await _METRICS_TASK
+        except asyncio.CancelledError:
+            pass
+        _METRICS_TASK = None
+    if JOB_QUEUE is not None:
+        await JOB_QUEUE.stop()
+    if REDIS_CLIENT is not None:
+        await REDIS_CLIENT.aclose()
+        REDIS_CLIENT = None
+    CACHE = None
+    JOB_QUEUE = None
 @APP.get("/docker/status")
 def docker_status():
     return {
         "available": docker_available(),
         "running": docker_running()
     }
+
 
 @APP.get("/services")
 def list_services():
@@ -851,6 +1087,24 @@ def list_services():
                 "can_test": service_can_run_tests(cfg),
             })
     return out
+
+@APP.get("/jobs/{job_id}")
+async def get_background_job(job_id: str):
+    job = await JOB_QUEUE.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Background job not found")
+    return job
+
+
+@APP.get("/jobs")
+async def list_background_job_stats():
+    return await JOB_QUEUE.stats()
+
+
+@APP.get("/cache/stats")
+async def cache_stats():
+    return await CACHE.stats()
+
 
 @APP.post("/services/{name}/tests", status_code=202)
 async def run_module_tests(name: str):
@@ -1052,6 +1306,9 @@ async def api_remove_container(name: str, force: bool = False):
         raise HTTPException(status_code=400, detail="Service is not a Docker container")
 
     container_name = cfg.get("container_name", name)
+    if "com.qopsec.managed-by=orchestrator" in cfg.get("labels", []) and \
+            "com.qopsec.managed-by=orchestrator" not in docker_container_labels(container_name):
+        return {"status": "error", "error": "Refusing to remove an unowned container"}
     return await docker_remove_container(container_name, force)
 
 class RequestSpec(BaseModel):
@@ -1140,6 +1397,111 @@ async def demo_predict(risk: float = 0.11, conf: float = 0.085, api_key: Optiona
 
 import re
 from collections import defaultdict
+
+CACHE: RedisTTLCache | None = None
+REDIS_CLIENT: Redis | None = None
+JOB_QUEUE: RabbitMQJobQueue | None = None
+ARCH_METRICS_REGISTRY = CollectorRegistry()
+ARCH_CACHE_HITS = Gauge("qopsec_cache_hits_total", "Cache hits in this orchestrator process", registry=ARCH_METRICS_REGISTRY)
+ARCH_CACHE_MISSES = Gauge("qopsec_cache_misses_total", "Cache misses in this orchestrator process", registry=ARCH_METRICS_REGISTRY)
+ARCH_CACHE_ENTRIES = Gauge("qopsec_cache_entries", "Current cache entries in this orchestrator process", registry=ARCH_METRICS_REGISTRY)
+ARCH_CACHE_EVICTIONS = Gauge("qopsec_cache_evictions_total", "Redis cache evictions", registry=ARCH_METRICS_REGISTRY)
+ARCH_JOBS = {
+    status: Gauge(f"qopsec_jobs_{status}", f"Background jobs with status {status}", registry=ARCH_METRICS_REGISTRY)
+    for status in ("queued", "running", "succeeded", "failed")
+}
+_METRICS_TASK: Optional[asyncio.Task] = None
+
+
+def _cache_ttl_seconds() -> float:
+    return max(0.0, float(os.environ.get("QOPSEC_CACHE_TTL_SECONDS", "30")))
+
+
+async def _run_background_job(job: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute allow-listed maintenance/training jobs under orchestrator ownership."""
+    job_type = job.get("job_type")
+    payload = job.get("payload") or {}
+    if job_type == "training":
+        service_name = payload.get("service")
+        if service_name not in {"risk_service", "risk_service_v2", "classification_agent"}:
+            raise ValueError("Unsupported training service")
+        if service_name in {"risk_service", "risk_service_v2"}:
+            cwd = BASE_DIR / "risk_service_V2"
+            command = [str(BASE_DIR / "qopsec_env/bin/python3"), str(cwd / "phd_autonomous_trigger.py")]
+        else:
+            cwd = BASE_DIR / "classify_scheduler"
+            command = [str(BASE_DIR / "qopsec_env/bin/python3"), str(cwd / "main.py")]
+        log_path = BASE_DIR / "logs" / f"job_{job['job_id']}.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with log_path.open("ab") as log_file:
+            process = await asyncio.create_subprocess_exec(
+                *command, cwd=str(cwd), stdout=log_file, stderr=log_file,
+                start_new_session=True,
+            )
+            return_code = await process.wait()
+        if return_code != 0:
+            raise RuntimeError(f"Training process exited with code {return_code}; see {log_path}")
+        return {"service": service_name, "exit_code": return_code, "log_file": str(log_path)}
+    raise ValueError(f"Unsupported background job type: {job_type}")
+
+
+def _metrics_cache_key(url: str, headers: Dict[str, str]) -> str:
+    auth_values = sorted(
+        value for key, value in headers.items()
+        if key.lower() in {"x-api-key", "authorization"}
+    )
+    auth_scope = hashlib.sha256("\0".join(auth_values).encode()).hexdigest() if auth_values else "public"
+    return f"proxy:{auth_scope}:{hashlib.sha256(url.encode()).hexdigest()}"
+
+
+async def cached_proxy_get(url: str, headers: Optional[Dict[str, str]] = None, ttl: Optional[float] = None):
+    cache_key = _metrics_cache_key(url, headers or {})
+    cached = await CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    response = await proxy_get(url, headers=headers)
+    lifetime = _cache_ttl_seconds() if ttl is None else max(0.0, ttl)
+    if lifetime > 0:
+        await CACHE.set(cache_key, response, ttl_seconds=lifetime)
+    return response
+
+
+@APP.get("/architecture/status")
+async def architecture_status():
+    redis_connected = False
+    if REDIS_CLIENT is not None:
+        try:
+            redis_connected = bool(await REDIS_CLIENT.ping())
+        except Exception:
+            redis_connected = False
+    rabbit_status = await JOB_QUEUE.health() if JOB_QUEUE is not None else {"connected": False, "queue": "qopsec.jobs"}
+    cache_status = await CACHE.stats() if CACHE is not None else {"entries": 0, "hits": 0, "misses": 0, "evictions": 0}
+    job_status = await JOB_QUEUE.stats() if JOB_QUEUE is not None else {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
+    redis_container = CONFIG.get("services", {}).get("qopsec_redis", {}).get("container_name", "qopsec-redis")
+    rabbit_container = CONFIG.get("services", {}).get("qopsec_rabbitmq", {}).get("container_name", "qopsec-rabbitmq")
+    return {
+        "status": "healthy" if redis_connected and rabbit_status.get("connected") else "degraded",
+        "redis": {"connected": redis_connected, "container_running": docker_container_running(redis_container)},
+        "rabbitmq": {"connected": bool(rabbit_status.get("connected")), "queue": rabbit_status.get("queue"), "container_running": docker_container_running(rabbit_container)},
+        "cache": cache_status,
+        "jobs": job_status,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@APP.get("/architecture-metrics")
+async def architecture_metrics():
+    await _refresh_architecture_metrics()
+    return Response(generate_latest(ARCH_METRICS_REGISTRY), media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
+async def _start_background_worker() -> None:
+    await JOB_QUEUE.start()
+
+
+async def _stop_background_worker() -> None:
+    await JOB_QUEUE.stop()
+
 
 def search_in_log(log_path: str, request_id: str, context_lines: int = 2) -> List[Dict[str, Any]]:
     p = Path(log_path)
@@ -1482,7 +1844,7 @@ async def get_datasets(service_name: str):
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
-    return await proxy_get(url, headers=headers)
+    return await cached_proxy_get(url, headers=headers, ttl=30.0)
 
 @APP.get("/datasets/{service_name}/{dataset_name}/preview")
 async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n: int = 20):
@@ -1508,7 +1870,7 @@ async def get_dataset_preview(service_name: str, dataset_name: str, file: str, n
     else:
         raise HTTPException(status_code=400, detail="Unknown service for datasets")
 
-    return await proxy_get(url, headers=headers)
+    return await cached_proxy_get(url, headers=headers, ttl=15.0)
 
 @APP.post("/callback")
 async def callback(request: Request):
@@ -2117,40 +2479,25 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
 
 @APP.post("/monitoring/start")
 async def start_monitoring():
-    import subprocess
-    import os
-    import threading
-    
-    def run_docker_sync():
-        proj_dir = os.path.dirname(os.path.abspath(__file__))
-        prom_config = os.path.join(proj_dir, "monitoring", "prometheus.yml")
-        graf_prov = os.path.join(proj_dir, "monitoring", "grafana", "provisioning")
-        graf_ini = os.path.join(proj_dir, "monitoring", "grafana", "grafana.ini")
-        
-        print("[MONITORING] Starting pull and run sequence...", flush=True)
-        
-        # Sequência de comandos em um único bloco para logar tudo
-        commands = [
-            "docker rm -f qopsec-prom qopsec-graf || true",
-            f"docker run -d --name qopsec-prom -p 9091:9090 -v '{prom_config}':/etc/prometheus/prometheus.yml prom/prometheus",
-            f"docker run -d --name qopsec-graf -p 3001:3000 -v '{graf_prov}':/etc/grafana/provisioning -v '{graf_ini}':/etc/grafana/grafana.ini -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin -e GF_SECURITY_ALLOW_EMBEDDING=true -e GF_USERS_DEFAULT_THEME=dark -e GF_SECURITY_COOKIE_SAMESITE=none grafana/grafana"
-        ]
-        
-        for cmd in commands:
-            print(f"[MONITORING] Executing: {cmd}", flush=True)
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            if result.stdout: print(f"[MONITORING] STDOUT: {result.stdout.strip()}", flush=True)
-            if result.stderr: print(f"[MONITORING] STDERR: {result.stderr.strip()}", flush=True)
-        
-        print("[MONITORING] Sequence finished. Check 'docker ps' for status.", flush=True)
-
-    # Rodar em uma thread separada para não travar o FastAPI enquanto o Docker baixa as imagens
-    threading.Thread(target=run_docker_sync).start()
-    
-    return {
-        "status": "success", 
-        "message": "Inicializacao em segundo plano iniciada. Acompanhe os logs no terminal."
-    }
+    """Compatibility endpoint: monitoring is owned by the service manager."""
+    results = {}
+    for name in ("qopsec_prometheus", "qopsec_grafana"):
+        result = await start_service(name)
+        if result.get("status") == "error":
+            raise HTTPException(status_code=503, detail={"service": name, "result": result})
+        health_url = CONFIG.get("services", {}).get(name, {}).get("health")
+        if health_url:
+            ready = False
+            for _ in range(20):
+                healthy, _, _ = await check_health(health_url, timeout=2.0)
+                if healthy:
+                    ready = True
+                    break
+                await asyncio.sleep(1)
+            if not ready:
+                raise HTTPException(status_code=503, detail={"service": name, "error": "Health check timed out"})
+        results[name] = await api_status(name)
+    return {"status": "started", "services": results}
 
 @APP.get("/scenarios")
 def get_scenarios():
