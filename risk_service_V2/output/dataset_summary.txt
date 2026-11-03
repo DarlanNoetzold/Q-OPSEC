@@ -2,19 +2,19 @@
 FRAUD DETECTION DATASET - SUMMARY REPORT
 ================================================================================
 
-Total Events: 5,554
+Total Events: 1,166,992
 Total Columns: 109
-Memory Usage: 4.6 MB
+Memory Usage: 2179.1 MB
 
 Dataset Splits:
-  full  :      5,554 rows
-  train :      3,887 rows
-  val   :        833 rows
-  test  :        833 rows
+  full  :  1,166,992 rows
+  train :    816,894 rows
+  val   :    175,048 rows
+  test  :    175,048 rows
 
 Fraud Distribution:
-  Fraudulent:         749 (13.49%)
-  Legitimate:       4,805 (86.51%)
+  Fraudulent:     154,596 (13.25%)
+  Legitimate:   1,012,396 (86.75%)
 
 Column List:
     1. event_id
