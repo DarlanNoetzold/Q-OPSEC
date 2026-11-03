@@ -22,7 +22,10 @@ class RabbitMQJobQueue:
         connection_factory: Callable[..., Awaitable[Any]] | None = None,
         prefetch_count: int = 1,
         job_ttl_seconds: int = 604800,
+        worker_count: int = 1,
     ):
+        if worker_count < 1:
+            raise ValueError("worker_count must be positive")
         self._redis = redis_client
         self._url = url
         self._queue_name = queue_name
@@ -30,9 +33,13 @@ class RabbitMQJobQueue:
         self._connection_factory = connection_factory or aio_pika.connect_robust
         self._prefetch_count = prefetch_count
         self._job_ttl_seconds = job_ttl_seconds
+        self._worker_count = worker_count
         self._connection = None
         self._channel = None
         self._queue = None
+        self._channels: list[Any] = []
+        self._queues: list[Any] = []
+        self._consumer_tags: list[tuple[Any, str]] = []
         self._consumer_tag = None
         self._consumer_task: asyncio.Task | None = None
         self._consumer_stopping = False
@@ -43,17 +50,31 @@ class RabbitMQJobQueue:
             return
         self._connection = await self._connection_factory(self._url)
         self._channel = await self._connection.channel()
+        self._channels = [self._channel]
         await self._channel.set_qos(prefetch_count=self._prefetch_count)
         self._queue = await self._channel.declare_queue(self._queue_name, durable=True)
+        self._queues = [self._queue]
+        self._consumer_tags = []
         if self._handler is not None:
             self._consumer_stopping = False
-            self._consumer_tag = await self._queue.consume(self._on_message, no_ack=False)
+            for index in range(self._worker_count):
+                channel = self._channel if index == 0 else await self._connection.channel()
+                if index > 0:
+                    await channel.set_qos(prefetch_count=self._prefetch_count)
+                queue = self._queue if index == 0 else await channel.declare_queue(self._queue_name, durable=True)
+                consumer_tag = await queue.consume(self._on_message, no_ack=False)
+                self._consumer_tags.append((queue, consumer_tag))
+                if index > 0:
+                    self._channels.append(channel)
+                    self._queues.append(queue)
+            self._consumer_tag = self._consumer_tags[0][1]
 
     async def stop(self) -> None:
         self._consumer_stopping = True
-        if self._queue is not None and self._consumer_tag is not None:
-            await self._queue.cancel(self._consumer_tag)
-            self._consumer_tag = None
+        for queue, consumer_tag in self._consumer_tags:
+            await queue.cancel(consumer_tag)
+        self._consumer_tags = []
+        self._consumer_tag = None
         if self._consumer_task is not None:
             try:
                 await self._consumer_task
@@ -63,6 +84,8 @@ class RabbitMQJobQueue:
         if self._connection is not None and not self._connection.is_closed:
             await self._connection.close()
         self._connection = self._channel = self._queue = None
+        self._channels = []
+        self._queues = []
 
     async def enqueue(self, job_type: str, payload: dict[str, Any]) -> str:
         if self._queue is None:
