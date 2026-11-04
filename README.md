@@ -62,9 +62,48 @@ Serviços principais após a instalação (localhost):
 ### 0.2 Sobre as branches
 
 - A branch `main` é o desenvolvimento padrão, com IP de rede fixo (`192.168.18.18`).
-- A branch **`package`** (aqui `package/windows`) é a versão de distribuição/uso para
-  usuários finais: aponta tudo para `127.0.0.1`, gera segredos na máquina do usuário e
-  tem o instalador "um comando".
+- A branch **`package`** (aqui `package/windows` e `package/linux`) é a versão de
+  distribuição/uso para usuários finais: aponta tudo para `127.0.0.1`, gera segredos
+  na máquina do usuário e tem o instalador "um comando".
+
+### 0.3 Linux (Debian/Ubuntu) — instalação em UM comando
+
+Requisitos: uma distro **Debian/Ubuntu**, `curl`/`git` e acesso a `sudo` (ou rodar
+como root). O instalador pede sudo para instalar as dependências de sistema
+(build-essential, CMake, Ninja, libssl, python3-dev/venv, JDK 21, Maven, Docker,
+Mosquitto), cria o ambiente Python com todas as dependências, ajusta o
+`services.yaml` para `127.0.0.1`, gera os segredos locais, sobe a infraestrutura
+Docker (Redis, RabbitMQ, Prometheus, Grafana, PostgreSQL, MongoDB, Mosquitto) e
+inicia o orquestrador com todos os serviços.
+
+**No bash (via pipe, one-liner):**
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/linux/install.sh)
+```
+
+**Ou baixando e executando (em duas etapas, mais seguras):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/linux/install.sh -o /tmp/qopsec-install.sh \
+  && bash /tmp/qopsec-install.sh
+```
+
+> Notas:
+> - A instalação usa `sudo` quando necessário; se rodar como root, não pede.
+> - Se o Docker daemon não estiver ativo, o instalador aguarda (`systemctl start docker`)
+>   ou falha pedindo para subir o serviço.
+> - Se o Docker foi configurado agora, talvez seja preciso `newgrp docker` (ou reabrir o
+>   terminal) para usar Docker sem sudo.
+> - Os segredos ficam em `~/.config/qopsec/middleware.env` — **nunca versionar**.
+
+Comandos úteis (Linux):
+
+```bash
+bash ~/Q-OPSEC/start_qopsec_linux.sh                     # iniciar tudo
+bash ~/Q-OPSEC/stop_qopsec_linux.sh                       # parar tudo
+bash ~/Q-OPSEC/stop_qopsec_linux.sh --remove-containers   # parar e remover postgres/mongo/mosquitto
+```
 
 ## 1. SYSTEM OVERVIEW
 The Q-OPSEC (Quantum-safe Operational Security) project is a framework designed for adaptive cryptography and risk-driven security orchestration. It integrates Reinforcement Learning (RL) agents, Post-Quantum Cryptography (PQC) Key Management, and automated traffic interception to provide a dynamic defense mechanism against evolving threats. The system architecture enforces a pessimistic security posture, prioritizing high-risk signals to determine protective actions.
