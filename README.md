@@ -1,5 +1,37 @@
 # Q-OPSEC TECHNICAL DOCUMENTATION
 
+## 0. INSTALAÇÃO NO WINDOWS (PACOTE)
+
+Tudo em **um comando** (no CMD, como Administrador) — ele baixa o instalador,
+instala Git/Python/JDK/Maven/Docker, cria o ambiente Python com todas as
+dependências, sobe a infraestrutura (Redis, RabbitMQ, Prometheus, Grafana,
+PostgreSQL, MongoDB, Mosquitto) e inicia o orquestrador com todos os serviços:
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/windows/install.ps1 -o %TEMP%\qopsec-install.ps1 && powershell -NoProfile -ExecutionPolicy Bypass -File %TEMP%\qopsec-install.ps1
+```
+
+Ou, direto no PowerShell (via pipe):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/windows/install.ps1 | iex"
+```
+
+> Nota 1: a primeira execução pede elevação de administrador (UAC) — o próprio
+> instalador se reexecuta elevado.
+> Nota 2: se o Docker Desktop for instalado agora, reinicie o Windows uma vez e
+> rode `start_qopsec.ps1` para subir o restante.
+> Nota 3: os segredos gerados ficam em `%USERPROFILE%\.config\qopsec\middleware.env`
+> (nunca versionar esse arquivo).
+
+Comandos úteis depois da instalação:
+
+```powershell
+powershell -File %USERPROFILE%\Q-OPSEC\start_qopsec.ps1   # iniciar tudo
+powershell -File %USERPROFILE%\Q-OPSEC\stop_qopsec.ps1    # parar tudo
+powershell -File %USERPROFILE%\Q-OPSEC\stop_qopsec.ps1 -StopContainers  # parar também postgres/mongo/mosquitto
+```
+
 ## 1. SYSTEM OVERVIEW
 The Q-OPSEC (Quantum-safe Operational Security) project is a framework designed for adaptive cryptography and risk-driven security orchestration. It integrates Reinforcement Learning (RL) agents, Post-Quantum Cryptography (PQC) Key Management, and automated traffic interception to provide a dynamic defense mechanism against evolving threats. The system architecture enforces a pessimistic security posture, prioritizing high-risk signals to determine protective actions.
 
