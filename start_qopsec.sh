@@ -1,8 +1,18 @@
 #!/bin/bash
-# Configura o ambiente Java e Maven
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-export MAVEN_HOME=/usr/share/maven
-export PATH=$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH
+# Configura o ambiente Java e Maven.
+# Prioridade 1: instalacao portatil na home (JDK 21 + Maven 3.9.11), usada quando
+# o ambiente ainda nao tem os pacotes do sistema (ex.: maquina restaurada).
+# Prioridade 2: instalacao do sistema (/usr/lib/jvm/java-21-openjdk-amd64 + /usr/share/maven).
+PORTABLE_JAVA_HOME="/home/umbrel/.local/opt/jdk-21.0.13+9"
+PORTABLE_MAVEN_HOME="/home/umbrel/.local/opt/apache-maven-3.9.11"
+if [ -d "$PORTABLE_JAVA_HOME" ] && [ -d "$PORTABLE_MAVEN_HOME" ]; then
+    export JAVA_HOME="$PORTABLE_JAVA_HOME"
+    export MAVEN_HOME="$PORTABLE_MAVEN_HOME"
+else
+    export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+    export MAVEN_HOME="${MAVEN_HOME:-/usr/share/maven}"
+fi
+export PATH="$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
 
 cd /home/umbrel/projetos/Q-OPSEC
 source /home/umbrel/projetos/Q-OPSEC/qopsec_env/bin/activate
