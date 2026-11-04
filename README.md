@@ -1,36 +1,70 @@
 # Q-OPSEC TECHNICAL DOCUMENTATION
 
-## 0. INSTALAÇÃO NO WINDOWS (PACOTE)
+## 0. INSTALAÇÃO NO MUNDO REAL / PACOTE (WINDOWS + MAC/LINUX)
 
-Tudo em **um comando** (no CMD, como Administrador) — ele baixa o instalador,
-instala Git/Python/JDK/Maven/Docker, cria o ambiente Python com todas as
-dependências, sobe a infraestrutura (Redis, RabbitMQ, Prometheus, Grafana,
-PostgreSQL, MongoDB, Mosquitto) e inicia o orquestrador com todos os serviços:
+### 0.1 Windows — instalação em UM comando
+
+Requisitos: **Windows 10/11** com *App Installer* (winget) da Microsoft Store, e
+`curl` (já vem com o Windows 10+).
+
+O comando baixa o instalador e executa com elevação de administrador (UAC).
+Ele instala **tudo**: Git, Python 3.13, JDK 21 (Temurin), Maven, Docker Desktop,
+cria o ambiente Python com todas as dependências (numpy/pandas/scikit-learn/
+torch/qiskit/oqs pós-quântica + todos os `requirements` de sub-módulos), ajusta
+o `services.yaml` para `127.0.0.1`, gera os segredos locais, sobe a infraestrutura
+Docker (Redis, RabbitMQ, Prometheus, Grafana, PostgreSQL, MongoDB, Mosquitto) e
+inicia o orquestrador com todos os serviços.
+
+**No CMD (como Administrador):**
 
 ```cmd
 curl -fsSL https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/windows/install.ps1 -o %TEMP%\qopsec-install.ps1 && powershell -NoProfile -ExecutionPolicy Bypass -File %TEMP%\qopsec-install.ps1
 ```
 
-Ou, direto no PowerShell (via pipe):
-
+**No PowerShell 5.1 / 7 (via pipe):**
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/windows/install.ps1 | iex"
 ```
 
-> Nota 1: a primeira execução pede elevação de administrador (UAC) — o próprio
-> instalador se reexecuta elevado.
-> Nota 2: se o Docker Desktop for instalado agora, reinicie o Windows uma vez e
-> rode `start_qopsec.ps1` para subir o restante.
-> Nota 3: os segredos gerados ficam em `%USERPROFILE%\.config\qopsec\middleware.env`
-> (nunca versionar esse arquivo).
+**No PowerShell 7 (mais limpo):**
+```powershell
+irm https://raw.githubusercontent.com/DarlanNoetzold/Q-OPSEC/package/windows/install.ps1 | iex
+```
 
-Comandos úteis depois da instalação:
+> Notas:
+> - A primeira execução pede elevação de administrador (UAC) — o próprio instalador
+>   se reexecuta elevado. Se preferir, abra o PowerShell como Administrador e rode o
+>   último comando direto.
+> - Se o Docker Desktop for **instalado agora**, reinicie o Windows uma vez e depois
+>   rode `start_qopsec.ps1`.
+> - Os segredos gerados (Redis/RabbitMQ) ficam em `%USERPROFILE%\.config\qopsec\middleware.env`
+>   — **nunca versionar** esse arquivo.
+> - A instalação é longa (baixa e compila dependências); leve uns 15–40 min dependendo
+>   da máquina.
+
+Comandos úteis depois de instalado:
 
 ```powershell
-powershell -File %USERPROFILE%\Q-OPSEC\start_qopsec.ps1   # iniciar tudo
-powershell -File %USERPROFILE%\Q-OPSEC\stop_qopsec.ps1    # parar tudo
+powershell -File %USERPROFILE%\Q-OPSEC\start_qopsec.ps1    # iniciar tudo
+powershell -File %USERPROFILE%\Q-OPSEC\stop_qopsec.ps1     # parar tudo
 powershell -File %USERPROFILE%\Q-OPSEC\stop_qopsec.ps1 -StopContainers  # parar também postgres/mongo/mosquitto
 ```
+
+Serviços principais após a instalação (localhost):
+
+| Serviço            | URL / porta          |
+|--------------------|----------------------|
+| Orquestrador       | http://127.0.0.1:8090|
+| Grafana            | http://127.0.0.1:3001|
+| RabbitMQ mgmt      | http://127.0.0.1:15673 (user: qopsec) |
+| context_api        | 65534 ・ interceptor_api 8080 ・ validation_send_api 8005 |
+
+### 0.2 Sobre as branches
+
+- A branch `main` é o desenvolvimento padrão, com IP de rede fixo (`192.168.18.18`).
+- A branch **`package`** (aqui `package/windows`) é a versão de distribuição/uso para
+  usuários finais: aponta tudo para `127.0.0.1`, gera segredos na máquina do usuário e
+  tem o instalador "um comando".
 
 ## 1. SYSTEM OVERVIEW
 The Q-OPSEC (Quantum-safe Operational Security) project is a framework designed for adaptive cryptography and risk-driven security orchestration. It integrates Reinforcement Learning (RL) agents, Post-Quantum Cryptography (PQC) Key Management, and automated traffic interception to provide a dynamic defense mechanism against evolving threats. The system architecture enforces a pessimistic security posture, prioritizing high-risk signals to determine protective actions.
