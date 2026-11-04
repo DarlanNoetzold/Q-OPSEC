@@ -299,7 +299,7 @@ if ($SkipDocker) {
             Write-Ok "container $($c.Name) ja existe"
         } else {
             Write-Host "Subindo $($c.Name) ($($c.Image))..."
-            & docker run -d --name $c.Name --restart unless-stopped $c.Ports @c.Run $c.Image 2>$null | Out-Null
+            & docker run -d --name $c.Name --restart unless-stopped $c.Ports $c.Run $c.Image 2>$null | Out-Null
             if ($LASTEXITCODE -ne 0) { Write-Warn "falha ao subir $($c.Name)" }
             else { Write-Ok "$($c.Name) no ar" }
         }
