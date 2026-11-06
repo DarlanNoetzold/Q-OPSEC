@@ -13,6 +13,7 @@ from crypto_engine import (
     aead_decrypt,
     b64d,
     b64e,
+    close_http_client,
 )
 from config import HOST, PORT
 
@@ -89,6 +90,11 @@ def _default_aad(session_id: str, request_id: str, algorithm: str) -> bytes:
     """Generate default Additional Authenticated Data (AAD) for AEAD."""
     s = f"session:{session_id}|request:{request_id}|alg:{algorithm}"
     return s.encode("utf-8")
+
+
+@app.on_event("shutdown")
+async def _shutdown() -> None:
+    await close_http_client()
 
 
 @app.post(

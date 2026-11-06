@@ -1,6 +1,6 @@
 import base64
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from cryptography.exceptions import InvalidTag
 
@@ -45,6 +45,30 @@ class CryptoEngineUnitTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "session_id is required"):
                 asyncio.run(fetch_key_context(None, None))
         client_factory.assert_not_called()
+
+
+    def test_key_context_is_cached_until_expiry(self):
+        import asyncio
+        import time
+
+        from crypto_engine import _KEY_CONTEXT_CACHE, fetch_key_context
+
+        _KEY_CONTEXT_CACHE.clear()
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {
+            "key_material": "cached-key",
+            "expires_at": int(time.time()) + 60,
+        }
+        client = Mock()
+        client.get = AsyncMock(return_value=response)
+
+        with patch("crypto_engine.get_http_client", return_value=client):
+            first = asyncio.run(fetch_key_context("session-cache", None))
+            second = asyncio.run(fetch_key_context("session-cache", None))
+
+        self.assertEqual(first, second)
+        self.assertEqual(1, client.get.await_count)
 
 
 if __name__ == "__main__":
