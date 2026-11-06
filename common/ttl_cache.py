@@ -48,6 +48,15 @@ class TTLCache:
             while len(self._entries) > self._max_entries:
                 self._entries.popitem(last=False)
 
+    def get_or_set(self, key: str, factory: Callable[[], Any], ttl_seconds: float = 30.0) -> Any:
+        """Return the cached value, computing and storing it on a miss."""
+        value = self.get(key)
+        if value is not None:
+            return value
+        value = factory()
+        self.set(key, value, ttl_seconds)
+        return value
+
     def delete(self, key: str) -> None:
         with self._lock:
             self._entries.pop(key, None)
