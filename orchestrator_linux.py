@@ -444,6 +444,14 @@ def docker_container_stats(name: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def _docker_status(container_name: str) -> tuple[bool, Optional[str], Optional[Dict[str, Any]]]:
+    """Blocking docker CLI calls, kept together so callers can offload them to a thread."""
+    running = docker_container_running(container_name)
+    container_id = docker_get_container_id(container_name)
+    stats = docker_container_stats(container_name) if running else None
+    return running, container_id, stats
+
+
 @APP.post("/train/{service_name}", status_code=202)
 async def train_proxy(service_name: str, payload: Dict[str, Any] = Body(...)):
     if service_name in {"risk_service", "risk_service_v2", "classification_agent"}:
@@ -1245,9 +1253,7 @@ async def api_status(name: str):
 
     if service_type == "docker":
         container_name = cfg.get("container_name", name)
-        running = docker_container_running(container_name)
-        container_id = docker_get_container_id(container_name)
-        stats = docker_container_stats(container_name) if running else None
+        running, container_id, stats = await asyncio.to_thread(_docker_status, container_name)
 
         health_url = cfg.get("health")
         ok, code, text = await check_health(health_url) if health_url else (False, None, None)
