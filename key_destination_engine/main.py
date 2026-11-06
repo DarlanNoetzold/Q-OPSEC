@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from typing import Dict, Any
 
 from models import DeliveryRequest, DeliveryResponse
-from destination_engine import deliver_key, get_delivery_status, list_deliveries
+from destination_engine import deliver_key, queue_delivery, get_delivery_status, list_deliveries
 from config import HOST, PORT, SUPPORTED_METHODS
 
 app = FastAPI(
@@ -34,6 +34,14 @@ async def deliver(req: DeliveryRequest):
         raise HTTPException(status_code=500, detail=result.message or "Delivery failed")
 
     return result
+
+
+@app.post("/deliver/async", response_model=DeliveryResponse, status_code=202)
+async def deliver_async(req: DeliveryRequest):
+    """Accept the delivery and return immediately; poll /delivery/{delivery_id} for the outcome."""
+    req_id = req.request_id or "req-unknown"
+    print(f"[{req_id}] KDE: Queued delivery to {req.destination}")
+    return queue_delivery(req)
 
 
 @app.get("/delivery/{delivery_id}", response_model=DeliveryResponse)

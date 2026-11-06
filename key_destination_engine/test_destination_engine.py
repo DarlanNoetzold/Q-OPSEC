@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from destination_engine import deliver_key, get_delivery_status, list_deliveries
+from destination_engine import deliver_key, get_delivery_status, list_deliveries, queue_delivery
 from models import DeliveryRequest
 from delivery_methods.mqtt_delivery import deliver_via_mqtt
 
@@ -99,6 +99,40 @@ class DestinationEngineRegressionTests(unittest.TestCase):
                 algorithm="AES256_GCM",
                 expires_at=4102444800,
             )
+
+
+    def test_queued_delivery_returns_immediately_and_completes_in_background(self):
+        async def run_test():
+            request = DeliveryRequest(
+                session_id="session-async",
+                request_id="request-async",
+                destination="async-key.test",
+                delivery_method="FILE",
+                key_material="async-secret",
+                algorithm="AES256_GCM",
+                expires_at=4102444800,
+            )
+            queued = queue_delivery(request)
+            self.assertEqual("queued", queued.status)
+            self.assertEqual(queued, get_delivery_status(queued.delivery_id))
+
+            for _ in range(100):
+                current = get_delivery_status(queued.delivery_id)
+                if current.status != "queued":
+                    return current
+                await asyncio.sleep(0.01)
+            return get_delivery_status(queued.delivery_id)
+
+        with tempfile.TemporaryDirectory() as directory:
+            previous_directory = os.getcwd()
+            os.chdir(directory)
+            try:
+                result = asyncio.run(run_test())
+                self.assertEqual("delivered", result.status)
+                with open("async-key.test", encoding="utf-8") as key_file:
+                    self.assertEqual("async-secret", key_file.read())
+            finally:
+                os.chdir(previous_directory)
 
 
 if __name__ == "__main__":

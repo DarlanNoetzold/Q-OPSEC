@@ -1,7 +1,12 @@
+import asyncio
+import os
 import uuid
 import threading
+from collections import deque
 from datetime import datetime
 from typing import Dict, Any, Optional, Tuple, Union
+
+from common.ttl_cache import TTLCache
 
 from models import DeliveryRequest, DeliveryResponse
 from config import SUPPORTED_METHODS
@@ -33,9 +38,27 @@ DELIVERY_METHODS: Dict[str, Optional[object]] = {
     "FILE": deliver_via_file,
 }
 
-delivery_tracker: Dict[str, DeliveryResponse] = {}
-delivery_attempts: Dict[str, int] = {}
+DELIVERY_TTL_SECONDS = float(os.environ.get("QOPSEC_DELIVERY_TTL_SECONDS", "3600"))
+MAX_TRACKED_DELIVERIES = int(os.environ.get("QOPSEC_DELIVERY_MAX_ENTRIES", "1000"))
+
+delivery_tracker: TTLCache = TTLCache(max_entries=MAX_TRACKED_DELIVERIES)
+delivery_attempts: TTLCache = TTLCache(max_entries=MAX_TRACKED_DELIVERIES)
+_delivery_ids: deque[str] = deque(maxlen=MAX_TRACKED_DELIVERIES)
 _tracker_lock = threading.Lock()
+_background_tasks: set[asyncio.Task] = set()
+
+
+def _record(delivery_id: str, result: DeliveryResponse, attempts: Optional[int] = None) -> None:
+    with _tracker_lock:
+        delivery_tracker.set(delivery_id, result, DELIVERY_TTL_SECONDS)
+        current = delivery_attempts.get(delivery_id) or 0
+        delivery_attempts.set(
+            delivery_id,
+            current + 1 if attempts is None else attempts,
+            DELIVERY_TTL_SECONDS,
+        )
+        _delivery_ids.append(delivery_id)
+
 
 
 def _build_response(
@@ -82,9 +105,9 @@ def _normalize_handler_result(
     return _build_response(req, delivery_id, status="failed", message="Invalid handler return format")
 
 
-async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
+async def deliver_key(req: DeliveryRequest, delivery_id: Optional[str] = None) -> DeliveryResponse:
 
-    delivery_id = str(uuid.uuid4())
+    delivery_id = delivery_id or str(uuid.uuid4())
     method = (req.delivery_method or "").upper()
 
     if method not in SUPPORTED_METHODS:
@@ -94,9 +117,7 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             status="failed",
             message=f"Unsupported delivery method: {req.delivery_method}",
         )
-        with _tracker_lock:
-            delivery_tracker[delivery_id] = result
-            delivery_attempts[delivery_id] = 1
+        _record(delivery_id, result, attempts=1)
         return result
 
     handler = DELIVERY_METHODS.get(method)
@@ -107,9 +128,7 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             status="failed",
             message=f"No handler available for method: {method}",
         )
-        with _tracker_lock:
-            delivery_tracker[delivery_id] = result
-            delivery_attempts[delivery_id] = 1
+        _record(delivery_id, result, attempts=1)
         return result
 
     try:
@@ -123,18 +142,34 @@ async def deliver_key(req: DeliveryRequest) -> DeliveryResponse:
             message=f"Delivery exception: {e}",
         )
 
-    with _tracker_lock:
-        delivery_tracker[delivery_id] = result
-        delivery_attempts[delivery_id] = delivery_attempts.get(delivery_id, 0) + 1
+    _record(delivery_id, result)
 
     return result
 
 
+def queue_delivery(req: DeliveryRequest) -> DeliveryResponse:
+    """Accept the delivery and process it in the background, returning the tracking id."""
+    delivery_id = str(uuid.uuid4())
+    queued = _build_response(req, delivery_id, status="queued", message="Delivery queued")
+    _record(delivery_id, queued, attempts=0)
+    task = asyncio.create_task(deliver_key(req, delivery_id))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+    return queued
+
+
 def get_delivery_status(delivery_id: str) -> Optional[DeliveryResponse]:
-    with _tracker_lock:
-        return delivery_tracker.get(delivery_id)
+    return delivery_tracker.get(delivery_id)
 
 
 def list_deliveries() -> Dict[str, DeliveryResponse]:
     with _tracker_lock:
-        return delivery_tracker.copy()
+        delivery_ids = list(_delivery_ids)
+    deliveries: Dict[str, DeliveryResponse] = {}
+    for delivery_id in reversed(delivery_ids):
+        if delivery_id in deliveries:
+            continue
+        result = delivery_tracker.get(delivery_id)
+        if result is not None:
+            deliveries[delivery_id] = result
+    return deliveries
