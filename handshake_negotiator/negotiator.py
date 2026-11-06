@@ -1,13 +1,24 @@
+import os
 import yaml
 import uuid
 import random
 from datetime import datetime, timedelta
+from functools import lru_cache
 from typing import Tuple
 from models import NegotiationRequest
 
-def load_policies(path: str = "policies.yaml"):
+@lru_cache(maxsize=8)
+def _load_policies_cached(path: str, mtime: float):
     with open(path, "r") as f:
         return yaml.safe_load(f)
+
+def load_policies(path: str = "policies.yaml"):
+    """Cache the policy file, invalidating whenever it changes on disk."""
+    try:
+        mtime = os.path.getmtime(path)
+    except OSError:
+        mtime = 0.0
+    return _load_policies_cached(path, mtime)
 
 def is_quantum_available() -> bool:
     return random.random() > 0.4
