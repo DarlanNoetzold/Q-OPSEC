@@ -11,12 +11,24 @@ from hardware_profiler import get_hardware_summary, get_hardware_profile, run_al
 from crypto.pqc import OQS_AVAILABLE, PQC_AVAILABLE
 from crypto.quantum import is_qkd_enabled
 from quantum_gateway.netsquid_adapter import get_netsquid_status
+from common.ttl_cache import TTLCache
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
 )
 logger = logging.getLogger("qopsec.main")
+
+_HARDWARE_CACHE = TTLCache(max_entries=2)
+_BENCHMARK_CACHE = TTLCache(max_entries=8)
+_HARDWARE_TTL_SECONDS = float(os.environ.get("QOPSEC_HARDWARE_CACHE_TTL_SECONDS", "300"))
+_BENCHMARK_TTL_SECONDS = float(os.environ.get("QOPSEC_BENCHMARK_CACHE_TTL_SECONDS", "3600"))
+
+
+def _cached_hardware_summary() -> dict:
+    """Hardware capabilities do not change at runtime; avoid re-probing on every probe."""
+    return _HARDWARE_CACHE.get_or_set("summary", get_hardware_summary, _HARDWARE_TTL_SECONDS)
+
 
 app = FastAPI(
     title="Q-OPSEC Key Management Service",
@@ -159,20 +171,26 @@ def delete_session(session_id: str):
 
 @app.get("/kms/hardware_profile", tags=["Hardware"])
 def hardware_profile():
-    return get_hardware_summary()
+    return _cached_hardware_summary()
 
 
 @app.post("/kms/benchmark", tags=["Hardware"])
 def run_benchmarks(algorithms: list[str] = None):
-    results = run_algorithm_benchmarks(algorithms)
-    return {
-        algo: {
-            "keygen_time_ms": round(bench.keygen_time_ms, 3),
-            "throughput_ops_per_sec": round(bench.throughput_ops_per_sec, 2),
-            "availability": bench.availability.value,
+    cache_key = ",".join(sorted(algorithms)) if algorithms else "default"
+
+    def _run() -> dict:
+        results = run_algorithm_benchmarks(algorithms)
+        return {
+            algo: {
+                "keygen_time_ms": round(bench.keygen_time_ms, 3),
+                "throughput_ops_per_sec": round(bench.throughput_ops_per_sec, 2),
+                "availability": bench.availability.value,
+            }
+            for algo, bench in results.items()
         }
-        for algo, bench in results.items()
-    }
+
+    return _BENCHMARK_CACHE.get_or_set(cache_key, _run, _BENCHMARK_TTL_SECONDS)
+
 
 
 @app.get("/health", tags=["Health"])
@@ -186,7 +204,7 @@ def health_check():
             "qkd_gateway": is_qkd_enabled(),
             "netsquid": get_netsquid_status(),
             "storage": session_store.stats(),
-            "hardware": get_hardware_summary(),
+            "hardware": _cached_hardware_summary(),
         },
     }
 
