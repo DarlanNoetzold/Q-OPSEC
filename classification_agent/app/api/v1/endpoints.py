@@ -1,14 +1,16 @@
 """
 API endpoints for the Classification Agent.
 """
+import asyncio
 import logging
+import os
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
-import requests
+import httpx
 from pathlib import Path
 import json
 
@@ -25,7 +27,12 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-METRICS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\models\metrics")
+METRICS_ROOT = Path(
+    os.environ.get(
+        "QOPSEC_METRICS_ROOT",
+        str(Path(__file__).resolve().parents[4] / "classify_scheduler" / "models" / "metrics"),
+    )
+)
 IMAGE_ALLOWED = {
     "all_models_accuracy.png",
     "all_models_f1score.png",
@@ -33,6 +40,23 @@ IMAGE_ALLOWED = {
     "best_model_confusion_matrix.png",
     "top10_models_ranking.png",
 }
+
+_RL_CLIENT: Optional[httpx.AsyncClient] = None
+
+
+def _rl_client() -> httpx.AsyncClient:
+    """Shared client for the RL Engine fan-out; avoids a new pool per prediction."""
+    global _RL_CLIENT
+    if _RL_CLIENT is None or _RL_CLIENT.is_closed:
+        _RL_CLIENT = httpx.AsyncClient(timeout=5.0)
+    return _RL_CLIENT
+
+
+async def close_rl_client() -> None:
+    global _RL_CLIENT
+    if _RL_CLIENT is not None and not _RL_CLIENT.is_closed:
+        await _RL_CLIENT.aclose()
+    _RL_CLIENT = None
 
 
 
@@ -494,8 +518,8 @@ async def predict(
 
             pass
 
-        labels, probabilities, input_hashes = model_service.predict(
-            request.data
+        labels, probabilities, input_hashes = await asyncio.to_thread(
+            model_service.predict, request.data
         )
 
         batch_size = 1 if isinstance(request.data, dict) else len(request.data)
@@ -521,7 +545,7 @@ async def predict(
             }
 
             try:
-                rl_response = requests.post(RL_ENGINE_URL, json=rl_payload, timeout=5.0)
+                rl_response = await _rl_client().post(RL_ENGINE_URL, json=rl_payload)
                 rl_response.raise_for_status()
                 rl_result = rl_response.json()
                 rl_decisions[0] = rl_result.get("action", "unknown")

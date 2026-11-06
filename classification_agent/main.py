@@ -9,7 +9,7 @@ import structlog
 from app.core.config import settings
 from app.services.database import db_service
 from app.services.model_service import model_service
-from app.api.v1.endpoints import router
+from app.api.v1.endpoints import router, close_rl_client
 from app.api.v1 import endpoints_datasets as datasets_api
 from app.utils.middleware import (
     RequestIDMiddleware,
@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         logger.info("Shutting down Classification Agent API")
+        await close_rl_client()
         await db_service.disconnect()
 
 

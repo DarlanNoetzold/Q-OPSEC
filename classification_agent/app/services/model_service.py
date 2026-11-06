@@ -121,6 +121,22 @@ class ModelService:
     def is_model_loaded(self) -> bool:
         return self.model is not None
 
+    def get_model_info(self) -> Optional[Dict[str, Any]]:
+        """Describe the loaded model without touching the registry on every call."""
+        if not self.is_model_loaded():
+            return None
+        return {
+            "model_name": self.model_name,
+            "saved_model_name": self.model_name,
+            "model_version": self.model_version,
+            "classes": list(self.classes),
+            "required_columns": list(self.required_columns),
+            "categorical_columns": list(self.categorical_cols),
+            "numeric_columns": list(self.numeric_cols),
+            "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None,
+            "meta": {},
+        }
+
     def validate_input(self, data: Union[Dict, List]) -> pd.DataFrame:
         if isinstance(data, dict):
             data = [data]
