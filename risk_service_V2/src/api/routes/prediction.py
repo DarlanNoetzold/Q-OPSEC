@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Optional
+import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -49,7 +50,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
 
         if req.version:
             try:
-                manager.load(req.version)
+                await asyncio.to_thread(manager.load, req.version)
             except Exception as e:
                 logger.exception(f"Failed to load model version {req.version}: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to load model version {req.version}: {e}")
@@ -66,7 +67,7 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
 
         print(f"[{req.request_id}] RISK_SERVICE | SUCCESS | Prediction completed", flush=True)
         logger.info(f"[{req.request_id}] Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
-        result = manager.predict(normalized_records, model_names=req.models)
+        result = await asyncio.to_thread(manager.predict, normalized_records, model_names=req.models)
         
         if isinstance(result, dict):
             result["request_id"] = req.request_id

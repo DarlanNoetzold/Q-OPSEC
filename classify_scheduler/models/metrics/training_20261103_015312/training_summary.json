@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-11-03T01:53:13.708340",
+  "session_id": "training_20261103_015312",
+  "best_model": {
+    "name": "logreg_lbfgs",
+    "cv_metrics": {
+      "accuracy": 0.19960474308300397,
+      "f1_macro": 0.19640602453102451
+    }
+  },
+  "statistics": {
+    "avg_accuracy": 0.19960474308300397,
+    "avg_f1_score": 0.19640602453102451,
+    "best_accuracy": 0.19960474308300397,
+    "best_f1_score": 0.19640602453102451,
+    "worst_accuracy": 0.19960474308300397,
+    "worst_f1_score": 0.19640602453102451
+  },
+  "dataset_info": {
+    "test_samples": 15,
+    "features": [
+      "risk_score",
+      "conf_score",
+      "src_geo"
+    ],
+    "classes": [
+      "Critical",
+      "High",
+      "Medium",
+      "Low"
+    ]
+  },
+  "all_models": [
+    {
+      "name": "logreg_lbfgs",
+      "cv_accuracy": 0.19960474308300397,
+      "cv_f1_macro": 0.19640602453102451
+    }
+  ]
+}

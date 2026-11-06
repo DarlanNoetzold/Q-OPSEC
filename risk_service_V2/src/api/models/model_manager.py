@@ -86,6 +86,10 @@ class ModelManager:
             if not version_dir.exists():
                 raise FileNotFoundError(f"Version {version} not found in {self.models_root}")
 
+        if self.loaded_version == version_dir.name and self.models:
+            logger.debug(f"Version {version_dir.name} already loaded; skipping reload.")
+            return self.loaded_version
+
         self.loaded_version = version_dir.name
         logger.info(f"Loading models from {version_dir}")
 
