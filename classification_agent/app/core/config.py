@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     ml_registry_latest_file: str = "latest.json"
     auto_reload_ml: bool = True
 
+    rl_engine_url: str = "http://localhost:9009/act"
+    rl_timeout_seconds: float = 5.0
+    rl_default_source: str = "node-A"
+    rl_default_destination: str = "http://localhost:9000"
+    training_summary_cache_ttl_seconds: float = 30.0
+
 
 
     enable_metrics: bool = True

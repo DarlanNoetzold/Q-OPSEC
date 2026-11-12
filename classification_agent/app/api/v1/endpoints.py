@@ -14,6 +14,9 @@ import httpx
 from pathlib import Path
 import json
 
+from common.http import SharedAsyncClient
+from common.ttl_cache import TTLCache, file_cache_key
+
 from ...core.config import settings
 from ...core.security import get_current_user, require_auth
 from ...core.logging import get_logger
@@ -41,22 +44,33 @@ IMAGE_ALLOWED = {
     "top10_models_ranking.png",
 }
 
-_RL_CLIENT: Optional[httpx.AsyncClient] = None
+_RL_CLIENT = SharedAsyncClient(timeout=settings.rl_timeout_seconds)
+_SUMMARY_CACHE = TTLCache(max_entries=64)
 
 
 def _rl_client() -> httpx.AsyncClient:
-    """Shared client for the RL Engine fan-out; avoids a new pool per prediction."""
-    global _RL_CLIENT
-    if _RL_CLIENT is None or _RL_CLIENT.is_closed:
-        _RL_CLIENT = httpx.AsyncClient(timeout=5.0)
-    return _RL_CLIENT
+    return _RL_CLIENT.get()
 
 
 async def close_rl_client() -> None:
-    global _RL_CLIENT
-    if _RL_CLIENT is not None and not _RL_CLIENT.is_closed:
-        await _RL_CLIENT.aclose()
-    _RL_CLIENT = None
+    await _RL_CLIENT.aclose()
+
+
+def _session_path(session_id: str) -> Path:
+    root = METRICS_ROOT.resolve()
+    path = (root / session_id).resolve()
+    if path.parent != root:
+        raise HTTPException(status_code=400, detail="Invalid session id")
+    return path
+
+
+def _read_summary_sync(summary_path: Path) -> Dict[str, Any]:
+    key = file_cache_key(summary_path)
+    return _SUMMARY_CACHE.get_or_set(
+        key,
+        lambda: json.loads(summary_path.read_text(encoding="utf-8")),
+        settings.training_summary_cache_ttl_seconds,
+    )
 
 
 
@@ -505,19 +519,6 @@ async def predict(
         raise ModelNotLoadedException("No model is currently loaded")
 
     try:
-
-
-
-        validation_errors_df = model_service.validate_input(request.data)
-        
-
-
-
-        if hasattr(validation_errors_df, 'empty') and not validation_errors_df.empty:
-
-
-            pass
-
         labels, probabilities, input_hashes = await asyncio.to_thread(
             model_service.predict, request.data
         )
@@ -528,12 +529,10 @@ async def predict(
         rl_decisions: List[Optional[str]] = [None] * batch_size
 
         if request.send_to_rl:
-            RL_ENGINE_URL = getattr(settings, "rl_engine_url", "http://localhost:9009/act")
-
             rl_payload = {
                 "request_id": request.data.get("request_id_resolved") if isinstance(request.data, dict) else None,
-                "source": "node-A",
-                "destination": "http://localhost:9000",
+                "source": settings.rl_default_source,
+                "destination": settings.rl_default_destination,
                 "security_level": labels[0],
                 "risk_score": request.data.get("risk_score", 0.0) if isinstance(request.data, dict) else 0.0,
                 "conf_score": request.data.get("conf_score", 0.0) if isinstance(request.data, dict) else 0.0,
@@ -545,7 +544,7 @@ async def predict(
             }
 
             try:
-                rl_response = await _rl_client().post(RL_ENGINE_URL, json=rl_payload)
+                rl_response = await _rl_client().post(settings.rl_engine_url, json=rl_payload)
                 rl_response.raise_for_status()
                 rl_result = rl_response.json()
                 rl_decisions[0] = rl_result.get("action", "unknown")
@@ -703,9 +702,7 @@ async def get_latest_training_summary(user: Dict[str, Any] = Depends(get_current
 
     summary_path = latest / "training_summary.json"
     try:
-        with open(summary_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return JSONResponse(content=data)
+        return JSONResponse(content=await asyncio.to_thread(_read_summary_sync, summary_path))
     except Exception as e:
         logger.error("Failed to read training summary", error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to read training summary: {str(e)}")
@@ -726,16 +723,13 @@ async def get_training_session_summary(
     user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Retorna o summary de uma sessão de treinamento específica."""
-    session_path = METRICS_ROOT / session_id
-    summary_path = session_path / "training_summary.json"
+    summary_path = _session_path(session_id) / "training_summary.json"
 
     if not summary_path.exists():
         raise HTTPException(status_code=404, detail="Session not found or summary missing")
 
     try:
-        with open(summary_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return JSONResponse(content=data)
+        return JSONResponse(content=await asyncio.to_thread(_read_summary_sync, summary_path))
     except Exception as e:
         logger.error("Failed to read training summary", session_id=session_id, error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to read training summary: {str(e)}")
@@ -803,8 +797,7 @@ async def get_training_session_image(
     if image_name not in IMAGE_ALLOWED:
         raise HTTPException(status_code=400, detail=f"Invalid image name. Allowed: {list(IMAGE_ALLOWED)}")
 
-    session_path = METRICS_ROOT / session_id
-    img_path = session_path / image_name
+    img_path = _session_path(session_id) / image_name
 
     if not img_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")

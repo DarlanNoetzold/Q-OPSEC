@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import pickle
@@ -10,10 +11,14 @@ import numpy as np
 import pandas as pd
 import structlog
 
+from common.ttl_cache import file_cache_key
+
 from ..core.config import settings
 from ..models.database import ModelRecord, ModelStatus
 
 logger = structlog.get_logger()
+
+CATEGORICAL_HINTS = ("geo", "device", "policy", "type", "status", "classification", "level")
 
 class ModelLoadError(Exception):
     pass
@@ -32,91 +37,82 @@ class ModelService:
         self.model_name: Optional[str] = None
         self.model_version: Optional[str] = None
         self.loaded_at: Optional[datetime] = None
+        self._source_key: Optional[str] = None
 
     async def load_latest_model(self, force: bool = False) -> bool:
+        """Reload off the event loop; returns False when latest.json is unchanged and force=False."""
         try:
-            current_file_path = Path(__file__).resolve()
-            project_root = current_file_path.parents[3] 
-            
-            possible_latest = [
-                project_root / "classify_scheduler" / "model_registry" / "latest.json",
-                Path("/home/umbrel/projetos/Q-OPSEC/classify_scheduler/model_registry/latest.json")
-            ]
-            
-            latest_file = next((p for p in possible_latest if p.exists()), None)
-            if not latest_file:
-                raise ModelLoadError("latest.json nao encontrado.")
-
-            with open(latest_file, "r", encoding="utf-8") as f:
-                model_info = json.load(f)
-
-            tag = model_info.get("tag") or model_info.get("version")
-            registry_path = latest_file.parent
-            
-            model_path = None
-            if os.path.exists(registry_path):
-                for entry in os.listdir(registry_path):
-                    if entry.startswith(str(tag)) and os.path.isdir(registry_path / entry):
-                        folder_path = registry_path / entry
-                        for file in os.listdir(folder_path):
-                            if file.endswith(".pkl"):
-                                model_path = folder_path / file
-                                break
-                    if model_path: break
-
-            if not model_path: raise ModelLoadError("Artefato .pkl nao encontrado.")
-
-            with open(model_path, "rb") as f:
-                artifact = pickle.load(f)
-
-            if isinstance(artifact, dict):
-                self.model = artifact.get("model")
-                self.preprocessor = artifact.get("preprocessor")
-            else:
-                self.model = artifact
-                self.preprocessor = None
-
-
-            self.categorical_cols = []
-            self.numeric_cols = []
-            self.required_columns = []
-
-
-            try:
-
-                step0 = self.model.steps[0][1] if hasattr(self.model, "steps") else None
-                ct = step0 if step0 and hasattr(step0, "transformers_") else self.preprocessor
-
-                if ct and hasattr(ct, "transformers_"):
-                   for name, trans, cols in ct.transformers_:
-                       if name != 'remainder':
-                           self.required_columns.extend(cols)
-                           if any(keyword in name.lower() for keyword in ['cat', 'encoder', 'onehot']):
-                               self.categorical_cols.extend(cols)
-                           else:
-                               self.numeric_cols.extend(cols)
-            except:
-                pass
-
-            if not self.required_columns:
-                self.required_columns = list(model_info.get("required_columns") or [])
-
-                for col in self.required_columns:
-                    if any(k in col.lower() for k in ['geo', 'device', 'policy', 'type', 'status', 'classification', 'level']):
-                        self.categorical_cols.append(col)
-                    else:
-                        self.numeric_cols.append(col)
-            
-            self.classes = [str(c) for c in (model_info.get("classes") or [])]
-            self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
-            self.model_version = tag
-            self.loaded_at = datetime.utcnow()
-
-            logger.info("Model loaded successfully", tag=tag, cats=len(self.categorical_cols), nums=len(self.numeric_cols))
-            return True
+            return await asyncio.to_thread(self._load_latest_sync, force)
+        except ModelLoadError:
+            raise
         except Exception as e:
             logger.error("Failed to load model", error=str(e))
             raise ModelLoadError(str(e))
+
+    @staticmethod
+    def _resolve_latest_file() -> Path:
+        project_root = Path(__file__).resolve().parents[3]
+        registry = Path(os.getenv("QOPSEC_MODEL_REGISTRY", project_root / "classify_scheduler" / "model_registry"))
+        latest_file = registry / "latest.json"
+        if not latest_file.exists():
+            raise ModelLoadError(f"latest.json nao encontrado em {registry}")
+        return latest_file
+
+    @staticmethod
+    def _find_artifact(registry_path: Path, tag: str) -> Path:
+        for folder in sorted(registry_path.iterdir()):
+            if folder.is_dir() and folder.name.startswith(str(tag)):
+                artifact = next((f for f in sorted(folder.iterdir()) if f.suffix == ".pkl"), None)
+                if artifact:
+                    return artifact
+        raise ModelLoadError("Artefato .pkl nao encontrado.")
+
+    @staticmethod
+    def _split_columns(model, preprocessor, model_info: Dict[str, Any]):
+        required: List[str] = []
+        categorical: List[str] = []
+        numeric: List[str] = []
+        step0 = model.steps[0][1] if hasattr(model, "steps") else None
+        ct = step0 if step0 is not None and hasattr(step0, "transformers_") else preprocessor
+        if ct is not None and hasattr(ct, "transformers_"):
+            for name, _trans, cols in ct.transformers_:
+                if name == "remainder":
+                    continue
+                required.extend(cols)
+                target = categorical if any(k in name.lower() for k in ("cat", "encoder", "onehot")) else numeric
+                target.extend(cols)
+        if not required:
+            required = list(model_info.get("required_columns") or [])
+            for col in required:
+                target = categorical if any(k in col.lower() for k in CATEGORICAL_HINTS) else numeric
+                target.append(col)
+        return required, categorical, numeric
+
+    def _load_latest_sync(self, force: bool) -> bool:
+        latest_file = self._resolve_latest_file()
+        source_key = file_cache_key(latest_file)
+        if not force and self.is_model_loaded() and source_key == self._source_key:
+            return False
+
+        with open(latest_file, "r", encoding="utf-8") as f:
+            model_info = json.load(f)
+        tag = model_info.get("tag") or model_info.get("version")
+        with open(self._find_artifact(latest_file.parent, tag), "rb") as f:
+            artifact = pickle.load(f)
+
+        model, preprocessor = (artifact.get("model"), artifact.get("preprocessor")) if isinstance(artifact, dict) else (artifact, None)
+        required, categorical, numeric = self._split_columns(model, preprocessor, model_info)
+
+        self.model, self.preprocessor = model, preprocessor
+        self.required_columns, self.categorical_cols, self.numeric_cols = required, categorical, numeric
+        self.classes = [str(c) for c in (model_info.get("classes") or [])]
+        self.model_name = model_info.get("saved_model_name") or model_info.get("model_name")
+        self.model_version = tag
+        self.loaded_at = datetime.utcnow()
+        self._source_key = source_key
+
+        logger.info("Model loaded successfully", tag=tag, cats=len(categorical), nums=len(numeric))
+        return True
 
     def is_model_loaded(self) -> bool:
         return self.model is not None
@@ -161,6 +157,14 @@ class ModelService:
             
         return df
 
+    @staticmethod
+    def _row_hashes(df: pd.DataFrame) -> List[str]:
+        """Stable short hash per input row, so identical inputs can be traced/deduplicated."""
+        return [
+            hashlib.sha256(json.dumps(row, sort_keys=True, default=str).encode()).hexdigest()[:16]
+            for row in df.to_dict(orient="records")
+        ]
+
     def predict(self, data: Union[Dict, List]):
         try:
             if not self.is_model_loaded():
@@ -178,8 +182,7 @@ class ModelService:
                 results.append(label)
                 probs.append(float(np.max(probabilities[i])))
             
-            track_id = hashlib.md5(str(datetime.now()).encode()).hexdigest()[:8]
-            return results, probs, track_id
+            return results, probs, self._row_hashes(df)
             
         except Exception as e:
             logger.error("Prediction failed Detailed", error=str(e))

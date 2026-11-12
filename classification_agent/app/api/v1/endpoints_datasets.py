@@ -7,9 +7,12 @@ from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from pathlib import Path
+import asyncio
 import shutil
 import json
 import os
+
+from common.ttl_cache import TTLCache, file_cache_key
 
 from ...core.logging import get_logger
 from ...core.security import get_current_user, require_auth
@@ -19,8 +22,84 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-DATASETS_ROOT = Path(r"C:\Projetos\Q-OPSEC\classify_scheduler\datasets").resolve()
+DATASETS_ROOT = Path(
+    os.environ.get(
+        "QOPSEC_DATASETS_ROOT",
+        str(Path(__file__).resolve().parents[4] / "classify_scheduler" / "datasets"),
+    )
+).resolve()
 DATASETS_ROOT.mkdir(parents=True, exist_ok=True)
+
+_ANALYSIS_CACHE = TTLCache(max_entries=64)
+ANALYSIS_CACHE_TTL_SECONDS = float(os.environ.get("QOPSEC_DATASET_ANALYSIS_TTL_SECONDS", "300"))
+
+
+def _safe_path(*parts: str) -> Path:
+    """Resolve a path under DATASETS_ROOT, rejecting traversal (`..`, absolute paths)."""
+    path = DATASETS_ROOT.joinpath(*parts).resolve()
+    if path == DATASETS_ROOT or DATASETS_ROOT not in path.parents:
+        raise HTTPException(400, detail="Invalid dataset path")
+    return path
+
+
+def _existing_file(name: str, file: str) -> Path:
+    path = _safe_path(name, file)
+    if not path.is_file():
+        raise HTTPException(404, detail="File not found")
+    return path
+
+
+def _describe_dataset(directory: Path) -> "DatasetInfo":
+    files = [f for f in directory.iterdir() if f.is_file()]
+    stats = [f.stat() for f in files]
+    return DatasetInfo(
+        name=directory.name,
+        path=str(directory),
+        total_size_bytes=sum(st.st_size for st in stats),
+        files=[f.name for f in files],
+        modified_at=max((st.st_mtime for st in stats), default=directory.stat().st_mtime),
+    )
+
+
+def _list_datasets_sync() -> List["DatasetInfo"]:
+    return [_describe_dataset(p) for p in DATASETS_ROOT.iterdir() if p.is_dir()]
+
+
+def _cached_analysis(path: Path, kind: str, compute):
+    return _ANALYSIS_CACHE.get_or_set(file_cache_key(path, kind), lambda: compute(path), ANALYSIS_CACHE_TTL_SECONDS)
+
+
+def _compute_schema(path: Path) -> Dict[str, Any]:
+    df = _read_table(path)
+    return {
+        "columns": list(df.columns),
+        "dtypes": {col: str(df[col].dtype) for col in df.columns},
+        "shape": list(df.shape),
+        "null_counts": {col: int(df[col].isna().sum()) for col in df.columns},
+    }
+
+
+def _compute_stats(path: Path) -> Dict[str, Any]:
+    import pandas as pd
+
+    df = _read_table(path)
+    cat_cols = [
+        c for c in df.columns
+        if pd.api.types.is_object_dtype(df[c]) or pd.api.types.is_string_dtype(df[c])
+        or isinstance(df[c].dtype, pd.CategoricalDtype)
+    ]
+    return {
+        "describe_numeric": df.describe(include=["number"]).to_dict(),
+        "categorical_freqs": {c: df[c].value_counts().head(10).to_dict() for c in cat_cols},
+    }
+
+
+def _save_upload(source, dest: Path) -> int:
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    with tmp.open("wb") as out:
+        shutil.copyfileobj(source, out)
+    tmp.replace(dest)
+    return dest.stat().st_size
 
 
 
@@ -85,20 +164,7 @@ async def list_datasets(user=Depends(get_current_user)):
 
     Varre o diretório DATASETS_ROOT e retorna informações de cada dataset.
     """
-    datasets: List[DatasetInfo] = []
-    for p in DATASETS_ROOT.iterdir():
-        if p.is_dir():
-            files = [f.name for f in p.iterdir() if f.is_file()]
-            total = sum(f.stat().st_size for f in p.iterdir() if f.is_file())
-            modified = max((f.stat().st_mtime for f in p.iterdir() if f.is_file()), default=p.stat().st_mtime)
-            datasets.append(DatasetInfo(
-                name=p.name,
-                path=str(p),
-                total_size_bytes=total,
-                files=files,
-                modified_at=modified
-            ))
-    return datasets
+    return await asyncio.to_thread(_list_datasets_sync)
 
 
 @router.post(
@@ -131,7 +197,7 @@ async def create_dataset(payload: CreateDatasetRequest, user=Depends(require_aut
     Returns:
         Informações do dataset criado
     """
-    target = DATASETS_ROOT / payload.name
+    target = _safe_path(payload.name)
     if target.exists():
         raise HTTPException(409, detail="Dataset already exists")
     target.mkdir(parents=True, exist_ok=False)
@@ -161,13 +227,10 @@ async def get_dataset(name: str, user=Depends(get_current_user)):
     Returns:
         Informações do dataset (arquivos, tamanho, etc.)
     """
-    target = DATASETS_ROOT / name
-    if not target.exists() or not target.is_dir():
+    target = _safe_path(name)
+    if not target.is_dir():
         raise HTTPException(404, detail="Dataset not found")
-    files = [f.name for f in target.iterdir() if f.is_file()]
-    total = sum(f.stat().st_size for f in target.iterdir() if f.is_file())
-    modified = max((f.stat().st_mtime for f in target.iterdir() if f.is_file()), default=target.stat().st_mtime)
-    return DatasetInfo(name=name, path=str(target), total_size_bytes=total, files=files, modified_at=modified)
+    return await asyncio.to_thread(_describe_dataset, target)
 
 
 @router.delete(
@@ -196,20 +259,13 @@ async def delete_dataset(name: str, user=Depends(require_auth)):
         name: Nome do dataset
         user: Usuário autenticado
     """
-    target = DATASETS_ROOT / name
+    target = _safe_path(name)
     if not target.exists():
         return JSONResponse(status_code=204, content=None)
     if not target.is_dir():
         raise HTTPException(400, detail="Not a dataset directory")
 
-
-    for p in target.rglob("*"):
-        if p.is_file():
-            p.unlink(missing_ok=True)
-    for p in sorted(target.rglob("*"), reverse=True):
-        if p.is_dir():
-            p.rmdir()
-    target.rmdir()
+    await asyncio.to_thread(shutil.rmtree, target)
 
     logger.info("Dataset deleted", name=name)
     return JSONResponse(status_code=204, content=None)
@@ -267,22 +323,21 @@ async def upload_file(
     Returns:
         Status e informações do arquivo enviado
     """
-    target_dir = DATASETS_ROOT / name
-    if not target_dir.exists():
+    target_dir = _safe_path(name)
+    if not target_dir.is_dir():
         raise HTTPException(404, detail="Dataset not found")
 
-    dest = target_dir / file.filename
+    filename = Path(file.filename or "").name
+    if not filename:
+        raise HTTPException(400, detail="Invalid filename")
+    dest = _safe_path(name, filename)
     if dest.exists() and not override:
         raise HTTPException(409, detail="File already exists. Use override=true")
 
+    size_bytes = await asyncio.to_thread(_save_upload, file.file, dest)
 
-    tmp = dest.with_suffix(dest.suffix + ".part")
-    with tmp.open("wb") as out:
-        shutil.copyfileobj(file.file, out)
-    tmp.replace(dest)
-
-    logger.info("Dataset file uploaded", dataset=name, filename=file.filename, size_bytes=dest.stat().st_size)
-    return {"status": "ok", "filename": file.filename, "size_bytes": dest.stat().st_size}
+    logger.info("Dataset file uploaded", dataset=name, filename=filename, size_bytes=size_bytes)
+    return {"status": "ok", "filename": filename, "size_bytes": size_bytes}
 
 
 @router.get(
@@ -315,8 +370,8 @@ async def list_files(name: str, user=Depends(get_current_user)):
     Returns:
         Lista de nomes de arquivos
     """
-    target_dir = DATASETS_ROOT / name
-    if not target_dir.exists():
+    target_dir = _safe_path(name)
+    if not target_dir.is_dir():
         raise HTTPException(404, detail="Dataset not found")
     return {"files": [f.name for f in target_dir.iterdir() if f.is_file()]}
 
@@ -344,9 +399,7 @@ async def download_file(name: str, filename: str, user=Depends(get_current_user)
     Returns:
         Arquivo para download
     """
-    path = (DATASETS_ROOT / name / filename).resolve()
-    if not path.exists() or not path.is_file() or DATASETS_ROOT not in path.parents:
-        raise HTTPException(404, detail="File not found")
+    path = _existing_file(name, filename)
     return FileResponse(path, filename=filename)
 
 
@@ -370,8 +423,8 @@ async def delete_file(name: str, filename: str, user=Depends(require_auth)):
         filename: Nome do arquivo
         user: Usuário autenticado
     """
-    path = (DATASETS_ROOT / name / filename).resolve()
-    if not path.exists() or not path.is_file() or DATASETS_ROOT not in path.parents:
+    path = _safe_path(name, filename)
+    if not path.is_file():
         return JSONResponse(status_code=204, content=None)
     path.unlink(missing_ok=True)
     logger.info("Dataset file deleted", dataset=name, filename=filename)
@@ -411,11 +464,14 @@ async def set_metadata(name: str, metadata: Dict[str, Any], user=Depends(require
     Returns:
         Status da operação
     """
-    target = DATASETS_ROOT / name
-    if not target.exists():
+    target = _safe_path(name)
+    if not target.is_dir():
         raise HTTPException(404, detail="Dataset not found")
-    with (target / "metadata.json").open("w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    await asyncio.to_thread(
+        (target / "metadata.json").write_text,
+        json.dumps(metadata, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     logger.info("Dataset metadata updated", dataset=name)
     return {"status": "ok"}
 
@@ -454,8 +510,8 @@ async def get_metadata(name: str, user=Depends(get_current_user)):
     Returns:
         Metadados do dataset (ou objeto vazio se não existir)
     """
-    target = DATASETS_ROOT / name
-    if not target.exists():
+    target = _safe_path(name)
+    if not target.is_dir():
         raise HTTPException(404, detail="Dataset not found")
     meta_path = target / "metadata.json"
     if not meta_path.exists():
@@ -543,11 +599,9 @@ async def preview(
     Returns:
         Colunas, linhas e contagem
     """
-    path = (DATASETS_ROOT / name / file).resolve()
-    if not path.exists() or DATASETS_ROOT not in path.parents:
-        raise HTTPException(404, detail="File not found")
+    path = _existing_file(name, file)
     try:
-        df = _read_table(path, nrows=n)
+        df = await asyncio.to_thread(_read_table, path, n)
         return {
             "columns": list(df.columns),
             "rows": df.head(n).to_dict(orient="records"),
@@ -605,18 +659,9 @@ async def schema(
     Returns:
         Schema com colunas, tipos, shape e null counts
     """
-    path = (DATASETS_ROOT / name / file).resolve()
-    if not path.exists() or DATASETS_ROOT not in path.parents:
-        raise HTTPException(404, detail="File not found")
+    path = _existing_file(name, file)
     try:
-        df = _read_table(path)
-        inferred = {col: str(df[col].dtype) for col in df.columns}
-        return {
-            "columns": list(df.columns),
-            "dtypes": inferred,
-            "shape": list(df.shape),
-            "null_counts": {col: int(df[col].isna().sum()) for col in df.columns}
-        }
+        return await asyncio.to_thread(_cached_analysis, path, "schema", _compute_schema)
     except Exception as e:
         logger.error("Schema error", dataset=name, file=file, error=str(e))
         raise HTTPException(400, detail=f"Schema inference failed: {e}")
@@ -679,17 +724,9 @@ async def stats(
     Returns:
         Estatísticas numéricas e frequências categóricas
     """
-    path = (DATASETS_ROOT / name / file).resolve()
-    if not path.exists() or DATASETS_ROOT not in path.parents:
-        raise HTTPException(404, detail="File not found")
+    path = _existing_file(name, file)
     try:
-        import pandas as pd
-        df = _read_table(path)
-        desc_num = df.describe(include=["number"]).to_dict()
-
-        cat_cols = [c for c in df.columns if df[c].dtype == "object"]
-        cat_freqs = {c: df[c].value_counts().head(10).to_dict() for c in cat_cols}
-        return {"describe_numeric": desc_num, "categorical_freqs": cat_freqs}
+        return await asyncio.to_thread(_cached_analysis, path, "stats", _compute_stats)
     except Exception as e:
         logger.error("Stats error", dataset=name, file=file, error=str(e))
         raise HTTPException(400, detail=f"Stats failed: {e}")
@@ -750,12 +787,10 @@ async def validate_dataset(
     """
     if not model_service.is_model_loaded():
         raise HTTPException(503, detail="Model not loaded")
-    path = (DATASETS_ROOT / name / file).resolve()
-    if not path.exists() or DATASETS_ROOT not in path.parents:
-        raise HTTPException(404, detail="File not found")
+    path = _existing_file(name, file)
     try:
-        df = _read_table(path, nrows=200)
-        required = set(model_service.get_required_columns() or [])
+        df = await asyncio.to_thread(_read_table, path, 200)
+        required = set(model_service.required_columns or [])
         missing = [c for c in required if c not in df.columns]
         extra = [c for c in df.columns if c not in required] if required else []
         valid = len(missing) == 0

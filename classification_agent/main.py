@@ -1,4 +1,4 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+from common.observability import instrument_app
 
 import uvicorn
 from contextlib import asynccontextmanager
@@ -127,7 +127,4 @@ if __name__ == "__main__":
 
 
 
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
+instrument_app(app)

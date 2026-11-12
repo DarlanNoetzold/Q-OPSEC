@@ -1,5 +1,9 @@
 import asyncio
+import os
+import pickle
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -29,38 +33,49 @@ class ModelServiceUnitTests(unittest.TestCase):
         service.required_columns = ["score"]
         service.numeric_cols = ["score"]
 
-        labels, confidences, input_hash = service.predict({"score": 0.7})
+        labels, confidences, input_hashes = service.predict([{"score": 0.7}, {"score": 0.2}, {"score": 0.7}])
 
-        self.assertEqual(labels, ["low"])
-        self.assertEqual(confidences, [1.0])
-        self.assertRegex(input_hash, r"^[0-9a-f]{8}$")
+        self.assertEqual(labels, ["low", "low", "low"])
+        self.assertEqual(confidences, [1.0, 1.0, 1.0])
+        self.assertEqual(3, len(input_hashes))
+        for value in input_hashes:
+            self.assertRegex(value, r"^[0-9a-f]{16}$")
+        self.assertEqual(input_hashes[0], input_hashes[2])
+        self.assertNotEqual(input_hashes[0], input_hashes[1])
 
     def test_predict_without_loaded_model_raises_prediction_error(self):
         with self.assertRaisesRegex(PredictionError, "No model loaded"):
             ModelService().predict({"score": 0.7})
 
+    def _write_registry(self, root: Path) -> None:
+        (root / "v-test_demo").mkdir()
+        with open(root / "v-test_demo" / "model.pkl", "wb") as handle:
+            pickle.dump({"model": {"kind": "stub"}, "preprocessor": None}, handle)
+        (root / "latest.json").write_text(
+            '{"tag":"v-test","classes":["safe"],"required_columns":["score","device_type"],"saved_model_name":"demo"}'
+        )
+
     def test_load_latest_model_reads_registry_and_loads_artifact(self):
         service = ModelService()
-        artifact = {"model": object(), "preprocessor": None}
-        latest = '{"tag":"v-test","classes":["safe"],"required_columns":["score"],"saved_model_name":"demo"}'
-        model_info = {
-            "tag": "v-test", "classes": ["safe"], "required_columns": ["score"],
-            "saved_model_name": "demo"
-        }
-        path_exists = patch("app.services.model_service.Path.exists", return_value=True)
-        file_open = patch("app.services.model_service.open", create=True)
-        listdir = patch("app.services.model_service.os.listdir", side_effect=[["v-test"], ["model.pkl"]])
-        isdir = patch("app.services.model_service.os.path.isdir", return_value=True)
-        load_artifact = patch("app.services.model_service.pickle.load", return_value=artifact)
-        load_json = patch("app.services.model_service.json.load", return_value=model_info)
-
-        with path_exists, file_open as open_mock, listdir, isdir, load_artifact, load_json:
-            open_mock.return_value.__enter__.return_value.read.return_value = latest
-            loaded = asyncio.run(service.load_latest_model())
+        with tempfile.TemporaryDirectory() as directory:
+            self._write_registry(Path(directory))
+            with patch.dict(os.environ, {"QOPSEC_MODEL_REGISTRY": directory}):
+                loaded = asyncio.run(service.load_latest_model())
 
         self.assertTrue(loaded)
-        self.assertIs(service.model, artifact["model"])
+        self.assertEqual(service.model, {"kind": "stub"})
         self.assertEqual(service.classes, ["safe"])
-        self.assertEqual(service.required_columns, ["score"])
+        self.assertEqual(service.required_columns, ["score", "device_type"])
+        self.assertEqual(service.categorical_cols, ["device_type"])
+        self.assertEqual(service.numeric_cols, ["score"])
         self.assertEqual(service.model_name, "demo")
         self.assertEqual(service.model_version, "v-test")
+
+    def test_reload_is_skipped_when_registry_is_unchanged_unless_forced(self):
+        service = ModelService()
+        with tempfile.TemporaryDirectory() as directory:
+            self._write_registry(Path(directory))
+            with patch.dict(os.environ, {"QOPSEC_MODEL_REGISTRY": directory}):
+                self.assertTrue(asyncio.run(service.load_latest_model()))
+                self.assertFalse(asyncio.run(service.load_latest_model()))
+                self.assertTrue(asyncio.run(service.load_latest_model(force=True)))
