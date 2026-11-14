@@ -78,17 +78,45 @@ class PredictionApiIntegrationTests(unittest.TestCase):
         self.assertEqual(response.json()["n_records"], 0)
         self.manager.predict.assert_called_once_with([], model_names=None)
 
-    def test_requested_version_is_loaded_before_prediction(self):
-        response = self.client.post("/predict/", json={"single": {"features": {"amount": 17}}, "version": "v2"})
+    def test_requested_version_uses_isolated_manager(self):
+        versioned = Mock()
+        versioned.feature_names = ["amount"]
+        versioned.predict.return_value = {"version": "v2", "n_records": 1, "models": {}}
+
+        with patch("src.api.routes.prediction.get_versioned_manager", return_value=versioned) as loader:
+            response = self.client.post("/predict/", json={"single": {"features": {"amount": 17}}, "version": "v2"})
 
         self.assertEqual(response.status_code, 200, response.text)
-        self.manager.load.assert_called_once_with("v2")
-        self.manager.predict.assert_called_once()
+        loader.assert_called_once_with(self.manager, "v2")
+        versioned.predict.assert_called_once()
+        self.manager.predict.assert_not_called()
+        self.manager.load.assert_not_called()
+
+    def test_versioned_managers_are_cached_without_touching_shared_manager(self):
+        from src.api import dependencies
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            models_root = Path(tmp_dir) / "models"
+            for version in ("v1", "v2"):
+                version_dir = models_root / version
+                version_dir.mkdir(parents=True)
+                (version_dir / "feature_names.json").write_text(json.dumps(["amount"]))
+                (version_dir / "demo_metadata.json").write_text(json.dumps({"optimal_threshold": 0.5}))
+                joblib.dump(FixedProbabilityModel(), version_dir / "demo_model.pkl")
+            shared = ModelManager(models_root=str(models_root), eval_root=str(Path(tmp_dir) / "evaluation"))
+            shared.load()
+
+            first = dependencies.get_versioned_manager(shared, "v1")
+            second = dependencies.get_versioned_manager(shared, "v1")
+
+        self.assertEqual(shared.loaded_version, "v2")
+        self.assertEqual(first.loaded_version, "v1")
+        self.assertIs(first, second)
+        self.assertIs(dependencies.get_versioned_manager(shared, "v2"), shared)
 
     def test_model_version_load_failure_returns_internal_error(self):
-        self.manager.load.side_effect = FileNotFoundError("version absent")
-
-        with patch("src.api.routes.prediction.logger.exception"):
+        with patch("src.api.routes.prediction.get_versioned_manager", side_effect=FileNotFoundError("version absent")), \
+                patch("src.api.routes.prediction.logger.exception"):
             response = self.client.post("/predict/", json={"single": {"features": {"amount": 17}}, "version": "missing"})
 
         self.assertEqual(response.status_code, 500)

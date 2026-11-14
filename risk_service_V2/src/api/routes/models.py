@@ -4,28 +4,18 @@ from pathlib import Path
 import json
 import traceback
 
+from src.api.dependencies import get_manager as _load_manager
 from src.api.models.model_manager import ModelManager
 from src.common.logger import logger
 
 router = APIRouter()
 
-_manager: Optional[ModelManager] = None
 
 def get_manager() -> ModelManager:
-    global _manager
-    if _manager is None:
-        logger.info("Initializing ModelManager instance in get_manager()")
-        _manager = ModelManager()
-        try:
-            _manager.load()
-            logger.info(f"ModelManager loaded version: {_manager.loaded_version}")
-            logger.debug(f"Feature names loaded: {_manager.feature_names[:20] if isinstance(_manager.feature_names, list) else str(_manager.feature_names)[:200]}")
-        except Exception as e:
-            logger.exception("Failed to load models in get_manager()")
-            raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
-    else:
-        logger.debug("Using cached ModelManager instance in get_manager()")
-    return _manager
+    try:
+        return _load_manager()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
 
 @router.get("/feature_names")
 async def get_feature_names(manager: ModelManager = Depends(get_manager)):

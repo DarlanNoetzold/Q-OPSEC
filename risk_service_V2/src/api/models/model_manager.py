@@ -6,6 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from common.ttl_cache import file_cache_key
 from src.common.logger import logger
 
 
@@ -21,6 +22,7 @@ class ModelManager:
         self.feature_names: List[str] = []
         self.label_encoders = {}
         self.scaler = None
+        self._metrics_cache: Dict[str, Any] = {}
 
     def _get_latest_version_dir(self) -> Optional[Path]:
         if not self.models_root.exists():
@@ -455,8 +457,14 @@ class ModelManager:
         if not eval_path.exists():
             logger.warning(f"Metrics file not found for version {version}")
             return {}
+        key = file_cache_key(eval_path)
+        cached = self._metrics_cache.get(version)
+        if cached and cached[0] == key:
+            return cached[1]
         with open(eval_path, "r") as f:
-            return json.load(f)
+            metrics = json.load(f)
+        self._metrics_cache[version] = (key, metrics)
+        return metrics
 
     def get_dataset_summary(self) -> str:
         summary_path = Path("output/dataset_summary.txt")

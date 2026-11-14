@@ -1,23 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import Optional
 
+from src.api.dependencies import get_manager
 from src.api.models.model_manager import ModelManager
 from src.common.logger import logger
 
 router = APIRouter()
-
-_manager: Optional[ModelManager] = None
-
-def get_manager() -> ModelManager:
-    global _manager
-    if _manager is None:
-        _manager = ModelManager()
-        try:
-            _manager.load()
-        except Exception as e:
-            logger.exception("Failed to load models in get_manager (metrics)")
-            raise
-    return _manager
 
 @router.get("/versions")
 async def list_versions(manager: ModelManager = Depends(get_manager)):
@@ -36,6 +23,8 @@ async def get_latest_metrics(manager: ModelManager = Depends(get_manager)):
             "version": manager.loaded_version,
             "metrics": metrics
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception("Error fetching latest metrics")
         raise HTTPException(status_code=500, detail=str(e))
@@ -48,6 +37,8 @@ async def get_metrics_by_version(version: str, manager: ModelManager = Depends(g
         if not metrics:
             raise HTTPException(status_code=404, detail=f"Metrics not found for version {version}")
         return {"version": version, "metrics": metrics}
+    except HTTPException:
+        raise
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Version {version} not found")
     except Exception as e:

@@ -1,9 +1,25 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+
+from common.observability import instrument_app
+from src.api.dependencies import get_manager
 from src.api.routes import prediction, metrics, dataset_info, models
 from src.common.logger import logger
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    try:
+        await asyncio.to_thread(get_manager)
+    except Exception as e:
+        logger.warning(f"Model preload failed; will retry on first request: {e}")
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Fraud Detection Model API",
     description="""
 ## 🕵️ Fraud Detection Model API
@@ -93,7 +109,4 @@ app.include_router(models.router, prefix="/models", tags=["Models"])
 async def health_check():
     return {"status": "ok"}
 
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
+instrument_app(app)

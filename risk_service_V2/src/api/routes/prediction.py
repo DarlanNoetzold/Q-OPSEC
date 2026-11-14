@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from src.api.dependencies import get_manager, get_versioned_manager
 from src.api.models.model_manager import ModelManager
 from src.common.logger import logger
 
@@ -18,18 +19,20 @@ class PredictRequest(BaseModel):
     version: Optional[str] = None
     request_id: Optional[str] = None
 
-_manager: Optional[ModelManager] = None
+__all__ = ["router", "get_manager"]
 
-def get_manager() -> ModelManager:
-    global _manager
-    if _manager is None:
-        _manager = ModelManager()
-        try:
-            _manager.load()
-        except Exception as e:
-            logger.exception(f"Error loading models in get_manager: {e}")
-            raise
-    return _manager
+
+def _ensure_feature_list(manager: ModelManager) -> None:
+    if isinstance(manager.feature_names, list):
+        return
+    try:
+        if isinstance(manager.feature_names, dict) and "all_features" in manager.feature_names:
+            manager.feature_names = manager.feature_names["all_features"]
+        else:
+            manager.feature_names = list(manager.feature_names or [])
+    except Exception:
+        manager.feature_names = []
+
 
 @router.post("/")
 async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manager)):
@@ -50,25 +53,16 @@ async def predict(req: PredictRequest, manager: ModelManager = Depends(get_manag
 
         if req.version:
             try:
-                await asyncio.to_thread(manager.load, req.version)
+                manager = await asyncio.to_thread(get_versioned_manager, manager, req.version)
             except Exception as e:
                 logger.exception(f"Failed to load model version {req.version}: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to load model version {req.version}: {e}")
 
-        if not isinstance(manager.feature_names, list):
-            logger.debug(f"Coercing manager.feature_names from {type(manager.feature_names)} to list.")
-            try:
-                if isinstance(manager.feature_names, dict) and "all_features" in manager.feature_names:
-                    manager.feature_names = manager.feature_names["all_features"]
-                else:
-                    manager.feature_names = list(manager.feature_names or [])
-            except Exception:
-                manager.feature_names = []
-
-        print(f"[{req.request_id}] RISK_SERVICE | SUCCESS | Prediction completed", flush=True)
+        _ensure_feature_list(manager)
         logger.info(f"[{req.request_id}] Predict endpoint called: n_records={len(normalized_records)}; expected_features={len(manager.feature_names)}")
         result = await asyncio.to_thread(manager.predict, normalized_records, model_names=req.models)
-        
+        logger.info(f"[{req.request_id}] RISK_SERVICE | SUCCESS | Prediction completed")
+
         if isinstance(result, dict):
             result["request_id"] = req.request_id
             
