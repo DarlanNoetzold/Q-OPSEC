@@ -1,5 +1,3 @@
-from prometheus_fastapi_instrumentator import Instrumentator
-
 """
 Confiability Service V2 - Trust Engine Only
 """
@@ -167,18 +165,6 @@ API completa para avaliação contextual de confiança em informações.
 
     
 
-    @app.route('/metrics', endpoint='prometheus_metrics_final')
-
-    def metrics_final_func():
-
-        import prometheus_client
-
-        from flask import Response
-
-        return Response(prometheus_client.generate_latest(), mimetype='text/plain')
-
-    
-
     @app.route('/metrics', endpoint='prometheus_metrics_unique')
 
     def metrics_unique_func():
@@ -342,18 +328,6 @@ if __name__ == "__main__":
     print('     -d "{\\"payload\\": {\\"test\\": \\"data\\"}, \\"metadata\\": {\\"source_id\\": \\"test\\"}}"')
 
     print("=" * 70)
-
-
-
-    try:
-
-                        
-
-        Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
-
-    except Exception as e:
-
-        print(f'Monitoring Error: {e}')
 
 
 

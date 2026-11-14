@@ -9,10 +9,12 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 
+from common.http import SharedAsyncClient
 from common.ttl_cache import TTLCache
 
 from config import (
     KMS_BASE_URL,
+    INTERCEPTOR_BASE_URL,
     HTTP_TIMEOUT,
     AESGCM_NONCE_SIZE,
     CHACHA20_NONCE_SIZE,
@@ -21,23 +23,16 @@ from config import (
     HKDF_INFO_DECRYPT,
 )
 
-_HTTP_CLIENT: Optional[httpx.AsyncClient] = None
+_HTTP_CLIENT = SharedAsyncClient(timeout=HTTP_TIMEOUT)
 _KEY_CONTEXT_CACHE = TTLCache(max_entries=512)
 
 
 def get_http_client() -> httpx.AsyncClient:
-    """Reuse one connection pool instead of opening a client per request."""
-    global _HTTP_CLIENT
-    if _HTTP_CLIENT is None or _HTTP_CLIENT.is_closed:
-        _HTTP_CLIENT = httpx.AsyncClient(timeout=HTTP_TIMEOUT)
-    return _HTTP_CLIENT
+    return _HTTP_CLIENT.get()
 
 
 async def close_http_client() -> None:
-    global _HTTP_CLIENT
-    if _HTTP_CLIENT is not None and not _HTTP_CLIENT.is_closed:
-        await _HTTP_CLIENT.aclose()
-    _HTTP_CLIENT = None
+    await _HTTP_CLIENT.aclose()
 
 
 def b64e(data: bytes) -> str:
@@ -91,7 +86,7 @@ async def fetch_message_from_interceptor(request_id: str) -> dict:
     if not request_id:
         raise ValueError("request_id required to fetch message from Interceptor")
 
-    url = "http://localhost:8080/intercept/message"
+    url = f"{INTERCEPTOR_BASE_URL}/intercept/message"
     resp = await get_http_client().get(url, params={"request_id": request_id})
 
     if resp.status_code != 200:

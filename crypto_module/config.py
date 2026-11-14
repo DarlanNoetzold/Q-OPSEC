@@ -2,6 +2,8 @@ import os
 
 KMS_BASE_URL = os.getenv("KMS_BASE_URL", "http://localhost:8002")
 
+INTERCEPTOR_BASE_URL = os.getenv("INTERCEPTOR_BASE_URL", "http://localhost:8080")
+
 CONTEXT_API_BASE_URL = os.getenv("CONTEXT_API_BASE_URL", "http://localhost:8081")
 
 HTTP_TIMEOUT = float(os.getenv("CRYPTO_HTTP_TIMEOUT", "10.0"))

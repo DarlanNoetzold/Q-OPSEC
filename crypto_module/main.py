@@ -1,4 +1,6 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+import asyncio
+import logging
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -16,6 +18,9 @@ from crypto_engine import (
     close_http_client,
 )
 from config import HOST, PORT
+from common.observability import instrument_app
+
+logger = logging.getLogger("crypto_module")
 
 
 def _to_unix_ts(value) -> int:
@@ -145,8 +150,6 @@ async def _shutdown() -> None:
     """,
 )
 async def encrypt(req: EncryptRequest):
-    rid = req.request_id or "req-unknown"
-    print(f"[{rid}] Crypto Module: Encrypting payload...")
     """
     Encrypt plaintext data using session key from KMS.
 
@@ -157,6 +160,7 @@ async def encrypt(req: EncryptRequest):
     4. Performs AEAD encryption
     5. Returns nonce and ciphertext (both base64-encoded)
     """
+    logger.info("[%s] Crypto Module: Encrypting payload...", req.request_id or "req-unknown")
     try:
         if not req.session_id:
             raise ValueError("session_id is required to fetch key from KMS")
@@ -291,12 +295,13 @@ async def encrypt_by_request_id(body: EncryptByRequestId):
     in a single operation.
     """
     try:
-        intercepted = await fetch_message_from_interceptor(body.request_id)
+        intercepted, ctx = await asyncio.gather(
+            fetch_message_from_interceptor(body.request_id),
+            fetch_key_context(session_id=body.session_id, request_id=None),
+        )
         msg = intercepted.get("message")
         if msg is None:
             raise ValueError("Interceptor response missing 'message' field")
-
-        ctx = await fetch_key_context(session_id=body.session_id, request_id=None)
 
         aad = b64d(body.aad_b64) if body.aad_b64 else _default_aad(body.session_id, body.request_id, body.algorithm)
 
@@ -475,7 +480,4 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
 
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
+instrument_app(app)
