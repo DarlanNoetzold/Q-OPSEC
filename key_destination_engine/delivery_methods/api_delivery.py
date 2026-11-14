@@ -1,7 +1,20 @@
 import httpx
-from typing import Dict, Any, Tuple, Optional
-from config import API_TIMEOUT
+from typing import Dict, Any, Tuple
+from common.http import SharedAsyncClient, rewrite_host
+from config import API_TIMEOUT, DEFAULT_API_DESTINATION
 from models import DeliveryRequest
+
+SUPPORTED_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE", "GET"}
+_HTTP_CLIENT = SharedAsyncClient(timeout=API_TIMEOUT)
+
+
+def get_http_client() -> httpx.AsyncClient:
+    return _HTTP_CLIENT.get()
+
+
+async def close_http_client() -> None:
+    await _HTTP_CLIENT.aclose()
+
 
 def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], Dict[str, Any]]:
     method = "POST"
@@ -27,40 +40,23 @@ def _extract_from_metadata(req: DeliveryRequest) -> Tuple[str, Dict[str, str], D
     return method, headers, body
 
 async def deliver_via_api(req: DeliveryRequest, delivery_id: str):
-    url = req.destination
-
-    if not url:
-        url = "http://192.168.18.18:8005/validation/send"
-    
-    url_str = str(url)
-    if "10.0.0.5" in url_str:
-        url_str = url_str.replace("10.0.0.5", "192.168.18.18")
-        
-    if not url_str.lower().startswith(("http://", "https://")):
-        url_str = f"http://{url_str}"
-        
-    url = url_str
+    url = rewrite_host(str(req.destination or DEFAULT_API_DESTINATION))
+    if not url.lower().startswith(("http://", "https://")):
+        url = f"http://{url}"
 
     method, headers, body = _extract_from_metadata(req)
+    if method not in SUPPORTED_HTTP_METHODS:
+        return (
+            "failed",
+            f"Unsupported HTTP method: {method}",
+            {"delivery_id": delivery_id, "method": method},
+        )
 
     try:
-        async with httpx.AsyncClient(timeout=API_TIMEOUT) as client:
-            if method == "POST":
-                resp = await client.post(url, json=body, headers=headers)
-            elif method == "PUT":
-                resp = await client.put(url, json=body, headers=headers)
-            elif method == "PATCH":
-                resp = await client.patch(url, json=body, headers=headers)
-            elif method == "DELETE":
-                resp = await client.request("DELETE", url, json=body, headers=headers)
-            elif method == "GET":
-                resp = await client.get(url, params=body, headers=headers)
-            else:
-                return (
-                    "failed",
-                    f"Unsupported HTTP method: {method}",
-                    {"delivery_id": delivery_id, "method": method},
-                )
+        if method == "GET":
+            resp = await get_http_client().get(url, params=body, headers=headers)
+        else:
+            resp = await get_http_client().request(method, url, json=body, headers=headers)
 
         ok = 200 <= resp.status_code < 300
         if ok:

@@ -4,6 +4,7 @@ HOST = os.getenv("KDE_HOST", "0.0.0.0")
 PORT = int(os.getenv("KDE_PORT", "8003"))
 
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "30"))
+DEFAULT_API_DESTINATION = os.getenv("KDE_DEFAULT_API_DESTINATION", "http://192.168.18.18:8005/validation/send")
 MQTT_TIMEOUT = int(os.getenv("MQTT_TIMEOUT", "10"))
 HSM_TIMEOUT = int(os.getenv("HSM_TIMEOUT", "60"))
 

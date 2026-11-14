@@ -1,4 +1,5 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+import logging
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import Dict, Any
@@ -6,6 +7,9 @@ from typing import Dict, Any
 from models import DeliveryRequest, DeliveryResponse
 from destination_engine import deliver_key, queue_delivery, get_delivery_status, list_deliveries
 from config import HOST, PORT, SUPPORTED_METHODS
+from common.observability import instrument_app
+
+logger = logging.getLogger("key_destination_engine")
 
 app = FastAPI(
     title="OraculumPrisec Key Destination Engine",
@@ -26,8 +30,7 @@ async def root():
 
 @app.post("/deliver", response_model=DeliveryResponse)
 async def deliver(req: DeliveryRequest):
-    req_id = req.request_id or "req-unknown"
-    print(f"[{req_id}] KDE: Delivering key to {req.destination}")
+    logger.info("[%s] KDE: Delivering key to %s", req.request_id or "req-unknown", req.destination)
     result = await deliver_key(req)
 
     if result.status == "failed":
@@ -39,8 +42,7 @@ async def deliver(req: DeliveryRequest):
 @app.post("/deliver/async", response_model=DeliveryResponse, status_code=202)
 async def deliver_async(req: DeliveryRequest):
     """Accept the delivery and return immediately; poll /delivery/{delivery_id} for the outcome."""
-    req_id = req.request_id or "req-unknown"
-    print(f"[{req_id}] KDE: Queued delivery to {req.destination}")
+    logger.info("[%s] KDE: Queued delivery to %s", req.request_id or "req-unknown", req.destination)
     return queue_delivery(req)
 
 
@@ -61,6 +63,13 @@ async def list_all_deliveries() -> Dict[str, Any]:
     }
 
 
+@app.on_event("shutdown")
+async def _shutdown() -> None:
+    from delivery_methods.api_delivery import close_http_client
+
+    await close_http_client()
+
+
 @app.get("/health")
 async def health_check():
     return {
@@ -73,7 +82,4 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
 
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
+instrument_app(app)
