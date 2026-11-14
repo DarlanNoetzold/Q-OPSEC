@@ -60,11 +60,11 @@ class HandshakeNegotiatorIntegrationTests(unittest.TestCase):
         self.assertEqual("2.3.0", data["version"])
         self.assertIn("/handshake", data["endpoints"].values())
 
-    @patch("main.httpx.AsyncClient")
+    @patch("main.get_http_client")
     def test_handshake_orchestration_happy_path(self, mock_client_cls):
         # Configure mock async client to respond to KMS, KDE, Crypto, Validation
         mock_client = AsyncMock()
-        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client_cls.return_value = mock_client
 
         def post_side_effect(url, **kwargs):
             resp = MagicMock()
@@ -107,10 +107,10 @@ class HandshakeNegotiatorIntegrationTests(unittest.TestCase):
         self.assertIn("kde", data["delivery_status"])
         self.assertIn("validation", data["delivery_status"])
 
-    @patch("main.httpx.AsyncClient")
+    @patch("main.get_http_client")
     def test_handshake_kms_failure_returns_500(self, mock_client_cls):
         mock_client = AsyncMock()
-        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client_cls.return_value = mock_client
 
         failing_resp = MagicMock()
         failing_resp.status_code = 503
@@ -127,11 +127,11 @@ class HandshakeNegotiatorIntegrationTests(unittest.TestCase):
         self.assertEqual(500, response.status_code)
         self.assertIn("Erro ao criar chave no KMS", response.json()["detail"])
 
-    @patch("main.httpx.AsyncClient")
+    @patch("main.get_http_client")
     def test_handshake_resilience_when_crypto_returns_non_200(self, mock_client_cls):
         # Even if crypto fails or returns non-200, handshake should complete and report status
         mock_client = AsyncMock()
-        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client_cls.return_value = mock_client
 
         def post_side_effect(url, **kwargs):
             resp = MagicMock()

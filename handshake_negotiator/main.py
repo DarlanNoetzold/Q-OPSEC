@@ -1,14 +1,36 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+import asyncio
+import json
+import logging
+
 import httpx
 import uvicorn
-import logging
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 
 from urllib.parse import urlsplit, urlunsplit
 
+from common.http import SharedAsyncClient, rewrite_host
+from common.observability import instrument_app
+from config import (
+    CRYPTO_TIMEOUT,
+    CRYPTO_URL,
+    KDE_TIMEOUT,
+    KDE_URL,
+    KEY_TTL_SECONDS,
+    KMS_TIMEOUT,
+    KMS_URL,
+    VALIDATION_TIMEOUT,
+    VALIDATION_URL,
+)
 from models import NegotiationRequest, NegotiationResponse
 from negotiator import negotiate_algorithms
+
+logger = logging.getLogger("handshake_negotiator")
+_HTTP_CLIENT = SharedAsyncClient(timeout=KDE_TIMEOUT)
+
+
+def get_http_client() -> httpx.AsyncClient:
+    return _HTTP_CLIENT.get()
 
 app = FastAPI(
     title="Handshake Negotiator",
@@ -55,10 +77,11 @@ Cliente → Handshake → KMS → KDE → Crypto → Validation → Receptor
     ],
 )
 
-KMS_URL = "http://192.168.18.18:8002/kms/create_key"
-KDE_URL = "http://192.168.18.18:8003/deliver"
-CRYPTO_URL = "http://192.168.18.18:8004/encrypt/by-request-id"
-VALIDATION_URL = "http://192.168.18.18:8005/validation/send"
+
+
+@app.on_event("shutdown")
+async def _close_http_client() -> None:
+    await _HTTP_CLIENT.aclose()
 
 
 def normalize_destination(dest: str) -> str:
@@ -182,7 +205,7 @@ Retorna objeto completo com:
                         "fallback_reason": "KYBER1024 not available",
                         "source_of_key": "classical",
                         "message": "Negotiation completed with fallback: KYBER1024 -> AES256_GCM",
-                        "delivery_status": "{'kde': {...}, 'validation': {...}}",
+                        "delivery_status": "{\"kde\": {...}, \"validation\": {...}}",
                         "crypto_nonce_b64": "MTIzNDU2Nzg5MDEy",
                         "crypto_ciphertext_b64": "ZW5jcnlwdGVkX2RhdGE=",
                         "crypto_algorithm": "AES256_GCM",
@@ -200,151 +223,116 @@ Retorna objeto completo com:
     },
 )
 async def handshake(req: NegotiationRequest):
-    req_id = req.request_id or "req-unknown"
-    print(f"[{req_id}] Handshake: Processing request from {req.source}")
     """
     Executa o handshake completo de negociação criptográfica.
 
-    Este endpoint orquestra todo o fluxo de:
-    - Negociação de algoritmo
-    - Criação de chave no KMS
-    - Entrega de chave via KDE
-    - Criptografia da mensagem
-    - Validação e envio para o receptor
-
-    Args:
-        req: Objeto NegotiationRequest contendo algoritmos propostos e destino
-
-    Returns:
-        NegotiationResponse com todos os dados do handshake completado
-
-    Raises:
-        HTTPException: Se algum serviço integrado falhar
+    Fluxo: negociação -> KMS -> (KDE || Crypto) -> Validation. A entrega da chave (KDE)
+    e a criptografia (Crypto) são independentes e rodam em paralelo.
     """
     request_id = req.request_id or f"req_{uuid4()}"
-    logging.info(f"[{request_id}] Handshake started: proposed={req.proposed}")
+    logger.info("[%s] Handshake started: source=%s proposed=%s", request_id, req.source, req.proposed)
 
     requested_alg = req.proposed[0] if req.proposed else "UNKNOWN"
     chosen_alg, session_id, _, _ = negotiate_algorithms(req)
 
+    key_data = await _create_key(session_id, request_id, chosen_alg)
+    selected_alg = key_data.get("selected_algorithm", chosen_alg)
+    fallback_applied = key_data.get("fallback_applied", False)
+    destination = normalize_destination(rewrite_host(req.destination)) if req.destination else req.destination
 
-    kms_payload = {
-        "session_id": session_id,
-        "request_id": request_id,
-        "algorithm": chosen_alg,
-        "ttl_seconds": 300
-    }
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        kms_resp = await client.post(KMS_URL, json=kms_payload)
-    if kms_resp.status_code != 200:
-        raise HTTPException(status_code=500, detail=f"Erro ao criar chave no KMS: {kms_resp.text}")
-    try:
-        key_data = kms_resp.json()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Resposta inválida do KMS: {e}")
-
-    actual_selected = key_data.get("selected_algorithm", chosen_alg)
-    actual_fallback = key_data.get("fallback_applied", False)
-    actual_reason = key_data.get("fallback_reason")
-    actual_source = key_data.get("source_of_key", "unknown")
-
-    message = (
-        f"Negotiation completed with fallback: {requested_alg} -> {actual_selected}"
-        if actual_fallback else
-        "Negotiation completed successfully"
+    kde_data, crypto = await asyncio.gather(
+        _deliver_key(key_data, request_id, destination, selected_alg),
+        _encrypt_message(key_data, request_id, selected_alg),
     )
-
-    raw_dest = req.destination
-    if raw_dest and "10.0.0.5" in raw_dest:
-        raw_dest = raw_dest.replace("10.0.0.5", "192.168.18.18")
-    normalized_dest = normalize_destination(raw_dest)
-    delivery_payload = {
-        "session_id": key_data["session_id"],
-        "request_id": request_id,
-        "destination": normalized_dest,
-        "delivery_method": "API",
-        "key_material": key_data["key_material"],
-        "algorithm": actual_selected,
-        "expires_at": key_data["expires_at"]
-    }
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        kde_resp = await client.post(KDE_URL, json=delivery_payload)
-    if kde_resp.status_code != 200:
-        kde_data = {"error": f"HTTP {kde_resp.status_code}", "body": kde_resp.text}
-    else:
-        try:
-            kde_data = kde_resp.json()
-        except Exception:
-            kde_data = {"raw": kde_resp.text}
-
-    crypto_payload = {
-        "request_id": request_id,
-        "session_id": key_data["session_id"],
-        "algorithm": actual_selected
-    }
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        crypto_resp = await client.post(CRYPTO_URL, json=crypto_payload)
-
-    crypto_nonce_b64 = None
-    crypto_ciphertext_b64 = None
-    crypto_algorithm = None
-    crypto_expires_at = None
-
-    if crypto_resp.status_code == 200:
-        try:
-            c = crypto_resp.json()
-            crypto_nonce_b64 = c.get("nonce_b64")
-            crypto_ciphertext_b64 = c.get("ciphertext_b64")
-            crypto_algorithm = c.get("algorithm")
-            crypto_expires_at = c.get("expires_at")
-        except Exception:
-            pass
-
-    validation_data: dict | str
-    if crypto_nonce_b64 and crypto_ciphertext_b64:
-        validation_payload = {
-            "requestId": request_id,
-            "sessionId": key_data["session_id"],
-            "selectedAlgorithm": actual_selected,
-            "cryptoNonceB64": crypto_nonce_b64,
-            "cryptoCiphertextB64": crypto_ciphertext_b64,
-            "cryptoAlgorithm": crypto_algorithm or actual_selected,
-            "cryptoExpiresAt": crypto_expires_at,
-            "sourceId": getattr(req, "source_id", None),
-            "originUrl": normalized_dest
-        }
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            v_resp = await client.post(VALIDATION_URL, json=validation_payload)
-        if v_resp.status_code != 200:
-            validation_data = {"error": f"HTTP {v_resp.status_code}", "body": v_resp.text}
-        else:
-            try:
-                validation_data = v_resp.json()
-            except Exception:
-                validation_data = {"raw": v_resp.text}
-    else:
-        validation_data = {"skip": "no crypto output available"}
+    validation_data = await _send_validation(req, key_data, request_id, selected_alg, destination, crypto)
 
     return NegotiationResponse(
         request_id=request_id,
         session_id=key_data["session_id"],
         requested_algorithm=requested_alg,
-        selected_algorithm=actual_selected,
+        selected_algorithm=selected_alg,
         key_material=key_data["key_material"],
         expires_at=key_data["expires_at"],
-        fallback_applied=actual_fallback,
-        fallback_reason=actual_reason,
-        source_of_key=actual_source,
-        message=message,
-        delivery_status=str({
-            "kde": kde_data,
-            "validation": validation_data
-        }),
-        crypto_nonce_b64=crypto_nonce_b64,
-        crypto_ciphertext_b64=crypto_ciphertext_b64,
-        crypto_algorithm=crypto_algorithm,
-        crypto_expires_at=crypto_expires_at,
+        fallback_applied=fallback_applied,
+        fallback_reason=key_data.get("fallback_reason"),
+        source_of_key=key_data.get("source_of_key", "unknown"),
+        message=(
+            f"Negotiation completed with fallback: {requested_alg} -> {selected_alg}"
+            if fallback_applied else
+            "Negotiation completed successfully"
+        ),
+        delivery_status=json.dumps({"kde": kde_data, "validation": validation_data}, default=str),
+        crypto_nonce_b64=crypto.get("nonce_b64"),
+        crypto_ciphertext_b64=crypto.get("ciphertext_b64"),
+        crypto_algorithm=crypto.get("algorithm"),
+        crypto_expires_at=crypto.get("expires_at"),
     )
+
+
+def _response_body(resp: httpx.Response) -> dict:
+    if resp.status_code != 200:
+        return {"error": f"HTTP {resp.status_code}", "body": resp.text}
+    try:
+        return resp.json()
+    except Exception:
+        return {"raw": resp.text}
+
+
+async def _create_key(session_id: str, request_id: str, algorithm: str) -> dict:
+    payload = {
+        "session_id": session_id,
+        "request_id": request_id,
+        "algorithm": algorithm,
+        "ttl_seconds": KEY_TTL_SECONDS,
+    }
+    resp = await get_http_client().post(KMS_URL, json=payload, timeout=KMS_TIMEOUT)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Erro ao criar chave no KMS: {resp.text}")
+    try:
+        return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resposta inválida do KMS: {e}")
+
+
+async def _deliver_key(key_data: dict, request_id: str, destination: str, algorithm: str) -> dict:
+    payload = {
+        "session_id": key_data["session_id"],
+        "request_id": request_id,
+        "destination": destination,
+        "delivery_method": "API",
+        "key_material": key_data["key_material"],
+        "algorithm": algorithm,
+        "expires_at": key_data["expires_at"],
+    }
+    return _response_body(await get_http_client().post(KDE_URL, json=payload, timeout=KDE_TIMEOUT))
+
+
+async def _encrypt_message(key_data: dict, request_id: str, algorithm: str) -> dict:
+    payload = {"request_id": request_id, "session_id": key_data["session_id"], "algorithm": algorithm}
+    resp = await get_http_client().post(CRYPTO_URL, json=payload, timeout=CRYPTO_TIMEOUT)
+    if resp.status_code != 200:
+        return {}
+    try:
+        return resp.json() or {}
+    except Exception:
+        return {}
+
+
+async def _send_validation(req, key_data: dict, request_id: str, algorithm: str, destination: str, crypto: dict):
+    if not (crypto.get("nonce_b64") and crypto.get("ciphertext_b64")):
+        return {"skip": "no crypto output available"}
+    payload = {
+        "requestId": request_id,
+        "sessionId": key_data["session_id"],
+        "selectedAlgorithm": algorithm,
+        "cryptoNonceB64": crypto["nonce_b64"],
+        "cryptoCiphertextB64": crypto["ciphertext_b64"],
+        "cryptoAlgorithm": crypto.get("algorithm") or algorithm,
+        "cryptoExpiresAt": crypto.get("expires_at"),
+        "sourceId": getattr(req, "source_id", None),
+        "originUrl": destination,
+    }
+    return _response_body(await get_http_client().post(VALIDATION_URL, json=payload, timeout=VALIDATION_TIMEOUT))
 
 
 @app.get(
@@ -417,7 +405,4 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
 
 
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
+instrument_app(app)
