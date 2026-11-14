@@ -1,4 +1,3 @@
-from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 import os
 import uvicorn
@@ -11,6 +10,7 @@ from hardware_profiler import get_hardware_summary, get_hardware_profile, run_al
 from crypto.pqc import OQS_AVAILABLE, PQC_AVAILABLE
 from crypto.quantum import is_qkd_enabled
 from quantum_gateway.netsquid_adapter import get_netsquid_status
+from common.observability import instrument_app
 from common.ttl_cache import TTLCache
 
 logging.basicConfig(
@@ -209,6 +209,9 @@ def health_check():
     }
 
 
+instrument_app(app)
+
+
 if __name__ == "__main__":
     logger.info("=" * 60)
     logger.info("Q-OPSEC KMS v3.0.0")
@@ -217,10 +220,3 @@ if __name__ == "__main__":
     logger.info("=" * 60)
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
 
-# Monitoring
-
-# AUTO-GENERATED MONITORING
-try:
-    Instrumentator().instrument(app).expose(app)
-except Exception as e:
-    print(f'Monitoring Error: {e}')
