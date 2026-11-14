@@ -1,25 +1,34 @@
-from prometheus_fastapi_instrumentator import Instrumentator
+import logging
+import os
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from pathlib import Path
 from typing import Dict, Any, Optional
+from common.observability import instrument_app
 from service import ImprovedRLEngineService
 from negotiator_client import send_to_handshake
-import traceback
+
+logger = logging.getLogger("rl_engine")
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
 
 
 class Settings:
-    host: str = "0.0.0.0"
-    port: int = 9009
-    debug: bool = False
-    log_level: str = "info"
-    registry_path: str = "./rl_registry.json"
-    handshake_url: str = "http://127.0.0.1:8001/handshake"
+    host: str = os.getenv("RL_HOST", "0.0.0.0")
+    port: int = int(os.getenv("RL_PORT", "9009"))
+    debug: bool = _env_bool("RL_DEBUG", False)
+    log_level: str = os.getenv("RL_LOG_LEVEL", "info")
+    registry_path: str = os.getenv("RL_REGISTRY_PATH", "./rl_registry.json")
+    handshake_url: str = os.getenv("RL_HANDSHAKE_URL", "http://127.0.0.1:8001/handshake")
+    policy_dir: str = os.getenv("RL_POLICY_DIR", ".")
 
-    use_dqn: bool = False
-    policy_type: str = "context_aware"
-    training_mode: bool = True
+    use_dqn: bool = _env_bool("RL_USE_DQN", False)
+    policy_type: str = os.getenv("RL_POLICY_TYPE", "context_aware")
+    training_mode: bool = _env_bool("RL_TRAINING_MODE", True)
 
 
 settings = Settings()
@@ -30,8 +39,16 @@ app = FastAPI(
     version="2.0.0"
 )
 
-from prometheus_fastapi_instrumentator import Instrumentator
-Instrumentator().instrument(app).expose(app, endpoint='/metrics')
+instrument_app(app)
+
+
+def _policy_path(path: str) -> Path:
+    """Policy files may only live under RL_POLICY_DIR (no arbitrary filesystem access)."""
+    base = Path(settings.policy_dir).resolve()
+    target = (base / path).resolve()
+    if target != base and base not in target.parents:
+        raise HTTPException(status_code=400, detail=f"Policy path must be inside {base}")
+    return target
 
 rl_service = ImprovedRLEngineService(
     registry_path=Path(settings.registry_path),
@@ -95,27 +112,23 @@ class FeedbackRequest(BaseModel):
 def act(req: ContextRequest):
     request_id = req.request_id or "req-unknown"
     try:
-        print(f"\n{'=' * 60}")
-        print(f"[{request_id}] RL Agent: Received request")
-        print(f"  source: {req.source} -> destination: {req.destination}")
-        print(f"  risk_score: {req.risk_score}")
-        print(f"{'=' * 60}\n")
+        logger.info("[%s] RL Agent: %s -> %s risk_score=%s",
+                    request_id, req.source, req.destination, req.risk_score)
 
         # Sincronização PhD para o orquestrador capturar o retorno
         req_dict = req.model_dump()
         req_dict["request_id"] = request_id
         req_dict["requestId"] = request_id
 
-        print(f"[{request_id}] RL DEBUG: Building payload...")
         try:
             payload = rl_service.build_negotiation_payload(req_dict)
             payload["request_id"] = request_id
             payload["requestId"] = request_id
         except Exception as e_build:
-            print(f"[{request_id}] RL ERROR during build_payload: {str(e_build)}")
+            logger.exception("[%s] RL payload build failed", request_id)
             raise HTTPException(status_code=500, detail=f"RL Payload build failed: {str(e_build)}")
 
-        print(f"[{request_id}] RL DEBUG: Sending to Handshake: {settings.handshake_url}")
+        logger.debug("[%s] Sending to handshake: %s", request_id, settings.handshake_url)
         result = send_to_handshake(settings.handshake_url, payload)
 
         if "success" in result:
@@ -134,13 +147,7 @@ def act(req: ContextRequest):
         }
 
     except Exception as e:
-        print(f"\\n{'!' * 60}")
-        print(f"ERROR: Exception occurred")
-        print(f"  Error message: {str(e)}")
-        print(f"  Error type: {type(e).__name__}")
-        print(f"\\nFull traceback:")
-        traceback.print_exc()
-        print(f"{'!' * 60}\\n")
+        logger.exception("[%s] RL /act failed", request_id)
 
         # Process failure feedback
         outcome = {
@@ -150,8 +157,8 @@ def act(req: ContextRequest):
         }
         try:
             rl_service.process_feedback(req.request_id, outcome)
-        except:
-            pass
+        except Exception:
+            logger.warning("[%s] Failed to record failure feedback", request_id, exc_info=True)
 
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -233,8 +240,9 @@ def disable_training():
          summary="Export learned policy",
          description="Export learned policy to file")
 def export_policy(path: str = "./exported_policy.json"):
+    target = _policy_path(path)
     try:
-        rl_service.export_policy(Path(path))
+        rl_service.export_policy(target)
         return {
             "status": "policy_exported",
             "path": path
@@ -247,8 +255,9 @@ def export_policy(path: str = "./exported_policy.json"):
           summary="Import learned policy",
           description="Import learned policy from file")
 def import_policy(path: str = "./exported_policy.json"):
+    target = _policy_path(path)
     try:
-        rl_service.import_policy(Path(path))
+        rl_service.import_policy(target)
         return {
             "status": "policy_imported",
             "path": path
@@ -311,12 +320,6 @@ if __name__ == "__main__":
     print(f"Registry Path: {settings.registry_path}")
     print(f"Handshake URL: {settings.handshake_url}")
     print("=" * 60)
-
-    try:
-        Instrumentator().instrument(app).expose(app, endpoint='/metrics', should_gzip=True)
-
-    except Exception as e:
-        print(f'Monitoring Error: {e}')
 
     uvicorn.run(
         app,

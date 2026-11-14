@@ -1,6 +1,8 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from pathlib import Path
 import json
+import os
+import threading
 from environment import (
     EnhancedEnvironment, CryptoAlgorithm, SecurityLevel,
     map_security_level
@@ -10,10 +12,12 @@ from policies import (
     EpsilonGreedyPolicy, BoltzmannPolicy, UCBPolicy,
     AdaptivePolicy, ContextAwarePolicy, SafeExplorationPolicy
 )
-from registry import RLRegistry
+from registry import RLRegistry, write_json_atomic
 
 
 class ImprovedRLEngineService:
+
+    MAX_EPISODE_EXPERIENCES = int(os.getenv("RL_MAX_EPISODE_EXPERIENCES", "10000"))
 
     # Public names shared by RL, handshake and KMS.  Keep the internal enum
     # names separate so persisted Q-tables remain backward compatible.
@@ -71,6 +75,7 @@ class ImprovedRLEngineService:
         self.training_mode = True
 
         self.current_episode_experiences = []
+        self._experiences_lock = threading.RLock()
         self.episode_count = 0
 
         self.metrics = {
@@ -161,13 +166,18 @@ class ImprovedRLEngineService:
         algorithms = self._build_algorithm_list(selected_algo, features)
 
         if self.training_mode:
-            self.current_episode_experiences.append({
-                'state': state_hash,
-                'action': action_idx,
-                'features': features,
-                'security_level': security_level,
-                'context': context
-            })
+            with self._experiences_lock:
+                self.current_episode_experiences.append({
+                    'request_id': context.get('request_id'),
+                    'state': state_hash,
+                    'action': action_idx,
+                    'features': features,
+                    'security_level': security_level,
+                    'context': context
+                })
+                overflow = len(self.current_episode_experiences) - self.MAX_EPISODE_EXPERIENCES
+                if overflow > 0:
+                    del self.current_episode_experiences[:overflow]
 
         self.metrics['total_requests'] += 1
         self.metrics['algorithm_usage'][selected_algo.value] += 1
@@ -248,10 +258,12 @@ class ImprovedRLEngineService:
             request_id: Request identifier
             outcome: Outcome dictionary with success, latency, etc.
         """
-        if not self.training_mode or not self.current_episode_experiences:
+        if not self.training_mode:
             return
 
-        experience = self.current_episode_experiences[-1]
+        experience = self._find_experience(request_id)
+        if experience is None:
+            return
 
         reward = self.env.compute_reward(
             self.env.actions[experience['action']],
@@ -260,6 +272,7 @@ class ImprovedRLEngineService:
             outcome
         )
 
+        experience['reward'] = reward
         state = experience['state']
         action = experience['action']
 
@@ -287,6 +300,17 @@ class ImprovedRLEngineService:
                 (1 - alpha) * self.metrics['average_reward'] + alpha * reward
         )
 
+    def _find_experience(self, request_id: Optional[str]) -> Optional[Dict[str, Any]]:
+        """Match feedback to the decision that produced it; fall back to the latest one."""
+        with self._experiences_lock:
+            if not self.current_episode_experiences:
+                return None
+            if request_id:
+                for experience in reversed(self.current_episode_experiences):
+                    if experience.get('request_id') == request_id:
+                        return experience
+            return self.current_episode_experiences[-1]
+
     def end_episode(self):
         if not self.training_mode:
             return
@@ -296,17 +320,17 @@ class ImprovedRLEngineService:
         if hasattr(self.policy, 'decay'):
             self.policy.decay()
 
+        with self._experiences_lock:
+            experiences, self.current_episode_experiences = self.current_episode_experiences, []
+
         if isinstance(self.policy, AdaptivePolicy):
-            episode_reward = sum(
-                exp.get('reward', 0) for exp in self.current_episode_experiences
-            )
+            episode_reward = sum(exp.get('reward', 0) for exp in experiences)
             self.policy.update_strategy(episode_reward)
 
         q_table = self.agent.get_q_table()
         if q_table:
             self.registry.save(q_table)
 
-        self.current_episode_experiences = []
         self.episode_count += 1
 
     def set_training_mode(self, enabled: bool):
@@ -355,8 +379,7 @@ class ImprovedRLEngineService:
             }
         }
 
-        with open(path, 'w') as f:
-            json.dump(policy_data, f, indent=2)
+        write_json_atomic(path, policy_data, indent=2)
 
     def import_policy(self, path: Path):
         with open(path, 'r') as f:

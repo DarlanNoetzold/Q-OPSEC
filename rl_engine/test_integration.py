@@ -21,6 +21,15 @@ class RLEngineAPIIntegrationTests(unittest.TestCase):
         self.addCleanup(setattr, main, "rl_service", self.original_service)
         self.client = TestClient(main.app)
 
+    def test_policy_export_rejects_paths_outside_policy_dir(self):
+        with patch.object(main.settings, "policy_dir", self.temp_directory.name):
+            rejected = self.client.get("/policy/export", params={"path": "../../escape.json"})
+            accepted = self.client.get("/policy/export", params={"path": "policy.json"})
+
+        self.assertEqual(400, rejected.status_code)
+        self.assertEqual(200, accepted.status_code)
+        self.assertTrue((Path(self.temp_directory.name) / "policy.json").exists())
+
     def test_health_endpoint_reports_service_version_and_policy(self):
         response = self.client.get("/health")
 

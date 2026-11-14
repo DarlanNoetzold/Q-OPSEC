@@ -27,6 +27,28 @@ class ImprovedRLEngineServiceTests(unittest.TestCase):
         self.assertIn("AES256_GCM", result)
         self.assertEqual(1, self.service.get_metrics()["total_requests"])
 
+    def test_feedback_is_matched_to_its_own_request_id(self):
+        for request_id in ("req-a", "req-b"):
+            self.service.decide_algorithms({
+                "request_id": request_id,
+                "source": "source-a",
+                "security_level": "HIGH",
+                "risk_score": 0.85,
+                "conf_score": 0.8,
+                "dst_props": {},
+            })
+
+        self.service.process_feedback("req-a", {"success": True, "latency": 10.0, "resource_usage": 0.2})
+
+        by_id = {exp["request_id"]: exp for exp in self.service.current_episode_experiences}
+        self.assertIn("reward", by_id["req-a"])
+        self.assertNotIn("reward", by_id["req-b"])
+
+    def test_registry_save_is_atomic_and_leaves_no_temp_files(self):
+        self.service.registry.save({"state": {"0": 1.0}})
+        self.assertEqual({"state": {"0": 1.0}}, self.service.registry.load())
+        self.assertEqual(["registry.json"], sorted(p.name for p in Path(self.temp_directory.name).iterdir()))
+
     def test_feedback_updates_learning_metrics_and_episode_persists_table(self):
         self.service.decide_algorithms({
             "source": "source-a",
