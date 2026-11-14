@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import time
 from typing import Any, Awaitable, Callable
@@ -41,9 +40,7 @@ class RabbitMQJobQueue:
         self._queues: list[Any] = []
         self._consumer_tags: list[tuple[Any, str]] = []
         self._consumer_tag = None
-        self._consumer_task: asyncio.Task | None = None
         self._consumer_stopping = False
-        self._local_counts = {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
 
     async def start(self) -> None:
         if self._connection is not None and not self._connection.is_closed:
@@ -75,12 +72,6 @@ class RabbitMQJobQueue:
             await queue.cancel(consumer_tag)
         self._consumer_tags = []
         self._consumer_tag = None
-        if self._consumer_task is not None:
-            try:
-                await self._consumer_task
-            except asyncio.CancelledError:
-                pass
-            self._consumer_task = None
         if self._connection is not None and not self._connection.is_closed:
             await self._connection.close()
         self._connection = self._channel = self._queue = None
@@ -115,7 +106,6 @@ class RabbitMQJobQueue:
         except Exception:
             await self._update(job_id, "failed", error="Failed to publish job to RabbitMQ")
             raise
-        self._local_counts["queued"] += 1
         return job_id
 
     async def get(self, job_id: str) -> dict[str, Any] | None:
@@ -127,10 +117,9 @@ class RabbitMQJobQueue:
         return json.loads(raw)
 
     async def stats(self) -> dict[str, int]:
-        keys = [key async for key in self._redis.scan_iter(match="qopsec:jobs:*")]
+        keys = [key async for key in self._redis.scan_iter(match=self._status_key("*"))]
         counts = {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
-        for key in keys:
-            raw = await self._redis.get(key)
+        for raw in (await self._redis.mget(keys) if keys else []):
             if raw is None:
                 continue
             if isinstance(raw, bytes):

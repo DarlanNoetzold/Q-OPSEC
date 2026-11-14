@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import os
 import time
 from collections import OrderedDict
 from copy import deepcopy
 from threading import RLock
 from typing import Any, Callable
+
+
+def file_cache_key(path: str | os.PathLike[str], *extra: Any) -> str:
+    """Cache key that changes whenever the file is modified, so stale reads invalidate themselves."""
+    stat = os.stat(path)
+    parts = [os.fspath(path), str(stat.st_mtime_ns), str(stat.st_size), *map(str, extra)]
+    return "|".join(parts)
 
 
 class TTLCache:
