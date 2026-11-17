@@ -12,7 +12,7 @@
 param([switch]$SkipServices)
 
 $ErrorActionPreference = 'Stop'
-$InstallDir  = Split-Path -Parent $PSScriptRoot
+$InstallDir  = $PSScriptRoot
 $secretsFile = Join-Path $env:USERPROFILE '.config\qopsec\middleware.env'
 $venvPython  = Join-Path $InstallDir 'qopsec_env\Scripts\python.exe'
 $pidFile     = Join-Path $InstallDir 'logs\orchestrator.pid'

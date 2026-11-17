@@ -1,9 +1,11 @@
 import asyncio
 import json
 import os
+import shutil
 import signal
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
@@ -14,7 +16,7 @@ from fastapi import FastAPI, HTTPException, Body, Query
 from pydantic import BaseModel, Field
 import subprocess
 
-APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.4.0")
+APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.5.0")
 
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = BASE_DIR / "services.yaml"
@@ -54,6 +56,182 @@ def env_for_service(cfg: Dict[str, Any]) -> Dict[str, str]:
     for k, v in (cfg.get("env") or {}).items():
         env[str(k)] = str(v)
     return env
+
+# ------------------------------------------------------------------ docker (type: docker)
+MANAGED_LABEL = "com.qopsec.managed-by=orchestrator"
+
+def _docker_run(args: List[str], timeout: int = 300) -> "subprocess.CompletedProcess":
+    # O CLI do docker e o mesmo no Windows e no Linux; no Windows apenas
+    # escondemos a janela de console para nao piscar terminal a cada comando.
+    creationflags = subprocess.CREATE_NO_WINDOW if sys.platform.startswith("win") else 0
+    return subprocess.run(["docker", *args], capture_output=True, timeout=timeout, creationflags=creationflags)
+
+def _docker_out(args: List[str], timeout: int = 30) -> str:
+    try:
+        p = _docker_run(args, timeout=timeout)
+        if p.returncode != 0:
+            return ""
+        return p.stdout.decode(errors="ignore").strip()
+    except Exception:
+        return ""
+
+def docker_available() -> bool:
+    return shutil.which("docker") is not None
+
+def docker_running() -> bool:
+    if not docker_available():
+        return False
+    try:
+        return _docker_run(["info"], timeout=15).returncode == 0
+    except Exception:
+        return False
+
+def docker_container_exists(name: str) -> bool:
+    return name in _docker_out(["ps", "-a", "--filter", f"name=^{name}$", "--format", "{{.Names}}"]).splitlines()
+
+def docker_container_running(name: str) -> bool:
+    return name in _docker_out(["ps", "--filter", f"name=^{name}$", "--format", "{{.Names}}"]).splitlines()
+
+def docker_container_labels(name: str) -> List[str]:
+    return _docker_out(["inspect", "--format", "{{range $k, $v := .Config.Labels}}{{$k}}={{$v}} {{end}}", name]).split()
+
+def docker_get_container_id(name: str) -> Optional[str]:
+    return _docker_out(["ps", "-a", "--filter", f"name=^{name}$", "--format", "{{.ID}}"]) or None
+
+def docker_pull_image(image: str) -> Dict[str, Any]:
+    try:
+        p = _docker_run(["pull", image], timeout=900)
+        if p.returncode == 0:
+            return {"status": "pulled", "image": image}
+        return {"status": "error", "error": p.stderr.decode(errors="ignore")[:500]}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+def _substitute_env(value: Any) -> Any:
+    # ${VAR} -> valor do ambiente; None se a variavel nao existir
+    if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+        return os.environ.get(value[2:-1])
+    return value
+
+async def docker_start_container(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    name = cfg.get("container_name", cfg.get("name"))
+    image = cfg.get("image")
+
+    if not name or not str(name).replace("-", "").replace("_", "").isalnum():
+        return {"status": "error", "error": "Invalid Docker container name"}
+    if not image:
+        return {"status": "error", "error": "No image specified"}
+    # So gerencia containers nossos (label de propriedade)
+    if MANAGED_LABEL not in (cfg.get("labels") or []):
+        return {"status": "error", "error": "Refusing to manage an unowned container"}
+    # Redis/RabbitMQ so podem publicar em localhost
+    is_middleware = name.startswith(("qopsec-redis", "qopsec-rabbitmq"))
+    if is_middleware:
+        for port in (cfg.get("ports") or []):
+            host = port.split(":", 1)[0] if port.count(":") == 2 else "127.0.0.1"
+            if host not in {"127.0.0.1", "localhost"}:
+                return {"status": "error", "error": "Redis/RabbitMQ ports must bind to localhost only"}
+
+    if docker_container_exists(name):
+        if MANAGED_LABEL not in docker_container_labels(name):
+            return {"status": "error", "error": "Refusing to manage an unowned container"}
+        if docker_container_running(name):
+            return {"status": "running", "container_id": docker_get_container_id(name), "container_name": name}
+        try:
+            p = _docker_run(["start", name], timeout=60)
+            if p.returncode != 0:
+                return {"status": "error", "error": p.stderr.decode(errors="ignore")[:500]}
+            return {"status": "started", "container_id": docker_get_container_id(name), "container_name": name}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    if not _docker_out(["images", "-q", image]):
+        pull = await asyncio.to_thread(docker_pull_image, image)
+        if pull.get("status") != "pulled":
+            return pull
+
+    run_args: List[str] = ["run", "--name", name]
+
+    for key, value in (cfg.get("env") or {}).items():
+        value = _substitute_env(value)
+        if value is None:
+            return {"status": "error", "error": f"Required environment variable is not set ({key})"}
+        run_args.extend(["--env", f"{key}={value}"])
+
+    for volume in (cfg.get("volumes") or []):
+        if ":" not in volume:
+            return {"status": "error", "error": f"Invalid Docker volume mapping: {volume}"}
+        read_only = volume.endswith(":ro")
+        body = volume[:-3] if read_only else volume
+        source, target = body.rsplit(":", 1)
+        resolved = (BASE_DIR / source).resolve()
+        base = str(BASE_DIR)
+        if not str(resolved).startswith(base + os.sep):
+            return {"status": "error", "error": f"Docker volume source outside project root: {source}"}
+        if not resolved.exists():
+            resolved.mkdir(parents=True, exist_ok=True)
+        mount = f"{resolved}:{target}" + (":ro" if read_only else "")
+        run_args.extend(["--volume", mount])
+
+    for port in (cfg.get("ports") or []):
+        parts = port.split(":")
+        if len(parts) == 3:
+            host_ip, published, container_port = parts
+        elif len(parts) == 2:
+            host_ip, published, container_port = "127.0.0.1", parts[0], parts[1]
+        else:
+            host_ip, published, container_port = "127.0.0.1", port, port
+        if is_middleware and host_ip == "localhost":
+            host_ip = "127.0.0.1"
+        run_args.extend(["-p", f"{host_ip}:{published}:{container_port}"])
+
+    if cfg.get("network"):
+        run_args.extend(["--network", cfg["network"]])
+
+    run_args.extend(["--restart", cfg.get("restart", "no")])
+
+    for label in (cfg.get("labels") or []):
+        run_args.extend(["--label", label])
+
+    run_args.append("-d")
+    run_args.append(image)
+
+    command = cfg.get("command")
+    if command:
+        raw = command if isinstance(command, list) else [command]
+        for arg in raw:
+            arg = _substitute_env(arg)
+            if arg is None:
+                return {"status": "error", "error": "Required environment variable is not set (command)"}
+            run_args.append(arg)
+
+    try:
+        p = _docker_run(run_args, timeout=180)
+        if p.returncode == 0:
+            return {
+                "status": "started",
+                "container_id": p.stdout.decode(errors="ignore").strip(),
+                "container_name": name,
+                "image": image,
+            }
+        return {"status": "error", "error": p.stderr.decode(errors="ignore")[:500]}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+async def docker_stop_container(name: str, timeout: int = 10) -> Dict[str, Any]:
+    if not docker_container_exists(name):
+        return {"status": "not_found"}
+    if MANAGED_LABEL not in docker_container_labels(name):
+        return {"status": "error", "error": "Refusing to manage an unowned container"}
+    if not docker_container_running(name):
+        return {"status": "not_running"}
+    try:
+        p = _docker_run(["stop", "-t", str(timeout), name], timeout=timeout + 30)
+        if p.returncode == 0:
+            return {"status": "stopped", "container_name": name}
+        return {"status": "error", "error": p.stderr.decode(errors="ignore")[:500]}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 def pidfile_path(name: str) -> Path:
     custom = service_cfg(name).get("pid_file")
@@ -166,6 +344,12 @@ class RequestSpec(BaseModel):
 
 async def start_service(name: str) -> Dict[str, Any]:
     cfg = service_cfg(name)
+
+    if cfg.get("type") == "docker":
+        if not docker_running():
+            return {"status": "error", "error": "Docker daemon not running"}
+        return await docker_start_container(cfg)
+
     if name in STATE and STATE[name].get("proc") and getattr(STATE[name]["proc"], "poll", lambda: None)() is None:
         return {"status": "running", "pid": STATE[name]["proc"].pid}
 
@@ -280,6 +464,10 @@ async def graceful_shutdown_if_possible(cfg: Dict[str, Any]) -> None:
 
 async def stop_service(name: str, timeout: float = 12.0) -> Dict[str, Any]:
     cfg = service_cfg(name)
+
+    if cfg.get("type") == "docker":
+        return await docker_stop_container(cfg.get("container_name", name), int(timeout))
+
     state = STATE.get(name, {})
     proc = state.get("proc")
     pid = state.get("pid")
@@ -412,8 +600,12 @@ def list_services():
     out = []
     for name, cfg in CONFIG.get("services", {}).items():
         state = STATE.get(name, {})
-        pid = state.get("pid") or read_pidfile(name)
-        running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
+        pid = None
+        if cfg.get("type") == "docker":
+            running = docker_container_running(cfg.get("container_name", name))
+        else:
+            pid = state.get("pid") or read_pidfile(name)
+            running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
         out.append({
             "name": name,
             "pid": pid,
@@ -445,7 +637,10 @@ async def api_status(name: str):
     state = STATE.get(name, {})
     cfg = service_cfg(name)
     pid = state.get("pid") or read_pidfile(name)
-    running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
+    if cfg.get("type") == "docker":
+        running = docker_container_running(cfg.get("container_name", name))
+    else:
+        running = bool(state.get("proc") and getattr(state["proc"], "poll", lambda: None)() is None) or (pid and is_pid_running(pid))
     health_url = cfg.get("health")
     ok, code, text = await check_health(health_url) if health_url else (False, None, None)
     return {
@@ -455,6 +650,28 @@ async def api_status(name: str):
         "health_ok": ok,
         "health_code": code,
         "health_sample": text,
+    }
+
+@APP.get("/architecture/status")
+async def architecture_status():
+    services_out: Dict[str, Any] = {}
+    healthy = 0
+    for name, cfg in CONFIG.get("services", {}).items():
+        if cfg.get("type") == "docker":
+            running = docker_container_running(cfg.get("container_name", name))
+        else:
+            pid = STATE.get(name, {}).get("pid") or read_pidfile(name)
+            running = bool(pid and is_pid_running(pid))
+        if running:
+            healthy += 1
+        services_out[name] = {"running": running, "type": cfg.get("type", "process")}
+    total = len(services_out)
+    return {
+        "status": "healthy" if total and healthy == total else ("degraded" if healthy else "down"),
+        "services_healthy": healthy,
+        "services_total": total,
+        "services": services_out,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
     }
 
 @APP.get("/services/{name}/logs")

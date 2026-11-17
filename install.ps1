@@ -256,8 +256,8 @@ if (Test-Path $secretsFile) {
         "QOPSEC_REDIS_PASSWORD=$redisPass",
         "QOPSEC_RABBITMQ_USER=$rabbitUser",
         "QOPSEC_RABBITMQ_PASSWORD=$rabbitPass",
-        'QOPSEC_REDIS_URL=redis://:REDIS_PASS@127.0.0.1:6380/0',
-        'QOPSEC_RABBITMQ_URL=amqp://RABBIT_USER:RABBIT_PASS@127.0.0.1:5673/%2F'
+        "QOPSEC_REDIS_URL=redis://:${redisPass}@127.0.0.1:6380/0",
+        "QOPSEC_RABBITMQ_URL=amqp://${rabbitUser}:${rabbitPass}@127.0.0.1:5673/%2F"
     ) | Set-Content $secretsFile -Encoding ascii
     Write-Ok "Segredos gerados em $secretsFile (NUNCA versionar esse arquivo)"
 }
@@ -340,13 +340,13 @@ $healths = @(
     @{ Url = 'http://127.0.0.1:65534/actuator/health'; Nome = 'context_api (Spring, 65534)' },
     @{ Url = 'http://127.0.0.1:8080/actuator/health';  Nome = 'interceptor_api (Spring, 8080)' },
     @{ Url = 'http://127.0.0.1:8005/actuator/health';  Nome = 'validation_send_api (Spring, 8005)' },
-    @{ Url = 'http://127.0.0.1:8001/docs';             Nome = 'handshake_negotiator (8001)' },
+    @{ Url = 'http://127.0.0.1:8001/health';           Nome = 'handshake_negotiator (8001)' },
     @{ Url = 'http://127.0.0.1:8003/health';           Nome = 'key_destination_engine (8003)' },
     @{ Url = 'http://127.0.0.1:8004/health';           Nome = 'crypto_module (8004)' },
-    @{ Url = 'http://127.0.0.1:8000/risk/health';      Nome = 'risk_service (8000)' },
-    @{ Url = 'http://127.0.0.1:8083/confidentiality/health'; Nome = 'confiability_service (8083)' },
+    @{ Url = 'http://127.0.0.1:8000/health';           Nome = 'risk_service (8000)' },
+    @{ Url = 'http://127.0.0.1:8083/health';           Nome = 'confiability_service (8083)' },
     @{ Url = 'http://127.0.0.1:8088/api/v1/health';    Nome = 'classification_agent (8088)' },
-    @{ Url = 'http://127.0.0.1:9009/docs';             Nome = 'rl_engine (9009)' }
+    @{ Url = 'http://127.0.0.1:9009/health';           Nome = 'rl_engine (9009)' }
 )
 foreach ($h in $healths) {
     $resp = Invoke-WebRequest -Uri $h.Url -UseBasicParsing -TimeoutSec 10 -ErrorAction SilentlyContinue

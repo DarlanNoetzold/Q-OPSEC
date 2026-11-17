@@ -11,7 +11,7 @@
 param([switch]$StopContainers)
 
 $ErrorActionPreference = 'Stop'
-$InstallDir = Split-Path -Parent $PSScriptRoot
+$InstallDir = $PSScriptRoot
 $pidFile    = Join-Path $InstallDir 'logs\orchestrator.pid'
 
 try {

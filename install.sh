@@ -241,13 +241,13 @@ healths=(
     "http://127.0.0.1:65534/actuator/health|context_api (Spring, 65534)"
     "http://127.0.0.1:8080/actuator/health|interceptor_api (Spring, 8080)"
     "http://127.0.0.1:8005/actuator/health|validation_send_api (Spring, 8005)"
-    "http://127.0.0.1:8001/docs|handshake_negotiator (8001)"
+    "http://127.0.0.1:8001/health|handshake_negotiator (8001)"
     "http://127.0.0.1:8003/health|key_destination_engine (8003)"
     "http://127.0.0.1:8004/health|crypto_module (8004)"
-    "http://127.0.0.1:8000/risk/health|risk_service (8000)"
-    "http://127.0.0.1:8083/confidentiality/health|confiability_service (8083)"
+    "http://127.0.0.1:8000/health|risk_service (8000)"
+    "http://127.0.0.1:8083/health|confiability_service (8083)"
     "http://127.0.0.1:8088/api/v1/health|classification_agent (8088)"
-    "http://127.0.0.1:9009/docs|rl_engine (9009)"
+    "http://127.0.0.1:9009/health|rl_engine (9009)"
 )
 for entry in "${healths[@]}"; do
     url="${entry%%|*}"; nome="${entry##*|}"
