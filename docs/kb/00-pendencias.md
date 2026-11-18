@@ -181,8 +181,15 @@ jmeter -n -t load/qopsec_pipeline_async.jmx -Jhost=127.0.0.1 -Jport=8081 \
 
 ## KB-007 — pgBouncer e réplica de leitura reais
 
-**Status:** aberto
+**Status:** bloqueado em 2026-11-18 (aguardando autorização)
 **Arquivo:** `kms_service/database.py`
+
+**O que falta:** subir o pgBouncer em container (`edoburu/pgbouncer`, modo `transaction`, porta 6432)
+e uma réplica física do Postgres 16. O primary já tem `wal_level=replica` e `max_wal_senders=10`, mas
+o `pg_hba.conf` do container `postgres` não tem regra de replicação para a rede Docker — o
+`host all all all scram-sha-256` não cobre conexões `replication`. É preciso acrescentar
+`host replication replicator 172.16.0.0/12 scram-sha-256` e recarregar a configuração; o gate de
+auto mode recusou por ser config de serviço compartilhado.
 
 **Problema:** o pool (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`) e a URL de leitura
 (`QOPSEC_DATABASE_READ_URL`, `get_read_db`) existem, mas foram exercitados com SQLite. Não há
