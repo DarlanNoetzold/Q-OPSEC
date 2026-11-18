@@ -10,15 +10,15 @@ Nada aqui foi commitado: o trabalho da sessão está no working tree.
 | KB-001 | `@Transactional` envolvendo chamada HTTP no `ForwardService` | validation_send_api | concluído |
 | KB-002 | `.block()` no fim das cadeias reativas do `context_api` | context_api | concluído |
 | KB-003 | Prometheus não existe no namespace `qopsec` (HPA externo depende dele) | deploy/k8s | parcial |
-| KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | aberto |
+| KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | concluído |
 | KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | aberto |
 | KB-006 | Teste de carga JMeter nunca executado | load | aberto |
 | KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | aberto |
 | KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
 | KB-009 | Rate limit distribuído validado só contra cliente falso | common | concluído |
-| KB-010 | Tracing OpenTelemetry sem pacotes instalados e sem coletor | observabilidade | aberto |
+| KB-010 | Tracing OpenTelemetry sem pacotes instalados e sem coletor | observabilidade | concluído |
 | KB-011 | Dashboard nunca aberto no navegador após as mudanças | dashboard | concluído |
-| KB-012 | Nada commitado; serviços não reiniciados | repositório | parcial |
+| KB-012 | Nada commitado; serviços não reiniciados | repositório | concluído |
 | KB-013 | Breaker Java duplicado em três módulos | java | concluído |
 | KB-014 | Serviços do pipeline parados: job falha no step 1 | runtime | concluído |
 
@@ -102,8 +102,17 @@ kubectl get --raw "/apis/external.metrics.k8s.io/v1beta2/namespaces/qopsec/qopse
 
 ## KB-004 — Imagens Docker nunca foram buildadas
 
-**Status:** aberto
-**Arquivos:** `deploy/Dockerfile.orchestrator`, `deploy/Dockerfile.kms`
+**Status:** concluído em 2026-11-18
+**Arquivos:** `deploy/Dockerfile.orchestrator`, `deploy/Dockerfile.kms`, `.dockerignore`
+
+**Resolução:** `.dockerignore` criado (exclui `qopsec_env`, `logs`, `target`, `datasets`, `.hermes`).
+Base do orchestrator passou a `python:3.13-slim` (o `requirements.txt` pina `numpy==2.5.1` e
+`scipy==1.18.0`, que exigem Python >= 3.12) e o build passou a instalar também
+`requirements-architecture.txt` (redis/aio-pika). O KMS ganhou `prometheus-fastapi-instrumentator` no
+`requirements.txt` e `qiskit_adapter.py` recebeu `from __future__ import annotations`, porque a
+anotação `-> NoiseModel` quebrava o import quando o qiskit não está instalado.
+Imagens: `qopsec-orchestrator:dev` e `qopsec-kms:dev`, ambas com import validado; KMS em container
+respondeu `/health` 200 com `storage_backend: redis` e `storage_healthy: true`.
 
 **Problema:** os Dockerfiles foram escritos e o `docker compose config` valida, mas nenhum
 `docker build` foi executado. O contexto de build é a raiz do projeto (`context: ..`), então um
@@ -236,8 +245,16 @@ for i in 1 2 3; do curl -s -o /dev/null -w "%{http_code} " -X POST \
 
 ## KB-010 — Tracing OpenTelemetry sem pacotes e sem coletor
 
-**Status:** aberto
-**Arquivos:** `common/tracing.py`, `requirements-observability.txt`
+**Status:** concluído em 2026-11-18
+**Arquivos:** `common/tracing.py`, `requirements-observability.txt`, `monitoring/otel-collector.yml`
+
+**Resolução:** SDK instalado no `qopsec_env` (api/sdk/exporter/instrumentation 1.29.0 e 0.50b0),
+coletor `qopsec_otel_collector` adicionado ao `services.yaml` (imagem
+`otel/opentelemetry-collector-contrib:0.115.1`, config validada, portas 4317/4318 em 127.0.0.1) e
+`start_qopsec.sh` exporta `QOPSEC_TRACING_ENABLED=true` e
+`QOPSEC_OTLP_ENDPOINT=http://127.0.0.1:4318/v1/traces`. `/architecture/status` reporta
+`tracing.enabled: true` e o coletor registra spans do orchestrator e das chamadas httpx
+(`/kms/create_key`, `/predict/`, `/validation/send`, `/api/v1/predict`, `/encrypt`).
 
 **Problema:** o SDK não está instalado no `qopsec_env`, então `setup_tracing` cai no no-op e
 `/architecture/status` reporta `tracing.enabled: false`. Não há coletor OTLP configurado.
@@ -276,11 +293,12 @@ botão de fila assíncrona não foram vistos funcionando.
 
 ## KB-012 — Nada commitado; serviços não reiniciados
 
-**Status:** parcial em 2026-11-18
+**Status:** concluído em 2026-11-18
 **Escopo:** repositório inteiro
 
-**Resolução parcial:** `pm2 restart q-opsec` executado e `/architecture/status` já devolve os blocos
-`pipeline`, `resilience`, `rate_limit` e `tracing`. O commit segue pendente de revisão.
+**Resolução:** commit `c8539aa` com 50 arquivos (18 modificados, 32 novos), `.hermes/` adicionado ao
+`.gitignore`. `pm2 restart q-opsec` executado e `/architecture/status` devolve os blocos `pipeline`,
+`resilience`, `rate_limit` e `tracing`.
 
 **Problema:** todas as mudanças estão no working tree (`git status` com 8 modificados e 5 novos
 caminhos). O que roda em produção continua no código antigo, então os testes ao vivo não refletem o
@@ -366,3 +384,6 @@ curl -s -X POST -H 'Content-Type: application/json' -H "Idempotency-Key: kb14-$(
 | KB-011 | Dashboard conferido no navegador | 2026-11-18 | cards preenchidos + job `succeeded` na UI |
 | KB-013 | Paridade do breaker Java | 2026-11-18 | `tests/test_java_breaker_parity.py`, 47 passed |
 | KB-014 | Pipeline completo com 11 steps | 2026-11-18 | job `486a4f40…`, `failed_steps: []` |
+| KB-004 | Imagens Docker buildadas e validadas | 2026-11-18 | `orchestrator import ok`, KMS `/health` 200 com redis |
+| KB-010 | Tracing OTLP com coletor | 2026-11-18 | `tracing.enabled: true`, spans no `qopsec-otel` |
+| KB-012 | Commit e restart do pm2 | 2026-11-18 | commit `c8539aa`, 50 arquivos |

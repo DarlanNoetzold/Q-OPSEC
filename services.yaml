@@ -221,6 +221,19 @@ services:
       GF_SECURITY_COOKIE_SAMESITE: none
     labels:
     - com.qopsec.managed-by=orchestrator
+  qopsec_otel_collector:
+    type: docker
+    container_name: qopsec-otel
+    image: otel/opentelemetry-collector-contrib:0.115.1
+    ports:
+    - 127.0.0.1:4317:4317
+    - 127.0.0.1:4318:4318
+    volumes:
+    - monitoring/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    command: [--config=/etc/otelcol-contrib/config.yaml]
+    restart: unless-stopped
+    labels:
+    - com.qopsec.managed-by=orchestrator
   risk_service:
     base_url: http://127.0.0.1:8000
     cwd: ./risk_service_V2
@@ -272,6 +285,7 @@ startup_order:
 - qopsec_rabbitmq
 - qopsec_prometheus
 - qopsec_grafana
+- qopsec_otel_collector
 - kms_service
 - key_destination_engine
 - crypto_module

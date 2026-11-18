@@ -5,6 +5,8 @@ Substitui o adaptador NetSquid com implementação nativa Qiskit,
 suportando modelos de ruído realistas: depolarização, amplitude damping, phase damping.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Optional, Dict, Any, Tuple, List
 from dataclasses import dataclass, field

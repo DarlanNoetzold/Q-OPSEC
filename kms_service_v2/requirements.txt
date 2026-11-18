@@ -8,5 +8,6 @@ numpy
 oqs
 psutil
 pydantic
+prometheus-fastapi-instrumentator
 redis
 uvicorn[standard]
