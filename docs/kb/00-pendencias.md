@@ -13,7 +13,7 @@ Nada aqui foi commitado: o trabalho da sessão está no working tree.
 | KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | concluído |
 | KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | aberto |
 | KB-006 | Teste de carga JMeter nunca executado | load | concluído |
-| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | aberto |
+| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | bloqueado |
 | KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
 | KB-009 | Rate limit distribuído validado só contra cliente falso | common | concluído |
 | KB-010 | Tracing OpenTelemetry sem pacotes instalados e sem coletor | observabilidade | concluído |
