@@ -189,7 +189,8 @@ e uma réplica física do Postgres 16. O primary já tem `wal_level=replica` e `
 o `pg_hba.conf` do container `postgres` não tem regra de replicação para a rede Docker — o
 `host all all all scram-sha-256` não cobre conexões `replication`. É preciso acrescentar
 `host replication replicator 172.16.0.0/12 scram-sha-256` e recarregar a configuração; o gate de
-auto mode recusou por ser config de serviço compartilhado.
+auto mode recusou por ser config de serviço compartilhado. O container `qopsec-pg-replica` ficou
+parado (Exited 1) e o diretório `logs/pg-replica` foi criado, ambos aguardando essa autorização.
 
 **Problema:** o pool (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`) e a URL de leitura
 (`QOPSEC_DATABASE_READ_URL`, `get_read_db`) existem, mas foram exercitados com SQLite. Não há
