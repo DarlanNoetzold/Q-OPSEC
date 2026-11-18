@@ -182,6 +182,7 @@ jmeter -n -t load/qopsec_pipeline_async.jmx -Jhost=127.0.0.1 -Jport=8081 \
 
 **Status:** bloqueado em 2026-11-18 (aguardando autorização)
 **Arquivo:** `kms_service/database.py`
+**Script:** `deploy/postgres-replica/setup.sh` (+ `README.md`)
 
 **O que falta:** subir o pgBouncer em container (`edoburu/pgbouncer`, modo `transaction`, porta 6432)
 e uma réplica física do Postgres 16. O primary já tem `wal_level=replica` e `max_wal_senders=10`, mas
@@ -190,6 +191,12 @@ o `pg_hba.conf` do container `postgres` não tem regra de replicação para a re
 `host replication replicator 172.16.0.0/12 scram-sha-256` e recarregar a configuração; o gate de
 auto mode recusou por ser config de serviço compartilhado. O container `qopsec-pg-replica` ficou
 parado (Exited 1) e o diretório `logs/pg-replica` foi criado, ambos aguardando essa autorização.
+
+**Pronto para rodar:** `./deploy/postgres-replica/setup.sh` faz role, `pg_hba`, `pg_basebackup`,
+réplica na 5433, pgBouncer na 6432 e valida `pg_is_in_recovery()`, replicação de escrita e `select 1`
+pelo bouncer. `--check` só valida (sai 1 quando a regra está ausente) e `--teardown` remove tudo.
+Estado atual do `--check`: `wal_level=replica`, `max_wal_senders=10`, role `replicator` presente,
+regra de replicação **AUSENTE**.
 **Problema:** o pool (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`) e a URL de leitura
 (`QOPSEC_DATABASE_READ_URL`, `get_read_db`) existem, mas foram exercitados com SQLite. Não há
 pgBouncer nem réplica configurada, e o `psycopg` não está instalado no `qopsec_env`.
