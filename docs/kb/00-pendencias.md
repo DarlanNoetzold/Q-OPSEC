@@ -12,7 +12,7 @@ Nada aqui foi commitado: o trabalho da sessão está no working tree.
 | KB-003 | Prometheus não existe no namespace `qopsec` (HPA externo depende dele) | deploy/k8s | parcial |
 | KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | concluído |
 | KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | aberto |
-| KB-006 | Teste de carga JMeter nunca executado | load | aberto |
+| KB-006 | Teste de carga JMeter nunca executado | load | concluído |
 | KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | aberto |
 | KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
 | KB-009 | Rate limit distribuído validado só contra cliente falso | common | concluído |
@@ -157,8 +157,13 @@ kubectl -n qopsec describe hpa qopsec-orchestrator | tail -20
 
 ## KB-006 — Teste de carga JMeter nunca executado
 
-**Status:** aberto
-**Arquivos:** `load/qopsec_pipeline_async.jmx`, `load/README.md`
+**Status:** concluído em 2026-11-18
+**Arquivos:** `load/qopsec_pipeline_async.jmx`, `load/README.md`, `load/report`
+
+**Resolução:** execução via `justb4/jmeter:5.5` em container com 20 threads / ramp 10s / 5 loops
+(100 requisições): 100% `202`, 0% de erro, avg 10,4 ms, p95 25 ms, máx 84 ms, ~10,7 req/s. A fila
+drenou de 69 para 0 em ~1 min (`succeeded: 121`, `failed: 0`) e `open_breakers: []`. O perfil
+50/30/20 do README não foi executado porque enfileira 1000 jobs (~85 min de drenagem com 4 workers).
 
 **Problema:** o plano foi validado só como XML. Não há baseline de throughput, p95 nem taxa de erro,
 então não se sabe qual componente satura primeiro.
@@ -387,3 +392,4 @@ curl -s -X POST -H 'Content-Type: application/json' -H "Idempotency-Key: kb14-$(
 | KB-004 | Imagens Docker buildadas e validadas | 2026-11-18 | `orchestrator import ok`, KMS `/health` 200 com redis |
 | KB-010 | Tracing OTLP com coletor | 2026-11-18 | `tracing.enabled: true`, spans no `qopsec-otel` |
 | KB-012 | Commit e restart do pm2 | 2026-11-18 | commit `c8539aa`, 50 arquivos |
+| KB-006 | Carga no pipeline assíncrono | 2026-11-18 | 100 req, 100% 202, p95 25 ms, fila drenada |
