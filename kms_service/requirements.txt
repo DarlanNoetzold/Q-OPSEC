@@ -6,6 +6,8 @@ cryptography
 fastapi
 # Optional PQC backend; the service has a classical fallback.
 oqs
+# Driver do Postgres usado por database.py (QOPSEC_DATABASE_URL/READ_URL).
+psycopg[binary]
 pydantic
 redis
 uvicorn[standard]

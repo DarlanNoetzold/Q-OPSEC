@@ -13,7 +13,7 @@ Nada aqui foi commitado: o trabalho da sessão está no working tree.
 | KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | concluído |
 | KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | aberto |
 | KB-006 | Teste de carga JMeter nunca executado | load | concluído |
-| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | bloqueado || KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
+| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | concluído || KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
 | KB-009 | Rate limit distribuído validado só contra cliente falso | common | concluído |
 | KB-010 | Tracing OpenTelemetry sem pacotes instalados e sem coletor | observabilidade | concluído |
 | KB-011 | Dashboard nunca aberto no navegador após as mudanças | dashboard | concluído |
@@ -180,23 +180,24 @@ jmeter -n -t load/qopsec_pipeline_async.jmx -Jhost=127.0.0.1 -Jport=8081 \
 
 ## KB-007 — pgBouncer e réplica de leitura reais
 
-**Status:** bloqueado em 2026-11-18 (aguardando autorização)
+**Status:** concluído em 2026-11-18
 **Arquivo:** `kms_service/database.py`
 **Script:** `deploy/postgres-replica/setup.sh` (+ `README.md`)
 
-**O que falta:** subir o pgBouncer em container (`edoburu/pgbouncer`, modo `transaction`, porta 6432)
-e uma réplica física do Postgres 16. O primary já tem `wal_level=replica` e `max_wal_senders=10`, mas
-o `pg_hba.conf` do container `postgres` não tem regra de replicação para a rede Docker — o
-`host all all all scram-sha-256` não cobre conexões `replication`. É preciso acrescentar
-`host replication replicator 172.16.0.0/12 scram-sha-256` e recarregar a configuração; o gate de
-auto mode recusou por ser config de serviço compartilhado. O container `qopsec-pg-replica` ficou
-parado (Exited 1) e o diretório `logs/pg-replica` foi criado, ambos aguardando essa autorização.
+**Resolução:** `./deploy/postgres-replica/setup.sh` aplicou a regra
+`host replication replicator 172.16.0.0/12 scram-sha-256` no `pg_hba.conf` do primary e recarregou a
+configuração; `pg_basebackup -Fp -Xs -R` criou a réplica na 5433 e o `edoburu/pgbouncer` subiu na
+6432 em modo `transaction`. Validações: `pg_is_in_recovery()` = `t`, escrita no primary visível na
+réplica (`kb007_probe` = 1) e `select 1` pelo bouncer. Com
+`QOPSEC_DATABASE_URL=…:6432/validation_send` e `QOPSEC_DATABASE_READ_URL=…:5433/validation_send`,
+`pool_status()` reporta `replica_configured: true`, `pool_size: 10` nos dois pools, e
+`get_read_db()` responde na réplica.
 
-**Pronto para rodar:** `./deploy/postgres-replica/setup.sh` faz role, `pg_hba`, `pg_basebackup`,
-réplica na 5433, pgBouncer na 6432 e valida `pg_is_in_recovery()`, replicação de escrita e `select 1`
-pelo bouncer. `--check` só valida (sai 1 quando a regra está ausente) e `--teardown` remove tudo.
-Estado atual do `--check`: `wal_level=replica`, `max_wal_senders=10`, role `replicator` presente,
-regra de replicação **AUSENTE**.
+Três correções necessárias no caminho: `chmod 700` no PGDATA após o basebackup (o Postgres recusava
+"invalid permissions"), limpeza do data dir antes do backup ("exists but is not empty") e uso do
+gateway da rede Docker (`172.17.0.1`) na validação do bouncer, já que o container do primary não está
+em host network. `psycopg[binary]` entrou no `kms_service/requirements.txt` — sem ele o
+`create_engine` falhava com `ModuleNotFoundError: No module named 'psycopg'`.
 **Problema:** o pool (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`) e a URL de leitura
 (`QOPSEC_DATABASE_READ_URL`, `get_read_db`) existem, mas foram exercitados com SQLite. Não há
 pgBouncer nem réplica configurada, e o `psycopg` não está instalado no `qopsec_env`.
@@ -406,3 +407,4 @@ curl -s -X POST -H 'Content-Type: application/json' -H "Idempotency-Key: kb14-$(
 | KB-010 | Tracing OTLP com coletor | 2026-11-18 | `tracing.enabled: true`, spans no `qopsec-otel` |
 | KB-012 | Commit e restart do pm2 | 2026-11-18 | commit `c8539aa`, 50 arquivos |
 | KB-006 | Carga no pipeline assíncrono | 2026-11-18 | 100 req, 100% 202, p95 25 ms, fila drenada |
+| KB-007 | pgBouncer 6432 + réplica 5433 | 2026-11-18 | `pg_is_in_recovery=t`, escrita replicada, `replica_configured: true` |

@@ -81,13 +81,14 @@ ensure_role() {
 start_replica() {
   say "subindo réplica em $REPLICA_PORT"
   docker rm -f "$REPLICA" >/dev/null 2>&1 || true
+  rm -rf "$DATA_DIR"
   mkdir -p "$DATA_DIR"
   chown 999:999 "$DATA_DIR"
   docker run -d --name "$REPLICA" --network host --user postgres \
     -e PGPASSWORD="$REPL_PASSWORD" \
     -v "$DATA_DIR:/var/lib/postgresql/data" \
     postgres:16 bash -c \
-    "pg_basebackup -h 127.0.0.1 -p 5432 -U $REPL_USER -D /var/lib/postgresql/data -Fp -Xs -R -P && postgres -p $REPLICA_PORT" >/dev/null
+    "pg_basebackup -h 127.0.0.1 -p 5432 -U $REPL_USER -D /var/lib/postgresql/data -Fp -Xs -R -P && chmod 700 /var/lib/postgresql/data && postgres -p $REPLICA_PORT" >/dev/null
   for _ in $(seq 1 30); do
     if docker exec "$REPLICA" pg_isready -p "$REPLICA_PORT" >/dev/null 2>&1; then
       echo "réplica pronta"
@@ -133,7 +134,9 @@ verify() {
   docker exec "$REPLICA" psql -U "$DB_USER" -d "$DB_NAME" -p "$REPLICA_PORT" -tAc \
     "select count(*) from kb007_probe;"
   say "pgBouncer responde"
-  docker exec "$PRIMARY" psql "postgresql://$DB_USER:$DB_PASSWORD@127.0.0.1:$PGBOUNCER_PORT/$DB_NAME" -tAc "select 1;"
+  local gw
+  gw="$(docker network inspect bridge --format '{{range .IPAM.Config}}{{.Gateway}}{{end}}')"
+  docker exec "$PRIMARY" psql "postgresql://$DB_USER:$DB_PASSWORD@$gw:$PGBOUNCER_PORT/$DB_NAME" -tAc "select 1;"
 }
 
 case "$MODE" in
