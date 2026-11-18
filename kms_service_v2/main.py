@@ -1,8 +1,11 @@
 from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 import os
+import sys
 import uvicorn
 from fastapi import FastAPI, HTTPException
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models import CreateKeyRequest, CreateKeyResponse, KeyResponse
 from key_manager import build_session, get_supported_algorithms, get_algorithm_info
@@ -11,6 +14,12 @@ from hardware_profiler import get_hardware_summary, get_hardware_profile, run_al
 from crypto.pqc import OQS_AVAILABLE, PQC_AVAILABLE
 from crypto.quantum import is_qkd_enabled
 from quantum_gateway.netsquid_adapter import get_netsquid_status
+
+try:
+    from common.tracing import setup_tracing
+except Exception:
+    def setup_tracing(*args, **kwargs):
+        return False
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,6 +38,7 @@ app = FastAPI(
         {"name": "Health", "description": "Service health and component status"},
     ],
 )
+setup_tracing(app, service_name="qopsec-kms")
 
 
 @app.get("/", tags=["Health"])
@@ -177,8 +187,9 @@ def run_benchmarks(algorithms: list[str] = None):
 
 @app.get("/health", tags=["Health"])
 def health_check():
+    storage_healthy = session_store.healthy()
     return {
-        "status": "healthy",
+        "status": "healthy" if storage_healthy else "degraded",
         "version": "3.0.0",
         "components": {
             "liboqs": OQS_AVAILABLE,
@@ -186,6 +197,8 @@ def health_check():
             "qkd_gateway": is_qkd_enabled(),
             "netsquid": get_netsquid_status(),
             "storage": session_store.stats(),
+            "storage_backend": session_store.backend,
+            "storage_healthy": storage_healthy,
             "hardware": get_hardware_summary(),
         },
     }

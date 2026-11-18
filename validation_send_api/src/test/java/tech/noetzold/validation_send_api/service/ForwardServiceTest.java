@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import tech.noetzold.validation_send_api.model.EncryptedDelivery;
 import tech.noetzold.validation_send_api.model.NegotiationPayload;
 import tech.noetzold.validation_send_api.repository.EncryptedDeliveryRepository;
@@ -87,6 +89,24 @@ class ForwardServiceTest {
 
         assertThat(saved.getStatus()).isEqualTo("delivered");
         assertThat(saved.getErrorMessage()).isNull();
+    }
+
+    @Test
+    void keepsHttpForwardOutsideAnyTransactionAndStatusUpdatesInShortOnes() throws Exception {
+        Transactional forward = ForwardService.class
+                .getMethod("forwardToOriginOrThrow", NegotiationPayload.class)
+                .getAnnotation(Transactional.class);
+        Transactional delivered = ForwardService.class
+                .getMethod("markDelivered", EncryptedDelivery.class)
+                .getAnnotation(Transactional.class);
+        Transactional failed = ForwardService.class
+                .getMethod("markFailed", EncryptedDelivery.class, String.class)
+                .getAnnotation(Transactional.class);
+
+        assertThat(forward).isNotNull();
+        assertThat(forward.propagation()).isEqualTo(Propagation.NOT_SUPPORTED);
+        assertThat(delivered.propagation()).isEqualTo(Propagation.REQUIRES_NEW);
+        assertThat(failed.propagation()).isEqualTo(Propagation.REQUIRES_NEW);
     }
 
     private static NegotiationPayload payload() {

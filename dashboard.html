@@ -625,6 +625,7 @@
       };
 
       const [pipelineResults, setPipelineResults] = useState(null);
+      const [pipelineJob, setPipelineJob] = useState(null);
       const [pipelineRequestId, setPipelineRequestId] = useState('req-phd-' + Math.floor(Math.random()*1000));
       const [pipelineSource, setPipelineSource] = useState('agent-wsl-01');
       const [pipelineSecurityLevel, setPipelineSecurityLevel] = useState('MODERATE');
@@ -642,6 +643,16 @@
       const [pipelineData, setPipelineData] = useState('{\n  "message": "Secure PhD Data Transmission",\n  "researcher": "Darlan Noetzold"\n}');
       const [pipelinePayload, setPipelinePayload] = useState('{}');
 
+    const buildPipelinePayload = () => ({
+      request_id: pipelineRequestId || 'req-auto-1',
+      source: pipelineSource || 'client-terminal',
+      security_level: pipelineSecurityLevel,
+      destination: 'server-backend',
+      proposed: proposedAlgs.length > 0 ? proposedAlgs : ['AES256_GCM'],
+      originUrl: pipelineOriginUrl || 'http://192.168.18.18:8090/callback',
+      data: JSON.parse(pipelineData)
+    });
+
     const runPipeline = async (bodyOverride) => {
       setLoading(true);
       try {
@@ -656,6 +667,38 @@
         toast("Pipeline executed", "ok");
       } catch (err) {
         toast("Pipeline failed: " + err.message, "err");
+      }
+      setLoading(false);
+    };
+
+    const runPipelineAsync = async (bodyOverride) => {
+      setLoading(true);
+      try {
+        const body = bodyOverride || JSON.parse(pipelinePayload);
+        const key = body.request_id || body.requestId || ('async-' + Date.now());
+        const r = await fetch(API + '/run-pipeline/async', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
+          body: JSON.stringify(body)
+        });
+        const accepted = await r.json();
+        if (!r.ok) throw new Error(accepted.detail || 'Queue rejected the pipeline');
+        setPipelineJob(accepted);
+        toast(accepted.deduplicated ? 'Already queued: ' + accepted.job_id : 'Queued: ' + accepted.job_id, 'ok');
+        for (let i = 0; i < 90; i++) {
+          await new Promise(res => setTimeout(res, 2000));
+          const s = await fetch(`${API}/pipeline/jobs/${accepted.job_id}`);
+          if (!s.ok) break;
+          const job = await s.json();
+          setPipelineJob(job);
+          if (job.status === 'succeeded' || job.status === 'failed') {
+            if (job.status === 'succeeded' && job.result && job.result.result) setPipelineResults(job.result.result);
+            toast('Pipeline job ' + job.status, job.status === 'succeeded' ? 'ok' : 'err');
+            break;
+          }
+        }
+      } catch (err) {
+        toast("Async pipeline failed: " + err.message, "err");
       }
       setLoading(false);
     };
@@ -1182,6 +1225,8 @@
                   <div><strong>Redis:</strong> {architectureStatus?.redis?.connected ? 'Connected' : 'Unavailable'} · {architectureStatus?.cache?.entries ?? 0} cached entries</div>
                   <div><strong>RabbitMQ:</strong> {architectureStatus?.rabbitmq?.connected ? 'Connected' : 'Unavailable'} · queue {architectureStatus?.rabbitmq?.queue || 'qopsec.jobs'}</div>
                   <div><strong>Jobs:</strong> {architectureStatus?.jobs?.queued ?? 0} queued · {architectureStatus?.jobs?.running ?? 0} running · {architectureStatus?.jobs?.succeeded ?? 0} succeeded · {architectureStatus?.jobs?.failed ?? 0} failed</div>
+                  <div><strong>Async pipeline:</strong> {architectureStatus?.pipeline?.jobs?.queued ?? 0} queued · {architectureStatus?.pipeline?.jobs?.running ?? 0} running · {architectureStatus?.pipeline?.jobs?.succeeded ?? 0} succeeded · {architectureStatus?.pipeline?.jobs?.failed ?? 0} failed</div>
+                  <div><strong>Resilience:</strong> {(architectureStatus?.resilience?.open_breakers || []).length} open breakers · retry {architectureStatus?.resilience?.retry_attempts ?? 0}x · rate limit {architectureStatus?.rate_limit?.limit ?? 0}/{architectureStatus?.rate_limit?.window_seconds ?? 0}s ({architectureStatus?.rate_limit?.backend || '—'}) · tracing {architectureStatus?.tracing?.enabled ? 'on' : 'off'}</div>
                 </div>
                 <button className="btn-sm" onClick={loadArchitectureStatus}>Open cache/queue details</button>
               </div>
@@ -1222,6 +1267,29 @@
                         <p key={status}>{status}: {architectureStatus.jobs?.[status] ?? 0}</p>
                       ))}
                       <p className="note">Last checked: {architectureStatus.checked_at ? new Date(architectureStatus.checked_at).toLocaleString() : '—'}</p>
+                    </div>
+                    <div className="card">
+                      <h3>Async pipeline</h3>
+                      <p>Endpoint: {architectureStatus.pipeline?.async_endpoint || '/run-pipeline/async'}</p>
+                      {['queued', 'running', 'succeeded', 'failed'].map(status => (
+                        <p key={status}>{status}: {architectureStatus.pipeline?.jobs?.[status] ?? 0}</p>
+                      ))}
+                      <p>Idempotency TTL: {architectureStatus.pipeline?.idempotency_ttl_seconds ?? 0}s</p>
+                    </div>
+                    <div className="card">
+                      <h3>Resilience</h3>
+                      <p>Retry attempts: {architectureStatus.resilience?.retry_attempts ?? 0} · backoff {architectureStatus.resilience?.retry_base_delay ?? 0}s → {architectureStatus.resilience?.retry_max_delay ?? 0}s</p>
+                      <p>Open breakers: {(architectureStatus.resilience?.open_breakers || []).length}</p>
+                      {(architectureStatus.resilience?.breakers || []).length === 0 && <p className="note">No upstream calls recorded yet.</p>}
+                      {(architectureStatus.resilience?.breakers || []).map(b => (
+                        <p key={b.name}>{b.name}: <strong>{b.state}</strong> · fail {b.failures} · ok {b.successes} · rejected {b.rejections}{b.retry_after_seconds > 0 ? ` · retry in ${b.retry_after_seconds}s` : ''}</p>
+                      ))}
+                    </div>
+                    <div className="card">
+                      <h3>Rate limit &amp; tracing</h3>
+                      <p>Backend: {architectureStatus.rate_limit?.backend || '—'}</p>
+                      <p>Limit: {architectureStatus.rate_limit?.limit ?? 0} req / {architectureStatus.rate_limit?.window_seconds ?? 0}s</p>
+                      <p>Tracing: {architectureStatus.tracing?.enabled ? 'Enabled' : 'Disabled'}</p>
                     </div>
                   </div>
                 )}
@@ -1318,19 +1386,21 @@
                     </div>
 
                     <button className="btn btn-green" style={{width: '100%', padding: '12px', fontWeight: 'bold', fontSize: '0.9rem', borderRadius: 8, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} onClick={() => {
-                    const payload = {
-                    request_id: pipelineRequestId || 'req-auto-1',
-                    source: pipelineSource || 'client-terminal',
-                    security_level: pipelineSecurityLevel,
-                    destination: 'server-backend',
-                    proposed: proposedAlgs.length > 0 ? proposedAlgs : ['AES256_GCM'],
-                    originUrl: pipelineOriginUrl || 'http://192.168.18.18:8090/callback',
-                    data: JSON.parse(pipelineData)
-                    };
-                    runPipeline(payload);
+                    runPipeline(buildPipelinePayload());
                     }} disabled={loading}>
                     {loading ? '⚙ PROCESSING FLOW...' : '🚀 DEPLOY SEQUENTIAL ENCRYPTION'}
                     </button>
+                    <button className="btn btn-ghost" style={{width: '100%', padding: '10px', fontWeight: 'bold', fontSize: '0.8rem', borderRadius: 8, marginTop: 8}} onClick={() => {
+                    runPipelineAsync(buildPipelinePayload());
+                    }} disabled={loading}>
+                    ⚡ QUEUE ASYNC (202 + IDEMPOTENCY)
+                    </button>
+                    {pipelineJob && (
+                    <div style={{marginTop: 10, fontSize: '0.7rem', color: '#94a3b8', background: '#020617', border: '1px solid #1e293b', borderRadius: 6, padding: 8}}>
+                    <div>Job: <span style={{color: '#6ee7b7'}}>{pipelineJob.job_id}</span> · status: <strong>{pipelineJob.status}</strong>{pipelineJob.deduplicated ? ' · deduplicated' : ''}</div>
+                    <div>Idempotency key: {pipelineJob.idempotency_key || '—'}</div>
+                    </div>
+                    )}
                   </div>
 
                   <div className="panel" style={{margin: 0, padding: '1.5rem', background: '#0f172a'}}>

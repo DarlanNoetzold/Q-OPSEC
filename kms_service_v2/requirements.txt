@@ -8,4 +8,5 @@ numpy
 oqs
 psutil
 pydantic
+redis
 uvicorn[standard]

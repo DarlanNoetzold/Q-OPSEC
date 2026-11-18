@@ -23,9 +23,12 @@ class RabbitMQJobQueue:
         prefetch_count: int = 1,
         job_ttl_seconds: int = 604800,
         worker_count: int = 1,
+        max_attempts: int = 3,
     ):
         if worker_count < 1:
             raise ValueError("worker_count must be positive")
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be positive")
         self._redis = redis_client
         self._url = url
         self._queue_name = queue_name
@@ -34,6 +37,7 @@ class RabbitMQJobQueue:
         self._prefetch_count = prefetch_count
         self._job_ttl_seconds = job_ttl_seconds
         self._worker_count = worker_count
+        self._max_attempts = max_attempts
         self._connection = None
         self._channel = None
         self._queue = None
@@ -126,7 +130,7 @@ class RabbitMQJobQueue:
             raw = raw.decode("utf-8")
         return json.loads(raw)
 
-    async def stats(self) -> dict[str, int]:
+    async def stats(self, job_type: str | None = None) -> dict[str, int]:
         keys = [key async for key in self._redis.scan_iter(match="qopsec:jobs:*")]
         counts = {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
         for key in keys:
@@ -135,15 +139,48 @@ class RabbitMQJobQueue:
                 continue
             if isinstance(raw, bytes):
                 raw = raw.decode("utf-8")
-            status = json.loads(raw).get("status")
+            job = json.loads(raw)
+            if job_type is not None and job.get("job_type") != job_type:
+                continue
+            status = job.get("status")
             if status in counts:
                 counts[status] += 1
-        if self._queue is not None:
+        if self._queue is not None and job_type is None:
             try:
                 counts["queued"] = max(counts["queued"], (await self._queue.declaration_result).message_count)
             except Exception:
                 pass
         return counts
+
+    async def recover_stale(self, max_age_seconds: float = 300.0) -> int:
+        """Mark jobs left in ``running`` by a dead worker as failed.
+
+        A worker that dies mid-job (restart, OOM, kill) never writes the final
+        status, so the job stays ``running`` forever and the dashboard counter
+        never drains. Jobs older than ``max_age_seconds`` are considered orphaned.
+        """
+        cutoff = time.time() - max(0.0, max_age_seconds)
+        recovered = 0
+        keys = [key async for key in self._redis.scan_iter(match="qopsec:jobs:*")]
+        for key in keys:
+            raw = await self._redis.get(key)
+            if raw is None:
+                continue
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            job = json.loads(raw)
+            if job.get("status") != "running":
+                continue
+            if float(job.get("updated_at") or job.get("created_at") or 0) > cutoff:
+                continue
+            job.update(
+                status="failed",
+                error="Worker stopped while the job was running; marked failed on startup",
+                updated_at=time.time(),
+            )
+            await self._save(job)
+            recovered += 1
+        return recovered
 
     async def _save(self, job: dict[str, Any]) -> None:
         await self._redis.set(
@@ -156,26 +193,54 @@ class RabbitMQJobQueue:
     def _status_key(job_id: str) -> str:
         return f"qopsec:jobs:{job_id}"
 
-    async def _update(self, job_id: str, status: str, result: Any = None, error: str | None = None) -> None:
+    async def _update(self, job_id: str, status: str, result: Any = None, error: str | None = None,
+                      attempts: int | None = None) -> None:
         job = await self.get(job_id)
         if job is None:
             return
         job.update(status=status, result=result, error=error, updated_at=time.time())
+        if attempts is not None:
+            job["attempts"] = attempts
         await self._save(job)
 
     async def _on_message(self, message: Any) -> None:
-        async with message.process(requeue=True):
+        """Run one job with bounded retries.
+
+        A failing job used to be requeued forever (``requeue=True`` plus a re-raise),
+        which turned any permanent failure into a poison message that spun the
+        worker and never let the ``running`` counter drain. Now the attempt is
+        counted, retried up to ``max_attempts`` and then acknowledged as failed.
+        """
+        async with message.process(requeue=False):
             job = json.loads(message.body)
             job_id = job["job_id"]
             if self._handler is None:
                 raise RuntimeError("No RabbitMQ job handler is configured")
-            await self._update(job_id, "running")
+            attempts = int(job.get("attempts") or 0) + 1
+            job["attempts"] = attempts
+            await self._update(job_id, "running", attempts=attempts)
             try:
                 result = await self._handler(job)
             except Exception as exc:
-                await self._update(job_id, "failed", error=str(exc)[:2000])
-                raise
-            await self._update(job_id, "succeeded", result=result)
+                error = str(exc)[:2000]
+                if attempts < self._max_attempts:
+                    await self._update(job_id, "queued", error=error, attempts=attempts)
+                    await self._republish(job)
+                    return
+                await self._update(job_id, "failed", error=error, attempts=attempts)
+                return
+            await self._update(job_id, "succeeded", result=result, attempts=attempts)
+
+    async def _republish(self, job: dict[str, Any]) -> None:
+        if self._channel is None or self._queue is None:
+            return
+        message = Message(
+            json.dumps(job, separators=(",", ":"), ensure_ascii=False).encode("utf-8"),
+            delivery_mode=DeliveryMode.PERSISTENT,
+            content_type="application/json",
+            message_id=job["job_id"],
+        )
+        await self._channel.default_exchange.publish(message, routing_key=self._queue_name)
 
     async def health(self) -> dict[str, Any]:
         return {

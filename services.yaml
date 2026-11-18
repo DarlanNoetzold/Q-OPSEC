@@ -136,7 +136,8 @@ services:
   kms_service:
     base_url: http://192.168.18.18:8002
     cwd: ./kms_service_v2
-    env: {}
+    env:
+      QOPSEC_KMS_SESSION_BACKEND: redis
     health: http://127.0.0.1:8002/health
     log_file: ./logs/kms_service.log
     pid_file: ./logs/kms_service.pid
@@ -271,6 +272,18 @@ startup_order:
 - qopsec_rabbitmq
 - qopsec_prometheus
 - qopsec_grafana
+- kms_service
+- key_destination_engine
+- crypto_module
+- validation_send_api
+- handshake_negotiator
+- risk_service
+- confiability_service
+- context_api
+- classification_agent
+- rl_engine
+- interceptor_api
+autostart_services:
 - kms_service
 - key_destination_engine
 - crypto_module

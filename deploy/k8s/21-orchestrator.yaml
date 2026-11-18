@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qopsec-orchestrator
+  namespace: qopsec
+  labels:
+    app.kubernetes.io/name: qopsec-orchestrator
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qopsec-orchestrator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qopsec-orchestrator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: qopsec-orchestrator
+      containers:
+        - name: orchestrator
+          image: ghcr.io/darlannoetzold/qopsec-orchestrator:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: qopsec-config
+            - secretRef:
+                name: qopsec-secrets
+          readinessProbe:
+            httpGet:
+              path: /architecture/status
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /architecture/status
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /architecture/status
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qopsec-orchestrator
+  namespace: qopsec
+  labels:
+    app.kubernetes.io/name: qopsec-orchestrator
+spec:
+  selector:
+    app.kubernetes.io/name: qopsec-orchestrator
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qopsec-orchestrator
+  namespace: qopsec
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qopsec-orchestrator
+  minReplicas: 2
+  maxReplicas: 30
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+    - type: External
+      external:
+        metric:
+          name: qopsec_pipeline_queue_depth
+        target:
+          type: Value
+          value: "20"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: qopsec-orchestrator
+  namespace: qopsec
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qopsec-orchestrator
