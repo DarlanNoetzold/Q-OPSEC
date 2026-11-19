@@ -37,7 +37,6 @@ spec:
         - name: kms
           image: ghcr.io/darlannoetzold/qopsec-kms:1.0.0
           imagePullPolicy: IfNotPresent
-          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8002

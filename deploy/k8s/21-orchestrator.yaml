@@ -37,7 +37,6 @@ spec:
         - name: orchestrator
           image: ghcr.io/darlannoetzold/qopsec-orchestrator:1.0.0
           imagePullPolicy: IfNotPresent
-          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8081
@@ -46,6 +45,11 @@ spec:
                 name: qopsec-config
             - secretRef:
                 name: qopsec-secrets
+          env:
+            # No cluster os 11 serviços de processo não existem na imagem;
+            # cada um terá seu próprio Deployment. Autostart fica desligado.
+            - name: QOPSEC_AUTOSTART_SERVICES
+              value: ""
           readinessProbe:
             httpGet:
               path: /architecture/status

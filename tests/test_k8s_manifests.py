@@ -28,6 +28,33 @@ def load_docs():
     return docs
 
 
+class _StrictLoader(yaml.SafeLoader):
+    """SafeLoader que recusa chaves duplicadas no mesmo mapeamento."""
+
+
+def _construct_mapping(loader, node, deep=False):
+    seen = set()
+    for key_node, _ in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in seen:
+            raise yaml.constructor.ConstructorError(
+                None, None, f"chave duplicada: {key}", key_node.start_mark
+            )
+        seen.add(key)
+    return yaml.SafeLoader.construct_mapping(loader, node, deep=deep)
+
+
+_StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_mapping)
+
+
+@pytest.mark.parametrize("path", sorted(K8S_DIR.glob("*.yaml")), ids=lambda p: p.name)
+def test_manifest_has_no_duplicate_keys(path):
+    try:
+        list(yaml.load_all(path.read_text(encoding="utf-8"), Loader=_StrictLoader))
+    except yaml.constructor.ConstructorError as exc:
+        pytest.fail(f"{path.name}: {exc}")
+
+
 DOCS = load_docs()
 
 
@@ -63,7 +90,12 @@ def test_every_document_has_identity(filename, doc):
 def test_namespaced_objects_live_in_qopsec(filename, doc):
     if kind_of(doc) in CLUSTER_SCOPED:
         return
-    assert ns_of(doc) == NAMESPACE, f"{filename}: {kind_of(doc)}/{name_of(doc)} fora do namespace {NAMESPACE}"
+    namespace = ns_of(doc)
+    if namespace == "kube-system":
+        # O adapter precisa ler extension-apiserver-authentication no kube-system.
+        assert kind_of(doc) == "RoleBinding", f"{filename}: só RoleBinding pode ir para kube-system"
+        return
+    assert namespace == NAMESPACE, f"{filename}: {kind_of(doc)}/{name_of(doc)} fora do namespace {NAMESPACE}"
 
 
 def test_no_duplicate_objects():
@@ -212,6 +244,17 @@ def test_prometheus_adapter_serves_external_metrics_apiservice():
     for doc in apiservices:
         assert doc["spec"]["service"]["name"] == "prometheus-adapter"
         assert doc["spec"]["service"]["namespace"] == NAMESPACE
+
+
+def test_prometheus_adapter_has_rbac_for_apiserver_auth():
+    bindings = {(kind_of(d), name_of(d)): d for _, d in by_kind("ClusterRoleBinding", "RoleBinding")}
+    delegator = bindings.get(("ClusterRoleBinding", "qopsec-prometheus-adapter-auth-delegator"))
+    assert delegator, "falta ClusterRoleBinding para system:auth-delegator"
+    assert delegator["roleRef"]["name"] == "system:auth-delegator"
+    reader = bindings.get(("RoleBinding", "qopsec-prometheus-adapter-auth-reader"))
+    assert reader, "falta RoleBinding para extension-apiserver-authentication-reader"
+    assert reader["metadata"]["namespace"] == "kube-system"
+    assert reader["roleRef"]["name"] == "extension-apiserver-authentication-reader"
 
 
 def test_prometheus_scrapes_the_workloads():

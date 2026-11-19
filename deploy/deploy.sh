@@ -77,7 +77,13 @@ deploy_k8s() {
   local dry="${1:-}"
   say "validando manifests em $K8S_DIR"
   if [ "$dry" = "--dry-run" ]; then
-    kubectl apply --dry-run=server -f "$K8S_DIR"/
+    # O server-side dry-run precisa do namespace existente para resolver os objetos.
+    kubectl apply -f "$K8S_DIR/00-namespace.yaml" >/dev/null
+    kubectl apply --dry-run=server \
+      -f "$K8S_DIR/01-config.yaml" -f "$K8S_DIR/10-redis.yaml" -f "$K8S_DIR/11-rabbitmq.yaml" \
+      -f "$K8S_DIR/20-kms.yaml" -f "$K8S_DIR/21-orchestrator.yaml" \
+      -f "$K8S_DIR/22-prometheus-adapter.yaml" -f "$K8S_DIR/23-prometheus.yaml" \
+      -f "$K8S_DIR/30-ingress.yaml"
     return 0
   fi
   say "aplicando namespace e configuração"

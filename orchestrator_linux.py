@@ -195,7 +195,7 @@ def docker_container_exists(name: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return name in out.decode().strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 def docker_container_labels(name: str) -> List[str]:
@@ -217,7 +217,7 @@ def docker_container_running(name: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return name in out.decode().strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 def docker_get_container_id(name: str) -> Optional[str]:
@@ -228,7 +228,7 @@ def docker_get_container_id(name: str) -> Optional[str]:
         )
         container_id = out.decode().strip()
         return container_id if container_id else None
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 def docker_image_exists(image: str) -> bool:
@@ -238,7 +238,7 @@ def docker_image_exists(image: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return bool(out.decode().strip())
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 async def docker_pull_image(image: str) -> Dict[str, Any]:
@@ -991,6 +991,9 @@ async def _startup():
             continue
         if not cfg or not cfg.get("image"):
             continue
+        if not docker_available():
+            # Em cluster (k8s) não há docker dentro do pod; a infra vem de fora.
+            break
         container_name = cfg.get("container_name", name)
         if docker_container_exists(container_name):
             if docker_container_running(container_name):
@@ -1066,6 +1069,9 @@ async def _startup():
                 }
 
     autostart = CONFIG.get("autostart_services") or []
+    override = os.environ.get("QOPSEC_AUTOSTART_SERVICES")
+    if override is not None:
+        autostart = [name.strip() for name in override.split(",") if name.strip()]
     if autostart:
         asyncio.create_task(_autostart_services(list(autostart)), name="qopsec-autostart")
 
