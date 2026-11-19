@@ -9,6 +9,7 @@ antes de mexer na área correspondente.
 | [01-escala-horizontal.md](01-escala-horizontal.md) | O que já foi implementado para escala (KMS stateless, fila, resiliência, rate limit, deploy) e como validar |
 | [02-estado-atual.md](02-estado-atual.md) | Fotografia da arquitetura: serviços, portas, pipeline, resiliência, observabilidade, dados e deploy |
 | [03-deploy.md](03-deploy.md) | Como fazer o deploy nos três alvos (pm2, compose, kubernetes), verificação e rollback |
+| [04-retomada.md](04-retomada.md) | Handoff: estado na pausa, o que falta, como retomar em cinco comandos |
 
 ## Como usar
 
