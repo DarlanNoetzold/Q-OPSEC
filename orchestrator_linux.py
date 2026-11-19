@@ -17,9 +17,9 @@ import subprocess
 import httpx
 import uvicorn
 import yaml
-from fastapi import FastAPI, HTTPException, Body, Query, Request
+from fastapi import FastAPI, HTTPException, Body, Header, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse, Response
-from prometheus_client import CollectorRegistry, Gauge
+from prometheus_client import CollectorRegistry, Counter, Gauge
 from prometheus_client.exposition import generate_latest
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
@@ -28,9 +28,13 @@ from redis.asyncio import Redis
 import aio_pika
 from common.rabbitmq_jobs import RabbitMQJobQueue
 from common.redis_cache import RedisTTLCache
+from common.rate_limit import RateLimitMiddleware, build_failover_limiter
+from common.resilience import BreakerRegistry, CircuitOpenError, ResilientHTTPClient, RetryPolicy
+from common.tracing import setup_tracing, tracing_enabled
 
 APP = FastAPI(title="Q-OPSEC Orchestrator", version="0.6.0-linux-docker")
 Instrumentator().instrument(APP).expose(APP)
+setup_tracing(APP, service_name="qopsec-orchestrator")
 
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_PATH = BASE_DIR / "services.yaml"
@@ -64,6 +68,28 @@ APP.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+PIPELINE_BREAKERS = BreakerRegistry(
+    failure_threshold=int(os.environ.get("QOPSEC_BREAKER_FAILURE_THRESHOLD", "5")),
+    reset_timeout=float(os.environ.get("QOPSEC_BREAKER_RESET_SECONDS", "30")),
+)
+PIPELINE_RETRY = RetryPolicy(
+    attempts=int(os.environ.get("QOPSEC_RETRY_ATTEMPTS", "3")),
+    base_delay=float(os.environ.get("QOPSEC_RETRY_BASE_DELAY", "0.2")),
+    max_delay=float(os.environ.get("QOPSEC_RETRY_MAX_DELAY", "5")),
+)
+RATE_LIMITER = build_failover_limiter(
+    lambda: REDIS_CLIENT,
+    window_seconds=int(os.environ.get("QOPSEC_RATE_LIMIT_WINDOW_SECONDS", "60")),
+    limit=int(os.environ.get("QOPSEC_RATE_LIMIT_REQUESTS", "600")),
+)
+APP.add_middleware(
+    RateLimitMiddleware,
+    limiter=RATE_LIMITER,
+    paths=tuple(
+        p.strip() for p in os.environ.get("QOPSEC_RATE_LIMIT_PATHS", "/run-pipeline").split(",") if p.strip()
+    ),
 )
 
 def get_swagger_url(cfg: Dict[str, Any], name: str) -> Optional[str]:
@@ -169,7 +195,7 @@ def docker_container_exists(name: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return name in out.decode().strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 def docker_container_labels(name: str) -> List[str]:
@@ -191,7 +217,7 @@ def docker_container_running(name: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return name in out.decode().strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 def docker_get_container_id(name: str) -> Optional[str]:
@@ -202,7 +228,7 @@ def docker_get_container_id(name: str) -> Optional[str]:
         )
         container_id = out.decode().strip()
         return container_id if container_id else None
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 def docker_image_exists(image: str) -> bool:
@@ -212,7 +238,7 @@ def docker_image_exists(image: str) -> bool:
             stderr=subprocess.DEVNULL
         )
         return bool(out.decode().strip())
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 async def docker_pull_image(image: str) -> Dict[str, Any]:
@@ -547,6 +573,9 @@ def service_cfg(name: str) -> Dict[str, Any]:
 
 def env_for_service(cfg: Dict[str, Any]) -> Dict[str, str]:
     env = os.environ.copy()
+    if not env.get("QOPSEC_REDIS_URL") and env.get("QOPSEC_REDIS_PASSWORD"):
+        password = quote(env["QOPSEC_REDIS_PASSWORD"], safe="")
+        env["QOPSEC_REDIS_URL"] = f"redis://:{password}@127.0.0.1:6380/0"
     for k, v in (cfg.get("env") or {}).items():
         env[str(k)] = str(v)
     return env
@@ -859,6 +888,10 @@ async def _refresh_architecture_metrics() -> None:
     job_stats = await JOB_QUEUE.stats()
     for status, gauge in ARCH_JOBS.items():
         gauge.set(job_stats[status])
+    pipeline_stats = await JOB_QUEUE.stats(job_type="pipeline")
+    for status, gauge in ARCH_PIPELINE_JOBS.items():
+        gauge.set(pipeline_stats[status])
+    ARCH_BREAKERS_OPEN.set(len(PIPELINE_BREAKERS.open_breakers()))
 
 
 async def _metrics_refresh_loop() -> None:
@@ -916,6 +949,21 @@ async def _dependency_ready(name: str) -> bool:
     return True
 
 
+async def _autostart_services(names: list) -> None:
+    await asyncio.sleep(float(os.environ.get("QOPSEC_AUTOSTART_DELAY_SECONDS", "2")))
+    interval = float(os.environ.get("QOPSEC_AUTOSTART_INTERVAL_SECONDS", "1"))
+    for name in names:
+        cfg = CONFIG.get("services", {}).get(name) or {}
+        if cfg.get("type") == "docker":
+            continue
+        try:
+            result = await start_service(name)
+            print(f"[STARTUP] autostart {name}: {result.get('status')}", flush=True)
+        except Exception as exc:
+            print(f"[STARTUP] autostart {name} failed: {exc}", flush=True)
+        await asyncio.sleep(interval)
+
+
 @APP.on_event("startup")
 async def _startup():
     global CACHE, REDIS_CLIENT, JOB_QUEUE, _METRICS_TASK
@@ -951,6 +999,9 @@ async def _startup():
             continue
         if not cfg or not cfg.get("image"):
             continue
+        if not docker_available():
+            # Em cluster (k8s) não há docker dentro do pod; a infra vem de fora.
+            break
         container_name = cfg.get("container_name", name)
         if docker_container_exists(container_name):
             if docker_container_running(container_name):
@@ -988,8 +1039,14 @@ async def _startup():
         handler=_run_background_job,
         worker_count=int(os.environ.get("QOPSEC_RABBITMQ_WORKERS", "4")),
         prefetch_count=int(os.environ.get("QOPSEC_RABBITMQ_PREFETCH", "1")),
+        max_attempts=int(os.environ.get("QOPSEC_JOB_MAX_ATTEMPTS", "3")),
     )
     await JOB_QUEUE.start()
+    recovered = await JOB_QUEUE.recover_stale(
+        float(os.environ.get("QOPSEC_JOB_STALE_SECONDS", "300"))
+    )
+    if recovered:
+        print(f"[STARTUP] Marked {recovered} orphaned running job(s) as failed", flush=True)
     _METRICS_TASK = asyncio.create_task(_metrics_refresh_loop(), name="qopsec-architecture-metrics")
     for name, cfg in CONFIG.get("services", {}).items():
         service_type = cfg.get("type", "process")
@@ -1018,6 +1075,13 @@ async def _startup():
                     "log_file": cfg.get("log_file"),
                     "health": cfg.get("health"),
                 }
+
+    autostart = CONFIG.get("autostart_services") or []
+    override = os.environ.get("QOPSEC_AUTOSTART_SERVICES")
+    if override is not None:
+        autostart = [name.strip() for name in override.split(",") if name.strip()]
+    if autostart:
+        asyncio.create_task(_autostart_services(list(autostart)), name="qopsec-autostart")
 
 @APP.on_event("shutdown")
 async def _shutdown():
@@ -1419,7 +1483,40 @@ ARCH_JOBS = {
     status: Gauge(f"qopsec_jobs_{status}", f"Background jobs with status {status}", registry=ARCH_METRICS_REGISTRY)
     for status in ("queued", "running", "succeeded", "failed")
 }
+ARCH_PIPELINE_JOBS = {
+    status: Gauge(f"qopsec_pipeline_jobs_{status}", f"Async pipeline jobs with status {status}", registry=ARCH_METRICS_REGISTRY)
+    for status in ("queued", "running", "succeeded", "failed")
+}
+ARCH_PIPELINE_REQUESTS = Counter(
+    "qopsec_pipeline_requests_total",
+    "Async pipeline submissions by outcome",
+    ["result"],
+    registry=ARCH_METRICS_REGISTRY,
+)
+ARCH_BREAKERS_OPEN = Gauge(
+    "qopsec_circuit_breakers_open",
+    "Circuit breakers currently open",
+    registry=ARCH_METRICS_REGISTRY,
+)
+ARCH_RATE_LIMIT = Counter(
+    "qopsec_rate_limit_decisions_total",
+    "Rate limit decisions by outcome",
+    ["result"],
+    registry=ARCH_METRICS_REGISTRY,
+)
+
+
+def _record_rate_limit_decision(decision) -> None:
+    ARCH_RATE_LIMIT.labels(result="allowed" if decision.allowed else "rejected").inc()
+
+
+RATE_LIMITER.on_decision = _record_rate_limit_decision
 _METRICS_TASK: Optional[asyncio.Task] = None
+PIPELINE_IDEMPOTENCY_PREFIX = "qopsec:pipeline:idempotency:"
+
+
+def _pipeline_idempotency_ttl() -> int:
+    return max(60, int(os.environ.get("QOPSEC_PIPELINE_IDEMPOTENCY_TTL_SECONDS", "86400")))
 
 
 def _cache_ttl_seconds() -> float:
@@ -1451,7 +1548,37 @@ async def _run_background_job(job: Dict[str, Any]) -> Dict[str, Any]:
         if return_code != 0:
             raise RuntimeError(f"Training process exited with code {return_code}; see {log_path}")
         return {"service": service_name, "exit_code": return_code, "log_file": str(log_path)}
+    if job_type == "pipeline":
+        result = await run_pipeline(payload)
+        return {
+            "request_id": (result.get("final_data") or {}).get("request_id"),
+            "steps": len(result.get("pipeline_results") or []),
+            "failed_steps": [
+                step.get("service") for step in (result.get("pipeline_results") or [])
+                if step.get("status") == "error"
+            ],
+            "result": _redact_pipeline_result(result),
+        }
     raise ValueError(f"Unsupported background job type: {job_type}")
+
+
+SENSITIVE_RESULT_KEYS = {
+    "key_material", "keymaterial", "private_key", "privatekey",
+    "secret", "password", "token", "api_key", "apikey",
+}
+
+
+def _redact_pipeline_result(value: Any) -> Any:
+    """Drop key material and credentials before a pipeline result is persisted."""
+    if isinstance(value, dict):
+        return {
+            key: _redact_pipeline_result(item)
+            for key, item in value.items()
+            if str(key).lower() not in SENSITIVE_RESULT_KEYS
+        }
+    if isinstance(value, list):
+        return [_redact_pipeline_result(item) for item in value]
+    return value
 
 
 def _metrics_cache_key(url: str, headers: Dict[str, str]) -> str:
@@ -1506,6 +1633,7 @@ async def architecture_status():
     rabbit_status = await JOB_QUEUE.health() if JOB_QUEUE is not None else {"connected": False, "queue": "qopsec.jobs"}
     cache_status = await CACHE.stats() if CACHE is not None else {"entries": 0, "hits": 0, "misses": 0, "evictions": 0}
     job_status = await JOB_QUEUE.stats() if JOB_QUEUE is not None else {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
+    pipeline_status = await JOB_QUEUE.stats(job_type="pipeline") if JOB_QUEUE is not None else {"queued": 0, "running": 0, "succeeded": 0, "failed": 0}
     redis_container = CONFIG.get("services", {}).get("qopsec_redis", {}).get("container_name", "qopsec-redis")
     rabbit_container = CONFIG.get("services", {}).get("qopsec_rabbitmq", {}).get("container_name", "qopsec-rabbitmq")
     return {
@@ -1514,6 +1642,36 @@ async def architecture_status():
         "rabbitmq": {"connected": bool(rabbit_status.get("connected")), "queue": rabbit_status.get("queue"), "container_running": docker_container_running(rabbit_container)},
         "cache": cache_status,
         "jobs": job_status,
+        "pipeline": {
+            "async_endpoint": "/run-pipeline/async",
+            "idempotency_ttl_seconds": _pipeline_idempotency_ttl(),
+            "jobs": pipeline_status,
+        },
+        "resilience": {
+            "retry_attempts": PIPELINE_RETRY.attempts,
+            "retry_base_delay": PIPELINE_RETRY.base_delay,
+            "retry_max_delay": PIPELINE_RETRY.max_delay,
+            "open_breakers": PIPELINE_BREAKERS.open_breakers(),
+            "breakers": [
+                {
+                    "name": snapshot.name,
+                    "state": snapshot.state,
+                    "failures": snapshot.failures,
+                    "successes": snapshot.successes,
+                    "rejections": snapshot.rejections,
+                    "retry_after_seconds": snapshot.retry_after_seconds,
+                    "last_error": snapshot.last_error,
+                }
+                for snapshot in PIPELINE_BREAKERS.snapshots()
+            ],
+        },
+        "rate_limit": {
+            "backend": RATE_LIMITER.last_backend,
+            "configured_backend": RATE_LIMITER.backend,
+            "limit": RATE_LIMITER._limit,
+            "window_seconds": RATE_LIMITER._window,
+        },
+        "tracing": {"enabled": tracing_enabled()},
         "checked_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -1971,8 +2129,9 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
         for k, v in current_data.items():
             if isinstance(v, str) and "10.0.0.5" in v:
                 current_data[k] = v.replace("10.0.0.5", "192.168.18.18")
+    async with httpx.AsyncClient(timeout=30.0) as raw_client:
+        client = ResilientHTTPClient(raw_client, registry=PIPELINE_BREAKERS, policy=PIPELINE_RETRY)
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
         for step in pipeline:
             name = step["name"]
             
@@ -2088,6 +2247,27 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                 if isinstance(payload, dict):
                     payload["request_id"] = request_id
                     payload["requestId"] = request_id
+
+                if name == "handshake_negotiator":
+                    proposed = current_data.get("proposed") or current_data.get("algorithms") or [
+                        "ML-KEM-768", "X25519", "AES256_GCM"
+                    ]
+                    if isinstance(proposed, str):
+                        proposed = [proposed]
+                    proposed = [str(alg) for alg in proposed if str(alg).strip()] or ["AES256_GCM"]
+
+                    src = current_data.get("source")
+                    src_id = src.get("ip") if isinstance(src, dict) else src
+                    dst = current_data.get("destination")
+                    dst_url = dst.get("ip") if isinstance(dst, dict) else dst
+
+                    payload = {
+                        "request_id": request_id,
+                        "source": str(src_id or host_ip),
+                        "destination": str(dst_url or f"http://{host_ip}:8005/validation/send"),
+                        "proposed": proposed,
+                        "dst_props": {"algorithms": proposed},
+                    }
 
                 if name == "validation_send_api":
                     negotiation = current_data.get("negotiation") or {}
@@ -2250,12 +2430,26 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
                     api_key = svc.get("env", {}).get("CLASSIFY_API_KEY") or os.environ.get("CLASSIFY_API_KEY", "your-api-key-for-authentication")
                     headers["X-API-Key"] = api_key
 
-                response = await client.request(
-                    method=step["method"],
-                    url=url,
-                    json=payload,
-                    headers=headers
-                )
+                try:
+                    response = await client.request(
+                        method=step["method"],
+                        url=url,
+                        json=payload,
+                        headers=headers
+                    )
+                except CircuitOpenError as exc:
+                    print(f"[{request_id}] {name.upper()} | CIRCUIT_OPEN | {exc}", flush=True)
+                    step_result["status"] = "error"
+                    step_result["error"] = str(exc)
+                    results.append(step_result)
+                    break
+                except httpx.HTTPStatusError as exc:
+                    print(f"[{request_id}] {name.upper()} | UPSTREAM_ERROR | {exc}", flush=True)
+                    step_result["status"] = "error"
+                    step_result["status_code"] = exc.response.status_code
+                    step_result["error"] = str(exc)
+                    results.append(step_result)
+                    break
 
                 if response.status_code == 200:
                     print(f"[{request_id}] {name.upper()} | SUCCESS | status=200", flush=True)
@@ -2525,8 +2719,107 @@ async def run_pipeline(data: Dict[str, Any] = Body(...)):
     }
 
 
+def _pipeline_idempotency_key(explicit: Optional[str], payload: Dict[str, Any]) -> str:
+    if explicit and explicit.strip():
+        return explicit.strip()
+    request_id = payload.get("request_id") or payload.get("requestId")
+    if request_id:
+        return f"request:{request_id}"
+    digest = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode()
+    ).hexdigest()
+    return f"payload:{digest}"
 
 
+async def _claim_pipeline_idempotency(key: str, token: str) -> Optional[str]:
+    """Reserve an idempotency key. Returns the job id already bound to it, if any."""
+    if REDIS_CLIENT is None:
+        return None
+    redis_key = f"{PIPELINE_IDEMPOTENCY_PREFIX}{key}"
+    claimed = await REDIS_CLIENT.set(
+        redis_key, f"pending:{token}", nx=True, ex=_pipeline_idempotency_ttl()
+    )
+    if claimed:
+        return None
+    for _ in range(20):
+        value = await REDIS_CLIENT.get(redis_key)
+        if value is None:
+            return None
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
+        if not value.startswith("pending:"):
+            return value
+        await asyncio.sleep(0.05)
+    return None
+
+
+async def _bind_pipeline_idempotency(key: str, job_id: str) -> None:
+    if REDIS_CLIENT is None:
+        return
+    await REDIS_CLIENT.set(
+        f"{PIPELINE_IDEMPOTENCY_PREFIX}{key}", job_id, ex=_pipeline_idempotency_ttl()
+    )
+
+
+@APP.post("/run-pipeline/async", status_code=202)
+async def run_pipeline_async(
+    data: Dict[str, Any] = Body(...),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+):
+    """Queue the pipeline and return 202 with a job id.
+
+    Replaying the same ``Idempotency-Key`` (or the same ``request_id``) returns the
+    original job instead of running the pipeline again.
+    """
+    if JOB_QUEUE is None:
+        raise HTTPException(status_code=503, detail="Background queue is not available")
+    key = _pipeline_idempotency_key(idempotency_key, data)
+    token = uuid4().hex
+    existing_job_id = await _claim_pipeline_idempotency(key, token)
+    if existing_job_id:
+        ARCH_PIPELINE_REQUESTS.labels(result="deduplicated").inc()
+        job = await JOB_QUEUE.get(existing_job_id)
+        return {
+            "job_id": existing_job_id,
+            "status": (job or {}).get("status", "unknown"),
+            "idempotency_key": key,
+            "deduplicated": True,
+            "poll_url": f"/pipeline/jobs/{existing_job_id}",
+        }
+    try:
+        job_id = await JOB_QUEUE.enqueue("pipeline", data)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Could not enqueue pipeline job: {exc}")
+    await _bind_pipeline_idempotency(key, job_id)
+    ARCH_PIPELINE_REQUESTS.labels(result="accepted").inc()
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "idempotency_key": key,
+        "deduplicated": False,
+        "poll_url": f"/pipeline/jobs/{job_id}",
+    }
+
+
+@APP.get("/pipeline/jobs/stats")
+async def pipeline_job_stats():
+    if JOB_QUEUE is None:
+        raise HTTPException(status_code=503, detail="Background queue is not available")
+    return {
+        "jobs": await JOB_QUEUE.stats(job_type="pipeline"),
+        "idempotency_ttl_seconds": _pipeline_idempotency_ttl(),
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@APP.get("/pipeline/jobs/{job_id}")
+async def pipeline_job_status(job_id: str):
+    if JOB_QUEUE is None:
+        raise HTTPException(status_code=503, detail="Background queue is not available")
+    job = await JOB_QUEUE.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Pipeline job not found")
+    return job
 
 
 @APP.post("/monitoring/start")

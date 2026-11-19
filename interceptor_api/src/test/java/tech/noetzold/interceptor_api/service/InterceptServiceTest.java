@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import tech.noetzold.interceptor_api.client.ContextApiClient;
@@ -30,6 +31,7 @@ class InterceptServiceTest {
     @Mock ContextApiClient contextApiClient;
     @Mock InterceptedMessageRepository messageRepo;
     @Mock RestTemplate restTemplate;
+    @Mock ThreadPoolTaskScheduler forwardScheduler;
     @InjectMocks InterceptService service;
     private ObjectMapper objectMapper;
 
@@ -37,7 +39,9 @@ class InterceptServiceTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(service, "objectMapper", objectMapper);
+        ReflectionTestUtils.setField(service, "forwardScheduler", forwardScheduler);
         ReflectionTestUtils.setField(service, "forwardDelayMs", 0L);
+        ReflectionTestUtils.setField(service, "maxForwardAttempts", 3);
         ReflectionTestUtils.setField(service, "classificationApiUrl", "http://classification.test/predict");
     }
 
@@ -83,6 +87,7 @@ class InterceptServiceTest {
         assertEquals("destination-1", contextRequest.getValue().getDestinationId());
         assertEquals("hello", contextRequest.getValue().getContent());
         assertEquals("test", contextRequest.getValue().getMetadata().get("channel"));
+        verify(forwardScheduler).schedule(any(Runnable.class), any(java.time.Instant.class));
     }
 
     @Test

@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'qopsec-orchestrator'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['orchestrator:8081']
+
+  - job_name: 'qopsec-orchestrator-architecture'
+    metrics_path: '/architecture-metrics'
+    static_configs:
+      - targets: ['orchestrator:8081']
+
+  - job_name: 'qopsec-kms'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['kms:8002']

@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
 import asyncio
+import tempfile
 import yaml
 import orchestrator_linux as orchestrator
 
@@ -37,11 +38,14 @@ class ManagedDockerServiceTests(IsolatedAsyncioTestCase):
             captured["args"] = args
             return Process()
 
-        with patch.dict("os.environ", {"TEST_REDIS_SECRET": "example-secret"}), \
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(orchestrator, "BASE_DIR", Path(tmp).resolve()), \
+             patch.dict("os.environ", {"TEST_REDIS_SECRET": "example-secret"}), \
              patch.object(orchestrator, "docker_container_exists", return_value=False), \
              patch.object(orchestrator, "docker_image_exists", return_value=True), \
              patch.object(orchestrator, "docker_running", return_value=True), \
              patch.object(orchestrator.asyncio, "create_subprocess_exec", side_effect=fake_create_subprocess_exec):
+            (Path(tmp) / "logs" / "qopsec-redis").mkdir(parents=True)
             result = asyncio.run(orchestrator.docker_start_container(config))
 
         self.assertEqual("started", result["status"])

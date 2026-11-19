@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qopsec-config
+  namespace: qopsec
+data:
+  QOPSEC_KMS_SESSION_BACKEND: "redis"
+  QOPSEC_KMS_SESSION_PREFIX: "qopsec:kms:session:"
+  QOPSEC_RATE_LIMIT_REQUESTS: "600"
+  QOPSEC_RATE_LIMIT_WINDOW_SECONDS: "60"
+  QOPSEC_RATE_LIMIT_PATHS: "/run-pipeline"
+  QOPSEC_PIPELINE_IDEMPOTENCY_TTL_SECONDS: "86400"
+  QOPSEC_BREAKER_FAILURE_THRESHOLD: "5"
+  QOPSEC_BREAKER_RESET_SECONDS: "30"
+  QOPSEC_RETRY_ATTEMPTS: "3"
+  QOPSEC_RETRY_BASE_DELAY: "0.2"
+  QOPSEC_RETRY_MAX_DELAY: "5"
+  QOPSEC_TRACING_ENABLED: "auto"
+  QOPSEC_TRACE_SAMPLE_RATIO: "0.1"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qopsec-secrets
+  namespace: qopsec
+type: Opaque
+stringData:
+  QOPSEC_REDIS_PASSWORD: "<REDIS_PASSWORD>"
+  QOPSEC_RABBITMQ_USER: "<RABBITMQ_USER>"
+  QOPSEC_RABBITMQ_PASSWORD: "<RABBITMQ_PASSWORD>"
+  QOPSEC_REDIS_URL: "redis://:<REDIS_PASSWORD>@qopsec-redis:6379/0"
+  QOPSEC_RABBITMQ_URL: "amqp://<RABBITMQ_USER>:<RABBITMQ_PASSWORD>@qopsec-rabbitmq:5672/"

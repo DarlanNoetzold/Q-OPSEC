@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qopsec
+  namespace: qopsec
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: qopsec.local
+      http:
+        paths:
+          - path: /kms
+            pathType: Prefix
+            backend:
+              service:
+                name: qopsec-kms
+                port:
+                  number: 8002
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qopsec-orchestrator
+                port:
+                  number: 8081

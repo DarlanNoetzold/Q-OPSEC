@@ -125,7 +125,7 @@ class RabbitMQJobQueueTests(unittest.IsolatedAsyncioTestCase):
         )
         statuses = []
 
-        async def update(job_id, status, result=None, error=None):
+        async def update(job_id, status, result=None, error=None, attempts=None):
             statuses.append((job_id, status, result, error))
 
         queue._update = update
@@ -146,6 +146,53 @@ class RabbitMQJobQueueTests(unittest.IsolatedAsyncioTestCase):
         await queue._on_message(Message())
         self.assertEqual(["running", "succeeded"], [item[1] for item in statuses])
         self.assertEqual({"accepted": True}, statuses[-1][2])
+
+    async def test_failing_job_is_retried_then_marked_failed_without_requeue(self):
+        redis = AsyncMock()
+        queue = RabbitMQJobQueue(
+            redis,
+            "amqp://guest:guest@localhost/",
+            handler=AsyncMock(side_effect=RuntimeError("boom")),
+            max_attempts=2,
+        )
+        statuses = []
+        republished = []
+
+        async def update(job_id, status, result=None, error=None, attempts=None):
+            statuses.append((status, attempts))
+
+        async def republish(job):
+            republished.append(job["attempts"])
+
+        queue._update = update
+        queue._republish = republish
+        requeue_flags = []
+
+        class Message:
+            attempts = 0
+            body = json.dumps({"job_id": "abc", "attempts": 0}).encode()
+
+            class Process:
+                async def __aenter__(self):
+                    return None
+
+                async def __aexit__(self, *_args):
+                    return False
+
+            def process(self, requeue=True):
+                requeue_flags.append(requeue)
+                return self.Process()
+
+        await queue._on_message(Message())
+        self.assertEqual([False], requeue_flags)
+        self.assertEqual([1], republished)
+        self.assertEqual([("running", 1), ("queued", 1)], statuses)
+
+        statuses.clear()
+        Message.body = json.dumps({"job_id": "abc", "attempts": 1}).encode()
+        await queue._on_message(Message())
+        self.assertEqual([("running", 2), ("failed", 2)], statuses)
+        self.assertEqual([1], republished)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+.git
+.gitignore
+.hermes
+qopsec_env
+logs
+**/logs
+**/target
+**/__pycache__
+**/*.pyc
+datasets
+risk_service_V2/output
+load/report
+load/*.jtl
+docs
+*.log
+*.pid

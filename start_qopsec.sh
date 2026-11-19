@@ -31,4 +31,9 @@ if [ -z "$QOPSEC_REDIS_PASSWORD" ] || [ -z "$QOPSEC_RABBITMQ_USER" ] || [ -z "$Q
     echo "ERRO: configure QOPSEC_REDIS_PASSWORD, QOPSEC_RABBITMQ_USER e QOPSEC_RABBITMQ_PASSWORD em $SECRETS_FILE" >&2
     exit 1
 fi
+
+# Tracing OTLP para o coletor gerenciado (qopsec_otel_collector).
+# Desligue com QOPSEC_TRACING_ENABLED=false no ambiente.
+export QOPSEC_TRACING_ENABLED="${QOPSEC_TRACING_ENABLED:-true}"
+export QOPSEC_OTLP_ENDPOINT="${QOPSEC_OTLP_ENDPOINT:-http://127.0.0.1:4318/v1/traces}"
 exec python3 orchestrator_linux.py
