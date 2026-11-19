@@ -12,7 +12,7 @@ Complementa `02-estado-atual.md` (arquitetura) e `03-deploy.md` (deploy).
 | Suíte Python | 166 passed (`./qopsec_env/bin/python -m pytest tests/ -q`) |
 | Testes Maven | 40 passed (validation 12, context 17, interceptor 11) |
 | pm2 | `q-opsec` online, 10 restarts |
-| Pipeline | `{queued: 0, running: 0, succeeded: 123, failed: 0}` |
+| Pipeline | `{queued: 0, running: 0, succeeded: 124, failed: 0}` |
 | Breakers | `[]` (nenhum aberto) |
 | Rate limit | backend `redis` |
 | Tracing | `enabled: true` |
