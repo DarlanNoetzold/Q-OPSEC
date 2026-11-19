@@ -134,20 +134,25 @@ docker run --rm qopsec-kms:dev python -c "import main; print('ok')"
 ## KB-005 — Manifests k8s nunca aplicados
 
 **Status:** parcial em 2026-11-18
-**Arquivos:** `deploy/k8s/*.yaml`, `tests/test_k8s_manifests.py`
+**Arquivos:** `deploy/k8s/*.yaml`, `deploy/kind-config.yaml`, `tests/test_k8s_manifests.py`
 
-**Problema:** os 8 arquivos passam por parse de YAML e têm kind/name conferidos, mas nunca foram
-aplicados: não há `kubectl` nesta máquina. Probes, PDB, `topologySpreadConstraints` e o HPA externo
-não foram exercitados.
+**Problema:** os manifests nunca tinham sido aplicados num cluster.
 
-**Resolução parcial:** `tests/test_k8s_manifests.py` valida os 29 documentos estaticamente — identidade
-de cada objeto, namespace, ausência de duplicatas, `selector.matchLabels` casando com os labels do pod,
-`targetPort` de cada Service resolvendo para uma porta do container, HPA/PDB/Ingress apontando para
-objetos existentes, `resources.requests`/`limits`, probes de readiness e liveness, imagem com tag fixa
-(sem `:latest`) e o `APIService` de `external.metrics.k8s.io` servido pelo adapter. Três defeitos
-reais apareceram e foram corrigidos: `prometheus-adapter` sem `livenessProbe`, e as duas imagens
-`qopsec-kms`/`qopsec-orchestrator` em `:latest` (agora `:1.0.0` com `imagePullPolicy: IfNotPresent`).
-Falta o apply num cluster real.
+**Resolução parcial:** `kind` v0.24.0 e `kubectl` v1.31.4 instalados em `/usr/local/bin`; cluster
+`qopsec` criado com 3 nós (`deploy/kind-config.yaml`, Ingress em 18080/18443) e imagens carregadas.
+`kubectl apply --dry-run=server` passou nos 29 documentos e o apply real criou namespace, config,
+StatefulSets de Redis e RabbitMQ (PVCs Bound), Prometheus e os dois Deployments com HPA e PDB.
+No cluster: `qopsec-kms` 2/2 Running, `prometheus` 1/1, `redis` e `rabbitmq` 1/1.
+
+Três defeitos reais apareceram só no cluster e foram corrigidos: `imagePullPolicy` duplicado nos dois
+Deployments, `prometheus-adapter` sem `ClusterRoleBinding` para `system:auth-delegator` nem
+`RoleBinding` para `extension-apiserver-authentication-reader` no `kube-system`, e o orchestrator
+chamando o CLI `docker` dentro do pod (`FileNotFoundError` derrubava o startup). O autostart dos 11
+serviços passou a ser desligável por `QOPSEC_AUTOSTART_SERVICES`.
+
+**Falta:** recarregar a imagem corrigida no cluster e aplicar o RBAC novo do adapter — ambos barrados
+pelo gate por serem alteração de cluster em execução. Depois disso, `kubectl rollout status` e o
+`APIService` `v1beta2.external.metrics.k8s.io` devem ficar `Available=True`.
 
 **Aceite:** `kubectl apply -k`/`-f` sem erro, pods `Ready`, `kubectl rollout status` concluído e HPA
 listando as duas métricas.
