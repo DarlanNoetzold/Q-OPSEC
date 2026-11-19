@@ -11,9 +11,10 @@ Nada aqui foi commitado: o trabalho da sessão está no working tree.
 | KB-002 | `.block()` no fim das cadeias reativas do `context_api` | context_api | concluído |
 | KB-003 | Prometheus não existe no namespace `qopsec` (HPA externo depende dele) | deploy/k8s | parcial |
 | KB-004 | Imagens Docker nunca foram buildadas nem publicadas | deploy | concluído |
-| KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | aberto |
+| KB-005 | Manifests k8s nunca aplicados; HPA externo não validado | deploy/k8s | parcial |
 | KB-006 | Teste de carga JMeter nunca executado | load | concluído |
-| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | concluído || KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
+| KB-007 | pgBouncer e réplica de leitura reais na frente do Postgres | dados | concluído |
+| KB-008 | Backend Redis do KMS validado só contra cliente falso | kms_service_v2 | concluído |
 | KB-009 | Rate limit distribuído validado só contra cliente falso | common | concluído |
 | KB-010 | Tracing OpenTelemetry sem pacotes instalados e sem coletor | observabilidade | concluído |
 | KB-011 | Dashboard nunca aberto no navegador após as mudanças | dashboard | concluído |
@@ -132,12 +133,21 @@ docker run --rm qopsec-kms:dev python -c "import main; print('ok')"
 
 ## KB-005 — Manifests k8s nunca aplicados
 
-**Status:** aberto
-**Arquivos:** `deploy/k8s/*.yaml`
+**Status:** parcial em 2026-11-18
+**Arquivos:** `deploy/k8s/*.yaml`, `tests/test_k8s_manifests.py`
 
 **Problema:** os 8 arquivos passam por parse de YAML e têm kind/name conferidos, mas nunca foram
 aplicados: não há `kubectl` nesta máquina. Probes, PDB, `topologySpreadConstraints` e o HPA externo
 não foram exercitados.
+
+**Resolução parcial:** `tests/test_k8s_manifests.py` valida os 29 documentos estaticamente — identidade
+de cada objeto, namespace, ausência de duplicatas, `selector.matchLabels` casando com os labels do pod,
+`targetPort` de cada Service resolvendo para uma porta do container, HPA/PDB/Ingress apontando para
+objetos existentes, `resources.requests`/`limits`, probes de readiness e liveness, imagem com tag fixa
+(sem `:latest`) e o `APIService` de `external.metrics.k8s.io` servido pelo adapter. Três defeitos
+reais apareceram e foram corrigidos: `prometheus-adapter` sem `livenessProbe`, e as duas imagens
+`qopsec-kms`/`qopsec-orchestrator` em `:latest` (agora `:1.0.0` com `imagePullPolicy: IfNotPresent`).
+Falta o apply num cluster real.
 
 **Aceite:** `kubectl apply -k`/`-f` sem erro, pods `Ready`, `kubectl rollout status` concluído e HPA
 listando as duas métricas.
@@ -408,3 +418,4 @@ curl -s -X POST -H 'Content-Type: application/json' -H "Idempotency-Key: kb14-$(
 | KB-012 | Commit e restart do pm2 | 2026-11-18 | commit `c8539aa`, 50 arquivos |
 | KB-006 | Carga no pipeline assíncrono | 2026-11-18 | 100 req, 100% 202, p95 25 ms, fila drenada |
 | KB-007 | pgBouncer 6432 + réplica 5433 | 2026-11-18 | `pg_is_in_recovery=t`, escrita replicada, `replica_configured: true` |
+| KB-005 | Validação estática dos manifests k8s | 2026-11-18 | `tests/test_k8s_manifests.py`, 98 passed, 29 documentos |

@@ -35,7 +35,8 @@ spec:
               app.kubernetes.io/name: qopsec-orchestrator
       containers:
         - name: orchestrator
-          image: ghcr.io/darlannoetzold/qopsec-orchestrator:latest
+          image: ghcr.io/darlannoetzold/qopsec-orchestrator:1.0.0
+          imagePullPolicy: IfNotPresent
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

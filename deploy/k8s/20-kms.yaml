@@ -35,7 +35,8 @@ spec:
               app.kubernetes.io/name: qopsec-kms
       containers:
         - name: kms
-          image: ghcr.io/darlannoetzold/qopsec-kms:latest
+          image: ghcr.io/darlannoetzold/qopsec-kms:1.0.0
+          imagePullPolicy: IfNotPresent
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
