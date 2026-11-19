@@ -7,6 +7,7 @@ antes de mexer na área correspondente.
 | --- | --- |
 | [00-pendencias.md](00-pendencias.md) | Backlog técnico aberto, com evidência, critério de aceite e comando de verificação |
 | [01-escala-horizontal.md](01-escala-horizontal.md) | O que já foi implementado para escala (KMS stateless, fila, resiliência, rate limit, deploy) e como validar |
+| [02-estado-atual.md](02-estado-atual.md) | Fotografia da arquitetura: serviços, portas, pipeline, resiliência, observabilidade, dados e deploy |
 
 ## Como usar
 
