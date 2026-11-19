@@ -59,6 +59,9 @@ Serviços principais após a instalação (localhost):
 | RabbitMQ mgmt      | http://127.0.0.1:15673 (user: qopsec) |
 | context_api        | 65534 ・ interceptor_api 8080 ・ validation_send_api 8005 |
 
+> Tutorial completo (passo a passo, verificação, atualização e problemas comuns):
+> [`docs/INSTALL_WINDOWS.md`](docs/INSTALL_WINDOWS.md).
+
 ### 0.2 Sobre as branches
 
 - A branch `main` é o desenvolvimento padrão, com IP de rede fixo (`192.168.18.18`).
@@ -104,6 +107,9 @@ bash ~/Q-OPSEC/start_qopsec_linux.sh                     # iniciar tudo
 bash ~/Q-OPSEC/stop_qopsec_linux.sh                       # parar tudo
 bash ~/Q-OPSEC/stop_qopsec_linux.sh --remove-containers   # parar e remover postgres/mongo/mosquitto
 ```
+
+> Tutorial completo (passo a passo, verificação, atualização e problemas comuns):
+> [`docs/INSTALL_LINUX.md`](docs/INSTALL_LINUX.md).
 
 ## 1. SYSTEM OVERVIEW
 The Q-OPSEC (Quantum-safe Operational Security) project is a framework designed for adaptive cryptography and risk-driven security orchestration. It integrates Reinforcement Learning (RL) agents, Post-Quantum Cryptography (PQC) Key Management, and automated traffic interception to provide a dynamic defense mechanism against evolving threats. The system architecture enforces a pessimistic security posture, prioritizing high-risk signals to determine protective actions.

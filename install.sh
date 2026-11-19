@@ -102,13 +102,11 @@ fi
 
 step "[3/9] Ajustando services.yaml para host local"
 SVY="$INSTALL_DIR/services.yaml"
-if [ -f "$SVY.orig" ]; then
-    echo "  backup ja existente (services.yaml.orig)"
-else
+if [ ! -f "$SVY.orig" ]; then
     cp "$SVY" "$SVY.orig"
-    sed -i 's/192\.168\.18\.18/127.0.0.1/g' "$SVY"
-    ok "base_url 192.168.18.18 -> 127.0.0.1"
 fi
+sed -i 's/192\.168\.18\.18/127.0.0.1/g' "$SVY"
+ok "base_url 192.168.18.18 -> 127.0.0.1"
 
 step "[4/9] Segredos locais (Redis/RabbitMQ)"
 SECRETS_DIR="$HOME/.config/qopsec"

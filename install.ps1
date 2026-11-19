@@ -232,12 +232,9 @@ Write-Ok 'Dependencias Python instaladas'
 Write-Step '[4/8] Ajustando services.yaml para o host local'
 
 $svcYaml = Join-Path $InstallDir 'services.yaml'
-if (Test-Path "$svcYaml.orig") { Write-Ok 'backup ja existente (services.yaml.orig)' }
-else {
-    Copy-Item $svcYaml "$svcYaml.orig"
-    (Get-Content $svcYaml -Raw) -replace '192\.168\.18\.18', '127.0.0.1' | Set-Content $svcYaml -NoNewline
-    Write-Ok '192.168.18.18 substituido por 127.0.0.1 (backup em services.yaml.orig)'
-}
+if (-not (Test-Path "$svcYaml.orig")) { Copy-Item $svcYaml "$svcYaml.orig" }
+(Get-Content $svcYaml -Raw) -replace '192\.168\.18\.18', '127.0.0.1' | Set-Content $svcYaml -NoNewline
+Write-Ok '192.168.18.18 substituido por 127.0.0.1 (backup em services.yaml.orig)'
 
 # ---------------------------------------------------------------- 5. secrets locais
 Write-Step '[5/8] Gerando segredos locais (Redis/RabbitMQ)'
